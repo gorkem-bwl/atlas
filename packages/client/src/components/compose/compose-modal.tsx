@@ -13,11 +13,14 @@ import {
 import DOMPurify from 'dompurify';
 import { useEmailStore } from '../../stores/email-store';
 import { useAuthStore } from '../../stores/auth-store';
+import { useDraftStore } from '../../stores/draft-store';
 import { useThread } from '../../hooks/use-threads';
 import { Button } from '../ui/button';
+import { RecipientInput } from './recipient-input';
 import { formatBytes } from '../../lib/format';
 import { formatFullDate } from '@atlasmail/shared';
 import type { Email, EmailAddress } from '@atlasmail/shared';
+import type { Recipient } from '../../lib/mock-contacts';
 import type { CSSProperties } from 'react';
 import type { Editor } from '@tiptap/react';
 
@@ -82,55 +85,9 @@ function buildForwardBody(email: Email): string {
   return `${header}${escapeHtml(email.bodyText || '')}`;
 }
 
-// ─── Recipient field ──────────────────────────────────────────────────
-
-interface ComposeField {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (v: string) => void;
-}
-
-function RecipientField({ label, value, placeholder, onChange }: ComposeField) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--spacing-sm)',
-        padding: 'var(--spacing-sm) var(--spacing-lg)',
-        borderBottom: '1px solid var(--color-border-primary)',
-      }}
-    >
-      <label
-        style={{
-          fontSize: 'var(--font-size-sm)',
-          color: 'var(--color-text-tertiary)',
-          fontFamily: 'var(--font-family)',
-          width: 28,
-          flexShrink: 0,
-        }}
-      >
-        {label}
-      </label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{
-          flex: 1,
-          background: 'transparent',
-          border: 'none',
-          outline: 'none',
-          color: 'var(--color-text-primary)',
-          fontSize: 'var(--font-size-md)',
-          fontFamily: 'var(--font-family)',
-          padding: '2px 0',
-        }}
-      />
-    </div>
-  );
+// Convert a plain email address string into a Recipient object
+function addressToRecipient(address: string, name?: string): Recipient {
+  return name ? { name, address } : { address };
 }
 
 // ─── Format toolbar ───────────────────────────────────────────────────
@@ -275,23 +232,51 @@ function FormatToolbar({ editor }: { editor: Editor | null }) {
   );
 }
 
+// ─── Draft saved indicator ────────────────────────────────────────────
+
+function DraftSavedBadge({ visible }: { visible: boolean }) {
+  return (
+    <span
+      aria-live="polite"
+      style={{
+        fontSize: 'var(--font-size-xs)',
+        color: 'var(--color-text-tertiary)',
+        fontFamily: 'var(--font-family)',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 400ms ease',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    >
+      Draft saved
+    </span>
+  );
+}
+
 // ─── Compose modal ────────────────────────────────────────────────────
 
 export function ComposeModal() {
   const { composeMode, composeThreadId, closeCompose } = useEmailStore();
   const account = useAuthStore((s) => s.account);
+  const { saveDraft, updateDraft, deleteDraft, setActiveDraftId } = useDraftStore();
   const isOpen = composeMode !== null;
 
   const { data: thread } = useThread(composeThreadId);
 
-  const [to, setTo] = useState('');
-  const [cc, setCc] = useState('');
-  const [bcc, setBcc] = useState('');
+  const [toRecipients, setToRecipients] = useState<Recipient[]>([]);
+  const [ccRecipients, setCcRecipients] = useState<Recipient[]>([]);
+  const [bccRecipients, setBccRecipients] = useState<Recipient[]>([]);
   const [subject, setSubject] = useState('');
   const [showCcBcc, setShowCcBcc] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [draftSavedVisible, setDraftSavedVisible] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftSavedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks whether we have created a draft entry for this compose session
+  const draftIdRef = useRef<string | null>(null);
 
   // We use a ref to hold the pending content so the editor can pick it up once ready
   const pendingContentRef = useRef<string | null>(null);
@@ -338,7 +323,76 @@ export function ComposeModal() {
     },
   });
 
-  // Prefill fields when compose opens with a thread context
+  // ─── Auto-save logic ──────────────────────────────────────────────
+
+  const showDraftSavedIndicator = useCallback(() => {
+    setDraftSavedVisible(true);
+    if (draftSavedTimerRef.current) clearTimeout(draftSavedTimerRef.current);
+    draftSavedTimerRef.current = setTimeout(() => setDraftSavedVisible(false), 2000);
+  }, []);
+
+  const persistDraft = useCallback(() => {
+    if (!composeMode) return;
+    const bodyHtml = editor?.getHTML() ?? '';
+    const draftData = {
+      composeMode,
+      threadId: composeThreadId,
+      toRecipients,
+      ccRecipients,
+      bccRecipients,
+      subject,
+      bodyHtml,
+    };
+
+    if (draftIdRef.current) {
+      updateDraft(draftIdRef.current, draftData);
+    } else {
+      const id = saveDraft(draftData);
+      draftIdRef.current = id;
+      setActiveDraftId(id);
+    }
+    showDraftSavedIndicator();
+  }, [
+    composeMode,
+    composeThreadId,
+    toRecipients,
+    ccRecipients,
+    bccRecipients,
+    subject,
+    editor,
+    updateDraft,
+    saveDraft,
+    setActiveDraftId,
+    showDraftSavedIndicator,
+  ]);
+
+  // Schedule a debounced auto-save whenever recipient/subject state changes
+  useEffect(() => {
+    if (!isOpen) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(persistDraft, 3000);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+    // persistDraft is stable thanks to useCallback — excluding it to avoid infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, toRecipients, ccRecipients, bccRecipients, subject]);
+
+  // Also debounce auto-save on editor content changes
+  useEffect(() => {
+    if (!editor || !isOpen) return;
+    const handler = () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(persistDraft, 3000);
+    };
+    editor.on('update', handler);
+    return () => {
+      editor.off('update', handler);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, isOpen]);
+
+  // ─── Prefill fields when compose opens with a thread context ──────
   // editor is intentionally excluded from deps — we use pendingContentRef for the async case
   useEffect(() => {
     if (!composeMode || composeMode === 'new' || !thread?.emails?.length) {
@@ -346,8 +400,8 @@ export function ComposeModal() {
     }
 
     // Reset all fields before repopulating
-    setTo('');
-    setCc('');
+    setToRecipients([]);
+    setCcRecipients([]);
     setSubject('');
     setShowCcBcc(false);
 
@@ -366,7 +420,7 @@ export function ComposeModal() {
     if (composeMode === 'reply') {
       const replyAddr = lastEmail.replyTo || lastEmail.fromAddress;
       if (replyAddr !== myEmail) {
-        setTo(replyAddr);
+        setToRecipients([addressToRecipient(replyAddr, lastEmail.fromName ?? undefined)]);
       }
       setSubject(addSubjectPrefix(thread.subject, 'Re'));
       applyBody(buildQuotedBody(lastEmail));
@@ -375,7 +429,7 @@ export function ComposeModal() {
     if (composeMode === 'reply_all') {
       const replyAddr = lastEmail.replyTo || lastEmail.fromAddress;
       if (replyAddr !== myEmail) {
-        setTo(replyAddr);
+        setToRecipients([addressToRecipient(replyAddr, lastEmail.fromName ?? undefined)]);
       }
 
       const allRecipients = [...lastEmail.toAddresses, ...lastEmail.ccAddresses].filter(
@@ -383,7 +437,7 @@ export function ComposeModal() {
       );
 
       if (allRecipients.length > 0) {
-        setCc(formatAddressList(allRecipients));
+        setCcRecipients(allRecipients.map((a) => addressToRecipient(a.address, a.name ?? undefined)));
         setShowCcBcc(true);
       }
 
@@ -398,23 +452,47 @@ export function ComposeModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [composeMode, thread, account?.email]);
 
+  // ─── Close / send ─────────────────────────────────────────────────
+
   const handleClose = useCallback(() => {
+    // Cancel any pending auto-save timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+    // Keep the draft in the store — the user can resume later
+    setActiveDraftId(null);
+    draftIdRef.current = null;
+
     closeCompose();
-    setTo('');
-    setCc('');
-    setBcc('');
+    setToRecipients([]);
+    setCcRecipients([]);
+    setBccRecipients([]);
     setSubject('');
     setShowCcBcc(false);
     setAttachments([]);
     setDragActive(false);
+    setDraftSavedVisible(false);
     pendingContentRef.current = null;
     editor?.commands.clearContent();
-  }, [closeCompose, editor]);
+  }, [closeCompose, editor, setActiveDraftId]);
 
   const handleSend = useCallback(() => {
+    // Delete the draft when the email is actually sent
+    if (draftIdRef.current) {
+      deleteDraft(draftIdRef.current);
+      draftIdRef.current = null;
+    }
     // TODO: wire up send mutation
     handleClose();
-  }, [handleClose]);
+  }, [handleClose, deleteDraft]);
+
+  // Reset the draft tracking ref whenever the modal opens fresh
+  useEffect(() => {
+    if (isOpen) {
+      draftIdRef.current = null;
+    }
+  }, [isOpen]);
 
   // Handle Cmd+Enter to send from anywhere in the modal
   useEffect(() => {
@@ -429,7 +507,16 @@ export function ComposeModal() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isOpen, handleSend]);
 
-  // File attachment handlers
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (draftSavedTimerRef.current) clearTimeout(draftSavedTimerRef.current);
+    };
+  }, []);
+
+  // ─── File attachment handlers ─────────────────────────────────────
+
   const handleFilesAdded = useCallback((files: FileList | File[]) => {
     setAttachments((prev) => [...prev, ...Array.from(files)]);
   }, []);
@@ -558,15 +645,19 @@ export function ComposeModal() {
           {/* Recipient fields */}
           <div style={{ flexShrink: 0 }}>
             <div style={{ position: 'relative' }}>
-              <RecipientField label="To" value={to} onChange={setTo} placeholder="Recipients" />
+              <RecipientInput
+                label="To"
+                recipients={toRecipients}
+                onChange={setToRecipients}
+                placeholder="Recipients"
+              />
               <button
                 onClick={() => setShowCcBcc(!showCcBcc)}
                 aria-label="Toggle CC and BCC fields"
                 style={{
                   position: 'absolute',
                   right: 'var(--spacing-lg)',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
+                  top: 10,
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
@@ -584,11 +675,16 @@ export function ComposeModal() {
             </div>
             {showCcBcc && (
               <>
-                <RecipientField label="Cc" value={cc} onChange={setCc} placeholder="CC recipients" />
-                <RecipientField
+                <RecipientInput
+                  label="Cc"
+                  recipients={ccRecipients}
+                  onChange={setCcRecipients}
+                  placeholder="CC recipients"
+                />
+                <RecipientInput
                   label="Bcc"
-                  value={bcc}
-                  onChange={setBcc}
+                  recipients={bccRecipients}
+                  onChange={setBccRecipients}
                   placeholder="BCC recipients"
                 />
               </>
@@ -790,6 +886,9 @@ export function ComposeModal() {
                 onChange={handleFileInputChange}
                 style={{ display: 'none' }}
               />
+
+              {/* Draft saved indicator */}
+              <DraftSavedBadge visible={draftSavedVisible} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>

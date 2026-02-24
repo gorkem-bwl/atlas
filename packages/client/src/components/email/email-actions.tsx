@@ -1,7 +1,8 @@
-import { Reply, CornerUpLeft, Forward, Archive, Trash2, Star, MailOpen } from 'lucide-react';
+import { Reply, CornerUpLeft, Forward, Archive, Trash2, Star, MailOpen, Clock } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
-import { useArchiveThread, useTrashThread, useToggleStar } from '../../hooks/use-threads';
+import { useArchiveThread, useTrashThread, useToggleStar, useSnoozeThread } from '../../hooks/use-threads';
 import { Tooltip } from '../ui/tooltip';
+import { SnoozePopover } from './snooze-popover';
 import type { Thread } from '@atlasmail/shared';
 
 interface EmailActionsProps {
@@ -24,6 +25,7 @@ export function EmailActions({ thread, onMarkUnread }: EmailActionsProps) {
   const archiveMutation = useArchiveThread();
   const trashMutation = useTrashThread();
   const starMutation = useToggleStar();
+  const snoozeMutation = useSnoozeThread();
 
   const actions: ActionButton[] = [
     {
@@ -65,6 +67,9 @@ export function EmailActions({ thread, onMarkUnread }: EmailActionsProps) {
       active: thread.isStarred,
       activeColor: 'var(--color-star)',
     },
+  ];
+
+  const afterSnoozeActions: ActionButton[] = [
     {
       icon: MailOpen,
       label: 'Mark unread',
@@ -72,6 +77,80 @@ export function EmailActions({ thread, onMarkUnread }: EmailActionsProps) {
       action: () => onMarkUnread?.(),
     },
   ];
+
+  function renderActionButton({
+    icon: Icon,
+    label,
+    shortcut,
+    action,
+    active,
+    activeColor,
+    destructive,
+  }: ActionButton) {
+    return (
+      <Tooltip
+        key={label}
+        content={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+            {label}
+            {shortcut && (
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  opacity: 0.7,
+                }}
+              >
+                {shortcut}
+              </span>
+            )}
+          </span>
+        }
+        side="bottom"
+      >
+        <button
+          onClick={action}
+          aria-label={label}
+          aria-pressed={active}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            background: 'transparent',
+            color: active
+              ? activeColor || 'var(--color-accent-primary)'
+              : destructive
+              ? 'var(--color-text-tertiary)'
+              : 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            transition: 'background var(--transition-fast), color var(--transition-fast)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--color-surface-hover)';
+            if (destructive) e.currentTarget.style.color = 'var(--color-error)';
+            else if (!active) e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = active
+              ? activeColor || 'var(--color-accent-primary)'
+              : destructive
+              ? 'var(--color-text-tertiary)'
+              : 'var(--color-text-secondary)';
+          }}
+        >
+          <Icon
+            size={16}
+            fill={active && activeColor === 'var(--color-star)' ? 'var(--color-star)' : 'none'}
+          />
+        </button>
+      </Tooltip>
+    );
+  }
 
   return (
     <div
@@ -87,31 +166,28 @@ export function EmailActions({ thread, onMarkUnread }: EmailActionsProps) {
         flexShrink: 0,
       }}
     >
-      {actions.map(({ icon: Icon, label, shortcut, action, active, activeColor, destructive }) => (
+      {actions.map(renderActionButton)}
+
+      {/* Snooze — between Star and Mark unread */}
+      <SnoozePopover
+        threadId={thread.id}
+        onSnooze={(threadId, snoozeUntil) => {
+          snoozeMutation.mutate({ threadId, snoozeUntil: snoozeUntil.toISOString() });
+        }}
+      >
         <Tooltip
-          key={label}
           content={
             <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-              {label}
-              {shortcut && (
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    opacity: 0.7,
-                  }}
-                >
-                  {shortcut}
-                </span>
-              )}
+              Snooze
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', opacity: 0.7 }}>
+                H
+              </span>
             </span>
           }
           side="bottom"
         >
           <button
-            onClick={action}
-            aria-label={label}
-            aria-pressed={active}
+            aria-label="Snooze"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -121,35 +197,25 @@ export function EmailActions({ thread, onMarkUnread }: EmailActionsProps) {
               border: 'none',
               borderRadius: 'var(--radius-md)',
               background: 'transparent',
-              color: active
-                ? activeColor || 'var(--color-accent-primary)'
-                : destructive
-                ? 'var(--color-text-tertiary)'
-                : 'var(--color-text-secondary)',
+              color: 'var(--color-text-secondary)',
               cursor: 'pointer',
               transition: 'background var(--transition-fast), color var(--transition-fast)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'var(--color-surface-hover)';
-              if (destructive) e.currentTarget.style.color = 'var(--color-error)';
-              else if (!active) e.currentTarget.style.color = 'var(--color-text-primary)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = active
-                ? activeColor || 'var(--color-accent-primary)'
-                : destructive
-                ? 'var(--color-text-tertiary)'
-                : 'var(--color-text-secondary)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
             }}
           >
-            <Icon
-              size={16}
-              fill={active && activeColor === 'var(--color-star)' ? 'var(--color-star)' : 'none'}
-            />
+            <Clock size={16} />
           </button>
         </Tooltip>
-      ))}
+      </SnoozePopover>
+
+      {afterSnoozeActions.map(renderActionButton)}
     </div>
   );
 }
