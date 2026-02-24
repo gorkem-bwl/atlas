@@ -1,0 +1,170 @@
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-tertiary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Dialog/Modal styles */
+.dialog-overlay {
+  background-color: var(--color-bg-overlay);
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  animation: overlayShow 200ms ease;
+}
+
+.dialog-content {
+  background-color: var(--color-bg-elevated);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--color-border-primary);
+  color: var(--color-text-primary);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 51;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Dropdown styles */
+.dropdown-content {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xs);
+  min-width: 180px;
+  z-index: 50;
+}
+
+.dropdown-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dropdown-item:hover,
+.dropdown-item[data-highlighted] {
+  background-color: var(--color-surface-hover);
+}
+
+/* Tooltip styles */
+.tooltip-content {
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  z-index: 100;
+}
+
+/* Command palette */
+.command-palette-overlay {
+  background-color: var(--color-bg-overlay);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.command-palette-content {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 560px;
+  max-height: 400px;
+  z-index: 101;
+  overflow: hidden;
+}
+
+.command-palette-input {
+  width: 100%;
+  padding: var(--spacing-lg);
+  border: none;
+  border-bottom: 1px solid var(--color-border-primary);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  outline: none;
+}
+
+.command-palette-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.command-palette-list {
+  overflow-y: auto;
+  max-height: 340px;
+  padding: var(--spacing-xs);
+}
+
+.command-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.command-palette-item:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.command-label {
+  font-size: var(--font-size-md);
+}
+
+/* Keyboard shortcut display */
+.shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.shortcut-key-part {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--spacing-xs);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+@keyframes overlayShow {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

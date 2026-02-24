@@ -1,0 +1,28 @@
+{
+  "name": "@atlasmail/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "electron .",
+    "build": "tsc && electron-builder",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.6.0",
+    "googleapis": "^144.0.0",
+    "google-auth-library": "^9.15.0",
+    "electron-updater": "^6.3.0",
+    "electron-log": "^5.2.0",
+    "uuid": "^11.0.0",
+    "date-fns": "^4.1.0",
+    "@atlasmail/shared": "*"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0",
+    "typescript": "^5.6.0",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

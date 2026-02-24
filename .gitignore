@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+*.db
+*.sqlite
+coverage/
+out/
+*.png
+.playwright-mcp/
+.claude/

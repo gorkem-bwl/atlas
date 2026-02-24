@@ -1,0 +1,46 @@
+{
+  "name": "@atlasmail/server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'lint ok'",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "express": "^5.0.0",
+    "drizzle-orm": "^0.36.0",
+    "pg": "^8.13.0",
+    "drizzle-kit": "^0.28.0",
+    "googleapis": "^144.0.0",
+    "google-auth-library": "^9.15.0",
+    "jsonwebtoken": "^9.0.0",
+    "bullmq": "^5.25.0",
+    "ioredis": "^5.4.0",
+    "helmet": "^8.0.0",
+    "cors": "^2.8.0",
+    "express-rate-limit": "^7.4.0",
+    "zod": "^3.24.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "dotenv": "^16.4.0",
+    "uuid": "^11.0.0",
+    "date-fns": "^4.1.0",
+    "@atlasmail/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0",
+    "@types/express": "^5.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/cors": "^2.8.0",
+    "@types/uuid": "^10.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
