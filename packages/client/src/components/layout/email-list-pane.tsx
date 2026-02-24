@@ -1,10 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useEmailStore } from '../../stores/email-store';
-import { useThreads, useToggleStar, useArchiveThread, useTrashThread } from '../../hooks/use-threads';
+import { useThreads, useToggleStar, useArchiveThread, useTrashThread, useArchiveWithUndo, useTrashWithUndo } from '../../hooks/use-threads';
 import { EmailListItem } from '../email/email-list-item';
 import { BulkActions } from '../email/bulk-actions';
 import { SearchBar } from '../search/search-bar';
+import { EmptyState } from '../ui/empty-state';
+import { EmailListSkeleton } from '../ui/skeleton';
 import type { EmailCategory, Thread } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
 
@@ -41,6 +43,8 @@ export function EmailListPane() {
   const toggleStar = useToggleStar();
   const archiveMutation = useArchiveThread();
   const trashMutation = useTrashThread();
+  const archiveWithUndo = useArchiveWithUndo();
+  const trashWithUndo = useTrashWithUndo();
   const [searchQuery, setSearchQuery] = useState('');
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   // Keep a stable ref to the current displayed threads list so the cursor event
@@ -98,21 +102,23 @@ export function EmailListPane() {
 
   const handleArchiveClick = useCallback(
     (threadId: string) => {
-      archiveMutation.mutate(threadId);
+      archiveWithUndo(threadId, activeCategory);
     },
-    [archiveMutation],
+    [archiveWithUndo, activeCategory],
   );
 
   const handleTrashClick = useCallback(
     (threadId: string) => {
-      trashMutation.mutate(threadId);
+      trashWithUndo(threadId, activeCategory);
     },
-    [trashMutation],
+    [trashWithUndo, activeCategory],
   );
 
   const handleSnoozeClick = useCallback(
     (threadId: string) => {
-      console.log('Snooze thread:', threadId);
+      document.dispatchEvent(
+        new CustomEvent('atlasmail:snooze', { detail: { threadId } }),
+      );
     },
     [],
   );
@@ -197,6 +203,7 @@ export function EmailListPane() {
 
       {/* Search bar */}
       <div
+        role="search"
         style={{
           padding: 'var(--spacing-sm) var(--spacing-md)',
           borderBottom: '1px solid var(--color-border-primary)',
@@ -226,39 +233,16 @@ export function EmailListPane() {
       {/* Thread list */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         {isLoading ? (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: 'var(--color-text-tertiary)',
-              fontSize: 'var(--font-size-md)',
-              fontFamily: 'var(--font-family)',
-            }}
-          >
-            Loading...
-          </div>
+          <EmailListSkeleton />
         ) : displayThreads.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: 'var(--color-text-tertiary)',
-              fontFamily: 'var(--font-family)',
-              gap: 'var(--spacing-sm)',
-            }}
-          >
-            <span style={{ fontSize: 'var(--font-size-lg)' }}>
-              {searchQuery ? 'No results found' : 'All caught up'}
-            </span>
-            <span style={{ fontSize: 'var(--font-size-sm)' }}>
-              {searchQuery ? `No conversations match "${searchQuery}"` : 'No conversations in this category'}
-            </span>
-          </div>
+          <EmptyState
+            type={searchQuery ? 'search' : 'inbox'}
+            description={
+              searchQuery
+                ? `No conversations match "${searchQuery}"`
+                : undefined
+            }
+          />
         ) : (
           <Virtuoso
             ref={virtuosoRef}

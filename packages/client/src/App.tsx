@@ -9,6 +9,7 @@ import { LoginPage } from './pages/login';
 import { OAuthCallback } from './components/auth/oauth-callback';
 import { SettingsPage } from './pages/settings';
 import { CommandPalette } from './components/ui/command-palette';
+import { ErrorBoundary } from './components/ui/error-boundary';
 import { useEffect, type ReactNode } from 'react';
 
 const DEV_MODE = import.meta.env.DEV && !import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -72,28 +73,30 @@ export function App() {
         <ShortcutProvider>
           <BrowserRouter>
             <DevAuthInit />
-            <Routes>
-              <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-              <Route path={ROUTES.AUTH_CALLBACK} element={<OAuthCallback />} />
-              <Route
-                path={ROUTES.INBOX}
-                element={
-                  <ProtectedRoute>
-                    <InboxPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.SETTINGS}
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to={ROUTES.INBOX} replace />} />
-            </Routes>
-            <CommandPalette />
+            <ErrorBoundary>
+              <Routes>
+                <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.AUTH_CALLBACK} element={<OAuthCallback />} />
+                <Route
+                  path={ROUTES.INBOX}
+                  element={
+                    <ProtectedRoute>
+                      <InboxPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.SETTINGS}
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to={ROUTES.INBOX} replace />} />
+              </Routes>
+              <CommandPalette />
+            </ErrorBoundary>
           </BrowserRouter>
         </ShortcutProvider>
       </ThemeProvider>

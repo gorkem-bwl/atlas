@@ -22,6 +22,12 @@ export interface SnoozePopoverProps {
 function getLaterToday(): Date {
   const d = new Date();
   d.setHours(d.getHours() + 3, 0, 0, 0);
+  // Cap at 11 PM today — if the result spills past midnight, clamp to today's end
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 0, 0, 0);
+  if (d > endOfDay) {
+    return endOfDay;
+  }
   return d;
 }
 

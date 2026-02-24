@@ -4,6 +4,7 @@ import { EmailListPane } from '../components/layout/email-list-pane';
 import { ReadingPane } from '../components/layout/reading-pane';
 import { ComposeModal } from '../components/compose/compose-modal';
 import { ToastContainer } from '../components/ui/toast';
+import { SettingsModal } from '../components/settings/settings-modal';
 import { useEmailStore } from '../stores/email-store';
 import { useUIStore } from '../stores/ui-store';
 import { useShortcut, useShortcutEngine } from '../providers/shortcut-provider';
@@ -11,10 +12,8 @@ import {
   useArchiveWithUndo,
   useTrashWithUndo,
   useToggleStar,
+  useThreads,
 } from '../hooks/use-threads';
-
-// Mock thread count for cursor bounds — actual threads come from the store/query
-const MOCK_MAX_THREADS = 50;
 
 export function InboxPage() {
   const {
@@ -32,10 +31,12 @@ export function InboxPage() {
   const archiveWithUndo = useArchiveWithUndo();
   const trashWithUndo = useTrashWithUndo();
   const starMutation = useToggleStar();
+  const { data: threads } = useThreads(activeCategory);
+  const maxCursorIndex = Math.max(0, (threads?.length ?? 1) - 1);
 
   // Navigation shortcuts
-  const handleMoveDown = useCallback(() => moveCursor(1, MOCK_MAX_THREADS), [moveCursor]);
-  const handleMoveUp = useCallback(() => moveCursor(-1, MOCK_MAX_THREADS), [moveCursor]);
+  const handleMoveDown = useCallback(() => moveCursor(1, maxCursorIndex), [moveCursor, maxCursorIndex]);
+  const handleMoveUp = useCallback(() => moveCursor(-1, maxCursorIndex), [moveCursor, maxCursorIndex]);
   const handleOpenThread = useCallback(() => {
     // The cursor index maps to the active thread — handled in email-list-pane
   }, []);
@@ -140,6 +141,7 @@ export function InboxPage() {
         readingPane={<ReadingPane />}
       />
       <ComposeModal />
+      <SettingsModal />
       <ToastContainer />
     </>
   );

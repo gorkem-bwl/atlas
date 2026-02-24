@@ -1,3 +1,53 @@
+/* ─── Accessibility utilities ───────────────────────────────────────── */
+
+/* Screen-reader only — visually hidden but accessible to assistive technology */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible ring for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Remove focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to main content link — visually hidden until focused */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: var(--spacing-md, 12px);
+  z-index: 9999;
+  padding: var(--spacing-sm, 8px) var(--spacing-lg, 16px);
+  background: var(--color-accent-primary);
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: top 0.1s ease;
+}
+
+.skip-link:focus {
+  top: var(--spacing-md, 12px);
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
@@ -167,6 +217,11 @@
 @keyframes overlayShow {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
 }
 
 /* ─── Toast animations ─────────────────────────────────────────────── */

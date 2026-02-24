@@ -1,12 +1,13 @@
-import { Mail } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
 import { useThread } from '../../hooks/use-threads';
 import { EmailActions } from '../email/email-actions';
 import { EmailMessage } from '../email/email-message';
 import { Kbd } from '../ui/kbd';
+import { EmptyState } from '../ui/empty-state';
+import { ReadingPaneSkeleton } from '../ui/skeleton';
 import type { CSSProperties } from 'react';
 
-function EmptyState() {
+function ReadingPaneEmptyState() {
   return (
     <div
       style={{
@@ -16,41 +17,23 @@ function EmptyState() {
         justifyContent: 'center',
         height: '100%',
         gap: 'var(--spacing-md)',
-        color: 'var(--color-text-tertiary)',
         fontFamily: 'var(--font-family)',
         userSelect: 'none',
       }}
     >
-      <div
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 'var(--radius-xl)',
-          background: 'var(--color-bg-elevated)',
-          border: '1px solid var(--color-border-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 'var(--spacing-sm)',
-        }}
-      >
-        <Mail size={24} style={{ color: 'var(--color-text-tertiary)' }} />
-      </div>
-      <span
-        style={{
-          fontSize: 'var(--font-size-lg)',
-          fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-          color: 'var(--color-text-secondary)',
-        }}
-      >
-        Select a conversation
-      </span>
+      <EmptyState
+        type="inbox"
+        title="Select a conversation"
+        description="Choose a thread from the list to read it here"
+      />
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 'var(--spacing-sm)',
           fontSize: 'var(--font-size-sm)',
+          color: 'var(--color-text-tertiary)',
+          marginTop: 'calc(var(--spacing-xs) * -1)',
         }}
       >
         <span>Use</span>
@@ -65,34 +48,16 @@ function EmptyState() {
   );
 }
 
-function LoadingState() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        color: 'var(--color-text-tertiary)',
-        fontSize: 'var(--font-size-md)',
-        fontFamily: 'var(--font-family)',
-      }}
-    >
-      Loading...
-    </div>
-  );
-}
-
 export function ReadingPane() {
   const { activeThreadId } = useEmailStore();
   const { data: thread, isLoading } = useThread(activeThreadId);
 
   if (!activeThreadId) {
-    return <EmptyState />;
+    return <ReadingPaneEmptyState />;
   }
 
   if (isLoading || !thread) {
-    return <LoadingState />;
+    return <ReadingPaneSkeleton />;
   }
 
   const emails = thread.emails || [];
@@ -147,6 +112,7 @@ export function ReadingPane() {
 
       {/* Message list */}
       <div
+        aria-label="Email content"
         style={{
           flex: 1,
           overflowY: 'auto',

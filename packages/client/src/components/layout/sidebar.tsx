@@ -1,9 +1,13 @@
-import { useNavigate } from 'react-router-dom';
-import { Inbox, Mail, Newspaper, Bell, Settings, Edit } from 'lucide-react';
+import { useState } from 'react';
+import { Inbox, Mail, Newspaper, Bell, Settings, Edit, Sun, Moon, Monitor } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
 import { useAuthStore } from '../../stores/auth-store';
+import { useSettingsStore } from '../../stores/settings-store';
+import { useUIStore } from '../../stores/ui-store';
+import { useThreads } from '../../hooks/use-threads';
 import { Avatar } from '../ui/avatar';
 import type { EmailCategory } from '@atlasmail/shared';
+import type { ThemeMode } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
 
 interface NavItem {
@@ -26,10 +30,185 @@ const CATEGORY_COLORS: Record<EmailCategory, string> = {
   notifications: 'var(--color-category-notifications)',
 };
 
+const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system'];
+
+const THEME_META: Record<ThemeMode, { icon: typeof Sun; label: string }> = {
+  light: { icon: Sun, label: 'Light mode' },
+  dark: { icon: Moon, label: 'Dark mode' },
+  system: { icon: Monitor, label: 'System mode' },
+};
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  const label = count > 99 ? '99+' : String(count);
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 18,
+        height: 18,
+        padding: '0 5px',
+        borderRadius: 9,
+        background: 'var(--color-accent-primary)',
+        color: '#ffffff',
+        fontSize: 10,
+        fontWeight: 600,
+        lineHeight: 1,
+        flexShrink: 0,
+        boxSizing: 'border-box' as CSSProperties['boxSizing'],
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function CategoryNavItem({
+  id,
+  label,
+  icon: Icon,
+  isActive,
+  color,
+  onSelect,
+}: {
+  id: EmailCategory;
+  label: string;
+  icon: typeof Inbox;
+  isActive: boolean;
+  color: string;
+  onSelect: () => void;
+}) {
+  const { data: threads } = useThreads(id);
+  const unreadCount = threads ? threads.filter((t) => t.unreadCount > 0).length : 0;
+
+  return (
+    <button
+      key={id}
+      onClick={onSelect}
+      aria-current={isActive ? 'page' : undefined}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--spacing-sm)',
+        width: '100%',
+        padding: 'var(--spacing-sm) var(--spacing-md)',
+        background: isActive ? 'var(--color-surface-selected)' : 'transparent',
+        border: 'none',
+        borderRadius: 'var(--radius-md)',
+        color: isActive ? color : 'var(--color-text-secondary)',
+        fontSize: 'var(--font-size-md)',
+        fontFamily: 'var(--font-family)',
+        fontWeight: isActive
+          ? ('var(--font-weight-semibold)' as CSSProperties['fontWeight'])
+          : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
+        cursor: 'pointer',
+        transition: 'background var(--transition-fast), color var(--transition-fast)',
+        textAlign: 'left',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'var(--color-surface-hover)';
+          e.currentTarget.style.color = 'var(--color-text-primary)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--color-text-secondary)';
+        }
+      }}
+    >
+      <Icon size={16} style={{ flexShrink: 0, color: isActive ? color : 'currentColor' }} />
+      <span style={{ flex: 1 }}>{label}</span>
+      <UnreadBadge count={unreadCount} />
+    </button>
+  );
+}
+
+function ThemeToggleButton() {
+  const { theme, setTheme } = useSettingsStore();
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const { icon: ThemeIcon, label } = THEME_META[theme];
+
+  function cycleTheme() {
+    const currentIndex = THEME_CYCLE.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % THEME_CYCLE.length;
+    setTheme(THEME_CYCLE[nextIndex]);
+  }
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex' }}>
+      <button
+        onClick={cycleTheme}
+        aria-label={`Theme: ${label}. Click to cycle theme`}
+        title={label}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--color-text-secondary)',
+          cursor: 'pointer',
+          transition: 'background var(--transition-fast), color var(--transition-fast)',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => {
+          setShowTooltip(true);
+          e.currentTarget.style.background = 'var(--color-surface-hover)';
+          e.currentTarget.style.color = 'var(--color-text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          setShowTooltip(false);
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--color-text-secondary)';
+        }}
+      >
+        <ThemeIcon size={16} />
+      </button>
+
+      {showTooltip && (
+        <div
+          role="tooltip"
+          style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginBottom: 6,
+            padding: '4px 8px',
+            background: 'var(--color-surface-overlay)',
+            color: 'var(--color-text-primary)',
+            fontSize: 'var(--font-size-xs)',
+            fontFamily: 'var(--font-family)',
+            fontWeight: 500 as CSSProperties['fontWeight'],
+            borderRadius: 'var(--radius-sm)',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            boxShadow: 'var(--shadow-md)',
+            zIndex: 100,
+          }}
+        >
+          {label}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Sidebar() {
-  const navigate = useNavigate();
   const { activeCategory, setActiveCategory, openCompose } = useEmailStore();
   const account = useAuthStore((s) => s.account);
+  const { toggleSettings } = useUIStore();
 
   return (
     <div
@@ -103,6 +282,7 @@ export function Sidebar() {
         <Edit size={15} />
         Compose
         <span
+          aria-hidden="true"
           style={{
             marginLeft: 'auto',
             fontSize: 'var(--font-size-xs)',
@@ -118,56 +298,21 @@ export function Sidebar() {
       </button>
 
       {/* Category navigation */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-          const isActive = activeCategory === id;
-          const color = CATEGORY_COLORS[id];
-
-          return (
-            <button
-              key={id}
-              onClick={() => setActiveCategory(id)}
-              aria-current={isActive ? 'page' : undefined}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-sm)',
-                width: '100%',
-                padding: 'var(--spacing-sm) var(--spacing-md)',
-                background: isActive ? 'var(--color-surface-selected)' : 'transparent',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                color: isActive ? color : 'var(--color-text-secondary)',
-                fontSize: 'var(--font-size-md)',
-                fontFamily: 'var(--font-family)',
-                fontWeight: isActive
-                  ? ('var(--font-weight-semibold)' as CSSProperties['fontWeight'])
-                  : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
-                cursor: 'pointer',
-                transition: 'background var(--transition-fast), color var(--transition-fast)',
-                textAlign: 'left',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'var(--color-surface-hover)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
-                }
-              }}
-            >
-              <Icon size={16} style={{ flexShrink: 0, color: isActive ? color : 'currentColor' }} />
-              <span style={{ flex: 1 }}>{label}</span>
-            </button>
-          );
-        })}
+      <nav aria-label="Email categories" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {NAV_ITEMS.map(({ id, label, icon }) => (
+          <CategoryNavItem
+            key={id}
+            id={id}
+            label={label}
+            icon={icon}
+            isActive={activeCategory === id}
+            color={CATEGORY_COLORS[id]}
+            onSelect={() => setActiveCategory(id)}
+          />
+        ))}
       </nav>
 
-      {/* Bottom section: account + settings */}
+      {/* Bottom section: theme toggle + settings + account */}
       <div
         style={{
           borderTop: '1px solid var(--color-border-primary)',
@@ -177,36 +322,48 @@ export function Sidebar() {
           gap: '2px',
         }}
       >
-        <button
-          onClick={() => navigate('/settings')}
+        {/* Settings row with theme toggle */}
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--spacing-sm)',
-            width: '100%',
-            padding: 'var(--spacing-sm) var(--spacing-md)',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--color-text-secondary)',
-            fontSize: 'var(--font-size-md)',
-            fontFamily: 'var(--font-family)',
-            cursor: 'pointer',
-            transition: 'background var(--transition-fast), color var(--transition-fast)',
-            textAlign: 'left',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--color-surface-hover)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
+            gap: '2px',
           }}
         >
-          <Settings size={16} />
-          Settings
-        </button>
+          <button
+            onClick={toggleSettings}
+            aria-label="Settings"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              flex: 1,
+              padding: 'var(--spacing-sm) var(--spacing-md)',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--color-text-secondary)',
+              fontSize: 'var(--font-size-md)',
+              fontFamily: 'var(--font-family)',
+              cursor: 'pointer',
+              transition: 'background var(--transition-fast), color var(--transition-fast)',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--color-surface-hover)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
+          >
+            <Settings size={16} />
+            Settings
+          </button>
+
+          <ThemeToggleButton />
+        </div>
 
         {account && (
           <div

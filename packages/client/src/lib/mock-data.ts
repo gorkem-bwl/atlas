@@ -526,6 +526,7 @@ const allThreads: Thread[] = [
     hasAttachments: true,
     lastMessageAt: emailsRoadmap[emailsRoadmap.length - 1].internalDate,
     category: 'important',
+    labels: ['INBOX', 'urgent'],
     emails: emailsRoadmap,
   }),
   makeThread({
@@ -536,6 +537,7 @@ const allThreads: Thread[] = [
     unreadCount: 0,
     lastMessageAt: emailsDesignTokens[emailsDesignTokens.length - 1].internalDate,
     category: 'important',
+    labels: ['INBOX', 'work'],
     emails: emailsDesignTokens,
   }),
   makeThread({
@@ -558,6 +560,7 @@ const allThreads: Thread[] = [
     unreadCount: 1,
     lastMessageAt: emailsInvoice[0].internalDate,
     category: 'other',
+    labels: ['INBOX', 'finance'],
     emails: emailsInvoice,
   }),
 
