@@ -5,7 +5,26 @@ import type { ThemeMode, Density, ColorThemeId } from '@atlasmail/shared';
 
 export type FontFamilyId = 'inter' | 'geist' | 'system' | 'roboto' | 'open-sans' | 'lato';
 
-export type AIProvider = 'openai' | 'anthropic' | 'google';
+export type AIProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'openrouter'
+  | 'groq'
+  | 'mistral'
+  | 'deepseek'
+  | 'xai'
+  | 'perplexity'
+  | 'fireworks'
+  | 'together'
+  | 'cohere'
+  | 'custom';
+
+interface CustomAIProvider {
+  name: string;
+  baseUrl: string;
+  apiKey: string;
+}
 
 interface SettingsState {
   theme: ThemeMode;
@@ -31,7 +50,8 @@ interface SettingsState {
   // AI settings
   aiEnabled: boolean;
   aiProvider: AIProvider;
-  aiApiKeys: Record<AIProvider, string>;
+  aiApiKeys: Partial<Record<AIProvider, string>>;
+  aiCustomProvider: CustomAIProvider;
   aiWritingAssistant: boolean;
   aiQuickReplies: boolean;
   aiThreadSummary: boolean;
@@ -60,6 +80,7 @@ interface SettingsState {
   setAIEnabled: (value: boolean) => void;
   setAIProvider: (provider: AIProvider) => void;
   setAIApiKey: (provider: AIProvider, key: string) => void;
+  setAICustomProvider: (custom: Partial<CustomAIProvider>) => void;
   setAIWritingAssistant: (value: boolean) => void;
   setAIQuickReplies: (value: boolean) => void;
   setAIThreadSummary: (value: boolean) => void;
@@ -92,7 +113,8 @@ export const useSettingsStore = create<SettingsState>()(
       // AI defaults
       aiEnabled: false,
       aiProvider: 'openai',
-      aiApiKeys: { openai: '', anthropic: '', google: '' },
+      aiApiKeys: {},
+      aiCustomProvider: { name: '', baseUrl: '', apiKey: '' },
       aiWritingAssistant: true,
       aiQuickReplies: true,
       aiThreadSummary: true,
@@ -128,6 +150,8 @@ export const useSettingsStore = create<SettingsState>()(
       setAIProvider: (aiProvider) => set({ aiProvider }),
       setAIApiKey: (provider, key) =>
         set((s) => ({ aiApiKeys: { ...s.aiApiKeys, [provider]: key } })),
+      setAICustomProvider: (partial) =>
+        set((s) => ({ aiCustomProvider: { ...s.aiCustomProvider, ...partial } })),
       setAIWritingAssistant: (aiWritingAssistant) => set({ aiWritingAssistant }),
       setAIQuickReplies: (aiQuickReplies) => set({ aiQuickReplies }),
       setAIThreadSummary: (aiThreadSummary) => set({ aiThreadSummary }),

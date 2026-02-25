@@ -1919,12 +1919,22 @@ function ComposerPanel() {
 const AI_PROVIDERS: Array<{
   id: AIProvider;
   label: string;
+  description: string;
   placeholder: string;
-  prefix: string;
 }> = [
-  { id: 'openai', label: 'OpenAI', placeholder: 'sk-...', prefix: 'sk-' },
-  { id: 'anthropic', label: 'Anthropic', placeholder: 'sk-ant-...', prefix: 'sk-ant-' },
-  { id: 'google', label: 'Google Gemini', placeholder: 'AIza...', prefix: 'AIza' },
+  { id: 'openai', label: 'OpenAI', description: 'GPT-4o, GPT-4.1, o3', placeholder: 'sk-...' },
+  { id: 'anthropic', label: 'Anthropic', description: 'Claude Sonnet, Opus, Haiku', placeholder: 'sk-ant-...' },
+  { id: 'google', label: 'Google Gemini', description: 'Gemini 2.5 Pro, Flash', placeholder: 'AIza...' },
+  { id: 'openrouter', label: 'OpenRouter', description: '300+ models via one API key', placeholder: 'sk-or-v1-...' },
+  { id: 'groq', label: 'Groq', description: 'Ultra-fast inference (Llama, Gemma)', placeholder: 'gsk_...' },
+  { id: 'mistral', label: 'Mistral AI', description: 'Mistral Large, Codestral', placeholder: 'Enter API key...' },
+  { id: 'deepseek', label: 'DeepSeek', description: 'DeepSeek-V3, R1 reasoning', placeholder: 'sk-...' },
+  { id: 'xai', label: 'xAI (Grok)', description: 'Grok-3, Grok-3 Mini', placeholder: 'xai-...' },
+  { id: 'perplexity', label: 'Perplexity', description: 'Sonar Pro with web search', placeholder: 'pplx-...' },
+  { id: 'fireworks', label: 'Fireworks AI', description: 'Fast open-source model inference', placeholder: 'fw_...' },
+  { id: 'together', label: 'Together AI', description: '200+ open-source models', placeholder: 'Enter API key...' },
+  { id: 'cohere', label: 'Cohere', description: 'Command R+ for enterprise', placeholder: 'co_...' },
+  { id: 'custom', label: 'Custom (OpenAI-compatible)', description: 'Any endpoint that supports the OpenAI API format', placeholder: 'Enter API key...' },
 ];
 
 function AIPanel() {
@@ -1932,51 +1942,85 @@ function AIPanel() {
     aiEnabled, setAIEnabled,
     aiProvider, setAIProvider,
     aiApiKeys, setAIApiKey,
+    aiCustomProvider, setAICustomProvider,
     aiWritingAssistant, setAIWritingAssistant,
     aiQuickReplies, setAIQuickReplies,
     aiThreadSummary, setAIThreadSummary,
     aiTranslation, setAITranslation,
   } = useSettingsStore();
 
-  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [keyVisible, setKeyVisible] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [testingProvider, setTestingProvider] = useState<AIProvider | null>(null);
-  const [testResult, setTestResult] = useState<{ provider: AIProvider; ok: boolean; message: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleKeyVisibility = (provider: AIProvider) => {
-    setVisibleKeys((prev) => ({ ...prev, [provider]: !prev[provider] }));
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [dropdownOpen]);
+
+  const activeConfig = AI_PROVIDERS.find((p) => p.id === aiProvider)!;
+  const currentKey = aiProvider === 'custom' ? aiCustomProvider.apiKey : (aiApiKeys[aiProvider] || '');
+  const hasActiveKey = aiProvider === 'custom'
+    ? !!(aiCustomProvider.apiKey && aiCustomProvider.baseUrl)
+    : !!currentKey;
+
+  const handleKeyChange = (value: string) => {
+    if (aiProvider === 'custom') {
+      setAICustomProvider({ apiKey: value });
+    } else {
+      setAIApiKey(aiProvider, value);
+    }
   };
 
-  const maskKey = (key: string) => {
-    if (!key) return '';
-    if (key.length <= 8) return '••••••••';
-    return key.slice(0, 7) + '•'.repeat(Math.min(key.length - 11, 20)) + key.slice(-4);
-  };
-
-  const testApiKey = async (provider: AIProvider) => {
-    const key = aiApiKeys[provider];
-    if (!key) return;
-    setTestingProvider(provider);
+  const testApiKey = async () => {
+    if (!currentKey) return;
+    setTestingProvider(aiProvider);
     setTestResult(null);
     try {
       const res = await fetch('/api/v1/ai/test-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey: key }),
+        body: JSON.stringify({
+          provider: aiProvider,
+          apiKey: currentKey,
+          ...(aiProvider === 'custom' ? { baseUrl: aiCustomProvider.baseUrl } : {}),
+        }),
       });
       if (res.ok) {
-        setTestResult({ provider, ok: true, message: 'API key is valid' });
+        setTestResult({ ok: true, message: 'API key is valid' });
       } else {
         const data = await res.json().catch(() => ({}));
-        setTestResult({ provider, ok: false, message: data.error || 'Invalid API key' });
+        setTestResult({ ok: false, message: data.error || 'Invalid API key' });
       }
     } catch {
-      setTestResult({ provider, ok: false, message: 'Connection failed' });
+      setTestResult({ ok: false, message: 'Connection failed' });
     }
     setTestingProvider(null);
   };
 
-  const activeProviderConfig = AI_PROVIDERS.find((p) => p.id === aiProvider)!;
-  const hasActiveKey = !!aiApiKeys[aiProvider];
+  // Shared input styles
+  const inputStyle: CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    fontSize: 'var(--font-size-sm)',
+    fontFamily: 'var(--font-family)',
+    background: 'var(--color-bg-tertiary)',
+    border: '1px solid var(--color-border-secondary)',
+    borderRadius: 'var(--radius-md)',
+    color: 'var(--color-text-primary)',
+    outline: 'none',
+    transition: 'border-color var(--transition-normal)',
+    boxSizing: 'border-box' as const,
+  };
 
   return (
     <div>
@@ -2004,40 +2048,8 @@ function AIPanel() {
             title="API configuration"
             description="Enter your own API key to use AI features. Keys are stored locally and never sent to AtlasMail servers."
           >
-            {/* Provider selector */}
-            <SettingsRow label="Provider" description="Choose which AI provider to use">
-              <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
-                {AI_PROVIDERS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setAIProvider(p.id)}
-                    style={{
-                      padding: '6px 14px',
-                      fontSize: 'var(--font-size-sm)',
-                      fontFamily: 'var(--font-family)',
-                      fontWeight: aiProvider === p.id ? 600 : 400,
-                      borderRadius: 'var(--radius-md)',
-                      border: aiProvider === p.id
-                        ? '1.5px solid var(--color-accent-primary)'
-                        : '1px solid var(--color-border-secondary)',
-                      background: aiProvider === p.id
-                        ? 'color-mix(in srgb, var(--color-accent-primary) 10%, transparent)'
-                        : 'transparent',
-                      color: aiProvider === p.id
-                        ? 'var(--color-accent-primary)'
-                        : 'var(--color-text-secondary)',
-                      cursor: 'pointer',
-                      transition: 'all var(--transition-normal)',
-                    }}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </SettingsRow>
-
-            {/* API key input for active provider */}
-            <div style={{ padding: 'var(--spacing-md) 0' }}>
+            {/* Provider dropdown */}
+            <div style={{ padding: 'var(--spacing-md) 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
               <div
                 style={{
                   fontSize: 'var(--font-size-sm)',
@@ -2047,39 +2059,173 @@ function AIPanel() {
                   marginBottom: 'var(--spacing-xs)',
                 }}
               >
-                {activeProviderConfig.label} API key
+                Provider
+              </div>
+              <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    fontSize: 'var(--font-size-sm)',
+                    fontFamily: 'var(--font-family)',
+                    background: 'var(--color-bg-tertiary)',
+                    border: dropdownOpen
+                      ? '1px solid var(--color-accent-primary)'
+                      : '1px solid var(--color-border-secondary)',
+                    borderRadius: 'var(--radius-md)',
+                    color: 'var(--color-text-primary)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    transition: 'border-color var(--transition-normal)',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div>
+                    <span style={{ fontWeight: 500 }}>{activeConfig.label}</span>
+                    <span style={{ marginLeft: 8, color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)' }}>
+                      {activeConfig.description}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: 'var(--color-text-tertiary)',
+                      transform: dropdownOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform var(--transition-normal)',
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
+                {dropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      right: 0,
+                      background: 'var(--color-bg-secondary)',
+                      border: '1px solid var(--color-border-secondary)',
+                      borderRadius: 'var(--radius-md)',
+                      boxShadow: 'var(--shadow-lg)',
+                      zIndex: 10,
+                      maxHeight: 320,
+                      overflowY: 'auto',
+                      padding: '4px 0',
+                    }}
+                  >
+                    {AI_PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setAIProvider(p.id);
+                          setDropdownOpen(false);
+                          setTestResult(null);
+                          setKeyVisible(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: 'var(--font-size-sm)',
+                          fontFamily: 'var(--font-family)',
+                          background: aiProvider === p.id
+                            ? 'color-mix(in srgb, var(--color-accent-primary) 10%, transparent)'
+                            : 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: 2,
+                          textAlign: 'left',
+                          transition: 'background var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (aiProvider !== p.id) e.currentTarget.style.background = 'var(--color-surface-hover)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (aiProvider !== p.id) e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <span style={{
+                          fontWeight: aiProvider === p.id ? 600 : 400,
+                          color: aiProvider === p.id ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
+                        }}>
+                          {p.label}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+                          {p.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Custom provider fields */}
+            {aiProvider === 'custom' && (
+              <div style={{ padding: 'var(--spacing-md) 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
+                      Service name
+                    </div>
+                    <input
+                      type="text"
+                      value={aiCustomProvider.name}
+                      onChange={(e) => setAICustomProvider({ name: e.target.value })}
+                      placeholder="e.g. LiteLLM, Ollama, vLLM"
+                      spellCheck={false}
+                      style={inputStyle}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
+                      Base URL
+                    </div>
+                    <input
+                      type="url"
+                      value={aiCustomProvider.baseUrl}
+                      onChange={(e) => setAICustomProvider({ baseUrl: e.target.value })}
+                      placeholder="https://api.example.com/v1"
+                      spellCheck={false}
+                      style={{ ...inputStyle, fontFamily: 'monospace' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
+                    />
+                    <div style={{ marginTop: 4, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-quaternary)' }}>
+                      Must be OpenAI-compatible (supports /chat/completions endpoint)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* API key input */}
+            <div style={{ padding: 'var(--spacing-md) 0' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
+                {aiProvider === 'custom' ? (aiCustomProvider.name || 'Custom') : activeConfig.label} API key
               </div>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
                   <input
-                    type={visibleKeys[aiProvider] ? 'text' : 'password'}
-                    value={aiApiKeys[aiProvider]}
-                    onChange={(e) => setAIApiKey(aiProvider, e.target.value)}
-                    placeholder={activeProviderConfig.placeholder}
+                    type={keyVisible ? 'text' : 'password'}
+                    value={currentKey}
+                    onChange={(e) => handleKeyChange(e.target.value)}
+                    placeholder={activeConfig.placeholder}
                     spellCheck={false}
                     autoComplete="off"
-                    style={{
-                      width: '100%',
-                      padding: '8px 36px 8px 12px',
-                      fontSize: 'var(--font-size-sm)',
-                      fontFamily: 'monospace',
-                      background: 'var(--color-bg-tertiary)',
-                      border: '1px solid var(--color-border-secondary)',
-                      borderRadius: 'var(--radius-md)',
-                      color: 'var(--color-text-primary)',
-                      outline: 'none',
-                      transition: 'border-color var(--transition-normal)',
-                      boxSizing: 'border-box',
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-accent-primary)';
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-                    }}
+                    style={{ ...inputStyle, fontFamily: 'monospace', paddingRight: 36 }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
                   />
                   <button
-                    onClick={() => toggleKeyVisibility(aiProvider)}
+                    onClick={() => setKeyVisible(!keyVisible)}
                     style={{
                       position: 'absolute',
                       right: 8,
@@ -2093,14 +2239,14 @@ function AIPanel() {
                       display: 'flex',
                       alignItems: 'center',
                     }}
-                    aria-label={visibleKeys[aiProvider] ? 'Hide API key' : 'Show API key'}
+                    aria-label={keyVisible ? 'Hide API key' : 'Show API key'}
                   >
-                    {visibleKeys[aiProvider] ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {keyVisible ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
                 <button
-                  onClick={() => testApiKey(aiProvider)}
-                  disabled={!aiApiKeys[aiProvider] || testingProvider === aiProvider}
+                  onClick={testApiKey}
+                  disabled={!currentKey || testingProvider === aiProvider}
                   style={{
                     padding: '8px 16px',
                     fontSize: 'var(--font-size-sm)',
@@ -2109,20 +2255,17 @@ function AIPanel() {
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border-secondary)',
                     background: 'var(--color-bg-tertiary)',
-                    color: !aiApiKeys[aiProvider]
-                      ? 'var(--color-text-quaternary)'
-                      : 'var(--color-text-primary)',
-                    cursor: !aiApiKeys[aiProvider] ? 'not-allowed' : 'pointer',
+                    color: !currentKey ? 'var(--color-text-quaternary)' : 'var(--color-text-primary)',
+                    cursor: !currentKey ? 'not-allowed' : 'pointer',
                     transition: 'all var(--transition-normal)',
                     whiteSpace: 'nowrap',
-                    opacity: !aiApiKeys[aiProvider] ? 0.5 : 1,
+                    opacity: !currentKey ? 0.5 : 1,
                   }}
                 >
                   {testingProvider === aiProvider ? 'Testing...' : 'Test key'}
                 </button>
               </div>
-              {/* Test result feedback */}
-              {testResult && testResult.provider === aiProvider && (
+              {testResult && (
                 <div
                   style={{
                     marginTop: 'var(--spacing-sm)',
@@ -2146,7 +2289,7 @@ function AIPanel() {
                   lineHeight: 'var(--line-height-normal)',
                 }}
               >
-                Your API key is stored locally in your browser and sent directly to {activeProviderConfig.label}. It is never transmitted to AtlasMail servers.
+                Your API key is stored locally in your browser and sent directly to the provider. It is never transmitted to AtlasMail servers.
               </div>
             </div>
           </SettingsSection>
@@ -2212,8 +2355,12 @@ function AIPanel() {
                 fontFamily: 'var(--font-family)',
               }}
             >
-              <strong style={{ color: 'var(--color-text-primary)' }}>No API key configured.</strong>{' '}
-              Enter your {activeProviderConfig.label} API key above to start using AI features.
+              <strong style={{ color: 'var(--color-text-primary)' }}>
+                {aiProvider === 'custom' ? 'Configuration incomplete.' : 'No API key configured.'}
+              </strong>{' '}
+              {aiProvider === 'custom'
+                ? 'Enter a base URL and API key above to start using AI features.'
+                : `Enter your ${activeConfig.label} API key above to start using AI features.`}
             </div>
           )}
         </>
