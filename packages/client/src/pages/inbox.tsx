@@ -185,8 +185,8 @@ export function InboxPage() {
 
   // Register Shift+Arrow variants directly — these complement Shift+j/k
   useEffect(() => {
-    shortcutEngine.register('select_down_arrow', 'shift+arrowdown', handleSelectDown, 'global');
-    shortcutEngine.register('select_up_arrow', 'shift+arrowup', handleSelectUp, 'global');
+    shortcutEngine.register('select_down_arrow', 'shift+ArrowDown', handleSelectDown, 'global');
+    shortcutEngine.register('select_up_arrow', 'shift+ArrowUp', handleSelectUp, 'global');
     return () => {
       shortcutEngine.unregister('select_down_arrow');
       shortcutEngine.unregister('select_up_arrow');
