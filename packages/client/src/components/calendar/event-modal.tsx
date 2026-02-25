@@ -287,6 +287,7 @@ export function EventModal() {
   const { data: calendars } = useCalendars();
   const createEvent = useCreateCalendarEvent();
   const updateEvent = useUpdateCalendarEvent();
+  const [submitError, setSubmitError] = useState('');
   const deleteEvent = useDeleteCalendarEvent();
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -336,6 +337,7 @@ export function EventModal() {
       setColorId(null);
     }
     setTimeError('');
+    setSubmitError('');
 
     // Focus title after render
     setTimeout(() => titleRef.current?.focus(), 50);
@@ -368,6 +370,8 @@ export function EventModal() {
 
     const attendeeList = attendees.map((a) => ({ email: a.email }));
 
+    setSubmitError('');
+
     if (eventModal.mode === 'create') {
       createEvent.mutate(
         {
@@ -381,7 +385,10 @@ export function EventModal() {
           attendees: attendeeList.length > 0 ? attendeeList : undefined,
           colorId: colorId || undefined,
         },
-        { onSuccess: () => closeEventModal() },
+        {
+          onSuccess: () => closeEventModal(),
+          onError: (err: any) => setSubmitError(err?.response?.data?.error || err?.message || 'Failed to create event'),
+        },
       );
     } else if (eventModal.event) {
       updateEvent.mutate(
@@ -396,7 +403,10 @@ export function EventModal() {
           attendees: attendeeList.length > 0 ? attendeeList : undefined,
           colorId: colorId !== undefined ? colorId : undefined,
         },
-        { onSuccess: () => closeEventModal() },
+        {
+          onSuccess: () => closeEventModal(),
+          onError: (err: any) => setSubmitError(err?.response?.data?.error || err?.message || 'Failed to save event'),
+        },
       );
     }
   };
@@ -703,6 +713,11 @@ export function EventModal() {
         </div>
 
         {/* Footer */}
+        {submitError && (
+          <div style={{ padding: '0 16px 4px', color: 'var(--color-error)', fontSize: 'var(--font-size-xs)' }}>
+            {submitError}
+          </div>
+        )}
         <div
           style={{
             display: 'flex',

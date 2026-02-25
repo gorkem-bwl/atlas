@@ -77,7 +77,7 @@ export async function listEvents(req: Request, res: Response) {
 
 export async function createEvent(req: Request, res: Response) {
   try {
-    const { calendarId, summary, description, location, startTime, endTime, isAllDay, attendees } = req.body;
+    const { calendarId, summary, description, location, startTime, endTime, isAllDay, attendees, colorId } = req.body;
 
     if (!calendarId || !summary || !startTime || !endTime) {
       res.status(400).json({ success: false, error: 'calendarId, summary, startTime, and endTime are required' });
@@ -93,6 +93,7 @@ export async function createEvent(req: Request, res: Response) {
       endTime,
       isAllDay,
       attendees,
+      colorId,
     });
 
     res.json({ success: true, data: event });
