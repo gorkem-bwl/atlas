@@ -27,22 +27,22 @@ export function categorizeEmail(email: Email, rules: CategoryRule[], contactEmai
     if (evaluateRule(email, rule.conditions)) return rule.category;
   }
 
-  // 2. Known contact → important
-  if (contactEmails.includes(email.fromAddress.toLowerCase())) return 'important';
-
-  // 3. Gmail category labels
+  // 2. Gmail category labels
   const labels = email.gmailLabels || [];
-  if (labels.includes('CATEGORY_PERSONAL') || labels.includes('IMPORTANT')) return 'important';
   if (labels.includes('CATEGORY_PROMOTIONS') || labels.includes('CATEGORY_UPDATES')) return 'newsletters';
   if (labels.includes('CATEGORY_SOCIAL') || labels.includes('CATEGORY_FORUMS')) return 'notifications';
 
-  // 4. Newsletter heuristics
+  // 3. Newsletter heuristics (before contacts — noreply senders aren't real contacts)
   const domain = email.fromAddress.split('@')[1]?.toLowerCase() || '';
   if (NEWSLETTER_DOMAINS.some((d) => domain.includes(d))) return 'newsletters';
 
-  // 5. Notification heuristics
+  // 4. Notification heuristics (before contacts — automated senders aren't real contacts)
   if (NOTIFICATION_DOMAINS.some((d) => domain.includes(d))) return 'notifications';
   if (NOTIFICATION_PATTERNS.some((p) => p.test(email.fromAddress))) return 'notifications';
+
+  // 5. Gmail IMPORTANT / PERSONAL label or known contact → important
+  if (labels.includes('CATEGORY_PERSONAL') || labels.includes('IMPORTANT')) return 'important';
+  if (contactEmails.includes(email.fromAddress.toLowerCase())) return 'important';
 
   // 6. Default
   return 'other';

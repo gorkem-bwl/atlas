@@ -3,6 +3,7 @@ import { db } from '../config/database';
 import { threads, emails, accounts, userSettings, attachments } from '../db/schema';
 import * as gmailService from './gmail.service';
 import * as trackingService from './tracking.service';
+import { fetchEmailBodiesOnDemand } from './sync.service';
 import { logger } from '../utils/logger';
 
 /** Augment a plain thread query result with sender info from the latest email. */
@@ -51,15 +52,17 @@ export async function getThreadCounts(accountId: string) {
     unreadTotal:      sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and unread_count > 0 then 1 else 0 end)`,
     spamTotal:        sql<number>`sum(case when is_spam = 1 and is_trashed = 0 then 1 else 0 end)`,
     spamUnread:       sql<number>`sum(case when is_spam = 1 and is_trashed = 0 and unread_count > 0 then 1 else 0 end)`,
-    // Category counts (only for inbox threads)
-    importantTotal:   sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'important' then 1 else 0 end)`,
-    importantUnread:  sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'important' and unread_count > 0 then 1 else 0 end)`,
-    otherTotal:       sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'other' then 1 else 0 end)`,
-    otherUnread:      sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'other' and unread_count > 0 then 1 else 0 end)`,
-    newslettersTotal: sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'newsletters' then 1 else 0 end)`,
-    newslettersUnread:sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'newsletters' and unread_count > 0 then 1 else 0 end)`,
-    notificationsTotal:  sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'notifications' then 1 else 0 end)`,
-    notificationsUnread: sql<number>`sum(case when is_archived = 0 and is_trashed = 0 and is_spam = 0 and category = 'notifications' and unread_count > 0 then 1 else 0 end)`,
+    // Category counts — do NOT filter by is_archived because Gmail's category
+    // tabs (CATEGORY_PROMOTIONS, etc.) lack the INBOX label, which our sync
+    // marks as is_archived=true.  Excluding those would show 0 for most categories.
+    importantTotal:   sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'important' then 1 else 0 end)`,
+    importantUnread:  sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'important' and unread_count > 0 then 1 else 0 end)`,
+    otherTotal:       sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'other' then 1 else 0 end)`,
+    otherUnread:      sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'other' and unread_count > 0 then 1 else 0 end)`,
+    newslettersTotal: sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'newsletters' then 1 else 0 end)`,
+    newslettersUnread:sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'newsletters' and unread_count > 0 then 1 else 0 end)`,
+    notificationsTotal:  sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'notifications' then 1 else 0 end)`,
+    notificationsUnread: sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and category = 'notifications' and unread_count > 0 then 1 else 0 end)`,
   })
     .from(threads)
     .where(eq(threads.accountId, accountId));
@@ -113,12 +116,7 @@ export async function getThreads(
     }
     if (options.gmailLabel) {
       conditions.push(
-        sql`EXISTS (
-          SELECT 1 FROM emails e, json_each(e.gmail_labels) AS lbl
-          WHERE e.thread_id = ${threads.id}
-            AND e.account_id = ${accountId}
-            AND lbl.value = ${options.gmailLabel}
-        )`,
+        sql`EXISTS (SELECT 1 FROM json_each(${threads.labels}) AS lbl WHERE lbl.value = ${options.gmailLabel})`,
       );
     }
 
@@ -159,11 +157,11 @@ export async function getThreads(
     case 'inbox':
     default:
       // When no category filter is applied (i.e. "All mail"), show everything
-      // except trash and spam.  When a specific category is selected, also
-      // exclude archived threads so the category views behave like sub-inboxes.
-      if (options.category) {
-        conditions.push(eq(threads.isArchived, false));
-      }
+      // except trash and spam.  Category sub-views (newsletters, notifications,
+      // etc.) should NOT exclude archived threads because Gmail's category tabs
+      // (CATEGORY_PROMOTIONS, CATEGORY_UPDATES, etc.) often lack the INBOX
+      // label, which our sync marks as isArchived=true.  Filtering those out
+      // would hide the vast majority of categorised mail.
       conditions.push(eq(threads.isTrashed, false));
       conditions.push(eq(threads.isSpam, false));
       break;
@@ -175,12 +173,7 @@ export async function getThreads(
 
   if (options.gmailLabel) {
     conditions.push(
-      sql`EXISTS (
-        SELECT 1 FROM emails e, json_each(e.gmail_labels) AS lbl
-        WHERE e.thread_id = ${threads.id}
-          AND e.account_id = ${accountId}
-          AND lbl.value = ${options.gmailLabel}
-      )`,
+      sql`EXISTS (SELECT 1 FROM json_each(${threads.labels}) AS lbl WHERE lbl.value = ${options.gmailLabel})`,
     );
   }
 
@@ -220,6 +213,13 @@ export async function getThreadById(accountId: string, threadId: string) {
     .limit(1);
 
   if (!thread) return null;
+
+  // #2 — Fetch email bodies on demand if they were synced as metadata-only
+  try {
+    await fetchEmailBodiesOnDemand(accountId, threadId);
+  } catch (err) {
+    logger.warn({ err, threadId }, 'Failed to fetch email bodies on demand — returning cached data');
+  }
 
   const threadEmails = await db.select()
     .from(emails)
