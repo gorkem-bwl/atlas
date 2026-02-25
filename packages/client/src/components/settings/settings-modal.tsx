@@ -39,10 +39,13 @@ import {
   ListOrdered,
   Undo2,
   Redo2,
+  Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui-store';
-import { useSettingsStore, type FontFamilyId } from '../../stores/settings-store';
+import { useSettingsStore, type FontFamilyId, type AIProvider } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { Avatar } from '../ui/avatar';
 import { AddAccountModal } from './add-account-modal';
@@ -61,6 +64,7 @@ type NavItemId =
   | 'appearance'
   | 'notifications'
   | 'composer'
+  | 'ai'
   | 'inbox'
   | 'reading-pane'
   | 'labels'
@@ -98,6 +102,7 @@ function useSidebarSections(): SidebarSection[] {
         { id: 'appearance', label: t('settings.appearance'), icon: Palette },
         { id: 'notifications', label: t('settings.notifications'), icon: Bell },
         { id: 'composer', label: t('settings.composer'), icon: PenLine },
+        { id: 'ai', label: t('settings.ai'), icon: Sparkles },
       ],
     },
     {
@@ -1908,6 +1913,316 @@ function ComposerPanel() {
 }
 
 // ---------------------------------------------------------------------------
+// Panel: AI
+// ---------------------------------------------------------------------------
+
+const AI_PROVIDERS: Array<{
+  id: AIProvider;
+  label: string;
+  placeholder: string;
+  prefix: string;
+}> = [
+  { id: 'openai', label: 'OpenAI', placeholder: 'sk-...', prefix: 'sk-' },
+  { id: 'anthropic', label: 'Anthropic', placeholder: 'sk-ant-...', prefix: 'sk-ant-' },
+  { id: 'google', label: 'Google Gemini', placeholder: 'AIza...', prefix: 'AIza' },
+];
+
+function AIPanel() {
+  const {
+    aiEnabled, setAIEnabled,
+    aiProvider, setAIProvider,
+    aiApiKeys, setAIApiKey,
+    aiWritingAssistant, setAIWritingAssistant,
+    aiQuickReplies, setAIQuickReplies,
+    aiThreadSummary, setAIThreadSummary,
+    aiTranslation, setAITranslation,
+  } = useSettingsStore();
+
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [testingProvider, setTestingProvider] = useState<AIProvider | null>(null);
+  const [testResult, setTestResult] = useState<{ provider: AIProvider; ok: boolean; message: string } | null>(null);
+
+  const toggleKeyVisibility = (provider: AIProvider) => {
+    setVisibleKeys((prev) => ({ ...prev, [provider]: !prev[provider] }));
+  };
+
+  const maskKey = (key: string) => {
+    if (!key) return '';
+    if (key.length <= 8) return '••••••••';
+    return key.slice(0, 7) + '•'.repeat(Math.min(key.length - 11, 20)) + key.slice(-4);
+  };
+
+  const testApiKey = async (provider: AIProvider) => {
+    const key = aiApiKeys[provider];
+    if (!key) return;
+    setTestingProvider(provider);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/v1/ai/test-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey: key }),
+      });
+      if (res.ok) {
+        setTestResult({ provider, ok: true, message: 'API key is valid' });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setTestResult({ provider, ok: false, message: data.error || 'Invalid API key' });
+      }
+    } catch {
+      setTestResult({ provider, ok: false, message: 'Connection failed' });
+    }
+    setTestingProvider(null);
+  };
+
+  const activeProviderConfig = AI_PROVIDERS.find((p) => p.id === aiProvider)!;
+  const hasActiveKey = !!aiApiKeys[aiProvider];
+
+  return (
+    <div>
+      {/* Master toggle */}
+      <SettingsSection
+        title="AtlasMail AI"
+        description="AI helps you draft, summarize, translate emails, and reply faster. Your data remains private and is not used for training."
+      >
+        <SettingsRow
+          label="Enable AI features"
+          description="Turn on AI-powered features across AtlasMail"
+        >
+          <SettingsToggle
+            checked={aiEnabled}
+            onChange={setAIEnabled}
+            label="Enable AI features"
+          />
+        </SettingsRow>
+      </SettingsSection>
+
+      {aiEnabled && (
+        <>
+          {/* Provider & API keys */}
+          <SettingsSection
+            title="API configuration"
+            description="Enter your own API key to use AI features. Keys are stored locally and never sent to AtlasMail servers."
+          >
+            {/* Provider selector */}
+            <SettingsRow label="Provider" description="Choose which AI provider to use">
+              <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+                {AI_PROVIDERS.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setAIProvider(p.id)}
+                    style={{
+                      padding: '6px 14px',
+                      fontSize: 'var(--font-size-sm)',
+                      fontFamily: 'var(--font-family)',
+                      fontWeight: aiProvider === p.id ? 600 : 400,
+                      borderRadius: 'var(--radius-md)',
+                      border: aiProvider === p.id
+                        ? '1.5px solid var(--color-accent-primary)'
+                        : '1px solid var(--color-border-secondary)',
+                      background: aiProvider === p.id
+                        ? 'color-mix(in srgb, var(--color-accent-primary) 10%, transparent)'
+                        : 'transparent',
+                      color: aiProvider === p.id
+                        ? 'var(--color-accent-primary)'
+                        : 'var(--color-text-secondary)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-normal)',
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </SettingsRow>
+
+            {/* API key input for active provider */}
+            <div style={{ padding: 'var(--spacing-md) 0' }}>
+              <div
+                style={{
+                  fontSize: 'var(--font-size-sm)',
+                  fontFamily: 'var(--font-family)',
+                  fontWeight: 500,
+                  color: 'var(--color-text-primary)',
+                  marginBottom: 'var(--spacing-xs)',
+                }}
+              >
+                {activeProviderConfig.label} API key
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    type={visibleKeys[aiProvider] ? 'text' : 'password'}
+                    value={aiApiKeys[aiProvider]}
+                    onChange={(e) => setAIApiKey(aiProvider, e.target.value)}
+                    placeholder={activeProviderConfig.placeholder}
+                    spellCheck={false}
+                    autoComplete="off"
+                    style={{
+                      width: '100%',
+                      padding: '8px 36px 8px 12px',
+                      fontSize: 'var(--font-size-sm)',
+                      fontFamily: 'monospace',
+                      background: 'var(--color-bg-tertiary)',
+                      border: '1px solid var(--color-border-secondary)',
+                      borderRadius: 'var(--radius-md)',
+                      color: 'var(--color-text-primary)',
+                      outline: 'none',
+                      transition: 'border-color var(--transition-normal)',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--color-accent-primary)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
+                    }}
+                  />
+                  <button
+                    onClick={() => toggleKeyVisibility(aiProvider)}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 2,
+                      color: 'var(--color-text-tertiary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    aria-label={visibleKeys[aiProvider] ? 'Hide API key' : 'Show API key'}
+                  >
+                    {visibleKeys[aiProvider] ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <button
+                  onClick={() => testApiKey(aiProvider)}
+                  disabled={!aiApiKeys[aiProvider] || testingProvider === aiProvider}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: 'var(--font-size-sm)',
+                    fontFamily: 'var(--font-family)',
+                    fontWeight: 500,
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--color-border-secondary)',
+                    background: 'var(--color-bg-tertiary)',
+                    color: !aiApiKeys[aiProvider]
+                      ? 'var(--color-text-quaternary)'
+                      : 'var(--color-text-primary)',
+                    cursor: !aiApiKeys[aiProvider] ? 'not-allowed' : 'pointer',
+                    transition: 'all var(--transition-normal)',
+                    whiteSpace: 'nowrap',
+                    opacity: !aiApiKeys[aiProvider] ? 0.5 : 1,
+                  }}
+                >
+                  {testingProvider === aiProvider ? 'Testing...' : 'Test key'}
+                </button>
+              </div>
+              {/* Test result feedback */}
+              {testResult && testResult.provider === aiProvider && (
+                <div
+                  style={{
+                    marginTop: 'var(--spacing-sm)',
+                    fontSize: 'var(--font-size-sm)',
+                    fontFamily: 'var(--font-family)',
+                    color: testResult.ok ? 'var(--color-success, #22c55e)' : 'var(--color-error, #ef4444)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-xs)',
+                  }}
+                >
+                  {testResult.ok ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                  {testResult.message}
+                </div>
+              )}
+              <div
+                style={{
+                  marginTop: 'var(--spacing-sm)',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-text-quaternary)',
+                  lineHeight: 'var(--line-height-normal)',
+                }}
+              >
+                Your API key is stored locally in your browser and sent directly to {activeProviderConfig.label}. It is never transmitted to AtlasMail servers.
+              </div>
+            </div>
+          </SettingsSection>
+
+          {/* Feature toggles */}
+          <SettingsSection
+            title="AI features"
+            description="Choose which AI capabilities to enable"
+          >
+            <SettingsRow
+              label="Writing assistant"
+              description="AI helps you compose and refine emails faster"
+            >
+              <SettingsToggle
+                checked={aiWritingAssistant}
+                onChange={setAIWritingAssistant}
+                label="Writing assistant"
+              />
+            </SettingsRow>
+            <SettingsRow
+              label="Quick AI replies"
+              description="Suggested reply buttons like 'Interested', 'Thanks', 'Not interested' powered by AI"
+            >
+              <SettingsToggle
+                checked={aiQuickReplies}
+                onChange={setAIQuickReplies}
+                label="Quick AI replies"
+              />
+            </SettingsRow>
+            <SettingsRow
+              label="Thread summary"
+              description="Automatically summarize long email threads into key points"
+            >
+              <SettingsToggle
+                checked={aiThreadSummary}
+                onChange={setAIThreadSummary}
+                label="Thread summary"
+              />
+            </SettingsRow>
+            <SettingsRow
+              label="Translate emails"
+              description="AI-powered translation when reading or composing emails"
+            >
+              <SettingsToggle
+                checked={aiTranslation}
+                onChange={setAITranslation}
+                label="Translate emails"
+              />
+            </SettingsRow>
+          </SettingsSection>
+
+          {/* Status indicator */}
+          {!hasActiveKey && (
+            <div
+              style={{
+                padding: 'var(--spacing-md) var(--spacing-lg)',
+                background: 'color-mix(in srgb, var(--color-warning, #f59e0b) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, transparent)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 'var(--line-height-normal)',
+                fontFamily: 'var(--font-family)',
+              }}
+            >
+              <strong style={{ color: 'var(--color-text-primary)' }}>No API key configured.</strong>{' '}
+              Enter your {activeProviderConfig.label} API key above to start using AI features.
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Panel: Inbox
 // ---------------------------------------------------------------------------
 
@@ -2309,6 +2624,7 @@ const PANELS: Record<NavItemId, () => ReactElement> = {
   appearance: AppearancePanel,
   notifications: NotificationsPanel,
   composer: ComposerPanel,
+  ai: AIPanel,
   inbox: InboxPanel,
   'reading-pane': ReadingPanePanel,
   labels: LabelsPanel,
@@ -2324,6 +2640,7 @@ function usePanelTitles(): Record<NavItemId, string> {
     appearance: t('settings.appearance'),
     notifications: t('settings.notifications'),
     composer: t('settings.composer'),
+    ai: t('settings.ai'),
     inbox: t('settings.inboxSection'),
     'reading-pane': t('settings.readingPane'),
     labels: t('settings.labels'),
@@ -2340,6 +2657,7 @@ function usePanelDescriptions(): Record<NavItemId, string> {
     appearance: 'Customize how AtlasMail looks',
     notifications: 'Configure alerts and notification preferences',
     composer: 'Email composition and signature settings',
+    ai: 'Configure AI-powered features and API keys',
     inbox: 'Inbox behavior and auto-advance',
     'reading-pane': 'Reading pane layout and positioning',
     labels: 'Create and manage email labels',

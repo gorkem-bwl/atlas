@@ -5,6 +5,8 @@ import type { ThemeMode, Density, ColorThemeId } from '@atlasmail/shared';
 
 export type FontFamilyId = 'inter' | 'geist' | 'system' | 'roboto' | 'open-sans' | 'lato';
 
+export type AIProvider = 'openai' | 'anthropic' | 'google';
+
 interface SettingsState {
   theme: ThemeMode;
   density: Density;
@@ -26,6 +28,14 @@ interface SettingsState {
   themeTransition: boolean;
   colorTheme: ColorThemeId;
   trackingEnabled: boolean;
+  // AI settings
+  aiEnabled: boolean;
+  aiProvider: AIProvider;
+  aiApiKeys: Record<AIProvider, string>;
+  aiWritingAssistant: boolean;
+  aiQuickReplies: boolean;
+  aiThreadSummary: boolean;
+  aiTranslation: boolean;
   setTheme: (theme: ThemeMode) => void;
   setColorTheme: (colorTheme: ColorThemeId) => void;
   setDensity: (density: Density) => void;
@@ -46,6 +56,14 @@ interface SettingsState {
   setThemeTransition: (value: boolean) => void;
   setTrackingEnabled: (value: boolean) => void;
   setLanguage: (language: string) => void;
+  // AI setters
+  setAIEnabled: (value: boolean) => void;
+  setAIProvider: (provider: AIProvider) => void;
+  setAIApiKey: (provider: AIProvider, key: string) => void;
+  setAIWritingAssistant: (value: boolean) => void;
+  setAIQuickReplies: (value: boolean) => void;
+  setAIThreadSummary: (value: boolean) => void;
+  setAITranslation: (value: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -71,6 +89,14 @@ export const useSettingsStore = create<SettingsState>()(
       themeTransition: true,
       colorTheme: 'default',
       trackingEnabled: false,
+      // AI defaults
+      aiEnabled: false,
+      aiProvider: 'openai',
+      aiApiKeys: { openai: '', anthropic: '', google: '' },
+      aiWritingAssistant: true,
+      aiQuickReplies: true,
+      aiThreadSummary: true,
+      aiTranslation: true,
       setTheme: (theme) => set({ theme }),
       setColorTheme: (colorTheme) => set({ colorTheme }),
       setDensity: (density) => set({ density }),
@@ -97,6 +123,15 @@ export const useSettingsStore = create<SettingsState>()(
         localStorage.setItem('atlasmail-language', language);
         set({ language });
       },
+      // AI setters
+      setAIEnabled: (aiEnabled) => set({ aiEnabled }),
+      setAIProvider: (aiProvider) => set({ aiProvider }),
+      setAIApiKey: (provider, key) =>
+        set((s) => ({ aiApiKeys: { ...s.aiApiKeys, [provider]: key } })),
+      setAIWritingAssistant: (aiWritingAssistant) => set({ aiWritingAssistant }),
+      setAIQuickReplies: (aiQuickReplies) => set({ aiQuickReplies }),
+      setAIThreadSummary: (aiThreadSummary) => set({ aiThreadSummary }),
+      setAITranslation: (aiTranslation) => set({ aiTranslation }),
     }),
     { name: 'atlasmail-settings' },
   ),
