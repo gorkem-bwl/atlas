@@ -338,6 +338,17 @@ function ThemeToggleButton() {
   );
 }
 
+/** Compute the display name (leaf) and nesting depth from a Gmail label name. */
+function parseLabelName(name: string): { displayName: string; depth: number } {
+  const parts = name.split('/');
+  return { displayName: parts[parts.length - 1], depth: parts.length - 1 };
+}
+
+/** Sort labels so parents appear before their children, and siblings are alphabetical. */
+function sortGmailLabels(labels: GmailLabel[]): GmailLabel[] {
+  return [...labels].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+}
+
 function GmailLabelItem({
   label,
   isActive,
@@ -348,6 +359,7 @@ function GmailLabelItem({
   onSelect: () => void;
 }) {
   const bgColor = label.color?.background || 'var(--color-text-tertiary)';
+  const { displayName, depth } = parseLabelName(label.name);
 
   return (
     <button
@@ -359,6 +371,7 @@ function GmailLabelItem({
         gap: 'var(--spacing-sm)',
         width: '100%',
         padding: '6px var(--spacing-md)',
+        paddingLeft: `${12 + depth * 16}px`,
         background: isActive ? 'var(--color-surface-selected)' : 'transparent',
         border: 'none',
         borderRadius: 'var(--radius-md)',
@@ -400,7 +413,7 @@ function GmailLabelItem({
           whiteSpace: 'nowrap',
         }}
       >
-        {label.name}
+        {displayName}
       </span>
     </button>
   );
@@ -630,7 +643,7 @@ export function Sidebar() {
             <Tag size={16} className="sidebar-nav-icon" style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>
               {filterByLabel
-                ? gmailLabels?.find((l) => l.id === filterByLabel)?.name ?? 'Labels'
+                ? parseLabelName(gmailLabels?.find((l) => l.id === filterByLabel)?.name ?? 'Labels').displayName
                 : 'Labels'}
             </span>
             {filterByLabel && (
@@ -817,7 +830,7 @@ export function Sidebar() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                {gmailLabels.map((label) => (
+                {sortGmailLabels(gmailLabels).map((label) => (
                   <GmailLabelItem
                     key={label.id}
                     label={label}

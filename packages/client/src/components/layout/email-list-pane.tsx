@@ -785,7 +785,8 @@ export function EmailListPane() {
       {/* Active label filter chip */}
       {filterByLabel && (() => {
         const label = gmailLabels?.find((l) => l.id === filterByLabel);
-        const labelName = label?.name ?? filterByLabel;
+        const fullName = label?.name ?? filterByLabel;
+        const labelName = fullName.includes('/') ? fullName.split('/').pop()! : fullName;
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', padding: 'var(--spacing-xs) var(--spacing-md)', borderBottom: '1px solid var(--color-border-primary)', flexShrink: 0 }}>
             <Chip color={label?.color?.background ?? 'var(--color-accent-primary)'} onRemove={() => setFilterByLabel(null)} aria-label="Remove label filter">
