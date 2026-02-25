@@ -120,10 +120,10 @@ export function useDeleteCalendarEvent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (eventId: string) => {
-      await api.delete(`/calendar/events/${eventId}`);
+    mutationFn: async ({ eventId, scope }: { eventId: string; scope?: 'single' | 'all' }) => {
+      await api.delete(`/calendar/events/${eventId}`, { params: scope ? { scope } : undefined });
     },
-    onMutate: async (eventId) => {
+    onMutate: async ({ eventId, scope }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.calendar.all });
 
       const previousQueries = queryClient.getQueriesData<CalendarEvent[]>({
@@ -135,6 +135,15 @@ export function useDeleteCalendarEvent() {
         { queryKey: ['calendar', 'events'] },
         (old) => {
           if (!old) return old;
+          if (scope === 'all') {
+            // Remove all instances of this recurring event
+            const target = old.find((ev) => ev.id === eventId);
+            if (target?.recurringEventId) {
+              return old.filter(
+                (ev) => ev.recurringEventId !== target.recurringEventId && ev.googleEventId !== target.recurringEventId,
+              );
+            }
+          }
           return old.filter((ev) => ev.id !== eventId);
         },
       );

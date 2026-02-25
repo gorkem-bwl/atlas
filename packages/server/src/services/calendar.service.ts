@@ -418,14 +418,39 @@ export async function updateEvent(
     }
   }
 
+  const scope = input.recurringEditScope || 'single';
+
+  // Determine which Google event ID to patch
+  let targetGoogleEventId = existing.googleEventId;
+
+  if (scope === 'all' && existing.recurringEventId) {
+    // Patch the parent recurring event instead of the instance
+    targetGoogleEventId = existing.recurringEventId;
+    // Remove time changes when editing all instances — times are per-instance
+    delete patch.start;
+    delete patch.end;
+  }
+
   const res = await cal.events.patch({
     calendarId: calRow.googleCalendarId,
-    eventId: existing.googleEventId,
+    eventId: targetGoogleEventId,
     requestBody: patch,
     sendUpdates: 'all',
   });
 
   await upsertEvent(accountId, calRow.id, res.data, now);
+
+  // For 'all' scope, re-sync to update all instances in our DB
+  if (scope === 'all' && existing.recurringEventId) {
+    // Sync events for this calendar to pull in updated instances
+    const timeMin = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const timeMax = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      await syncCalendarEvents(accountId, calRow.id, timeMin, timeMax);
+    } catch (err) {
+      logger.warn({ err }, 'Failed to re-sync after updating all recurring instances');
+    }
+  }
 
   const [updated] = await db
     .select()
@@ -436,7 +461,11 @@ export async function updateEvent(
   return updated;
 }
 
-export async function deleteEvent(accountId: string, eventId: string) {
+export async function deleteEvent(
+  accountId: string,
+  eventId: string,
+  scope: 'single' | 'all' = 'single',
+) {
   const [existing] = await db
     .select()
     .from(calendarEvents)
@@ -455,13 +484,42 @@ export async function deleteEvent(accountId: string, eventId: string) {
 
   const cal = await getCalendarClient(accountId);
 
-  await cal.events.delete({
-    calendarId: calRow.googleCalendarId,
-    eventId: existing.googleEventId,
-    sendUpdates: 'all',
-  });
+  if (scope === 'all' && existing.recurringEventId) {
+    // Delete the parent recurring event, which deletes all instances
+    await cal.events.delete({
+      calendarId: calRow.googleCalendarId,
+      eventId: existing.recurringEventId,
+      sendUpdates: 'all',
+    });
 
-  await db.delete(calendarEvents).where(eq(calendarEvents.id, eventId));
+    // Remove all local instances of this recurring event
+    await db
+      .delete(calendarEvents)
+      .where(
+        and(
+          eq(calendarEvents.accountId, accountId),
+          eq(calendarEvents.recurringEventId, existing.recurringEventId),
+        ),
+      );
+    // Also delete the parent event itself if stored
+    await db
+      .delete(calendarEvents)
+      .where(
+        and(
+          eq(calendarEvents.accountId, accountId),
+          eq(calendarEvents.googleEventId, existing.recurringEventId),
+        ),
+      );
+  } else {
+    // Delete just this instance
+    await cal.events.delete({
+      calendarId: calRow.googleCalendarId,
+      eventId: existing.googleEventId,
+      sendUpdates: 'all',
+    });
+
+    await db.delete(calendarEvents).where(eq(calendarEvents.id, eventId));
+  }
 }
 
 export async function toggleCalendarSelected(

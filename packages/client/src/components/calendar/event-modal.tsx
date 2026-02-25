@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, MapPin, AlignLeft, Users, Calendar as CalendarIcon, Clock, Trash2, Palette } from 'lucide-react';
+import { X, MapPin, AlignLeft, Users, Calendar as CalendarIcon, Clock, Trash2, Palette, Repeat } from 'lucide-react';
 import { useCalendarStore } from '../../stores/calendar-store';
 import { useCalendars, useCreateCalendarEvent, useUpdateCalendarEvent, useDeleteCalendarEvent } from '../../hooks/use-calendar';
 import { useSearchContacts } from '../../hooks/use-contacts';
@@ -301,6 +301,7 @@ export function EventModal() {
   const [attendees, setAttendees] = useState<AttendeeChip[]>([]);
   const [colorId, setColorId] = useState<string | null>(null);
   const [timeError, setTimeError] = useState('');
+  const [recurringPrompt, setRecurringPrompt] = useState<'save' | 'delete' | null>(null);
 
   // Populate form on open
   useEffect(() => {
@@ -338,6 +339,7 @@ export function EventModal() {
     }
     setTimeError('');
     setSubmitError('');
+    setRecurringPrompt(null);
 
     // Focus title after render
     setTimeout(() => titleRef.current?.focus(), 50);
@@ -352,14 +354,14 @@ export function EventModal() {
 
   if (!eventModal.open) return null;
 
-  const handleSubmit = () => {
+  const isRecurring = !!(eventModal.mode === 'edit' && eventModal.event?.recurringEventId);
+
+  const doSubmit = (scope?: 'single' | 'all') => {
     if (!title.trim()) return;
 
-    // Validate calendarId
     const resolvedCalendarId = calendarId || calendars?.find((c) => c.isPrimary)?.id || calendars?.[0]?.id;
     if (!resolvedCalendarId) return;
 
-    // Validate time range
     const startDate = new Date(startTime);
     const endDate = new Date(endTime);
     if (!isAllDay && endDate <= startDate) {
@@ -369,7 +371,6 @@ export function EventModal() {
     setTimeError('');
 
     const attendeeList = attendees.map((a) => ({ email: a.email }));
-
     setSubmitError('');
 
     if (eventModal.mode === 'create') {
@@ -402,6 +403,7 @@ export function EventModal() {
           isAllDay,
           attendees: attendeeList.length > 0 ? attendeeList : undefined,
           colorId: colorId !== undefined ? colorId : undefined,
+          recurringEditScope: scope,
         },
         {
           onSuccess: () => closeEventModal(),
@@ -411,12 +413,29 @@ export function EventModal() {
     }
   };
 
-  const handleDelete = () => {
-    if (eventModal.event) {
-      deleteEvent.mutate(eventModal.event.id, {
-        onSuccess: () => closeEventModal(),
-      });
+  const handleSubmit = () => {
+    if (isRecurring && !recurringPrompt) {
+      setRecurringPrompt('save');
+      return;
     }
+    doSubmit();
+  };
+
+  const doDelete = (scope?: 'single' | 'all') => {
+    if (eventModal.event) {
+      deleteEvent.mutate(
+        { eventId: eventModal.event.id, scope },
+        { onSuccess: () => closeEventModal() },
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (isRecurring && !recurringPrompt) {
+      setRecurringPrompt('delete');
+      return;
+    }
+    doDelete();
   };
 
   const isPending = createEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
@@ -488,15 +507,35 @@ export function EventModal() {
             borderBottom: '1px solid var(--color-border-primary)',
           }}
         >
-          <span
-            style={{
-              fontSize: 'var(--font-size-md)',
-              fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-              color: 'var(--color-text-primary)',
-            }}
-          >
-            {eventModal.mode === 'create' ? 'New event' : 'Edit event'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              {eventModal.mode === 'create' ? 'New event' : 'Edit event'}
+            </span>
+            {isRecurring && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  padding: '2px 6px',
+                  background: 'color-mix(in srgb, var(--color-accent-primary) 12%, transparent)',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-accent-primary)',
+                  fontWeight: 500,
+                }}
+              >
+                <Repeat size={10} />
+                Recurring
+              </span>
+            )}
+          </div>
           <button
             onClick={closeEventModal}
             style={{
@@ -790,7 +829,96 @@ export function EventModal() {
             </button>
           </div>
         </div>
+
+        {/* Recurring event scope prompt */}
+        {recurringPrompt && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'var(--color-bg-elevated)',
+              borderRadius: 'var(--radius-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 24,
+              gap: 16,
+              zIndex: 10,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+                color: 'var(--color-text-primary)',
+                textAlign: 'center',
+              }}
+            >
+              {recurringPrompt === 'delete' ? 'Delete recurring event' : 'Edit recurring event'}
+            </span>
+            <span
+              style={{
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-secondary)',
+                textAlign: 'center',
+              }}
+            >
+              This event is part of a series. What would you like to {recurringPrompt === 'delete' ? 'delete' : 'edit'}?
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 260 }}>
+              <button
+                onClick={() => {
+                  setRecurringPrompt(null);
+                  if (recurringPrompt === 'delete') doDelete('single');
+                  else doSubmit('single');
+                }}
+                disabled={isPending}
+                style={scopeBtnStyle}
+              >
+                This event only
+              </button>
+              <button
+                onClick={() => {
+                  setRecurringPrompt(null);
+                  if (recurringPrompt === 'delete') doDelete('all');
+                  else doSubmit('all');
+                }}
+                disabled={isPending}
+                style={scopeBtnStyle}
+              >
+                All events in the series
+              </button>
+              <button
+                onClick={() => setRecurringPrompt(null)}
+                style={{
+                  ...scopeBtnStyle,
+                  background: 'transparent',
+                  border: '1px solid var(--color-border-primary)',
+                  color: 'var(--color-text-secondary)',
+                  marginTop: 4,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
 }
+
+const scopeBtnStyle: CSSProperties = {
+  height: 36,
+  padding: '0 16px',
+  background: 'var(--color-accent-primary)',
+  border: 'none',
+  borderRadius: 'var(--radius-sm)',
+  color: 'var(--color-text-inverse)',
+  fontSize: 'var(--font-size-sm)',
+  fontFamily: 'var(--font-family)',
+  fontWeight: 500,
+  cursor: 'pointer',
+  width: '100%',
+};

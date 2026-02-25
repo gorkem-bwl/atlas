@@ -117,7 +117,8 @@ export async function updateEvent(req: Request, res: Response) {
 export async function deleteEvent(req: Request, res: Response) {
   try {
     const eventId = req.params.eventId as string;
-    await calendarService.deleteEvent(req.auth!.accountId, eventId);
+    const scope = (req.query.scope as string) === 'all' ? 'all' : 'single';
+    await calendarService.deleteEvent(req.auth!.accountId, eventId, scope);
     res.json({ success: true, data: null });
   } catch (error) {
     logger.error({ error }, 'Failed to delete calendar event');

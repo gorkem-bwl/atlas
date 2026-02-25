@@ -51,6 +51,8 @@ export interface CalendarEventCreateInput {
   colorId?: string;
 }
 
+export type RecurringEditScope = 'single' | 'thisAndFollowing' | 'all';
+
 export interface CalendarEventUpdateInput {
   summary?: string;
   description?: string;
@@ -60,4 +62,5 @@ export interface CalendarEventUpdateInput {
   isAllDay?: boolean;
   attendees?: Array<{ email: string }>;
   colorId?: string | null;
+  recurringEditScope?: RecurringEditScope;
 }

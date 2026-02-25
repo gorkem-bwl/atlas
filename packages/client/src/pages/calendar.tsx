@@ -277,7 +277,7 @@ export function CalendarPage() {
           }
         },
         commitAction: () => {
-          deleteEvent.mutate(eventId);
+          deleteEvent.mutate({ eventId });
         },
       });
     },
