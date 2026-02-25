@@ -63,10 +63,10 @@ export function EmailListItem({
   // Show checkbox when hovering OR when this thread is multi-selected
   const showCheckbox = isHovered || isMultiSelected;
 
-  const isBottomPane = readingPane === 'bottom';
+  const useCompactRow = readingPane === 'bottom' || readingPane === 'hidden';
 
-  // ---- Bottom pane: single horizontal row layout (Outlook-style) ----
-  if (isBottomPane) {
+  // ---- Compact: single horizontal row layout (Outlook-style) for bottom/hidden modes ----
+  if (useCompactRow) {
     return (
       <div
         role="option"
@@ -260,7 +260,7 @@ export function EmailListItem({
     );
   }
 
-  // ---- Default: vertical card layout (right pane / hidden) ----
+  // ---- Default: vertical card layout (right pane) ----
   return (
     <div
       role="option"
