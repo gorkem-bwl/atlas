@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Star, Reply, Archive, Trash2, Clock, Check, Paperclip } from 'lucide-react';
+import { Star, Reply, Archive, Trash2, Check, Paperclip } from 'lucide-react';
 import { Avatar } from '../ui/avatar';
 import { IconButton } from '../ui/icon-button';
 import { Tooltip } from '../ui/tooltip';
-import { SnoozePopover } from './snooze-popover';
 import { useValueChangeAnimation, injectStarPop, injectNewEmailArrival } from '../../lib/animations';
-import { useSettingsStore } from '../../stores/settings-store';
 import { formatRelativeTime } from '@atlasmail/shared';
 import type { Thread } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
@@ -43,12 +41,10 @@ export function EmailListItem({
   onReplyClick,
   onArchiveClick,
   onTrashClick,
-  onSnooze,
 }: EmailListItemProps) {
   const { t, i18n } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const starAnimating = useValueChangeAnimation(thread.isStarred, true, 500);
-  const readingPane = useSettingsStore((s) => s.readingPane);
 
   const isUnread = thread.unreadCount > 0;
   const senderName = (thread as any).senderName || (thread as any).senderEmail || thread.emails?.[0]?.fromName || thread.emails?.[0]?.fromAddress || 'Unknown';
@@ -63,13 +59,10 @@ export function EmailListItem({
   // Show checkbox when hovering OR when this thread is multi-selected
   const showCheckbox = isHovered || isMultiSelected;
 
-  const useCompactRow = readingPane === 'bottom' || readingPane === 'hidden';
-
-  // ---- Compact: single horizontal row layout (Outlook-style) for bottom/hidden modes ----
-  if (useCompactRow) {
-    return (
-      <div
-        role="option"
+  // ---- Single horizontal row layout (Outlook-style) ----
+  return (
+    <div
+      role="option"
         aria-selected={isSelected || isMultiSelected}
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -258,210 +251,6 @@ export function EmailListItem({
         />
       </div>
     );
-  }
-
-  // ---- Default: vertical card layout (right pane) ----
-  return (
-    <div
-      role="option"
-      aria-selected={isSelected || isMultiSelected}
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--spacing-sm)',
-        padding: 'var(--email-list-padding, 10px 16px)',
-        height: 'var(--email-list-item-height, 84px)',
-        background,
-        cursor: 'pointer',
-        borderBottom: '1px solid var(--color-border-secondary)',
-        animation: isNew ? 'atlasmail-new-email-enter 400ms ease both' : undefined,
-        boxSizing: 'border-box',
-        transition: 'background var(--transition-normal)',
-        userSelect: 'none',
-        position: 'relative',
-        zIndex: 0,
-      }}
-    >
-      {/* Unread indicator / Checkbox */}
-      <UnreadOrCheckbox
-        isUnread={isUnread}
-        isMultiSelected={isMultiSelected}
-        showCheckbox={showCheckbox}
-        onCheckboxClick={onCheckboxClick}
-        t={t}
-      />
-
-      {/* Avatar — scales with density */}
-      <Avatar name={senderName} email={senderEmail} cssSize="var(--email-list-avatar, 32px)" />
-
-      {/* Content */}
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2px',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Top row: sender + timestamp/actions */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--spacing-sm)',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 'var(--font-size-md)',
-              fontWeight: isUnread
-                ? ('var(--font-weight-semibold)' as CSSProperties['fontWeight'])
-                : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
-              color: isUnread ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            {senderName}
-            {thread.messageCount > 1 && (
-              <span
-                style={{
-                  marginLeft: 'var(--spacing-xs)',
-                  fontSize: 'var(--font-size-sm)',
-                  color: 'var(--color-text-tertiary)',
-                  fontWeight: 'var(--font-weight-normal)' as CSSProperties['fontWeight'],
-                }}
-              >
-                {thread.messageCount}
-              </span>
-            )}
-          </span>
-
-          {/* Right side of top row: quick actions + timestamp stacked, swap visibility on hover */}
-          <div style={{ position: 'relative', flexShrink: 0, height: 28, display: 'flex', alignItems: 'center' }}>
-            {/* Timestamp — hidden on hover */}
-            <span
-              style={{
-                fontSize: 'var(--font-size-xs)',
-                color: isUnread ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
-                whiteSpace: 'nowrap',
-                opacity: isHovered ? 0 : 1,
-                transition: 'opacity var(--transition-normal)',
-              }}
-            >
-              {formatRelativeTime(thread.lastMessageAt, i18n.language)}
-            </span>
-            {/* Quick actions — shown on hover, positioned on top of timestamp */}
-            <div
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-xs)',
-                opacity: isHovered ? 1 : 0,
-                pointerEvents: isHovered ? 'auto' : 'none',
-                transition: 'opacity var(--transition-normal)',
-              }}
-            >
-              <IconButton
-                icon={<Reply size={14} />}
-                label={t('compose.reply')}
-                tooltipSide="top"
-                pressEffect
-                onClick={(e) => { e.stopPropagation(); onReplyClick?.(); }}
-              />
-              <IconButton
-                icon={<Archive size={14} />}
-                label={t('email.archive')}
-                tooltipSide="top"
-                pressEffect
-                onClick={(e) => { e.stopPropagation(); onArchiveClick?.(); }}
-              />
-              <IconButton
-                icon={<Trash2 size={14} />}
-                label={t('email.trash')}
-                tooltipSide="top"
-                destructive
-                pressEffect
-                onClick={(e) => { e.stopPropagation(); onTrashClick?.(); }}
-              />
-              <SnoozePopover
-                threadId={thread.id}
-                onSnooze={(threadId, snoozeUntil) => onSnooze?.(threadId, snoozeUntil)}
-              >
-                <IconButton
-                  icon={<Clock size={14} />}
-                  label={t('email.snooze')}
-                  tooltip={false}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </SnoozePopover>
-            </div>
-          </div>
-        </div>
-
-        {/* Subject + labels */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-sm)',
-            overflow: 'hidden',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 'var(--font-size-md)',
-              color: isUnread ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-              fontWeight: isUnread
-                ? ('var(--font-weight-medium)' as CSSProperties['fontWeight'])
-                : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            {thread.subject || t('common.noSubject')}
-          </span>
-        </div>
-
-        {/* Snippet */}
-        <span
-          style={{
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-text-tertiary)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {thread.snippet || ''}
-        </span>
-      </div>
-
-      {/* Star — always visible on the right edge */}
-      <StarButton
-        isStarred={thread.isStarred}
-        isHovered={isHovered}
-        starAnimating={starAnimating}
-        onStarClick={onStarClick}
-        t={t}
-      />
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------------------

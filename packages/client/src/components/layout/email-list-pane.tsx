@@ -770,8 +770,7 @@ export function EmailListPane() {
         <div
           role="search"
           style={{
-            width: '100%',
-            maxWidth: 880,
+            width: 320,
           }}
         >
           <SearchBar
