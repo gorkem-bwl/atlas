@@ -2852,6 +2852,7 @@ export function SettingsModal() {
 
         <Dialog.Content
           aria-describedby={undefined}
+          onPointerDownOutside={(e) => e.preventDefault()}
           style={{
             position: 'fixed',
             top: '50%',

@@ -981,6 +981,7 @@ export function ComposeModal() {
         />
         <Dialog.Content
           aria-describedby={undefined}
+          onPointerDownOutside={(e) => e.preventDefault()}
           style={{
             position: 'fixed',
             bottom: isMaximized ? 0 : 'var(--spacing-xl)',
