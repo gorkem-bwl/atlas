@@ -40,7 +40,7 @@ function LabelNode({ label, labels, depth, activeLabel, onSelect }: LabelNodePro
           alignItems: 'center',
           gap: 'var(--spacing-sm)',
           width: '100%',
-          paddingLeft: 12 + depth * 16,
+          paddingLeft: 8 + depth * 12,
           paddingRight: 'var(--spacing-md)',
           paddingTop: 6,
           paddingBottom: 6,

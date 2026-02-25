@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef, type CSSProperties, type Reac
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import DOMPurify from 'dompurify';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
@@ -29,6 +31,14 @@ import {
   Save,
   Camera,
   AlertCircle,
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  Link as LinkIcon,
+  List,
+  ListOrdered,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/ui-store';
@@ -36,6 +46,7 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { Avatar } from '../ui/avatar';
 import { DEFAULT_LABELS, type Label } from '../../lib/labels';
+import { useLabelStore } from '../../stores/label-store';
 import { AddAccountModal } from './add-account-modal';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { DEFAULT_SHORTCUTS, type ShortcutCategory } from '@atlasmail/shared';
@@ -237,12 +248,8 @@ function SettingsToggle({
         flexShrink: 0,
         outline: 'none',
       }}
-      onFocus={(e) => {
-        e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-border-focus)';
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
-      }}
+      onFocus={() => {}}
+      onBlur={() => {}}
     >
       <span
         style={{
@@ -301,12 +308,8 @@ function SelectableCard({
         outline: 'none',
         ...style,
       }}
-      onFocus={(e) => {
-        e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-border-focus)';
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
-      }}
+      onFocus={() => {}}
+      onBlur={() => {}}
     >
       {children}
     </button>
@@ -352,12 +355,8 @@ function RadioOption({
         fontFamily: 'var(--font-family)',
         outline: 'none',
       }}
-      onFocus={(e) => {
-        e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-border-focus)';
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
-      }}
+      onFocus={() => {}}
+      onBlur={() => {}}
     >
       <span
         style={{
@@ -1581,15 +1580,57 @@ function NotificationsPanel() {
 // Panel: Composer
 // ---------------------------------------------------------------------------
 
+function SignatureToolbarButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  icon: typeof Bold;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 28,
+        height: 28,
+        border: 'none',
+        borderRadius: 'var(--radius-sm)',
+        background: active ? 'var(--color-surface-active)' : 'transparent',
+        color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+        cursor: 'pointer',
+        transition: 'background var(--transition-normal), color var(--transition-normal)',
+      }}
+      onMouseEnter={(e) => {
+        if (!active) e.currentTarget.style.background = 'var(--color-surface-hover)';
+      }}
+      onMouseLeave={(e) => {
+        if (!active) e.currentTarget.style.background = 'transparent';
+      }}
+    >
+      <Icon size={14} />
+    </button>
+  );
+}
+
 function SignatureEditor() {
   const { signatureHtml, includeSignatureInReplies, setSignatureHtml, setSignature, setIncludeSignatureInReplies } =
     useSettingsStore();
-  const [showPreview, setShowPreview] = useState(false);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: false, codeBlock: false }),
-      Placeholder.configure({ placeholder: 'Add a signature...' }),
+      Placeholder.configure({ placeholder: 'Add your HTML signature...' }),
+      Underline,
+      Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
     ],
     editorProps: {
       attributes: {
@@ -1620,33 +1661,104 @@ function SignatureEditor() {
     }
   }, [signatureHtml, editor]);
 
-  const sanitizedPreview = DOMPurify.sanitize(signatureHtml || '', {
-    USE_PROFILES: { html: true },
-  });
+  function handleSetLink() {
+    if (!editor) return;
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('Enter URL:', previousUrl || 'https://');
+    if (url === null) return;
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-      {/* TipTap editor wrapper */}
+      {/* TipTap editor with toolbar */}
       <div
-        onClick={() => editor?.commands.focus()}
         style={{
           border: '1px solid var(--color-border-primary)',
           borderRadius: 'var(--radius-md)',
           background: 'var(--color-bg-tertiary)',
-          minHeight: 120,
-          cursor: 'text',
-          fontSize: 'var(--font-size-md)',
-          fontFamily: 'var(--font-family)',
-          color: 'var(--color-text-primary)',
-          lineHeight: 'var(--line-height-normal)',
           overflow: 'hidden',
           transition: 'border-color var(--transition-normal)',
         }}
       >
-        <EditorContent
-          editor={editor}
-          style={{ padding: 'var(--spacing-md)', outline: 'none' }}
-        />
+        {/* Formatting toolbar */}
+        {editor && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              padding: '4px var(--spacing-sm)',
+              borderBottom: '1px solid var(--color-border-secondary)',
+              background: 'var(--color-bg-secondary)',
+            }}
+          >
+            <SignatureToolbarButton
+              icon={Bold}
+              label="Bold"
+              active={editor.isActive('bold')}
+              onClick={() => editor.chain().focus().toggleBold().run()}
+            />
+            <SignatureToolbarButton
+              icon={Italic}
+              label="Italic"
+              active={editor.isActive('italic')}
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+            />
+            <SignatureToolbarButton
+              icon={UnderlineIcon}
+              label="Underline"
+              active={editor.isActive('underline')}
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+            />
+            <div style={{ width: 1, height: 18, background: 'var(--color-border-secondary)', margin: '0 4px', flexShrink: 0 }} />
+            <SignatureToolbarButton
+              icon={LinkIcon}
+              label="Insert link"
+              active={editor.isActive('link')}
+              onClick={handleSetLink}
+            />
+            <div style={{ width: 1, height: 18, background: 'var(--color-border-secondary)', margin: '0 4px', flexShrink: 0 }} />
+            <SignatureToolbarButton
+              icon={List}
+              label="Bullet list"
+              active={editor.isActive('bulletList')}
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+            />
+            <SignatureToolbarButton
+              icon={ListOrdered}
+              label="Numbered list"
+              active={editor.isActive('orderedList')}
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            />
+            <div style={{ flex: 1 }} />
+            <SignatureToolbarButton
+              icon={Undo2}
+              label="Undo"
+              onClick={() => editor.chain().focus().undo().run()}
+            />
+            <SignatureToolbarButton
+              icon={Redo2}
+              label="Redo"
+              onClick={() => editor.chain().focus().redo().run()}
+            />
+          </div>
+        )}
+
+        {/* Editor content */}
+        <div
+          onClick={() => editor?.commands.focus()}
+          style={{ cursor: 'text', minHeight: 120 }}
+        >
+          <EditorContent
+            editor={editor}
+            style={{ padding: 'var(--spacing-md)', outline: 'none' }}
+          />
+        </div>
       </div>
 
       {/* Include in replies toggle */}
@@ -1660,64 +1772,6 @@ function SignatureEditor() {
           label="Include signature in replies"
         />
       </SettingsRow>
-
-      {/* Signature preview */}
-      {signatureHtml && (
-        <div>
-          <button
-            onClick={() => setShowPreview((v) => !v)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              fontSize: 'var(--font-size-sm)',
-              color: 'var(--color-accent-primary)',
-              fontFamily: 'var(--font-family)',
-              marginBottom: showPreview ? 'var(--spacing-sm)' : 0,
-              transition: 'color var(--transition-normal)',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-          >
-            {showPreview ? 'Hide preview' : 'Show preview'}
-          </button>
-          {showPreview && (
-            <div
-              style={{
-                padding: 'var(--spacing-lg)',
-                background: 'var(--color-bg-secondary)',
-                border: '1px solid var(--color-border-secondary)',
-                borderTop: '3px solid var(--color-border-primary)',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-tertiary)',
-                  fontFamily: 'var(--font-family)',
-                  marginBottom: 'var(--spacing-sm)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                Signature preview
-              </div>
-              <div
-                className="email-html-body"
-                style={{
-                  fontSize: 'var(--font-size-md)',
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family)',
-                  lineHeight: 'var(--line-height-normal)',
-                }}
-                dangerouslySetInnerHTML={{ __html: sanitizedPreview }}
-              />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -1899,35 +1953,23 @@ function ReadingPanePanel() {
 // ---------------------------------------------------------------------------
 
 function LabelsPanel() {
-  // Use a store key so labels persist across settings open/close
-  const [labels, setLabels] = useState<Label[]>(() => {
-    try {
-      const stored = localStorage.getItem('atlasmail-labels');
-      return stored ? (JSON.parse(stored) as Label[]) : DEFAULT_LABELS;
-    } catch {
-      return DEFAULT_LABELS;
-    }
-  });
+  const labels = useLabelStore((s) => s.labels);
+  const addLabelToStore = useLabelStore((s) => s.addLabel);
+  const deleteLabelFromStore = useLabelStore((s) => s.deleteLabel);
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#4a7cba');
   const [confirmDeleteLabel, setConfirmDeleteLabel] = useState<string | null>(null);
-
-  // Persist labels to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('atlasmail-labels', JSON.stringify(labels));
-  }, [labels]);
 
   function addLabel() {
     const trimmed = newLabelName.trim();
     if (!trimmed) return;
     if (labels.some((l) => l.name.toLowerCase() === trimmed.toLowerCase())) return;
-    const id = trimmed.toLowerCase().replace(/\s+/g, '-');
-    setLabels((prev) => [...prev, { id, name: trimmed, color: newLabelColor, parentId: null }]);
+    addLabelToStore(trimmed, newLabelColor);
     setNewLabelName('');
   }
 
   function removeLabel(id: string) {
-    setLabels((prev) => prev.filter((l) => l.id !== id));
+    deleteLabelFromStore(id);
   }
 
   return (
