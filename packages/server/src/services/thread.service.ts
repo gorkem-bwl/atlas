@@ -44,6 +44,9 @@ export async function getThreadCounts(accountId: string) {
     archiveUnread:    sql<number>`sum(case when is_archived = 1 and is_trashed = 0 and unread_count > 0 then 1 else 0 end)`,
     trashTotal:       sql<number>`sum(case when is_trashed = 1 then 1 else 0 end)`,
     trashUnread:      sql<number>`sum(case when is_trashed = 1 and unread_count > 0 then 1 else 0 end)`,
+    starredTotal:     sql<number>`sum(case when is_starred = 1 and is_trashed = 0 then 1 else 0 end)`,
+    starredUnread:    sql<number>`sum(case when is_starred = 1 and is_trashed = 0 and unread_count > 0 then 1 else 0 end)`,
+    unreadTotal:      sql<number>`sum(case when is_trashed = 0 and is_spam = 0 and unread_count > 0 then 1 else 0 end)`,
     spamTotal:        sql<number>`sum(case when is_spam = 1 and is_trashed = 0 then 1 else 0 end)`,
     spamUnread:       sql<number>`sum(case when is_spam = 1 and is_trashed = 0 and unread_count > 0 then 1 else 0 end)`,
     // Category counts (only for inbox threads)
@@ -63,6 +66,7 @@ export async function getThreadCounts(accountId: string) {
 
   return {
     categories: {
+      all:           { total: n(row.inboxTotal),         unread: n(row.inboxUnread) },
       important:     { total: n(row.importantTotal),     unread: n(row.importantUnread) },
       other:         { total: n(row.otherTotal),         unread: n(row.otherUnread) },
       newsletters:   { total: n(row.newslettersTotal),   unread: n(row.newslettersUnread) },
@@ -70,6 +74,8 @@ export async function getThreadCounts(accountId: string) {
     },
     mailboxes: {
       inbox:   { total: n(row.inboxTotal),   unread: n(row.inboxUnread) },
+      starred: { total: n(row.starredTotal), unread: n(row.starredUnread) },
+      unread:  { total: n(row.unreadTotal),  unread: n(row.unreadTotal) },
       archive: { total: n(row.archiveTotal), unread: n(row.archiveUnread) },
       trash:   { total: n(row.trashTotal),   unread: n(row.trashUnread) },
       spam:    { total: n(row.spamTotal),    unread: n(row.spamUnread) },
@@ -118,6 +124,15 @@ export async function getThreads(
   const conditions = [eq(threads.accountId, accountId)];
 
   switch (mailbox) {
+    case 'starred':
+      conditions.push(eq(threads.isStarred, true));
+      conditions.push(eq(threads.isTrashed, false));
+      break;
+    case 'unread':
+      conditions.push(sql`${threads.unreadCount} > 0`);
+      conditions.push(eq(threads.isTrashed, false));
+      conditions.push(eq(threads.isSpam, false));
+      break;
     case 'archive':
       conditions.push(eq(threads.isArchived, true));
       conditions.push(eq(threads.isTrashed, false));

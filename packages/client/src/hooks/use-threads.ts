@@ -24,6 +24,7 @@ export function useThreadCounts() {
       if (USE_MOCK) {
         return {
           categories: {
+            all: { total: 29, unread: 6 },
             important: { total: 12, unread: 3 },
             other: { total: 5, unread: 1 },
             newsletters: { total: 8, unread: 2 },

@@ -210,7 +210,6 @@ export function AppLayout({ emailList, readingPane }: AppLayoutProps) {
               width: `${sidebarWidth}px`,
               flexShrink: 0,
               height: '100%',
-              borderRight: '1px solid var(--color-border-primary)',
               background: 'var(--color-bg-secondary)',
               display: 'flex',
               flexDirection: 'column',

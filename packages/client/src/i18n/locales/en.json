@@ -41,10 +41,13 @@
     "connectingToGmail": "Connecting to your Gmail account"
   },
   "sidebar": {
+    "allMail": "All mail",
     "important": "Important",
     "other": "Other",
     "newsletters": "Newsletters",
     "notifications": "Notifications",
+    "starred": "Starred",
+    "unread": "Unread",
     "sent": "Sent",
     "drafts": "Drafts",
     "archive": "Archive",
@@ -138,6 +141,7 @@
   "email": {
     "archive": "Archive",
     "trash": "Trash",
+    "delete": "Delete",
     "reportSpam": "Report spam",
     "star": "Star",
     "unstar": "Unstar",

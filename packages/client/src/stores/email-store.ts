@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { EmailCategory } from '@atlasmail/shared';
 
-export type Mailbox = 'inbox' | 'sent' | 'drafts' | 'archive' | 'trash' | 'spam';
+export type Mailbox = 'inbox' | 'starred' | 'unread' | 'sent' | 'drafts' | 'archive' | 'trash' | 'spam';
 
 interface EmailState {
   activeCategory: EmailCategory;
@@ -26,7 +26,7 @@ interface EmailState {
 }
 
 export const useEmailStore = create<EmailState>((set) => ({
-  activeCategory: 'important',
+  activeCategory: 'all',
   activeMailbox: 'inbox',
   activeThreadId: null,
   cursorIndex: 0,

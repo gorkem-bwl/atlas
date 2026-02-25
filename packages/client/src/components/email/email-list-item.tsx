@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Star, Reply, Archive, Trash2, Clock, Check } from 'lucide-react';
 import { Avatar } from '../ui/avatar';
 import { IconButton } from '../ui/icon-button';
+import { Tooltip } from '../ui/tooltip';
 import { LabelChip } from './label-chip';
 import { SnoozePopover } from './snooze-popover';
 import { getLabelById } from '../../lib/labels';
@@ -324,6 +325,7 @@ export function EmailListItem({
       </div>
 
       {/* Star — always visible on the right edge */}
+      <Tooltip content={thread.isStarred ? t('email.unstar') : t('email.star')} side="left">
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -363,6 +365,7 @@ export function EmailListItem({
           fill={thread.isStarred ? 'var(--color-star)' : 'none'}
         />
       </button>
+      </Tooltip>
     </div>
   );
 }

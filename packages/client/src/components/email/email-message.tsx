@@ -457,7 +457,7 @@ export function EmailMessage({
           e.currentTarget.style.background = 'transparent';
         }}
       >
-        <Avatar name={email.fromName} email={email.fromAddress} size={expanded ? 36 : 24} />
+        <Avatar name={email.fromName} email={email.fromAddress} size={32} />
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div

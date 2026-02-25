@@ -234,6 +234,7 @@ export function EmailListPane() {
   } = useEmailStore();
 
   const CATEGORY_LABELS: Record<EmailCategory, string> = {
+    all: t('sidebar.allMail'),
     important: t('sidebar.important'),
     other: t('sidebar.other'),
     newsletters: t('sidebar.newsletters'),
@@ -241,7 +242,9 @@ export function EmailListPane() {
   };
 
   const MAILBOX_LABELS: Record<Mailbox, string> = {
-    inbox: t('sidebar.important'),
+    inbox: t('sidebar.allMail'),
+    starred: t('sidebar.starred'),
+    unread: t('sidebar.unread'),
     sent: t('sidebar.sent'),
     drafts: t('sidebar.drafts'),
     archive: t('sidebar.archive'),
@@ -280,7 +283,7 @@ export function EmailListPane() {
     isFetchingNextPage,
   } = useMailboxThreads(
     activeMailbox,
-    isInbox ? activeCategory : undefined,
+    isInbox && activeCategory !== 'all' ? activeCategory : undefined,
   );
 
   // Server-side search — fires when user types a free-text query
@@ -419,12 +422,10 @@ export function EmailListPane() {
   // The undo hooks snapshot the cache entry for the currently visible list.
   // When in inbox mode the key is the category list; in other mailboxes it
   // is the mailbox key — so we must pass the right key to each undo hook.
+  const categoryFilter = isInbox && activeCategory !== 'all' ? activeCategory : undefined;
   const activeListKey = useMemo(
-    () =>
-      isInbox
-        ? queryKeys.threads.list(activeCategory)
-        : queryKeys.threads.mailbox(activeMailbox),
-    [isInbox, activeCategory, activeMailbox],
+    () => queryKeys.threads.mailbox(activeMailbox, categoryFilter),
+    [activeMailbox, categoryFilter],
   );
 
   const handleArchiveClick = useCallback(
@@ -610,7 +611,7 @@ export function EmailListPane() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 'var(--spacing-xs)',
+              gap: 'var(--spacing-sm)',
               padding: 'var(--spacing-xs) var(--spacing-md)',
               borderBottom: '1px solid var(--color-border-primary)',
               flexShrink: 0,

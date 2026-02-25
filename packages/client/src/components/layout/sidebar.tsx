@@ -2,8 +2,10 @@ import { useState } from 'react';
 import {
   Inbox,
   Mail,
+  MailOpen,
   Newspaper,
   Bell,
+  Star,
   Settings,
   Edit,
   Sun,
@@ -34,14 +36,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'important', icon: Inbox },
-  { id: 'other', icon: Mail },
+  { id: 'all', icon: Inbox },
+  { id: 'important', icon: Star },
   { id: 'newsletters', icon: Newspaper },
   { id: 'notifications', icon: Bell },
+  { id: 'other', icon: Mail },
 ];
 
 const CATEGORY_COLORS: Record<EmailCategory, string> = {
-  important: 'var(--color-category-important)',
+  all: 'var(--color-category-important)',
+  important: 'var(--color-star)',
   other: 'var(--color-category-other)',
   newsletters: 'var(--color-category-newsletters)',
   notifications: 'var(--color-category-notifications)',
@@ -155,15 +159,19 @@ interface MailboxNavItemDef {
 }
 
 const MAILBOX_NAV_ITEMS: MailboxNavItemDef[] = [
+  { id: 'starred', icon: Star },
+  { id: 'unread', icon: MailOpen },
   { id: 'sent', icon: Send },
   { id: 'drafts', icon: FileText },
   { id: 'archive', icon: Archive },
-  { id: 'trash', icon: Trash2 },
   { id: 'spam', icon: AlertOctagon },
+  { id: 'trash', icon: Trash2 },
 ];
 
 const MAILBOX_COLORS: Record<Mailbox, string> = {
   inbox: 'currentColor',
+  starred: '#d4a017',
+  unread: '#5a7fa0',
   sent: '#4a9e8f',
   drafts: '#c4856c',
   archive: '#7889a0',
@@ -338,6 +346,7 @@ export function Sidebar() {
   const { data: counts } = useThreadCounts();
 
   const CATEGORY_LABELS: Record<EmailCategory, string> = {
+    all: t('sidebar.allMail'),
     important: t('sidebar.important'),
     other: t('sidebar.other'),
     newsletters: t('sidebar.newsletters'),
@@ -345,6 +354,8 @@ export function Sidebar() {
   };
 
   const MAILBOX_LABELS: Record<string, string> = {
+    starred: t('sidebar.starred'),
+    unread: t('sidebar.unread'),
     sent: t('sidebar.sent'),
     drafts: t('sidebar.drafts'),
     archive: t('sidebar.archive'),
@@ -379,9 +390,9 @@ export function Sidebar() {
       >
         <div
           style={{
-            width: 24,
-            height: 24,
-            borderRadius: 'var(--radius-sm)',
+            width: 30,
+            height: 30,
+            borderRadius: 'var(--radius-md)',
             background: 'var(--color-accent-primary)',
             display: 'flex',
             alignItems: 'center',
@@ -389,14 +400,14 @@ export function Sidebar() {
             flexShrink: 0,
           }}
         >
-          <Mail size={13} color="#ffffff" />
+          <Mail size={16} color="#ffffff" />
         </div>
         <span
           style={{
-            fontSize: 'var(--font-size-sm)',
+            fontSize: 'var(--font-size-lg)',
             fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
             color: 'var(--color-text-primary)',
-            letterSpacing: '-0.01em',
+            letterSpacing: '-0.02em',
             flex: 1,
           }}
         >

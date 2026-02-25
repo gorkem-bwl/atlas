@@ -8,6 +8,7 @@ interface CategoryBadgeProps {
 }
 
 const CATEGORY_LABELS: Record<EmailCategory, string> = {
+  all: 'All mail',
   important: 'Important',
   other: 'Other',
   newsletters: 'Newsletters',
@@ -15,6 +16,7 @@ const CATEGORY_LABELS: Record<EmailCategory, string> = {
 };
 
 const CATEGORY_COLORS: Record<EmailCategory, string> = {
+  all: 'var(--color-category-important)',
   important: 'var(--color-category-important)',
   other: 'var(--color-category-other)',
   newsletters: 'var(--color-category-newsletters)',

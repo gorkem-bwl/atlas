@@ -45,13 +45,10 @@ export function EmailActions({ thread }: EmailActionsProps) {
 
   // Derive the correct TanStack Query list key for the currently visible thread
   // list, so optimistic updates in undo hooks target the right cache entry.
-  const activeListKey =
-    activeMailbox === 'inbox'
-      ? queryKeys.threads.list(activeCategory)
-      : queryKeys.threads.mailbox(activeMailbox);
-
   const isInbox = activeMailbox === 'inbox';
-  const { data: rawThreads } = useMailboxThreads(activeMailbox, isInbox ? activeCategory : undefined);
+  const categoryFilter = isInbox && activeCategory !== 'all' ? activeCategory : undefined;
+  const activeListKey = queryKeys.threads.mailbox(activeMailbox, categoryFilter);
+  const { data: rawThreads } = useMailboxThreads(activeMailbox, categoryFilter);
   const displayThreads = useMemo(() => rawThreads ?? [], [rawThreads]);
   const advanceAfterRemoval = useAutoAdvance(displayThreads);
 
@@ -85,7 +82,7 @@ export function EmailActions({ thread }: EmailActionsProps) {
     },
     {
       icon: Trash2,
-      label: t('email.trash'),
+      label: t('email.delete'),
       shortcut: '#',
       action: () => {
         advanceAfterRemoval(thread.id, cursorIndex);
@@ -172,8 +169,6 @@ export function EmailActions({ thread }: EmailActionsProps) {
             background: 'transparent',
             color: active
               ? activeColor || 'var(--color-accent-primary)'
-              : destructive
-              ? 'var(--color-text-tertiary)'
               : 'var(--color-text-secondary)',
             cursor: 'pointer',
             transition: 'background var(--transition-normal), color var(--transition-normal), transform 80ms ease',
@@ -187,8 +182,6 @@ export function EmailActions({ thread }: EmailActionsProps) {
             e.currentTarget.style.background = 'transparent';
             e.currentTarget.style.color = active
               ? activeColor || 'var(--color-accent-primary)'
-              : destructive
-              ? 'var(--color-text-tertiary)'
               : 'var(--color-text-secondary)';
           }}
           onMouseDown={(e) => {
@@ -232,9 +225,9 @@ export function EmailActions({ thread }: EmailActionsProps) {
             snoozeMutation.mutate({ threadId, snoozeUntil: snoozeUntil.toISOString() });
           }}
         >
+          <Tooltip content={`${t('email.snooze')} (H)`} side="bottom">
           <button
             aria-label={t('email.snooze')}
-            title={`${t('email.snooze')} (H)`}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -265,10 +258,12 @@ export function EmailActions({ thread }: EmailActionsProps) {
           >
             <Clock size={16} />
           </button>
+          </Tooltip>
         </SnoozePopover>
 
         {/* Label assignment */}
         <LabelPopover threadId={thread.id} currentLabels={thread.labels ?? []}>
+          <Tooltip content={t('labels.manageLabels')} side="bottom">
           <button
             aria-label={t('labels.manageLabels')}
             style={{
@@ -301,6 +296,7 @@ export function EmailActions({ thread }: EmailActionsProps) {
           >
             <Tag size={16} />
           </button>
+          </Tooltip>
         </LabelPopover>
 
         {afterSnoozeActions.map(renderActionButton)}

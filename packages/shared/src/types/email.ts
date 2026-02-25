@@ -66,4 +66,4 @@ export interface Thread {
   updatedAt: string;
 }
 
-export type EmailCategory = 'important' | 'other' | 'newsletters' | 'notifications';
+export type EmailCategory = 'all' | 'important' | 'other' | 'newsletters' | 'notifications';

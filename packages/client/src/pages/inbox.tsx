@@ -38,17 +38,15 @@ export function InboxPage() {
   const starMutation = useToggleStar();
   const markReadUnread = useMarkReadUnread();
   const isInbox = activeMailbox === 'inbox';
-  const { data: threads } = useMailboxThreads(activeMailbox, isInbox ? activeCategory : undefined);
+  const categoryFilter = isInbox && activeCategory !== 'all' ? activeCategory : undefined;
+  const { data: threads } = useMailboxThreads(activeMailbox, categoryFilter);
   const maxCursorIndex = Math.max(0, (threads?.length ?? 1) - 1);
   const displayThreads = useMemo(() => threads ?? [], [threads]);
   const advanceAfterRemoval = useAutoAdvance(displayThreads);
 
   const activeListKey = useMemo(
-    () =>
-      isInbox
-        ? queryKeys.threads.list(activeCategory)
-        : queryKeys.threads.mailbox(activeMailbox),
-    [isInbox, activeCategory, activeMailbox],
+    () => queryKeys.threads.mailbox(activeMailbox, categoryFilter),
+    [activeMailbox, categoryFilter],
   );
 
   // Keep the shortcut engine context in sync with whether a thread is open
@@ -78,6 +76,7 @@ export function InboxPage() {
   const handleGoBack = useCallback(() => setActiveThread(null), [setActiveThread]);
 
   // Category navigation
+  const handleGoAll = useCallback(() => setActiveCategory('all'), [setActiveCategory]);
   const handleGoImportant = useCallback(() => setActiveCategory('important'), [setActiveCategory]);
   const handleGoOther = useCallback(() => setActiveCategory('other'), [setActiveCategory]);
   const handleGoNewsletters = useCallback(() => setActiveCategory('newsletters'), [setActiveCategory]);
@@ -180,6 +179,7 @@ export function InboxPage() {
   useShortcut('move_up', handleMoveUp, 'global');
   useShortcut('open_thread', handleOpenThread, 'global');
   useShortcut('go_back', handleGoBack, 'thread');
+  useShortcut('go_all', handleGoAll, 'global');
   useShortcut('go_important', handleGoImportant, 'global');
   useShortcut('go_other', handleGoOther, 'global');
   useShortcut('go_newsletters', handleGoNewsletters, 'global');
