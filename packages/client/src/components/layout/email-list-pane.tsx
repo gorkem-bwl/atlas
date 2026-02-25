@@ -485,6 +485,8 @@ export function EmailListPane() {
 
   // Track newly arrived threads for entrance animation
   const knownThreadIds = useRef<Set<string>>(new Set());
+  const isInitialMount = useRef(true);
+  const pendingNavigation = useRef(false);
   const [newThreadIds, setNewThreadIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -494,11 +496,24 @@ export function EmailListPane() {
       return;
     }
     const currentIds = new Set(displayThreads.map((t) => t.id));
-    // On first load, mark all as known (no animation)
-    if (knownThreadIds.current.size === 0) {
+
+    // On very first mount, mark all as known (no animation)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
       knownThreadIds.current = currentIds;
       return;
     }
+
+    // After a navigation (mailbox/category switch), animate all threads in
+    if (pendingNavigation.current) {
+      pendingNavigation.current = false;
+      knownThreadIds.current = currentIds;
+      setNewThreadIds(currentIds);
+      const timer = setTimeout(() => setNewThreadIds(new Set()), 500);
+      return () => clearTimeout(timer);
+    }
+
+    // Normal case: detect newly arrived threads
     const arrivals = new Set<string>();
     for (const id of currentIds) {
       if (!knownThreadIds.current.has(id)) arrivals.add(id);
@@ -531,6 +546,7 @@ export function EmailListPane() {
 
     if (categoryChanged || mailboxChanged) {
       setFilterByLabel(null);
+      pendingNavigation.current = true;
     }
 
     if ((categoryChanged || mailboxChanged) && displayThreads.length > 0) {
@@ -712,13 +728,17 @@ export function EmailListPane() {
         </div>
       )}
 
-      {/* Pane header — shows active category or mailbox name */}
+      {/* Pane header — folder name left, search bar centered */}
       <div
         style={{
-          padding: 'var(--spacing-md) var(--spacing-lg)',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          padding: 'var(--spacing-sm) var(--spacing-lg)',
           borderBottom: '1px solid var(--color-border-primary)',
           background: 'var(--color-bg-primary)',
           flexShrink: 0,
+          minHeight: 40,
         }}
       >
         <h2
@@ -729,31 +749,41 @@ export function EmailListPane() {
             fontFamily: 'var(--font-family)',
             color: 'var(--color-text-primary)',
             lineHeight: 1.4,
+            whiteSpace: 'nowrap',
           }}
         >
           {isInbox ? CATEGORY_LABELS[activeCategory] : MAILBOX_LABELS[activeMailbox]}
         </h2>
+
+        <div
+          role="search"
+          style={{
+            width: '100%',
+            maxWidth: 880,
+          }}
+        >
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search..."
+          />
+        </div>
+
+        {/* Empty spacer to balance the grid */}
+        <div />
       </div>
 
-      {/* Search bar */}
-      <div
-        role="search"
-        style={{
-          paddingTop: 'var(--spacing-sm)',
-          paddingLeft: 'var(--spacing-md)',
-          paddingRight: 'var(--spacing-md)',
-          paddingBottom: hasActiveFilters(parsedFilters) ? 'var(--spacing-xs)' : 'var(--spacing-sm)',
-          borderBottom: '1px solid var(--color-border-primary)',
-          flexShrink: 0,
-        }}
-      >
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search conversations..."
-        />
-        <SearchFilterChips query={searchQuery} onChange={setSearchQuery} />
-      </div>
+      {/* Search filter chips — shown below header when active */}
+      {hasActiveFilters(parsedFilters) && (
+        <div
+          style={{
+            borderBottom: '1px solid var(--color-border-primary)',
+            flexShrink: 0,
+          }}
+        >
+          <SearchFilterChips query={searchQuery} onChange={setSearchQuery} />
+        </div>
+      )}
 
       {/* Bulk actions row — only visible when threads are selected */}
       {selectedThreadIds.size > 0 && (
