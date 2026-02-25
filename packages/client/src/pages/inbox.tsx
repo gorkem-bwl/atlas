@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { AppLayout } from '../components/layout/app-layout';
 import { EmailListPane } from '../components/layout/email-list-pane';
 import { ReadingPane } from '../components/layout/reading-pane';
@@ -31,6 +31,7 @@ export function InboxPage() {
     setActiveCategory,
     selectedThreadIds,
     clearSelection,
+    filterByLabel,
   } = useEmailStore();
   const { toggleCommandPalette, toggleSidebar, toggleSettings } = useUIStore();
   const archiveWithUndo = useArchiveWithUndo();
@@ -39,7 +40,7 @@ export function InboxPage() {
   const markReadUnread = useMarkReadUnread();
   const isInbox = activeMailbox === 'inbox';
   const categoryFilter = isInbox && activeCategory !== 'all' ? activeCategory : undefined;
-  const { data: threads } = useMailboxThreads(activeMailbox, categoryFilter);
+  const { data: threads } = useMailboxThreads(activeMailbox, categoryFilter, filterByLabel);
   const maxCursorIndex = Math.max(0, (threads?.length ?? 1) - 1);
   const displayThreads = useMemo(() => threads ?? [], [threads]);
   const advanceAfterRemoval = useAutoAdvance(displayThreads);
@@ -55,13 +56,17 @@ export function InboxPage() {
     shortcutEngine.setContext(activeThreadId ? 'thread' : 'inbox');
   }, [activeThreadId, shortcutEngine]);
 
-  // Sync cursor movement to active thread selection
+  // Sync cursor movement (keyboard j/k) to active thread selection.
+  // Only react to cursorIndex changes — clicks already call setActiveThread directly.
+  const prevCursorRef = useRef(cursorIndex);
   useEffect(() => {
+    if (prevCursorRef.current === cursorIndex) return;
+    prevCursorRef.current = cursorIndex;
     const thread = displayThreads[cursorIndex];
-    if (thread && thread.id !== activeThreadId) {
+    if (thread) {
       setActiveThread(thread.id);
     }
-  }, [cursorIndex, displayThreads, activeThreadId, setActiveThread]);
+  }, [cursorIndex, displayThreads, setActiveThread]);
 
   // Navigation shortcuts
   const handleMoveDown = useCallback(() => moveCursor(1, maxCursorIndex), [moveCursor, maxCursorIndex]);
