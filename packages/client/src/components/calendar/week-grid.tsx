@@ -180,7 +180,7 @@ export function WeekGrid({
 
   const getYInGrid = useCallback((clientY: number, colEl: HTMLElement) => {
     const rect = colEl.getBoundingClientRect();
-    return clientY - rect.top + (scrollRef.current?.scrollTop || 0);
+    return clientY - rect.top;
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
@@ -195,6 +195,11 @@ export function WeekGrid({
     setDrag(state);
     e.preventDefault();
   }, [getYInGrid]);
+
+  const cancelDrag = useCallback(() => {
+    dragRef.current = null;
+    setDrag(null);
+  }, []);
 
   useEffect(() => {
     if (!drag) return;
@@ -236,13 +241,19 @@ export function WeekGrid({
       onDragCreate(startDate, endDate);
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') cancelDrag();
+    };
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [drag, days, getYInGrid, onDragCreate]);
+  }, [drag, days, getYInGrid, onDragCreate, cancelDrag]);
 
   // ─── Drag preview ───────────────────────────────────────────────────
 
