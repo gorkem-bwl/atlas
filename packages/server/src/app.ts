@@ -14,6 +14,11 @@ export function createApp() {
   app.use(cors({ origin: true, credentials: true }));
   app.use(express.json({ limit: '10mb' }));
 
+  // Health check — lightweight, no auth
+  app.get('/api/v1/health', (_req, res) => {
+    res.json({ status: 'ok' });
+  });
+
   // Public tracking endpoints — short /t prefix, no auth
   app.use('/t', trackingRoutes);
 

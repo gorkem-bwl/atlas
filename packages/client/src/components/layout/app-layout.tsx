@@ -6,6 +6,7 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { useMediaQuery } from '../../hooks/use-media-query';
 import { Sidebar } from './sidebar';
 import { ResizeHandle } from '../ui/resize-handle';
+import { ConnectionBanner } from '../ui/connection-banner';
 
 // ---- Constants ---------------------------------------------------------------
 
@@ -177,11 +178,21 @@ export function AppLayout({ emailList, readingPane }: AppLayoutProps) {
     <div
       style={{
         display: 'flex',
+        flexDirection: 'column',
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
         background: 'var(--color-bg-primary)',
         fontFamily: 'var(--font-family)',
+      }}
+    >
+      <ConnectionBanner />
+    <div
+      style={{
+        display: 'flex',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'hidden',
         position: 'relative',
       }}
     >
@@ -359,6 +370,7 @@ export function AppLayout({ emailList, readingPane }: AppLayoutProps) {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -292,6 +292,22 @@
   to { transform: scaleX(0); }
 }
 
+@keyframes connectionBannerSlideIn {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes connectionBannerFadeOut {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ─── Email HTML body content styling ──────────────────────────────── */
 /* In dark mode the email body is wrapped in a forced-light container
    (#fff background), so avoid overriding text/border colors with theme

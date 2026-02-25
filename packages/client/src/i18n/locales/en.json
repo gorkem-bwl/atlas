@@ -340,6 +340,11 @@
     "goToNotifications": "Go to notifications",
     "composeNewEmail": "Compose new email"
   },
+  "connection": {
+    "lost": "Connection lost — checking connectivity",
+    "reconnecting": "Reconnecting...",
+    "restored": "Connection restored"
+  },
   "toast": {
     "messageSent": "Message sent",
     "failedToSend": "Failed to send message",
