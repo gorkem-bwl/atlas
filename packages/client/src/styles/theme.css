@@ -110,17 +110,23 @@
 [data-density="compact"] {
   --email-list-item-height: 72px;
   --email-list-padding: 6px 12px;
+  --email-row-height: 28px;
+  --email-row-padding: 0 10px;
   --font-size-md: 13px;
 }
 
 [data-density="default"] {
   --email-list-item-height: 84px;
   --email-list-padding: 10px 16px;
+  --email-row-height: 36px;
+  --email-row-padding: 0 16px;
 }
 
 [data-density="comfortable"] {
   --email-list-item-height: 96px;
   --email-list-padding: 14px 20px;
+  --email-row-height: 44px;
+  --email-row-padding: 0 20px;
 }
 
 /* ---- Theme transition (View Transitions API) ----------------------------- */

@@ -836,7 +836,7 @@ export function EmailListPane() {
                   borderBottom: '1px solid var(--color-border-secondary)',
                   position: 'sticky',
                   top: 0,
-                  zIndex: 1,
+                  zIndex: 2,
                 }}
               >
                 {DATE_GROUP_LABELS[groups[index]]}
