@@ -13,6 +13,8 @@ interface WeekGridProps {
   onEventUpdate?: (eventId: string, startTime: string, endTime: string) => void;
   onQuickCreate?: (title: string, start: Date, end: Date) => void;
   onEventDelete?: (eventId: string) => void;
+  /** Number of days to display. Defaults to 7 (week view). Use 1 for day view. */
+  dayCount?: number;
 }
 
 interface QuickCreateState {
@@ -188,6 +190,7 @@ export function WeekGrid({
   onEventUpdate,
   onQuickCreate,
   onEventDelete,
+  dayCount = 7,
 }: WeekGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -201,13 +204,13 @@ export function WeekGrid({
 
   const days = useMemo(() => {
     const result: Date[] = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < dayCount; i++) {
       const d = new Date(weekStart);
       d.setDate(d.getDate() + i);
       result.push(d);
     }
     return result;
-  }, [weekStart]);
+  }, [weekStart, dayCount]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, Array<{ event: CalendarEvent; start: Date; end: Date }>>();

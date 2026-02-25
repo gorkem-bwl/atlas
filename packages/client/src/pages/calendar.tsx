@@ -64,11 +64,20 @@ export function CalendarPage() {
   const {
     selectedDate,
     setSelectedDate,
+    view,
+    setView,
     openCreateModal,
     openEditModal,
   } = useCalendarStore();
 
-  const weekStart = useMemo(() => getWeekStart(selectedDate), [selectedDate]);
+  const weekStart = useMemo(() => {
+    if (view === 'day') {
+      const d = new Date(selectedDate + 'T12:00:00');
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+    return getWeekStart(selectedDate);
+  }, [selectedDate, view]);
   const { timeMin, timeMax } = useMemo(() => getTimeRange(weekStart), [weekStart]);
   const { data: calendars } = useCalendars();
   const { data: events } = useCalendarEvents(timeMin, timeMax);
@@ -101,19 +110,27 @@ export function CalendarPage() {
 
   const goToday = useCallback(() => setSelectedDate(toYMD(new Date())), [setSelectedDate]);
 
-  const goPrevWeek = useCallback(() => {
-    const d = new Date(selectedDate + 'T12:00:00');
-    d.setDate(d.getDate() - 7);
-    setSelectedDate(toYMD(d));
-  }, [selectedDate, setSelectedDate]);
+  const step = view === 'day' ? 1 : 7;
 
-  const goNextWeek = useCallback(() => {
+  const goPrev = useCallback(() => {
     const d = new Date(selectedDate + 'T12:00:00');
-    d.setDate(d.getDate() + 7);
+    d.setDate(d.getDate() - step);
     setSelectedDate(toYMD(d));
-  }, [selectedDate, setSelectedDate]);
+  }, [selectedDate, setSelectedDate, step]);
 
-  const weekRangeLabel = useMemo(() => formatWeekRange(weekStart), [weekStart]);
+  const goNext = useCallback(() => {
+    const d = new Date(selectedDate + 'T12:00:00');
+    d.setDate(d.getDate() + step);
+    setSelectedDate(toYMD(d));
+  }, [selectedDate, setSelectedDate, step]);
+
+  const dateLabel = useMemo(() => {
+    if (view === 'day') {
+      const d = new Date(selectedDate + 'T12:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    return formatWeekRange(weekStart);
+  }, [weekStart, view, selectedDate]);
 
   const handleDragCreate = useCallback(
     (start: Date, end: Date) => {
@@ -172,14 +189,14 @@ export function CalendarPage() {
         case 'ArrowRight':
           if (!e.metaKey && !e.ctrlKey) {
             e.preventDefault();
-            goNextWeek();
+            goNext();
           }
           break;
         case 'k':
         case 'ArrowLeft':
           if (!e.metaKey && !e.ctrlKey) {
             e.preventDefault();
-            goPrevWeek();
+            goPrev();
           }
           break;
         case 'r':
@@ -188,11 +205,19 @@ export function CalendarPage() {
             syncCalendar.mutate();
           }
           break;
+        case 'd':
+          e.preventDefault();
+          setView('day');
+          break;
+        case 'w':
+          e.preventDefault();
+          setView('week');
+          break;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [openCreateModal, goToday, goNextWeek, goPrevWeek, syncCalendar, eventModal.open]);
+  }, [openCreateModal, goToday, goNext, goPrev, syncCalendar, setView, eventModal.open]);
 
   // ─── Sync toasts ────────────────────────────────────────────────────
   const addToast = useToastStore((s) => s.addToast);
@@ -251,10 +276,10 @@ export function CalendarPage() {
         </button>
 
         {/* Prev / Next */}
-        <button onClick={goPrevWeek} style={iconBtnStyle}>
+        <button onClick={goPrev} style={iconBtnStyle}>
           <ChevronLeft size={16} />
         </button>
-        <button onClick={goNextWeek} style={iconBtnStyle}>
+        <button onClick={goNext} style={iconBtnStyle}>
           <ChevronRight size={16} />
         </button>
 
@@ -267,8 +292,40 @@ export function CalendarPage() {
             marginLeft: 4,
           }}
         >
-          {weekRangeLabel}
+          {dateLabel}
         </span>
+
+        {/* View switcher */}
+        <div
+          style={{
+            display: 'flex',
+            marginLeft: 12,
+            border: '1px solid var(--color-border-primary)',
+            borderRadius: 'var(--radius-sm)',
+            overflow: 'hidden',
+          }}
+        >
+          {(['day', 'week'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                height: 26,
+                padding: '0 10px',
+                background: view === v ? 'var(--color-accent-primary)' : 'transparent',
+                border: 'none',
+                color: view === v ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
+                fontSize: 'var(--font-size-xs)',
+                fontFamily: 'var(--font-family)',
+                fontWeight: view === v ? 600 : 400,
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
 
         <div style={{ flex: 1 }} />
 
@@ -398,6 +455,7 @@ export function CalendarPage() {
             onEventUpdate={handleEventUpdate}
             onQuickCreate={handleQuickCreate}
             onEventDelete={handleEventDelete}
+            dayCount={view === 'day' ? 1 : 7}
           />
         </div>
       </div>
