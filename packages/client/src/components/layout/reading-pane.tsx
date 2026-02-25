@@ -543,9 +543,10 @@ export function ReadingPane() {
       </div>
       </div>
 
-      {/* Contact panel */}
+      {/* Contact panel — key forces a fresh mount when sender changes */}
       {showContactPanel && (
         <ContactPanel
+          key={senderEmail ?? thread.id}
           senderEmail={senderEmail}
           senderName={senderName}
         />
