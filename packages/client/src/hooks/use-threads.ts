@@ -185,12 +185,31 @@ export function useArchiveThread() {
       if (USE_MOCK) return;
       await api.post(`/threads/${threadId}/archive`);
     },
-    onSuccess: () => {
-      invalidateForArchive(queryClient);
+    onMutate: async (threadId) => {
+      // Cancel in-flight refetches so they don't overwrite our optimistic remove
+      await queryClient.cancelQueries({ queryKey: ['threads', 'mailbox'] });
+
+      // Snapshot all mailbox caches for rollback
+      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+
+      // Optimistically remove from ALL mailbox caches
+      queryClient.setQueriesData<InfiniteData>(
+        { queryKey: ['threads', 'mailbox'] },
+        (old) => removeFromInfiniteCache(old, threadId),
+      );
+
+      return { previousQueries };
     },
-    onError: () => {
-      // Refetch so the optimistically-removed thread reappears
-      queryClient.invalidateQueries({ queryKey: ['threads', 'mailbox'] });
+    onError: (_err, _threadId, context) => {
+      // Rollback: restore all caches to previous state
+      if (context?.previousQueries) {
+        for (const [key, data] of context.previousQueries) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: () => {
+      invalidateForArchive(queryClient);
     },
   });
 }
@@ -202,11 +221,27 @@ export function useTrashThread() {
       if (USE_MOCK) return;
       await api.post(`/threads/${threadId}/trash`);
     },
-    onSuccess: () => {
-      invalidateForTrash(queryClient);
+    onMutate: async (threadId) => {
+      await queryClient.cancelQueries({ queryKey: ['threads', 'mailbox'] });
+
+      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+
+      queryClient.setQueriesData<InfiniteData>(
+        { queryKey: ['threads', 'mailbox'] },
+        (old) => removeFromInfiniteCache(old, threadId),
+      );
+
+      return { previousQueries };
     },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: ['threads', 'mailbox'] });
+    onError: (_err, _threadId, context) => {
+      if (context?.previousQueries) {
+        for (const [key, data] of context.previousQueries) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+    },
+    onSettled: () => {
+      invalidateForTrash(queryClient);
     },
   });
 }
