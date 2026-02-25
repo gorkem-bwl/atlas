@@ -347,8 +347,8 @@ function buildRawEmail(
 }
 
 export async function sendEmail(accountId: string, payload: SendEmailPayload) {
-  // Look up the sender's email address
-  const [account] = await db.select({ email: accounts.email })
+  // Look up the sender's email address and display name
+  const [account] = await db.select({ email: accounts.email, name: accounts.name })
     .from(accounts)
     .where(eq(accounts.id, accountId))
     .limit(1);
@@ -399,7 +399,10 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
     }
   }
 
-  const rawEmail = buildRawEmail(account.email, payload);
+  const fromHeader = account.name
+    ? `"${account.name.replace(/"/g, '\\"')}" <${account.email}>`
+    : account.email;
+  const rawEmail = buildRawEmail(fromHeader, payload);
   const encodedEmail = Buffer.from(rawEmail).toString('base64url');
 
   // Look up the Gmail thread ID so the reply is properly threaded in Gmail
