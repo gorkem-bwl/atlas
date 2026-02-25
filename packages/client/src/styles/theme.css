@@ -6,9 +6,9 @@
   --color-bg-elevated: #ffffff;
   --color-bg-overlay: rgba(0, 0, 0, 0.4);
   --color-surface-primary: #ffffff;
-  --color-surface-hover: #e4e7ec;
-  --color-surface-active: #daddE4;
-  --color-surface-selected: #cdd8e4;
+  --color-surface-hover: #d8dce4;
+  --color-surface-active: #cdd2dc;
+  --color-surface-selected: #c2ccd8;
   --color-text-primary: #111318;
   --color-text-secondary: #3b4253;
   --color-text-tertiary: #5f6b7a;
