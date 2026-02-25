@@ -378,8 +378,10 @@ export function CalendarPage() {
     if (prevSyncStatus.current === 'pending' && status === 'success') {
       addToast({ message: 'Calendar synced', type: 'success', duration: 3000 });
     } else if (prevSyncStatus.current === 'pending' && status === 'error') {
-      const errData = (syncCalendar.error as any)?.response?.data;
-      if (errData?.code === 'SCOPE_MISSING') {
+      const errCode = (syncCalendar.error as any)?.response?.data?.code;
+      if (errCode === 'API_NOT_ENABLED') {
+        addToast({ message: 'Google Calendar API not enabled — enable it in Google Cloud Console', type: 'error', duration: 10000 });
+      } else if (errCode === 'SCOPE_MISSING') {
         addToast({ message: 'Calendar permissions missing — please sign out and sign back in', type: 'error', duration: 10000 });
       } else {
         addToast({ message: 'Sync failed — try again', type: 'error', duration: 5000 });
@@ -394,9 +396,12 @@ export function CalendarPage() {
   const showSidebar = !sidebarCollapsed && !isNarrow;
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Detect if calendar scope is missing (sync failed with 403)
-  const scopeMissing = syncCalendar.isError &&
-    (syncCalendar.error as any)?.response?.data?.code === 'SCOPE_MISSING';
+  // Detect if calendar sync failed with a permissions error
+  const syncErrorCode = syncCalendar.isError
+    ? (syncCalendar.error as any)?.response?.data?.code
+    : null;
+  const scopeMissing = syncErrorCode === 'SCOPE_MISSING';
+  const apiNotEnabled = syncErrorCode === 'API_NOT_ENABLED';
 
   const handleReAuth = useCallback(() => {
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -861,7 +866,7 @@ export function CalendarPage() {
 
         {/* Calendar grid */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          {scopeMissing && (
+          {(scopeMissing || apiNotEnabled) && (
             <div
               style={{
                 padding: '12px 16px',
@@ -874,26 +879,52 @@ export function CalendarPage() {
               }}
             >
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', flex: 1 }}>
-                Calendar access not granted. Please re-authenticate to enable calendar sync.
+                {apiNotEnabled
+                  ? 'Google Calendar API is not enabled in your Google Cloud project. Enable it in the Google Cloud Console, wait a minute, then click retry.'
+                  : 'Calendar access not granted. Please re-authenticate to enable calendar sync.'}
               </span>
-              <button
-                onClick={handleReAuth}
-                style={{
-                  height: 30,
-                  padding: '0 14px',
-                  background: 'var(--color-accent-primary)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-text-inverse)',
-                  fontSize: 'var(--font-size-sm)',
-                  fontFamily: 'var(--font-family)',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Grant access
-              </button>
+              {scopeMissing && (
+                <button
+                  onClick={handleReAuth}
+                  style={{
+                    height: 30,
+                    padding: '0 14px',
+                    background: 'var(--color-accent-primary)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--color-text-inverse)',
+                    fontSize: 'var(--font-size-sm)',
+                    fontFamily: 'var(--font-family)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Grant access
+                </button>
+              )}
+              {apiNotEnabled && (
+                <button
+                  onClick={() => syncCalendar.mutate()}
+                  disabled={syncCalendar.isPending}
+                  style={{
+                    height: 30,
+                    padding: '0 14px',
+                    background: 'var(--color-accent-primary)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--color-text-inverse)',
+                    fontSize: 'var(--font-size-sm)',
+                    fontFamily: 'var(--font-family)',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    opacity: syncCalendar.isPending ? 0.5 : 1,
+                  }}
+                >
+                  Retry sync
+                </button>
+              )}
             </div>
           )}
           {view === 'month-grid' ? (

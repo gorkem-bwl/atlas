@@ -45,9 +45,19 @@ export async function syncCalendars(req: Request, res: Response) {
   } catch (error: any) {
     logger.error({ error, status: error?.response?.status, data: error?.response?.data }, 'Failed to sync calendars');
 
-    // Detect Google API insufficient scope / permissions errors
+    // Detect Google API errors
     const gStatus = error?.response?.status || error?.code;
-    if (gStatus === 403 || gStatus === 'PERMISSION_DENIED') {
+    const gReason = error?.response?.data?.error?.errors?.[0]?.reason;
+
+    if (gStatus === 403) {
+      if (gReason === 'accessNotConfigured') {
+        res.status(403).json({
+          success: false,
+          error: 'Google Calendar API is not enabled in the Google Cloud project. Please enable it at console.cloud.google.com.',
+          code: 'API_NOT_ENABLED',
+        });
+        return;
+      }
       res.status(403).json({
         success: false,
         error: 'Calendar permissions not granted. Please sign out and sign back in to grant calendar access.',
