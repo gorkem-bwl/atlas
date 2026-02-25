@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useMediaQuery } from '../hooks/use-media-query';
 import '../styles/calendar.css';
-import { useCalendars, useCalendarEvents, useSyncCalendar, useToggleCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent } from '../hooks/use-calendar';
+import { useCalendars, useCalendarEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent } from '../hooks/use-calendar';
 import { useCalendarStore } from '../stores/calendar-store';
 import { useToastStore } from '../stores/toast-store';
 import { EventModal } from '../components/calendar/event-modal';
@@ -117,7 +117,11 @@ export function CalendarPage() {
   const updateEvent = useUpdateCalendarEvent();
   const createEvent = useCreateCalendarEvent();
   const deleteEvent = useDeleteCalendarEvent();
+  const createCalendar = useCreateCalendar();
   const addToast = useToastStore((s) => s.addToast);
+  const [showAddCalendar, setShowAddCalendar] = useState(false);
+  const [newCalName, setNewCalName] = useState('');
+  const [newCalColor, setNewCalColor] = useState('#039be5');
 
   // Derive selected calendar IDs and color map
   const selectedCalendarIds = useMemo(() => {
@@ -663,6 +667,131 @@ export function CalendarPage() {
                 </label>
               );
             })}
+
+            {/* Add calendar */}
+            {showAddCalendar ? (
+              <div style={{ marginTop: 6 }}>
+                <input
+                  autoFocus
+                  value={newCalName}
+                  onChange={(e) => setNewCalName(e.target.value)}
+                  placeholder="Calendar name"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setShowAddCalendar(false);
+                      setNewCalName('');
+                    }
+                    if (e.key === 'Enter' && newCalName.trim()) {
+                      createCalendar.mutate(
+                        { summary: newCalName.trim(), backgroundColor: newCalColor },
+                        {
+                          onSuccess: () => {
+                            setNewCalName('');
+                            setShowAddCalendar(false);
+                            addToast({ message: 'Calendar created', type: 'success', duration: 3000 });
+                          },
+                          onError: () => {
+                            addToast({ message: 'Failed to create calendar', type: 'error', duration: 5000 });
+                          },
+                        },
+                      );
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 26,
+                    padding: '0 6px',
+                    border: '1px solid var(--color-border-primary)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--color-bg-primary)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: 'var(--font-size-xs)',
+                    fontFamily: 'var(--font-family)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <input
+                    type="color"
+                    value={newCalColor}
+                    onChange={(e) => setNewCalColor(e.target.value)}
+                    style={{ width: 20, height: 20, border: 'none', padding: 0, cursor: 'pointer', background: 'transparent' }}
+                  />
+                  <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', flex: 1 }}>Color</span>
+                  <button
+                    onClick={() => {
+                      if (newCalName.trim()) {
+                        createCalendar.mutate(
+                          { summary: newCalName.trim(), backgroundColor: newCalColor },
+                          {
+                            onSuccess: () => {
+                              setNewCalName('');
+                              setShowAddCalendar(false);
+                              addToast({ message: 'Calendar created', type: 'success', duration: 3000 });
+                            },
+                            onError: () => {
+                              addToast({ message: 'Failed to create calendar', type: 'error', duration: 5000 });
+                            },
+                          },
+                        );
+                      }
+                    }}
+                    disabled={!newCalName.trim() || createCalendar.isPending}
+                    style={{
+                      height: 22,
+                      padding: '0 8px',
+                      background: 'var(--color-accent-primary)',
+                      border: 'none',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--color-text-inverse)',
+                      fontSize: 10,
+                      fontFamily: 'var(--font-family)',
+                      cursor: newCalName.trim() ? 'pointer' : 'default',
+                      opacity: !newCalName.trim() || createCalendar.isPending ? 0.5 : 1,
+                    }}
+                  >
+                    {createCalendar.isPending ? 'Creating...' : 'Add'}
+                  </button>
+                  <button
+                    onClick={() => { setShowAddCalendar(false); setNewCalName(''); }}
+                    style={{
+                      height: 22,
+                      padding: '0 8px',
+                      background: 'transparent',
+                      border: '1px solid var(--color-border-primary)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--color-text-secondary)',
+                      fontSize: 10,
+                      fontFamily: 'var(--font-family)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAddCalendar(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginTop: 4,
+                  padding: '3px 0',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-text-tertiary)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Plus size={12} />
+                Add calendar
+              </button>
+            )}
 
             <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '8px 0' }} />
 

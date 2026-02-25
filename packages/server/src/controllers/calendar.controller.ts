@@ -125,6 +125,28 @@ export async function deleteEvent(req: Request, res: Response) {
   }
 }
 
+export async function createCalendar(req: Request, res: Response) {
+  try {
+    const { summary, description, backgroundColor } = req.body;
+
+    if (!summary || typeof summary !== 'string' || !summary.trim()) {
+      res.status(400).json({ success: false, error: 'summary is required' });
+      return;
+    }
+
+    const calendar = await calendarService.createCalendar(req.auth!.accountId, {
+      summary: summary.trim(),
+      description,
+      backgroundColor,
+    });
+
+    res.json({ success: true, data: calendar });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create calendar');
+    res.status(500).json({ success: false, error: 'Failed to create calendar' });
+  }
+}
+
 export async function toggleCalendar(req: Request, res: Response) {
   try {
     const calendarId = req.params.calendarId as string;

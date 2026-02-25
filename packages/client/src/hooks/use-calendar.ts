@@ -154,6 +154,20 @@ export function useDeleteCalendarEvent() {
   });
 }
 
+export function useCreateCalendar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { summary: string; description?: string; backgroundColor?: string }) => {
+      const { data } = await api.post('/calendar/calendars', input);
+      return data.data as Calendar;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendars });
+    },
+  });
+}
+
 export function useToggleCalendar() {
   const queryClient = useQueryClient();
 

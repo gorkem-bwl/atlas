@@ -6,6 +6,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/calendars', calendarController.listCalendars);
+router.post('/calendars', calendarController.createCalendar);
 router.post('/sync', calendarController.syncCalendars);
 router.get('/events', calendarController.listEvents);
 router.post('/events', calendarController.createEvent);

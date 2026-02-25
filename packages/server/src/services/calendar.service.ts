@@ -474,3 +474,56 @@ export async function toggleCalendarSelected(
     .set({ isSelected, updatedAt: new Date().toISOString() })
     .where(and(eq(calendars.id, calendarDbId), eq(calendars.accountId, accountId)));
 }
+
+// ─── Create a new calendar ───────────────────────────────────────────
+
+export async function createCalendar(
+  accountId: string,
+  input: { summary: string; description?: string; backgroundColor?: string },
+) {
+  const cal = await getCalendarClient(accountId);
+
+  const res = await cal.calendars.insert({
+    requestBody: {
+      summary: input.summary,
+      description: input.description,
+    },
+  });
+
+  const googleCalId = res.data.id;
+  if (!googleCalId) throw new Error('Failed to create calendar');
+
+  // Set color on the calendar list entry if provided
+  if (input.backgroundColor) {
+    await cal.calendarList.patch({
+      calendarId: googleCalId,
+      requestBody: {
+        backgroundColor: input.backgroundColor,
+        foregroundColor: '#ffffff',
+      },
+      colorRgbFormat: true,
+    });
+  }
+
+  const now = new Date().toISOString();
+  const [inserted] = await db
+    .insert(calendars)
+    .values({
+      accountId,
+      googleCalendarId: googleCalId,
+      summary: input.summary,
+      description: input.description || null,
+      backgroundColor: input.backgroundColor || null,
+      foregroundColor: input.backgroundColor ? '#ffffff' : null,
+      timeZone: res.data.timeZone || null,
+      accessRole: 'owner',
+      isPrimary: false,
+      isSelected: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  logger.info({ accountId, calendarId: inserted.id }, 'Calendar created');
+  return inserted;
+}
