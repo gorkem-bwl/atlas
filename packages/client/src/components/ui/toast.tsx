@@ -36,13 +36,11 @@ function ToastItem({ toast }: ToastItemProps) {
 
   // Controls exit animation before actual removal
   const [exiting, setExiting] = useState(false);
-  // Countdown value 0–100 (percentage remaining)
-  const [progress, setProgress] = useState(100);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const exitingRef = useRef(false);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   const triggerExit = (callback: () => void) => {
     if (exitingRef.current) return;
@@ -55,16 +53,14 @@ function ToastItem({ toast }: ToastItemProps) {
   useEffect(() => {
     startTimeRef.current = Date.now();
 
-    // Animate the progress bar
-    const tick = () => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const remaining = Math.max(0, 1 - elapsed / duration) * 100;
-      setProgress(remaining);
-      if (elapsed < duration) {
-        rafRef.current = requestAnimationFrame(tick);
+    // Kick off the CSS transition: shrink from 100% to 0% over the full duration.
+    // Use rAF to ensure the browser has painted the initial 100% width first.
+    requestAnimationFrame(() => {
+      if (progressBarRef.current) {
+        progressBarRef.current.style.transition = `width ${duration}ms linear`;
+        progressBarRef.current.style.width = '0%';
       }
-    };
-    rafRef.current = requestAnimationFrame(tick);
+    });
 
     // Auto-commit when the duration elapses
     timerRef.current = setTimeout(() => {
@@ -73,7 +69,6 @@ function ToastItem({ toast }: ToastItemProps) {
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
     // Only run on mount — duration and id are stable for the lifetime of this item
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,19 +76,29 @@ function ToastItem({ toast }: ToastItemProps) {
 
   const handleUndo = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     triggerExit(() => undoToast(toast.id));
   };
 
   const handleDismiss = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     triggerExit(() => dismissToast(toast.id));
   };
 
   const isUndoable = toast.type === 'undo' && typeof toast.undoAction === 'function';
 
-  const secondsLeft = Math.ceil((progress / 100) * (duration / 1000));
+  // Simple countdown for undo button label
+  const [secondsLeft, setSecondsLeft] = useState(Math.ceil(duration / 1000));
+  useEffect(() => {
+    if (!isUndoable) return;
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining <= 0) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -132,12 +137,12 @@ function ToastItem({ toast }: ToastItemProps) {
         }}
       >
         <div
+          ref={progressBarRef}
           style={{
             height: '100%',
             background: isUndoable ? 'var(--color-bg-primary)' : 'rgba(255, 255, 255, 0.4)',
-            width: `${progress}%`,
+            width: '100%',
             transformOrigin: 'left center',
-            transition: 'width 100ms linear',
           }}
         />
       </div>
