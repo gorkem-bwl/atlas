@@ -13,7 +13,7 @@ export async function getAuthUrl(req: Request, res: Response) {
     `client_id=${env.GOOGLE_CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=code` +
-    `&scope=${encodeURIComponent('openid email profile https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/contacts.readonly')}` +
+    `&scope=${encodeURIComponent('openid email profile https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/contacts.readonly https://www.googleapis.com/auth/calendar')}` +
     `&access_type=offline` +
     `&prompt=consent`;
 

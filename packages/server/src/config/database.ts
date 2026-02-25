@@ -46,6 +46,61 @@ for (const col of [
   } catch { /* column already exists */ }
 }
 
+// ---- Calendar tables --------------------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS calendars (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    google_calendar_id TEXT NOT NULL,
+    summary TEXT,
+    description TEXT,
+    background_color TEXT,
+    foreground_color TEXT,
+    time_zone TEXT,
+    access_role TEXT,
+    is_primary INTEGER NOT NULL DEFAULT 0,
+    is_selected INTEGER NOT NULL DEFAULT 1,
+    sync_token TEXT,
+    last_sync_at TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )
+`).run();
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS calendar_events (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    calendar_id TEXT NOT NULL REFERENCES calendars(id) ON DELETE CASCADE,
+    google_event_id TEXT NOT NULL,
+    summary TEXT,
+    description TEXT,
+    location TEXT,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    is_all_day INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'confirmed',
+    self_response_status TEXT,
+    html_link TEXT,
+    hangout_link TEXT,
+    organizer TEXT,
+    attendees TEXT,
+    recurrence TEXT,
+    recurring_event_id TEXT,
+    color_id TEXT,
+    reminders TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )
+`).run();
+
+// Calendar indexes
+try { sqlite.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_calendars_account_google ON calendars(account_id, google_calendar_id)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cal_events_account_google ON calendar_events(account_id, google_event_id)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_cal_events_calendar ON calendar_events(calendar_id)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_cal_events_time_range ON calendar_events(account_id, start_time, end_time)`).run(); } catch { /* */ }
+
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).
 sqlite.prepare(`

@@ -189,3 +189,54 @@ export const trackingEvents = sqliteTable('tracking_events', {
   trackingIdIdx: index('idx_tracking_events_tracking_id').on(table.trackingId),
   createdAtIdx: index('idx_tracking_events_created_at').on(table.createdAt),
 }));
+
+// ─── Calendar ────────────────────────────────────────────────────────
+
+export const calendars = sqliteTable('calendars', {
+  id: uuid().primaryKey(),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  googleCalendarId: text('google_calendar_id').notNull(),
+  summary: text('summary'),
+  description: text('description'),
+  backgroundColor: text('background_color'),
+  foregroundColor: text('foreground_color'),
+  timeZone: text('time_zone'),
+  accessRole: text('access_role'),
+  isPrimary: integer('is_primary', { mode: 'boolean' }).notNull().default(false),
+  isSelected: integer('is_selected', { mode: 'boolean' }).notNull().default(true),
+  syncToken: text('sync_token'),
+  lastSyncAt: timestamp(),
+  createdAt: timestampNow().notNull(),
+  updatedAt: timestampNow().notNull(),
+}, (table) => ({
+  accountGoogleIdx: uniqueIndex('idx_calendars_account_google').on(table.accountId, table.googleCalendarId),
+}));
+
+export const calendarEvents = sqliteTable('calendar_events', {
+  id: uuid().primaryKey(),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  calendarId: text('calendar_id').notNull().references(() => calendars.id, { onDelete: 'cascade' }),
+  googleEventId: text('google_event_id').notNull(),
+  summary: text('summary'),
+  description: text('description'),
+  location: text('location'),
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
+  isAllDay: integer('is_all_day', { mode: 'boolean' }).notNull().default(false),
+  status: text('status').notNull().default('confirmed'),
+  selfResponseStatus: text('self_response_status'),
+  htmlLink: text('html_link'),
+  hangoutLink: text('hangout_link'),
+  organizer: text('organizer', { mode: 'json' }).$type<{ email: string; displayName?: string; self?: boolean }>(),
+  attendees: text('attendees', { mode: 'json' }).$type<Array<{ email: string; displayName?: string; responseStatus?: string }>>(),
+  recurrence: text('recurrence', { mode: 'json' }).$type<string[]>(),
+  recurringEventId: text('recurring_event_id'),
+  colorId: text('color_id'),
+  reminders: text('reminders', { mode: 'json' }).$type<{ useDefault: boolean; overrides?: Array<{ method: string; minutes: number }> }>(),
+  createdAt: timestampNow().notNull(),
+  updatedAt: timestampNow().notNull(),
+}, (table) => ({
+  accountGoogleIdx: uniqueIndex('idx_cal_events_account_google').on(table.accountId, table.googleEventId),
+  calendarIdx: index('idx_cal_events_calendar').on(table.calendarId),
+  timeRangeIdx: index('idx_cal_events_time_range').on(table.accountId, table.startTime, table.endTime),
+}));

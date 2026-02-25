@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Inbox,
   Mail,
@@ -22,6 +23,7 @@ import {
   Trash2 as TrashIcon,
   Check,
   X,
+  Calendar,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Chip } from '../ui/chip';
@@ -31,6 +33,7 @@ import { useUIStore } from '../../stores/ui-store';
 import { useThreadCounts, useGmailLabels, useCreateGmailLabel, useUpdateGmailLabel, useDeleteGmailLabel } from '../../hooks/use-threads';
 import type { GmailLabel } from '../../hooks/use-threads';
 import { AccountSwitcher } from './account-switcher';
+import { ROUTES } from '../../config/routes';
 import type { EmailCategory } from '@atlasmail/shared';
 import type { ThemeMode } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
@@ -833,13 +836,17 @@ export function Sidebar() {
     useEmailStore();
   const { toggleSettings } = useUIStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [labelsOpen, setLabelsOpen] = useState(false);
   const [labelsAnchorTop, setLabelsAnchorTop] = useState(0);
   const [labelsHovered, setLabelsHovered] = useState(false);
   const [settingsHovered, setSettingsHovered] = useState(false);
+  const [calendarHovered, setCalendarHovered] = useState(false);
   const labelsBtnRef = useRef<HTMLButtonElement>(null);
   const { data: gmailLabels } = useGmailLabels();
   const { data: counts } = useThreadCounts();
+  const isOnCalendar = location.pathname === ROUTES.CALENDAR;
 
   const handleOpenLabels = useCallback(() => {
     if (labelsBtnRef.current) {
@@ -1097,6 +1104,39 @@ export function Sidebar() {
           gap: '2px',
         }}
       >
+        {/* Calendar button */}
+        <button
+          className="sidebar-nav-btn"
+          onClick={() => navigate(ROUTES.CALENDAR)}
+          aria-label="Calendar"
+          onMouseEnter={() => setCalendarHovered(true)}
+          onMouseLeave={() => setCalendarHovered(false)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            width: '100%',
+            padding: '6px var(--spacing-md)',
+            background: isOnCalendar
+              ? 'var(--color-surface-selected)'
+              : calendarHovered
+                ? 'var(--color-surface-hover)'
+                : 'transparent',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            color: (isOnCalendar || calendarHovered) ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+            fontSize: 'var(--font-size-sm)',
+            fontFamily: 'var(--font-family)',
+            fontWeight: isOnCalendar ? 500 : 400,
+            cursor: 'pointer',
+            transition: 'background var(--transition-normal), color var(--transition-normal)',
+            textAlign: 'left',
+          }}
+        >
+          <Calendar size={16} className="sidebar-nav-icon" style={{ color: '#4a9e8f' }} />
+          Calendar
+        </button>
+
         {/* Settings button */}
         <button
           className="sidebar-nav-btn"

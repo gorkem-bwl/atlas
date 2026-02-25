@@ -5,4 +5,5 @@ export * from './contact';
 export * from './search';
 export * from './settings';
 export * from './tracking';
+export * from './calendar';
 export * from './api';

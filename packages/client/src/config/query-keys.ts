@@ -29,4 +29,9 @@ export const queryKeys = {
     all: ['contacts'] as const,
     byEmail: (email: string) => ['contacts', 'byEmail', email] as const,
   },
+  calendar: {
+    all: ['calendar'] as const,
+    calendars: ['calendar', 'calendars'] as const,
+    events: (timeMin: string, timeMax: string) => ['calendar', 'events', timeMin, timeMax] as const,
+  },
 };

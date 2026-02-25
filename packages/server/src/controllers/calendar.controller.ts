@@ -1,0 +1,143 @@
+import type { Request, Response } from 'express';
+import * as calendarService from '../services/calendar.service';
+import { logger } from '../utils/logger';
+
+export async function listCalendars(req: Request, res: Response) {
+  try {
+    const cals = await calendarService.listCalendars(req.auth!.accountId);
+    res.json({ success: true, data: cals });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list calendars');
+    res.status(500).json({ success: false, error: 'Failed to list calendars' });
+  }
+}
+
+export async function syncCalendars(req: Request, res: Response) {
+  try {
+    const accountId = req.auth!.accountId;
+
+    // Sync the calendar list first
+    await calendarService.syncCalendarList(accountId);
+
+    // Get all selected calendars
+    const cals = await calendarService.listCalendars(accountId);
+    const selected = cals.filter((c) => c.isSelected);
+
+    // Default time range: 3 months back, 12 months forward
+    const now = new Date();
+    const timeMin = req.query.timeMin as string ||
+      new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
+    const timeMax = req.query.timeMax as string ||
+      new Date(now.getFullYear(), now.getMonth() + 12, 0).toISOString();
+
+    // Sync events for each selected calendar
+    for (const cal of selected) {
+      try {
+        await calendarService.syncCalendarEvents(accountId, cal.id, timeMin, timeMax);
+      } catch (err) {
+        logger.error({ err, calendarId: cal.id }, 'Failed to sync calendar events');
+      }
+    }
+
+    // Return updated data
+    const events = await calendarService.listEvents(accountId, timeMin, timeMax);
+    res.json({ success: true, data: { calendars: cals, events } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to sync calendars');
+    res.status(500).json({ success: false, error: 'Failed to sync calendars' });
+  }
+}
+
+export async function listEvents(req: Request, res: Response) {
+  try {
+    const { timeMin, timeMax, calendarIds } = req.query;
+
+    if (!timeMin || !timeMax) {
+      res.status(400).json({ success: false, error: 'timeMin and timeMax are required' });
+      return;
+    }
+
+    const calIds = calendarIds
+      ? (calendarIds as string).split(',').filter(Boolean)
+      : undefined;
+
+    const events = await calendarService.listEvents(
+      req.auth!.accountId,
+      timeMin as string,
+      timeMax as string,
+      calIds,
+    );
+
+    res.json({ success: true, data: events });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list calendar events');
+    res.status(500).json({ success: false, error: 'Failed to list events' });
+  }
+}
+
+export async function createEvent(req: Request, res: Response) {
+  try {
+    const { calendarId, summary, description, location, startTime, endTime, isAllDay, attendees } = req.body;
+
+    if (!calendarId || !summary || !startTime || !endTime) {
+      res.status(400).json({ success: false, error: 'calendarId, summary, startTime, and endTime are required' });
+      return;
+    }
+
+    const event = await calendarService.createEvent(req.auth!.accountId, {
+      calendarId,
+      summary,
+      description,
+      location,
+      startTime,
+      endTime,
+      isAllDay,
+      attendees,
+    });
+
+    res.json({ success: true, data: event });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create calendar event');
+    res.status(500).json({ success: false, error: 'Failed to create event' });
+  }
+}
+
+export async function updateEvent(req: Request, res: Response) {
+  try {
+    const eventId = req.params.eventId as string;
+    const event = await calendarService.updateEvent(req.auth!.accountId, eventId, req.body);
+    res.json({ success: true, data: event });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update calendar event');
+    res.status(500).json({ success: false, error: 'Failed to update event' });
+  }
+}
+
+export async function deleteEvent(req: Request, res: Response) {
+  try {
+    const eventId = req.params.eventId as string;
+    await calendarService.deleteEvent(req.auth!.accountId, eventId);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete calendar event');
+    res.status(500).json({ success: false, error: 'Failed to delete event' });
+  }
+}
+
+export async function toggleCalendar(req: Request, res: Response) {
+  try {
+    const calendarId = req.params.calendarId as string;
+    const { isSelected } = req.body;
+
+    if (typeof isSelected !== 'boolean') {
+      res.status(400).json({ success: false, error: 'isSelected must be a boolean' });
+      return;
+    }
+
+    await calendarService.toggleCalendarSelected(req.auth!.accountId, calendarId, isSelected);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to toggle calendar');
+    res.status(500).json({ success: false, error: 'Failed to toggle calendar' });
+  }
+}

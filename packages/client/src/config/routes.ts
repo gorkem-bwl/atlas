@@ -7,4 +7,5 @@ export const ROUTES = {
   TRASH: '/trash',
   SEARCH: '/search',
   SETTINGS: '/settings',
+  CALENDAR: '/calendar',
 } as const;
