@@ -7,6 +7,10 @@ export const queryKeys = {
     mailbox: (mailbox: string, category?: string) =>
       ['threads', 'mailbox', mailbox, category] as const,
   },
+  labels: {
+    all: ['labels'] as const,
+    gmail: ['labels', 'gmail'] as const,
+  },
   search: {
     all: ['search'] as const,
     results: (query: string) => ['search', query] as const,

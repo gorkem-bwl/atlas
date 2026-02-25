@@ -45,8 +45,6 @@ import { useUIStore } from '../../stores/ui-store';
 import { useSettingsStore, type FontFamilyId } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { Avatar } from '../ui/avatar';
-import { DEFAULT_LABELS, type Label } from '../../lib/labels';
-import { useLabelStore } from '../../stores/label-store';
 import { AddAccountModal } from './add-account-modal';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { DEFAULT_SHORTCUTS, type ShortcutCategory } from '@atlasmail/shared';
@@ -2027,204 +2025,22 @@ function ReadingPanePanel() {
 // ---------------------------------------------------------------------------
 
 function LabelsPanel() {
-  const labels = useLabelStore((s) => s.labels);
-  const addLabelToStore = useLabelStore((s) => s.addLabel);
-  const deleteLabelFromStore = useLabelStore((s) => s.deleteLabel);
-  const [newLabelName, setNewLabelName] = useState('');
-  const [newLabelColor, setNewLabelColor] = useState('#4a7cba');
-  const [confirmDeleteLabel, setConfirmDeleteLabel] = useState<string | null>(null);
-
-  function addLabel() {
-    const trimmed = newLabelName.trim();
-    if (!trimmed) return;
-    if (labels.some((l) => l.name.toLowerCase() === trimmed.toLowerCase())) return;
-    addLabelToStore(trimmed, newLabelColor);
-    setNewLabelName('');
-  }
-
-  function removeLabel(id: string) {
-    deleteLabelFromStore(id);
-  }
-
   return (
     <div>
-      <SettingsSection title="Your labels" description="Custom labels to organize your email">
+      <SettingsSection title="Labels" description="Labels are synced from your Gmail account">
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--spacing-xs)',
-            marginBottom: 'var(--spacing-lg)',
-          }}
-        >
-          {labels.length === 0 ? (
-            <div
-              style={{
-                padding: 'var(--spacing-2xl)',
-                textAlign: 'center',
-                color: 'var(--color-text-tertiary)',
-                fontSize: 'var(--font-size-md)',
-                fontFamily: 'var(--font-family)',
-                background: 'var(--color-bg-tertiary)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border-secondary)',
-              }}
-            >
-              No labels yet. Create one below.
-            </div>
-          ) : (
-            labels.map((label) => (
-              <div
-                key={label.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-md)',
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-tertiary)',
-                  border: '1px solid var(--color-border-secondary)',
-                  transition: 'background var(--transition-normal)',
-                }}
-              >
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: '50%',
-                    background: label.color,
-                    flexShrink: 0,
-                    boxShadow: `0 0 0 2px color-mix(in srgb, ${label.color} 20%, transparent)`,
-                  }}
-                />
-                <span
-                  style={{
-                    flex: 1,
-                    fontSize: 'var(--font-size-md)',
-                    color: 'var(--color-text-primary)',
-                    fontFamily: 'var(--font-family)',
-                  }}
-                >
-                  {label.name}
-                </span>
-                <button
-                  onClick={() => setConfirmDeleteLabel(label.id)}
-                  aria-label={`Remove ${label.name} label`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 28,
-                    height: 28,
-                    padding: 0,
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--color-text-tertiary)',
-                    cursor: 'pointer',
-                    transition: 'color var(--transition-normal), background var(--transition-normal)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--color-error)';
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--color-error) 8%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-
-        {confirmDeleteLabel && (
-          <ConfirmDialog
-            open={!!confirmDeleteLabel}
-            onOpenChange={(open) => { if (!open) setConfirmDeleteLabel(null); }}
-            title="Delete label?"
-            description={`The label "${labels.find((l) => l.id === confirmDeleteLabel)?.name}" will be permanently deleted.`}
-            confirmLabel="Delete label"
-            onConfirm={() => removeLabel(confirmDeleteLabel)}
-          />
-        )}
-
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--spacing-sm)',
-            alignItems: 'center',
-            padding: 'var(--spacing-md)',
+            padding: 'var(--spacing-2xl)',
+            textAlign: 'center',
+            color: 'var(--color-text-tertiary)',
+            fontSize: 'var(--font-size-md)',
+            fontFamily: 'var(--font-family)',
             background: 'var(--color-bg-tertiary)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--color-border-secondary)',
           }}
         >
-          <input
-            type="color"
-            value={newLabelColor}
-            onChange={(e) => setNewLabelColor(e.target.value)}
-            aria-label="Label color"
-            style={{
-              width: 32,
-              height: 32,
-              padding: 2,
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-sm)',
-              background: 'transparent',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          />
-          <input
-            value={newLabelName}
-            onChange={(e) => setNewLabelName(e.target.value)}
-            placeholder="Label name..."
-            onKeyDown={(e) => e.key === 'Enter' && addLabel()}
-            style={{
-              flex: 1,
-              height: 34,
-              padding: '0 var(--spacing-md)',
-              background: 'var(--color-bg-elevated)',
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-primary)',
-              fontSize: 'var(--font-size-md)',
-              fontFamily: 'var(--font-family)',
-              outline: 'none',
-              transition: 'border-color var(--transition-normal)',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = 'var(--color-border-focus)')}
-            onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-primary)')}
-          />
-          <button
-            onClick={addLabel}
-            disabled={!newLabelName.trim()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-xs)',
-              height: 34,
-              padding: '0 var(--spacing-md)',
-              background: newLabelName.trim()
-                ? 'var(--color-accent-primary)'
-                : 'var(--color-bg-secondary)',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              color: newLabelName.trim() ? '#ffffff' : 'var(--color-text-tertiary)',
-              fontSize: 'var(--font-size-sm)',
-              fontFamily: 'var(--font-family)',
-              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-              cursor: newLabelName.trim() ? 'pointer' : 'not-allowed',
-              flexShrink: 0,
-              transition: 'background var(--transition-normal)',
-            }}
-          >
-            <Plus size={14} />
-            Add
-          </button>
+          Labels are managed in your Gmail account. Changes you make in Gmail will be reflected here automatically.
         </div>
       </SettingsSection>
     </div>

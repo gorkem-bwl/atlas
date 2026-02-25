@@ -4,9 +4,7 @@ import { Star, Reply, Archive, Trash2, Clock, Check, Paperclip } from 'lucide-re
 import { Avatar } from '../ui/avatar';
 import { IconButton } from '../ui/icon-button';
 import { Tooltip } from '../ui/tooltip';
-import { LabelChip } from './label-chip';
 import { SnoozePopover } from './snooze-popover';
-import { getLabelById } from '../../lib/labels';
 import { useValueChangeAnimation, injectStarPop, injectNewEmailArrival } from '../../lib/animations';
 import { useSettingsStore } from '../../stores/settings-store';
 import { formatRelativeTime } from '@atlasmail/shared';
@@ -55,11 +53,6 @@ export function EmailListItem({
   const isUnread = thread.unreadCount > 0;
   const senderName = (thread as any).senderName || (thread as any).senderEmail || thread.emails?.[0]?.fromName || thread.emails?.[0]?.fromAddress || 'Unknown';
   const senderEmail = (thread as any).senderEmail || thread.emails?.[0]?.fromAddress || '';
-
-  // Resolve label IDs to Label objects (skip system labels like INBOX)
-  const threadLabels = (thread.labels ?? [])
-    .map((id) => getLabelById(id))
-    .filter((l): l is NonNullable<typeof l> => l !== undefined);
 
   let background = 'transparent';
   if (isMultiSelected) background = 'var(--color-surface-selected)';
@@ -189,22 +182,6 @@ export function EmailListItem({
         >
           {thread.snippet || ''}
         </span>
-
-        {/* Labels */}
-        {threadLabels.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px',
-              flexShrink: 0,
-            }}
-          >
-            {threadLabels.slice(0, 1).map((label) => (
-              <LabelChip key={label.id} label={label} />
-            ))}
-          </div>
-        )}
 
         {/* Attachment indicator */}
         {thread.hasAttachments && (
@@ -455,20 +432,6 @@ export function EmailListItem({
           >
             {thread.subject || t('common.noSubject')}
           </span>
-          {threadLabels.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                flexShrink: 0,
-              }}
-            >
-              {threadLabels.slice(0, 2).map((label) => (
-                <LabelChip key={label.id} label={label} />
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Snippet */}

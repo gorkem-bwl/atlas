@@ -56,7 +56,7 @@ export function useThreads(category?: string) {
   });
 }
 
-export function useMailboxThreads(mailbox: string, category?: string) {
+export function useMailboxThreads(mailbox: string, category?: string, gmailLabel?: string | null) {
   // Subscribe to the drafts array so the query key updates on any draft change.
   const draftsCacheKey = useDraftStore((s) => {
     if (mailbox !== 'drafts') return null;
@@ -69,6 +69,7 @@ export function useMailboxThreads(mailbox: string, category?: string) {
     queryKey: [
       ...queryKeys.threads.mailbox(mailbox, category),
       ...(isDrafts ? [draftsCacheKey] : []),
+      ...(gmailLabel ? [gmailLabel] : []),
     ],
     queryFn: async ({ pageParam = 0 }) => {
       if (isDrafts) {
@@ -79,7 +80,7 @@ export function useMailboxThreads(mailbox: string, category?: string) {
         return getMockThreadsByMailbox(mailbox);
       }
       const { data } = await api.get('/threads', {
-        params: { mailbox, category, limit: PAGE_SIZE, offset: pageParam },
+        params: { mailbox, category, limit: PAGE_SIZE, offset: pageParam, gmailLabel: gmailLabel || undefined },
       });
       return data.data as Thread[];
     },
@@ -163,6 +164,11 @@ function removeFromInfiniteCache(old: InfiniteData | undefined, threadId: string
   return { ...old, pages: old.pages.map((page) => page.filter((t) => t.id !== threadId)) };
 }
 
+function removeManyFromInfiniteCache(old: InfiniteData | undefined, threadIds: Set<string>): InfiniteData | undefined {
+  if (!old) return old;
+  return { ...old, pages: old.pages.map((page) => page.filter((t) => !threadIds.has(t.id))) };
+}
+
 function mapInfiniteCache(
   old: InfiniteData | undefined,
   fn: (thread: Thread) => Thread,
@@ -234,6 +240,70 @@ export function useTrashWithUndo() {
         },
         commitAction: () => {
           trashMutation.mutate(threadId);
+        },
+      });
+    },
+    [queryClient, trashMutation, addToast],
+  );
+}
+
+// ─── Bulk undo-aware archive ──────────────────────────────────────────
+
+export function useBulkArchiveWithUndo() {
+  const queryClient = useQueryClient();
+  const archiveMutation = useArchiveThread();
+  const { addToast } = useToastStore();
+
+  return useCallback(
+    (threadIds: Set<string>, listKey: readonly unknown[]) => {
+      const previousData = queryClient.getQueryData<InfiniteData>(listKey);
+
+      queryClient.setQueryData<InfiniteData>(listKey, (old) =>
+        removeManyFromInfiniteCache(old, threadIds),
+      );
+
+      const count = threadIds.size;
+      addToast({
+        type: 'undo',
+        message: i18n.t('toast.conversationArchived') + (count > 1 ? ` (${count})` : ''),
+        duration: 5000,
+        undoAction: () => {
+          queryClient.setQueryData<InfiniteData>(listKey, previousData);
+        },
+        commitAction: () => {
+          threadIds.forEach((id) => archiveMutation.mutate(id));
+        },
+      });
+    },
+    [queryClient, archiveMutation, addToast],
+  );
+}
+
+// ─── Bulk undo-aware trash ────────────────────────────────────────────
+
+export function useBulkTrashWithUndo() {
+  const queryClient = useQueryClient();
+  const trashMutation = useTrashThread();
+  const { addToast } = useToastStore();
+
+  return useCallback(
+    (threadIds: Set<string>, listKey: readonly unknown[]) => {
+      const previousData = queryClient.getQueryData<InfiniteData>(listKey);
+
+      queryClient.setQueryData<InfiniteData>(listKey, (old) =>
+        removeManyFromInfiniteCache(old, threadIds),
+      );
+
+      const count = threadIds.size;
+      addToast({
+        type: 'undo',
+        message: i18n.t('toast.conversationTrashed') + (count > 1 ? ` (${count})` : ''),
+        duration: 5000,
+        undoAction: () => {
+          queryClient.setQueryData<InfiniteData>(listKey, previousData);
+        },
+        commitAction: () => {
+          threadIds.forEach((id) => trashMutation.mutate(id));
         },
       });
     },
@@ -405,38 +475,6 @@ export function useBlockSender() {
   });
 }
 
-export function useUpdateThreadLabels() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ threadId, labels }: { threadId: string; labels: string[] }) => {
-      if (USE_MOCK) return;
-      await api.post(`/threads/${threadId}/labels`, { labels });
-    },
-    onMutate: async ({ threadId, labels }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.threads.all });
-      const labelFn = (t: Thread) => t.id === threadId ? { ...t, labels } : t;
-      const allQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: queryKeys.threads.all });
-      const previousData: Array<[readonly unknown[], unknown]> = [];
-      for (const [key, data] of allQueries) {
-        if (data && 'pages' in data) {
-          previousData.push([key, data]);
-          queryClient.setQueryData<InfiniteData>(key, (old) => mapInfiniteCache(old, labelFn));
-        }
-      }
-      return { previousData };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previousData) {
-        for (const [key, data] of context.previousData) {
-          queryClient.setQueryData(key, data);
-        }
-      }
-    },
-    onSettled: () => {
-      if (!USE_MOCK) queryClient.invalidateQueries({ queryKey: queryKeys.threads.all });
-    },
-  });
-}
 
 export function useUnsubscribe() {
   return useMutation({
@@ -469,6 +507,25 @@ export function useScheduleSend() {
       }
       await api.post('/threads/schedule', payload);
     },
+  });
+}
+
+export interface GmailLabel {
+  id: string;
+  name: string;
+  type: 'system' | 'user';
+  color: { background: string; text: string } | null;
+}
+
+export function useGmailLabels() {
+  return useQuery({
+    queryKey: queryKeys.labels.gmail,
+    queryFn: async () => {
+      if (USE_MOCK) return [] as GmailLabel[];
+      const { data } = await api.get('/threads/labels');
+      return data.data as GmailLabel[];
+    },
+    staleTime: 5 * 60_000, // cache for 5 minutes
   });
 }
 

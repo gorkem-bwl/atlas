@@ -29,6 +29,7 @@ router.post('/sync', async (req: Request, res: Response) => {
 });
 
 router.get('/counts', threadsController.getThreadCounts);
+router.get('/labels', threadsController.getGmailLabels);
 router.get('/attachments/:attachmentId', threadsController.downloadAttachment);
 router.get('/', threadsController.listThreads);
 router.post('/send', threadsController.sendEmail);

@@ -128,3 +128,9 @@ export async function getProfile(accountId: string) {
   const response = await gmail.users.getProfile({ userId: 'me' });
   return response.data;
 }
+
+export async function listLabels(accountId: string) {
+  const gmail = await getGmailClient(accountId);
+  const response = await gmail.users.labels.list({ userId: 'me' });
+  return response.data.labels || [];
+}

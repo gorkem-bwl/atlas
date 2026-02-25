@@ -16,15 +16,16 @@ import {
   Archive,
   Trash2,
   AlertOctagon,
+  Tag,
+  ChevronLeft,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useEmailStore } from '../../stores/email-store';
 import { useSettingsStore } from '../../stores/settings-store';
 import { useUIStore } from '../../stores/ui-store';
-import { useLabelStore } from '../../stores/label-store';
-import { useThreadCounts } from '../../hooks/use-threads';
+import { useThreadCounts, useGmailLabels } from '../../hooks/use-threads';
+import type { GmailLabel } from '../../hooks/use-threads';
 import { AccountSwitcher } from './account-switcher';
-import { LabelTree } from '../email/label-tree';
 import type { EmailCategory } from '@atlasmail/shared';
 import type { ThemeMode } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
@@ -337,12 +338,81 @@ function ThemeToggleButton() {
   );
 }
 
+function GmailLabelItem({
+  label,
+  isActive,
+  onSelect,
+}: {
+  label: GmailLabel;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const bgColor = label.color?.background || 'var(--color-text-tertiary)';
+
+  return (
+    <button
+      onClick={onSelect}
+      aria-current={isActive ? 'page' : undefined}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--spacing-sm)',
+        width: '100%',
+        padding: '6px var(--spacing-md)',
+        background: isActive ? 'var(--color-surface-selected)' : 'transparent',
+        border: 'none',
+        borderRadius: 'var(--radius-md)',
+        color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+        fontSize: 'var(--font-size-sm)',
+        fontFamily: 'var(--font-family)',
+        fontWeight: isActive ? 500 : 400,
+        cursor: 'pointer',
+        transition: 'background var(--transition-normal), color var(--transition-normal)',
+        textAlign: 'left',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'var(--color-surface-hover)';
+          e.currentTarget.style.color = 'var(--color-text-primary)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--color-text-secondary)';
+        }
+      }}
+    >
+      <span
+        style={{
+          flexShrink: 0,
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: bgColor,
+        }}
+      />
+      <span
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label.name}
+      </span>
+    </button>
+  );
+}
+
 export function Sidebar() {
   const { activeCategory, setActiveCategory, activeMailbox, setActiveMailbox, openCompose, filterByLabel, setFilterByLabel } =
     useEmailStore();
   const { toggleSettings } = useUIStore();
   const { t } = useTranslation();
-  const labels = useLabelStore((s) => s.labels);
+  const [labelsOpen, setLabelsOpen] = useState(false);
+  const { data: gmailLabels } = useGmailLabels();
   const { data: counts } = useThreadCounts();
 
   const CATEGORY_LABELS: Record<EmailCategory, string> = {
@@ -375,6 +445,8 @@ export function Sidebar() {
         padding: 'var(--spacing-sm) var(--spacing-sm)',
         paddingTop: isDesktop ? 40 : undefined,
         boxSizing: 'border-box',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
       {/* Brand header with theme toggle — also serves as drag region on desktop */}
@@ -511,41 +583,73 @@ export function Sidebar() {
           />
         ))}
 
-        {/* Labels section */}
-        {labels.length > 0 && (
-          <div style={{ marginTop: 'var(--spacing-xs)' }}>
-            <div
-              aria-hidden="true"
-              style={{
-                height: 1,
-                background: 'var(--color-border-primary)',
-                margin: 'var(--spacing-xs) 0',
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ display: 'flex', alignItems: 'center', padding: '4px var(--spacing-md)' }}>
+        {/* Gmail labels button */}
+        <div style={{ marginTop: 'var(--spacing-xs)' }}>
+          <div
+            aria-hidden="true"
+            style={{
+              height: 1,
+              background: 'var(--color-border-primary)',
+              margin: 'var(--spacing-xs) 0',
+              flexShrink: 0,
+            }}
+          />
+          <button
+            className="sidebar-nav-btn"
+            onClick={() => setLabelsOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              width: '100%',
+              padding: '6px var(--spacing-md)',
+              background: filterByLabel ? 'var(--color-surface-selected)' : 'transparent',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              color: filterByLabel ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              fontSize: 'var(--font-size-sm)',
+              fontFamily: 'var(--font-family)',
+              fontWeight: filterByLabel ? 500 : 400,
+              cursor: 'pointer',
+              transition: 'background var(--transition-normal), color var(--transition-normal)',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => {
+              if (!filterByLabel) {
+                e.currentTarget.style.background = 'var(--color-surface-hover)';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!filterByLabel) {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }
+            }}
+          >
+            <Tag size={16} className="sidebar-nav-icon" style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>
+              {filterByLabel
+                ? gmailLabels?.find((l) => l.id === filterByLabel)?.name ?? 'Labels'
+                : 'Labels'}
+            </span>
+            {filterByLabel && (
               <span
+                aria-label="Label filter active"
                 style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-tertiary)',
-                  fontWeight: 500,
-                  flex: 1,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--color-accent-primary)',
+                  flexShrink: 0,
                 }}
-              >
-                {t('labels.labelsSection')}
-              </span>
-            </div>
-            <LabelTree
-              labels={labels}
-              parentId={null}
-              depth={0}
-              activeLabel={filterByLabel}
-              onSelect={(id) => setFilterByLabel(filterByLabel === id ? null : id)}
-            />
-          </div>
-        )}
+              />
+            )}
+          </button>
+        </div>
       </nav>
 
       {/* Bottom section: theme toggle + settings + account switcher */}
@@ -594,6 +698,141 @@ export function Sidebar() {
 
         <AccountSwitcher />
       </div>
+
+      {/* Gmail labels sliding panel */}
+      {labelsOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'var(--color-bg-secondary)',
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'slideInLeft 200ms ease',
+          }}
+        >
+          {/* Panel header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              padding: 'var(--spacing-sm) var(--spacing-sm)',
+              paddingTop: isDesktop ? 40 : 'var(--spacing-sm)',
+              borderBottom: '1px solid var(--color-border-primary)',
+              flexShrink: 0,
+            }}
+          >
+            <button
+              onClick={() => setLabelsOpen(false)}
+              aria-label="Back to navigation"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                padding: 0,
+                background: 'transparent',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+                transition: 'background var(--transition-normal), color var(--transition-normal)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-surface-hover)';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span
+              style={{
+                fontSize: 'var(--font-size-lg)',
+                fontWeight: 600,
+                color: 'var(--color-text-primary)',
+                flex: 1,
+              }}
+            >
+              Labels
+            </span>
+            {filterByLabel && (
+              <button
+                onClick={() => {
+                  setFilterByLabel(null);
+                  setLabelsOpen(false);
+                }}
+                aria-label="Clear label filter"
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-accent-primary)',
+                  background: 'var(--color-accent-subtle)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-family)',
+                  fontWeight: 500,
+                  transition: 'background var(--transition-normal)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--color-accent-subtle-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--color-accent-subtle)';
+                }}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+
+          {/* Label list */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: 'var(--spacing-sm)',
+            }}
+          >
+            {!gmailLabels || gmailLabels.length === 0 ? (
+              <div
+                style={{
+                  padding: 'var(--spacing-2xl)',
+                  textAlign: 'center',
+                  color: 'var(--color-text-tertiary)',
+                  fontSize: 'var(--font-size-sm)',
+                }}
+              >
+                No labels found
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {gmailLabels.map((label) => (
+                  <GmailLabelItem
+                    key={label.id}
+                    label={label}
+                    isActive={filterByLabel === label.id}
+                    onSelect={() => {
+                      setFilterByLabel(filterByLabel === label.id ? null : label.id);
+                      setLabelsOpen(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

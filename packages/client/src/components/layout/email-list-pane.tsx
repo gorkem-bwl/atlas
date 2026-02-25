@@ -4,7 +4,7 @@ import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
 import { ArrowLeft } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
 import { useDraftStore } from '../../stores/draft-store';
-import { useMailboxThreads, useToggleStar, useArchiveThread, useTrashThread, useArchiveWithUndo, useTrashWithUndo, useMarkReadUnread, useSnoozeThread } from '../../hooks/use-threads';
+import { useMailboxThreads, useToggleStar, useArchiveWithUndo, useTrashWithUndo, useBulkArchiveWithUndo, useBulkTrashWithUndo, useMarkReadUnread, useSnoozeThread, useGmailLabels } from '../../hooks/use-threads';
 import { useToastStore } from '../../stores/toast-store';
 import { useAutoAdvance } from '../../hooks/use-auto-advance';
 import { useMediaQuery } from '../../hooks/use-media-query';
@@ -14,7 +14,6 @@ import { BulkActions } from '../email/bulk-actions';
 import { SearchBar } from '../search/search-bar';
 import { EmptyState } from '../ui/empty-state';
 import { EmailListSkeleton } from '../ui/skeleton';
-import { getLabelById } from '../../lib/labels';
 import { Chip } from '../ui/chip';
 import { useSearch } from '../../hooks/use-search';
 import type { EmailCategory, Thread } from '@atlasmail/shared';
@@ -421,12 +420,13 @@ export function EmailListPane() {
     older: t('email.groupOlder'),
   };
 
+  const { data: gmailLabels } = useGmailLabels();
   const toggleStar = useToggleStar();
-  const archiveMutation = useArchiveThread();
-  const trashMutation = useTrashThread();
   const snoozeMutation = useSnoozeThread();
   const archiveWithUndo = useArchiveWithUndo();
   const trashWithUndo = useTrashWithUndo();
+  const bulkArchiveWithUndo = useBulkArchiveWithUndo();
+  const bulkTrashWithUndo = useBulkTrashWithUndo();
   const markReadUnread = useMarkReadUnread();
   const addToast = useToastStore((s) => s.addToast);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -453,6 +453,7 @@ export function EmailListPane() {
   } = useMailboxThreads(
     activeMailbox,
     isInbox && activeCategory !== 'all' ? activeCategory : undefined,
+    filterByLabel,
   );
 
   // Server-side search — fires when user types a free-text query
@@ -470,9 +471,8 @@ export function EmailListPane() {
       ? filterThreadsByParsed(baseThreads, parsedFilters)
       : baseThreads;
 
-    if (filterByLabel) filtered = filtered.filter(t => t.labels.includes(filterByLabel));
     return filtered;
-  }, [threads, searchResults, isSearchActive, parsedFilters, filterByLabel]);
+  }, [threads, searchResults, isSearchActive, parsedFilters]);
 
   // Keep the ref in sync so the cursor-selection event handler is never stale
   displayThreadsRef.current = displayThreads;
@@ -631,14 +631,14 @@ export function EmailListPane() {
   );
 
   const handleBulkArchive = useCallback(() => {
-    selectedThreadIds.forEach((id) => archiveMutation.mutate(id));
+    bulkArchiveWithUndo(selectedThreadIds, activeListKey);
     clearSelection();
-  }, [selectedThreadIds, archiveMutation, clearSelection]);
+  }, [selectedThreadIds, bulkArchiveWithUndo, activeListKey, clearSelection]);
 
   const handleBulkTrash = useCallback(() => {
-    selectedThreadIds.forEach((id) => trashMutation.mutate(id));
+    bulkTrashWithUndo(selectedThreadIds, activeListKey);
     clearSelection();
-  }, [selectedThreadIds, trashMutation, clearSelection]);
+  }, [selectedThreadIds, bulkTrashWithUndo, activeListKey, clearSelection]);
 
   const handleBulkStar = useCallback(() => {
     selectedThreadIds.forEach((id) => toggleStar.mutate(id));
@@ -784,12 +784,12 @@ export function EmailListPane() {
 
       {/* Active label filter chip */}
       {filterByLabel && (() => {
-        const label = getLabelById(filterByLabel);
-        if (!label) return null;
+        const label = gmailLabels?.find((l) => l.id === filterByLabel);
+        const labelName = label?.name ?? filterByLabel;
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', padding: 'var(--spacing-xs) var(--spacing-md)', borderBottom: '1px solid var(--color-border-primary)', flexShrink: 0 }}>
-            <Chip color={label.color} onRemove={() => setFilterByLabel(null)} aria-label="Remove label filter">
-              {label.name}
+            <Chip color={label?.color?.background ?? 'var(--color-accent-primary)'} onRemove={() => setFilterByLabel(null)} aria-label="Remove label filter">
+              {labelName}
             </Chip>
           </div>
         );

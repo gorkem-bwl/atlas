@@ -14,17 +14,28 @@ export async function getThreadCounts(req: Request, res: Response) {
 
 export async function listThreads(req: Request, res: Response) {
   try {
-    const { mailbox, category, limit, offset } = req.query;
+    const { mailbox, category, limit, offset, gmailLabel } = req.query;
     const result = await threadService.getThreads(req.auth!.accountId, {
       mailbox: mailbox as string | undefined,
       category: category as string | undefined,
       limit: limit ? parseInt(limit as string, 10) : 50,
       offset: offset ? parseInt(offset as string, 10) : 0,
+      gmailLabel: gmailLabel as string | undefined,
     });
     res.json({ success: true, data: result });
   } catch (error) {
     logger.error({ error }, 'Failed to list threads');
     res.status(500).json({ success: false, error: 'Failed to fetch threads' });
+  }
+}
+
+export async function getGmailLabels(req: Request, res: Response) {
+  try {
+    const labels = await threadService.getGmailLabels(req.auth!.accountId);
+    res.json({ success: true, data: labels });
+  } catch (error) {
+    logger.error({ error }, 'Failed to fetch Gmail labels');
+    res.status(500).json({ success: false, error: 'Failed to fetch Gmail labels' });
   }
 }
 

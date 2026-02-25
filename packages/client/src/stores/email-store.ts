@@ -35,13 +35,14 @@ export const useEmailStore = create<EmailState>((set) => ({
   composeThreadId: null,
   filterByLabel: null,
   setActiveCategory: (category) =>
-    set({ activeCategory: category, activeMailbox: 'inbox', cursorIndex: 0 }),
+    set({ activeCategory: category, activeMailbox: 'inbox', cursorIndex: 0, selectedThreadIds: new Set(), filterByLabel: null }),
   setActiveMailbox: (mailbox) =>
     set({
       activeMailbox: mailbox,
       activeThreadId: null,
       cursorIndex: 0,
       selectedThreadIds: new Set(),
+      filterByLabel: null,
     }),
   setActiveThread: (id) => set({ activeThreadId: id }),
   moveCursor: (delta, max) =>

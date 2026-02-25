@@ -88,7 +88,7 @@ export async function getThreadCounts(accountId: string) {
 
 export async function getThreads(
   accountId: string,
-  options: { mailbox?: string; category?: string; limit?: number; offset?: number },
+  options: { mailbox?: string; category?: string; limit?: number; offset?: number; gmailLabel?: string },
 ) {
   const mailbox = options.mailbox || 'inbox';
 
@@ -110,6 +110,16 @@ export async function getThreads(
     ];
     if (options.category) {
       conditions.push(eq(threads.category, options.category));
+    }
+    if (options.gmailLabel) {
+      conditions.push(
+        sql`EXISTS (
+          SELECT 1 FROM emails e, json_each(e.gmail_labels) AS lbl
+          WHERE e.thread_id = ${threads.id}
+            AND e.account_id = ${accountId}
+            AND lbl.value = ${options.gmailLabel}
+        )`,
+      );
     }
 
     const result = await db.select()
@@ -163,6 +173,17 @@ export async function getThreads(
     conditions.push(eq(threads.category, options.category));
   }
 
+  if (options.gmailLabel) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM emails e, json_each(e.gmail_labels) AS lbl
+        WHERE e.thread_id = ${threads.id}
+          AND e.account_id = ${accountId}
+          AND lbl.value = ${options.gmailLabel}
+      )`,
+    );
+  }
+
   const result = await db.select()
     .from(threads)
     .where(and(...conditions))
@@ -171,6 +192,25 @@ export async function getThreads(
     .offset(options.offset || 0);
 
   return attachSenderInfo(result);
+}
+
+export async function getGmailLabels(accountId: string) {
+  const rawLabels = await gmailService.listLabels(accountId);
+  // Filter out system labels that aren't useful to show (INBOX, SENT, TRASH, etc. are handled by mailbox views)
+  const HIDDEN_SYSTEM_LABELS = new Set([
+    'INBOX', 'SENT', 'TRASH', 'SPAM', 'DRAFT', 'UNREAD', 'STARRED',
+    'IMPORTANT', 'CHAT', 'CATEGORY_PERSONAL', 'CATEGORY_SOCIAL',
+    'CATEGORY_UPDATES', 'CATEGORY_FORUMS', 'CATEGORY_PROMOTIONS',
+  ]);
+
+  return rawLabels
+    .filter((l: any) => !HIDDEN_SYSTEM_LABELS.has(l.id))
+    .map((l: any) => ({
+      id: l.id,
+      name: l.name,
+      type: l.type, // 'system' or 'user'
+      color: l.color ? { background: l.color.backgroundColor, text: l.color.textColor } : null,
+    }));
 }
 
 export async function getThreadById(accountId: string, threadId: string) {

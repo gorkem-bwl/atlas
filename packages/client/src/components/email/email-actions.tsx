@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Reply, CornerUpLeft, Forward, Archive, Trash2, Star, MailOpen, Clock, AlertOctagon, Ban, Tag } from 'lucide-react';
+import { Reply, CornerUpLeft, Forward, Archive, Trash2, Star, MailOpen, Clock, AlertOctagon, Ban } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
 import { useArchiveWithUndo, useTrashWithUndo, useToggleStar, useSnoozeThread, useSpamWithUndo, useMarkReadUnread, useMailboxThreads, useBlockSender } from '../../hooks/use-threads';
 import { useAutoAdvance } from '../../hooks/use-auto-advance';
@@ -9,7 +9,6 @@ import { ConfirmDialog } from '../ui/confirm-dialog';
 import { queryKeys } from '../../config/query-keys';
 import { Tooltip } from '../ui/tooltip';
 import { SnoozePopover } from './snooze-popover';
-import { LabelPopover } from './label-popover';
 import { useValueChangeAnimation, injectStarPop } from '../../lib/animations';
 import type { Thread } from '@atlasmail/shared';
 
@@ -260,44 +259,6 @@ export function EmailActions({ thread }: EmailActionsProps) {
           </button>
           </Tooltip>
         </SnoozePopover>
-
-        {/* Label assignment */}
-        <LabelPopover threadId={thread.id} currentLabels={thread.labels ?? []}>
-          <Tooltip content={t('labels.manageLabels')} side="bottom">
-          <button
-            aria-label={t('labels.manageLabels')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              background: 'transparent',
-              color: 'var(--color-text-secondary)',
-              cursor: 'pointer',
-              transition: 'background var(--transition-normal), color var(--transition-normal), transform 80ms ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-surface-hover)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.92)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            <Tag size={16} />
-          </button>
-          </Tooltip>
-        </LabelPopover>
 
         {afterSnoozeActions.map(renderActionButton)}
       </div>
