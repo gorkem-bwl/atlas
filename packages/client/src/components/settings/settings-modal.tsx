@@ -288,8 +288,8 @@ function SelectableCard({
         padding: 'var(--spacing-lg)',
         borderRadius: 'var(--radius-lg)',
         border: selected
-          ? '2px solid var(--color-accent-primary)'
-          : `2px solid ${hovered ? 'var(--color-border-primary)' : 'var(--color-border-secondary)'}`,
+          ? '1.5px solid var(--color-accent-primary)'
+          : `1px solid ${hovered ? 'var(--color-border-primary)' : 'var(--color-border-secondary)'}`,
         background: selected
           ? 'color-mix(in srgb, var(--color-accent-primary) 8%, transparent)'
           : hovered
@@ -908,15 +908,15 @@ function GeneralPanel() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection title="Danger zone">
+      <SettingsSection title="Account">
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: 'var(--spacing-md) var(--spacing-lg)',
-            background: 'color-mix(in srgb, var(--color-error) 5%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--color-error) 20%, transparent)',
+            background: 'var(--color-surface-primary)',
+            border: '1px solid var(--color-border-primary)',
             borderRadius: 'var(--radius-lg)',
           }}
         >
@@ -951,22 +951,22 @@ function GeneralPanel() {
               height: 34,
               padding: '0 var(--spacing-md)',
               background: 'transparent',
-              border: '1px solid var(--color-error)',
+              border: '1px solid var(--color-border-primary)',
               borderRadius: 'var(--radius-md)',
-              color: 'var(--color-error)',
+              color: 'var(--color-text-secondary)',
               fontSize: 'var(--font-size-sm)',
               fontFamily: 'var(--font-family)',
               fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
               cursor: 'pointer',
-              transition: 'background var(--transition-normal)',
+              transition: 'background var(--transition-normal), color var(--transition-normal)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-error)';
-              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.background = 'var(--color-surface-hover)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--color-error)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
             }}
           >
             <LogOut size={14} />
@@ -1318,8 +1318,8 @@ function AppearancePanel() {
                     ? `color-mix(in srgb, ${ct.swatch} 10%, transparent)`
                     : 'transparent',
                   border: isActive
-                    ? `2px solid ${ct.swatch}`
-                    : '2px solid var(--color-border-secondary)',
+                    ? `1.5px solid ${ct.swatch}`
+                    : '1px solid var(--color-border-secondary)',
                   borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   fontFamily: 'var(--font-family)',
