@@ -6,6 +6,8 @@ interface MiniMonthProps {
   selectedDate: string; // YYYY-MM-DD
   onSelectDate: (date: string) => void;
   weekStartsOnMonday?: boolean;
+  /** Set of YYYY-MM-DD strings for days that have events (shows a dot indicator) */
+  eventDays?: Set<string>;
 }
 
 function toYMD(date: Date): string {
@@ -18,7 +20,7 @@ function toYMD(date: Date): string {
 const DAY_NAMES_SUN = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const DAY_NAMES_MON = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-export function MiniMonth({ selectedDate, onSelectDate, weekStartsOnMonday = false }: MiniMonthProps) {
+export function MiniMonth({ selectedDate, onSelectDate, weekStartsOnMonday = false, eventDays }: MiniMonthProps) {
   const selectedDateObj = new Date(selectedDate + 'T12:00:00');
   const [viewYear, setViewYear] = useState(selectedDateObj.getFullYear());
   const [viewMonth, setViewMonth] = useState(selectedDateObj.getMonth());
@@ -134,6 +136,7 @@ export function MiniMonth({ selectedDate, onSelectDate, weekStartsOnMonday = fal
             const isToday = dateStr === todayStr;
             const isSelected = dateStr === selectedDate;
 
+            const hasEvents = eventDays?.has(dateStr);
             return (
               <button
                 key={dateStr}
@@ -161,13 +164,27 @@ export function MiniMonth({ selectedDate, onSelectDate, weekStartsOnMonday = fal
                   fontWeight: isToday || isSelected ? 600 : 400,
                   cursor: 'pointer',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'background var(--transition-fast)',
                   opacity: isCurrentMonth ? 1 : 0.5,
+                  gap: 0,
+                  lineHeight: 1,
                 }}
               >
-                {day.getDate()}
+                <span>{day.getDate()}</span>
+                {hasEvents && (
+                  <span
+                    style={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      background: isSelected ? 'var(--color-text-inverse)' : 'var(--color-accent-primary)',
+                      marginTop: -1,
+                    }}
+                  />
+                )}
               </button>
             );
           })}

@@ -113,10 +113,70 @@ export function CalendarPage() {
     return map;
   }, [calendars]);
 
+  // Compute event days set for mini-month indicators
+  const eventDays = useMemo(() => {
+    const set = new Set<string>();
+    if (events) {
+      for (const ev of events) {
+        if (!selectedCalendarIds.has(ev.calendarId)) continue;
+        const start = new Date(ev.startTime);
+        const end = new Date(ev.endTime);
+        // Add each day the event spans
+        const cursor = new Date(start);
+        cursor.setHours(0, 0, 0, 0);
+        while (cursor <= end) {
+          set.add(toYMD(cursor));
+          cursor.setDate(cursor.getDate() + 1);
+        }
+      }
+    }
+    return set;
+  }, [events, selectedCalendarIds]);
+
   // Initial sync on mount
   useEffect(() => {
     syncCalendar.mutate();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Browser notifications for upcoming events ────────────────────────
+  const notifiedRef = useRef(new Set<string>());
+  useEffect(() => {
+    if (!events || events.length === 0) return;
+    if (!('Notification' in window)) return;
+
+    // Request permission if not yet decided
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const checkUpcoming = () => {
+      if (Notification.permission !== 'granted') return;
+      const now = Date.now();
+      const tenMinMs = 10 * 60 * 1000;
+
+      for (const ev of events) {
+        if (!selectedCalendarIds.has(ev.calendarId)) continue;
+        if (ev.isAllDay) continue;
+        const startMs = new Date(ev.startTime).getTime();
+        const diff = startMs - now;
+
+        // Notify if event starts in the next 10 minutes and we haven't already
+        if (diff > 0 && diff <= tenMinMs && !notifiedRef.current.has(ev.id)) {
+          notifiedRef.current.add(ev.id);
+          const minutesAway = Math.ceil(diff / 60_000);
+          new Notification(ev.summary || 'Upcoming event', {
+            body: `Starts in ${minutesAway} minute${minutesAway === 1 ? '' : 's'}`,
+            icon: '/favicon.ico',
+            tag: ev.id,
+          });
+        }
+      }
+    };
+
+    checkUpcoming();
+    const id = setInterval(checkUpcoming, 60_000);
+    return () => clearInterval(id);
+  }, [events, selectedCalendarIds]);
 
   const goToday = useCallback(() => setSelectedDate(toYMD(new Date())), [setSelectedDate]);
 
@@ -514,7 +574,7 @@ export function CalendarPage() {
           }}
         >
           {/* Mini month picker */}
-          <MiniMonth selectedDate={selectedDate} onSelectDate={setSelectedDate} weekStartsOnMonday={weekStartsOnMonday} />
+          <MiniMonth selectedDate={selectedDate} onSelectDate={setSelectedDate} weekStartsOnMonday={weekStartsOnMonday} eventDays={eventDays} />
 
           <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 8px' }} />
 
