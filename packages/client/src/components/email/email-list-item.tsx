@@ -99,7 +99,7 @@ export function EmailListItem({
         {/* Sender — fixed width, bold */}
         <span
           style={{
-            width: 180,
+            width: 120,
             flexShrink: 0,
             fontSize: 'var(--font-size-sm)',
             fontWeight: isUnread
