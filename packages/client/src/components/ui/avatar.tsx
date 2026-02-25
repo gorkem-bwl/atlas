@@ -40,24 +40,79 @@ function isDarkTheme(): boolean {
 }
 
 // Extract domain from an email address and build a Google favicon URL.
-// Returns null for common freemail providers (gmail, outlook, yahoo, etc.)
-// since their favicons aren't meaningful as sender avatars.
+// Returns null for common freemail providers since their favicons aren't
+// meaningful as sender avatars.  Also skips large avatar sizes (> 40px)
+// because favicons are inherently low-res and look pixelated when scaled up.
 const FREEMAIL_DOMAINS = new Set([
-  'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com',
-  'msn.com', 'yahoo.com', 'yahoo.co.uk', 'ymail.com', 'aol.com',
-  'icloud.com', 'me.com', 'mac.com', 'protonmail.com', 'proton.me',
-  'zoho.com', 'mail.com', 'gmx.com', 'gmx.net', 'fastmail.com',
-  'tutanota.com', 'tuta.com',
+  // Google
+  'gmail.com', 'googlemail.com',
+  // Microsoft
+  'outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'hotmail.co.uk',
+  'hotmail.fr', 'hotmail.de', 'hotmail.it', 'hotmail.es', 'live.co.uk',
+  'live.fr', 'live.nl', 'outlook.co.uk', 'outlook.fr', 'outlook.de',
+  // Yahoo
+  'yahoo.com', 'yahoo.co.uk', 'yahoo.co.in', 'yahoo.ca', 'yahoo.com.au',
+  'yahoo.com.br', 'yahoo.co.jp', 'yahoo.fr', 'yahoo.de', 'yahoo.it',
+  'yahoo.es', 'yahoo.co.id', 'ymail.com', 'rocketmail.com', 'myyahoo.com',
+  // AOL / Verizon
+  'aol.com', 'aol.co.uk', 'aim.com', 'verizon.net',
+  // Apple
+  'icloud.com', 'me.com', 'mac.com',
+  // ProtonMail
+  'protonmail.com', 'protonmail.ch', 'proton.me', 'pm.me',
+  // Tutanota / Tuta
+  'tutanota.com', 'tutanota.de', 'tuta.com', 'tuta.io', 'keemail.me',
+  // Other privacy / secure mail
+  'fastmail.com', 'fastmail.fm', 'hushmail.com', 'mailfence.com',
+  'startmail.com', 'posteo.de', 'posteo.net', 'disroot.org', 'riseup.net',
+  'ctemplar.com', 'runbox.com', 'kolabnow.com', 'countermail.com',
+  // Zoho
+  'zoho.com', 'zohomail.com',
+  // GMX / mail.com / 1&1
+  'gmx.com', 'gmx.net', 'gmx.de', 'gmx.at', 'gmx.ch', 'mail.com',
+  'email.com', 'usa.com', 'post.com', 'europe.com',
+  // German providers
+  'web.de', 't-online.de', 'freenet.de', 'arcor.de',
+  // French providers
+  'laposte.net', 'orange.fr', 'wanadoo.fr', 'free.fr', 'sfr.fr',
+  // Italian providers
+  'libero.it', 'virgilio.it', 'alice.it', 'tin.it',
+  // Russian providers
+  'mail.ru', 'yandex.ru', 'yandex.com', 'rambler.ru', 'list.ru',
+  'bk.ru', 'inbox.ru',
+  // Chinese providers
+  'qq.com', '163.com', '126.com', 'sina.com', 'sohu.com', 'yeah.net',
+  'foxmail.com', 'aliyun.com',
+  // Japanese providers
+  'nifty.com', 'excite.co.jp',
+  // Indian providers
+  'rediffmail.com', 'sify.com',
+  // Brazilian providers
+  'bol.com.br', 'uol.com.br', 'terra.com.br',
+  // US ISPs
+  'comcast.net', 'att.net', 'sbcglobal.net', 'bellsouth.net',
+  'charter.net', 'cox.net', 'earthlink.net', 'juno.com', 'netzero.net',
+  'optonline.net', 'roadrunner.com', 'windstream.net',
+  // Canadian ISPs
+  'rogers.com', 'shaw.ca', 'sympatico.ca', 'telus.net',
+  // UK ISPs
+  'btinternet.com', 'sky.com', 'talktalk.net', 'ntlworld.com',
+  'virginmedia.com',
+  // Other global
+  'inbox.com', 'lycos.com', 'hush.com', 'lavabit.com',
 ]);
 
 function getFaviconUrl(email: string | undefined, size: number): string | null {
   if (!email) return null;
+  // Skip favicon for large avatars — favicons are inherently low-res (16-48px
+  // source) and look pixelated when stretched beyond ~40px.
+  if (size > 40) return null;
   const atIndex = email.lastIndexOf('@');
   if (atIndex < 0) return null;
   const domain = email.substring(atIndex + 1).toLowerCase();
   if (!domain || FREEMAIL_DOMAINS.has(domain)) return null;
   // Google's favicon service — request a square icon at the desired resolution
-  const sz = Math.min(128, Math.max(32, size * 2)); // 2x for retina
+  const sz = Math.min(64, Math.max(32, size * 2)); // 2x for retina, cap at 64
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${sz}`;
 }
 
