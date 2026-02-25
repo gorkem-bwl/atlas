@@ -27,15 +27,6 @@ import type { CSSProperties } from 'react';
 
 type DateGroup = 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'older';
 
-const DATE_GROUP_LABELS: Record<DateGroup, string> = {
-  today: 'Today',
-  yesterday: 'Yesterday',
-  thisWeek: 'This week',
-  lastWeek: 'Last week',
-  thisMonth: 'This month',
-  older: 'Older',
-};
-
 function getDateGroup(dateStr: string): DateGroup {
   const date = new Date(dateStr);
   const now = new Date();
@@ -321,6 +312,15 @@ export function EmailListPane() {
     trash: t('sidebar.trash'),
     spam: t('sidebar.spam'),
   };
+  const DATE_GROUP_LABELS: Record<DateGroup, string> = {
+    today: t('email.groupToday'),
+    yesterday: t('email.groupYesterday'),
+    thisWeek: t('email.groupThisWeek'),
+    lastWeek: t('email.groupLastWeek'),
+    thisMonth: t('email.groupThisMonth'),
+    older: t('email.groupOlder'),
+  };
+
   const toggleStar = useToggleStar();
   const archiveMutation = useArchiveThread();
   const trashMutation = useTrashThread();

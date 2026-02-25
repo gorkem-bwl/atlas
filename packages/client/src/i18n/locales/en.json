@@ -164,7 +164,13 @@
     "unsubscribe": "Unsubscribe",
     "unsubscribeConfirm": "Unsubscribe from this mailing list?",
     "unsubscribeDescription": "This will send an unsubscribe request. You may still receive a few emails before it takes effect.",
-    "unsubscribed": "Unsubscribe request sent"
+    "unsubscribed": "Unsubscribe request sent",
+    "groupToday": "Today",
+    "groupYesterday": "Yesterday",
+    "groupThisWeek": "This week",
+    "groupLastWeek": "Last week",
+    "groupThisMonth": "This month",
+    "groupOlder": "Older"
   },
   "bulk": {
     "selectAll": "Select all",
