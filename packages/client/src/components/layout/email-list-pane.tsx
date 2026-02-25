@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
+import { GroupedVirtuoso, type GroupedVirtuosoHandle } from 'react-virtuoso';
 import { ArrowLeft } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
 import { useDraftStore } from '../../stores/draft-store';
@@ -20,6 +20,76 @@ import { useSearch } from '../../hooks/use-search';
 import type { EmailCategory, Thread } from '@atlasmail/shared';
 import type { Mailbox } from '../../stores/email-store';
 import type { CSSProperties } from 'react';
+
+// ---------------------------------------------------------------------------
+// Date grouping (Outlook-style: Today, Yesterday, This week, etc.)
+// ---------------------------------------------------------------------------
+
+type DateGroup = 'today' | 'yesterday' | 'thisWeek' | 'lastWeek' | 'thisMonth' | 'older';
+
+const DATE_GROUP_LABELS: Record<DateGroup, string> = {
+  today: 'Today',
+  yesterday: 'Yesterday',
+  thisWeek: 'This week',
+  lastWeek: 'Last week',
+  thisMonth: 'This month',
+  older: 'Older',
+};
+
+function getDateGroup(dateStr: string): DateGroup {
+  const date = new Date(dateStr);
+  const now = new Date();
+
+  // Strip time for comparison
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  if (date >= todayStart) return 'today';
+  if (date >= yesterdayStart) return 'yesterday';
+
+  // Start of this week (Monday)
+  const dayOfWeek = now.getDay();
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const thisWeekStart = new Date(todayStart);
+  thisWeekStart.setDate(thisWeekStart.getDate() - mondayOffset);
+  if (date >= thisWeekStart) return 'thisWeek';
+
+  // Start of last week
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  if (date >= lastWeekStart) return 'lastWeek';
+
+  // Start of this month
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  if (date >= thisMonthStart) return 'thisMonth';
+
+  return 'older';
+}
+
+interface GroupedResult {
+  groups: DateGroup[];
+  groupCounts: number[];
+}
+
+function groupThreadsByDate(threads: Thread[]): GroupedResult {
+  const groups: DateGroup[] = [];
+  const groupCounts: number[] = [];
+  let currentGroup: DateGroup | null = null;
+
+  for (const thread of threads) {
+    const group = getDateGroup(thread.lastMessageAt);
+    if (group !== currentGroup) {
+      groups.push(group);
+      groupCounts.push(1);
+      currentGroup = group;
+    } else {
+      groupCounts[groupCounts.length - 1]++;
+    }
+  }
+
+  return { groups, groupCounts };
+}
 
 // ---------------------------------------------------------------------------
 // Search filter parsing
@@ -263,7 +333,7 @@ export function EmailListPane() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [quickFilter, setQuickFilter] = useState<'all' | 'unread' | 'starred'>('all');
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const virtuosoRef = useRef<GroupedVirtuosoHandle>(null);
 
   // Debounce search query for server-side search (300ms)
   useEffect(() => {
@@ -310,6 +380,12 @@ export function EmailListPane() {
   // Keep the ref in sync so the cursor-selection event handler is never stale
   displayThreadsRef.current = displayThreads;
 
+  // Outlook-style date grouping
+  const { groups, groupCounts } = useMemo(
+    () => groupThreadsByDate(displayThreads),
+    [displayThreads],
+  );
+
   // Track newly arrived threads for entrance animation
   const knownThreadIds = useRef<Set<string>>(new Set());
   const [newThreadIds, setNewThreadIds] = useState<Set<string>>(new Set());
@@ -343,7 +419,7 @@ export function EmailListPane() {
   // Auto-scroll Virtuoso to keep the keyboard cursor visible
   useEffect(() => {
     if (cursorIndex >= 0 && virtuosoRef.current) {
-      virtuosoRef.current.scrollIntoView({ index: cursorIndex, behavior: 'smooth' });
+      virtuosoRef.current.scrollToIndex({ index: cursorIndex, align: 'center', behavior: 'smooth' });
     }
   }, [cursorIndex]);
 
@@ -671,33 +747,57 @@ export function EmailListPane() {
             }
           />
         ) : (
-          <Virtuoso
+          <GroupedVirtuoso
             ref={virtuosoRef}
             style={{ height: '100%', paddingTop: 4 }}
-            data={displayThreads}
+            groupCounts={groupCounts}
             endReached={() => {
               if (hasNextPage && !isFetchingNextPage && !isSearchActive) {
                 fetchNextPage();
               }
             }}
             overscan={200}
-            itemContent={(index, thread) => (
-              <EmailListItem
-                key={thread.id}
-                thread={thread}
-                isSelected={thread.id === activeThreadId}
-                isCursor={index === cursorIndex}
-                isMultiSelected={selectedThreadIds.has(thread.id)}
-                isNew={newThreadIds.has(thread.id)}
-                onClick={() => handleThreadClick(thread, index)}
-                onStarClick={() => handleStarClick(thread.id)}
-                onCheckboxClick={() => handleCheckboxClick(thread.id)}
-                onReplyClick={() => handleReplyClick(thread.id)}
-                onArchiveClick={() => handleArchiveClick(thread.id)}
-                onTrashClick={() => handleTrashClick(thread.id)}
-                onSnooze={handleSnooze}
-              />
+            groupContent={(index) => (
+              <div
+                style={{
+                  padding: '6px var(--spacing-lg)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-family)',
+                  color: 'var(--color-text-tertiary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  background: 'var(--color-bg-primary)',
+                  borderBottom: '1px solid var(--color-border-secondary)',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                }}
+              >
+                {DATE_GROUP_LABELS[groups[index]]}
+              </div>
             )}
+            itemContent={(index) => {
+              const thread = displayThreads[index];
+              if (!thread) return null;
+              return (
+                <EmailListItem
+                  key={thread.id}
+                  thread={thread}
+                  isSelected={thread.id === activeThreadId}
+                  isCursor={index === cursorIndex}
+                  isMultiSelected={selectedThreadIds.has(thread.id)}
+                  isNew={newThreadIds.has(thread.id)}
+                  onClick={() => handleThreadClick(thread, index)}
+                  onStarClick={() => handleStarClick(thread.id)}
+                  onCheckboxClick={() => handleCheckboxClick(thread.id)}
+                  onReplyClick={() => handleReplyClick(thread.id)}
+                  onArchiveClick={() => handleArchiveClick(thread.id)}
+                  onTrashClick={() => handleTrashClick(thread.id)}
+                  onSnooze={handleSnooze}
+                />
+              );
+            }}
             components={{
               Footer: () =>
                 isFetchingNextPage ? (
