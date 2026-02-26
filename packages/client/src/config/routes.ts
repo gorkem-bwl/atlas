@@ -1,7 +1,8 @@
 export const ROUTES = {
   LOGIN: '/login',
   AUTH_CALLBACK: '/auth/callback',
-  INBOX: '/',
+  HOME: '/',
+  INBOX: '/mail',
   SENT: '/sent',
   DRAFTS: '/drafts',
   TRASH: '/trash',
@@ -10,4 +11,6 @@ export const ROUTES = {
   CALENDAR: '/calendar',
   DOCS: '/docs',
   DOC_DETAIL: '/docs/:id',
+  DRAW: '/draw',
+  DRAW_DETAIL: '/draw/:id',
 } as const;

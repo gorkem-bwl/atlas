@@ -4,6 +4,9 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'process.env.IS_PREACT': JSON.stringify(''),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -12,6 +12,8 @@ import { OAuthCallback } from './components/auth/oauth-callback';
 import { SettingsPage } from './pages/settings';
 import { CalendarPage } from './pages/calendar';
 import { DocsPage } from './pages/docs';
+import { DrawPage } from './pages/draw';
+import { HomePage } from './pages/home';
 import { CommandPalette } from './components/ui/command-palette';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { useEffect, type ReactNode } from 'react';
@@ -85,6 +87,14 @@ export function App() {
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
                 <Route path={ROUTES.AUTH_CALLBACK} element={<OAuthCallback />} />
                 <Route
+                  path={ROUTES.HOME}
+                  element={
+                    <ProtectedRoute>
+                      <HomePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path={ROUTES.INBOX}
                   element={
                     <ProtectedRoute>
@@ -124,7 +134,23 @@ export function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="*" element={<Navigate to={ROUTES.INBOX} replace />} />
+                <Route
+                  path={ROUTES.DRAW}
+                  element={
+                    <ProtectedRoute>
+                      <DrawPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.DRAW_DETAIL}
+                  element={
+                    <ProtectedRoute>
+                      <DrawPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>
               <CommandPalette />
             </ErrorBoundary>

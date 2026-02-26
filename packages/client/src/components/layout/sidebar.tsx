@@ -24,6 +24,7 @@ import {
   Check,
   X,
   Calendar,
+  Home,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Chip } from '../ui/chip';
@@ -842,12 +843,15 @@ export function Sidebar() {
   const [labelsAnchorTop, setLabelsAnchorTop] = useState(0);
   const [labelsHovered, setLabelsHovered] = useState(false);
   const [settingsHovered, setSettingsHovered] = useState(false);
+  const [homeHovered, setHomeHovered] = useState(false);
   const [calendarHovered, setCalendarHovered] = useState(false);
+  const [drawHovered, setDrawHovered] = useState(false);
   const [docsHovered, setDocsHovered] = useState(false);
   const labelsBtnRef = useRef<HTMLButtonElement>(null);
   const { data: gmailLabels } = useGmailLabels();
   const { data: counts } = useThreadCounts();
   const isOnCalendar = location.pathname === ROUTES.CALENDAR;
+  const isOnDraw = location.pathname.startsWith(ROUTES.DRAW);
   const isOnDocs = location.pathname.startsWith(ROUTES.DOCS);
 
   const handleOpenLabels = useCallback(() => {
@@ -932,7 +936,7 @@ export function Sidebar() {
             flex: 1,
           }}
         >
-          AtlasMail
+          Atlas
         </span>
         <ThemeToggleButton />
       </div>
@@ -1106,11 +1110,39 @@ export function Sidebar() {
           gap: '2px',
         }}
       >
+        {/* Home button */}
+        <button
+          className="sidebar-nav-btn"
+          onClick={() => navigate(ROUTES.HOME)}
+          aria-label="Home screen"
+          onMouseEnter={() => setHomeHovered(true)}
+          onMouseLeave={() => setHomeHovered(false)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            width: '100%',
+            padding: '6px var(--spacing-md)',
+            background: homeHovered ? 'var(--color-surface-hover)' : 'transparent',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            color: homeHovered ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+            fontSize: 'var(--font-size-sm)',
+            fontFamily: 'var(--font-family)',
+            cursor: 'pointer',
+            transition: 'background var(--transition-normal), color var(--transition-normal)',
+            textAlign: 'left',
+          }}
+        >
+          <Home size={16} className="sidebar-nav-icon" style={{ color: '#5a7fa0' }} />
+          {t('nav.homeScreen')}
+        </button>
+
         {/* Calendar button */}
         <button
           className="sidebar-nav-btn"
           onClick={() => navigate(ROUTES.CALENDAR)}
-          aria-label="Calendar"
+          aria-label={t('nav.calendar')}
           onMouseEnter={() => setCalendarHovered(true)}
           onMouseLeave={() => setCalendarHovered(false)}
           style={{
@@ -1136,14 +1168,47 @@ export function Sidebar() {
           }}
         >
           <Calendar size={16} className="sidebar-nav-icon" style={{ color: '#4a9e8f' }} />
-          Calendar
+          {t('nav.calendar')}
+        </button>
+
+        {/* Draw button */}
+        <button
+          className="sidebar-nav-btn"
+          onClick={() => navigate(ROUTES.DRAW)}
+          aria-label={t('nav.draw')}
+          onMouseEnter={() => setDrawHovered(true)}
+          onMouseLeave={() => setDrawHovered(false)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            width: '100%',
+            padding: '6px var(--spacing-md)',
+            background: isOnDraw
+              ? 'var(--color-surface-selected)'
+              : drawHovered
+                ? 'var(--color-surface-hover)'
+                : 'transparent',
+            border: 'none',
+            borderRadius: 'var(--radius-md)',
+            color: (isOnDraw || drawHovered) ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+            fontSize: 'var(--font-size-sm)',
+            fontFamily: 'var(--font-family)',
+            fontWeight: isOnDraw ? 500 : 400,
+            cursor: 'pointer',
+            transition: 'background var(--transition-normal), color var(--transition-normal)',
+            textAlign: 'left',
+          }}
+        >
+          <Pencil size={16} className="sidebar-nav-icon" style={{ color: '#d4845f' }} />
+          {t('nav.draw')}
         </button>
 
         {/* Docs button */}
         <button
           className="sidebar-nav-btn"
           onClick={() => navigate(ROUTES.DOCS)}
-          aria-label="Documents"
+          aria-label={t('nav.documents')}
           onMouseEnter={() => setDocsHovered(true)}
           onMouseLeave={() => setDocsHovered(false)}
           style={{
@@ -1169,7 +1234,7 @@ export function Sidebar() {
           }}
         >
           <FileText size={16} className="sidebar-nav-icon" style={{ color: '#7c6fbd' }} />
-          Documents
+          {t('nav.documents')}
         </button>
 
         {/* Settings button */}

@@ -44,4 +44,9 @@ export const queryKeys = {
     tree: ['docs', 'tree'] as const,
     detail: (id: string) => ['docs', 'detail', id] as const,
   },
+  drawings: {
+    all: ['drawings'] as const,
+    list: ['drawings', 'list'] as const,
+    detail: (id: string) => ['drawings', 'detail', id] as const,
+  },
 };
