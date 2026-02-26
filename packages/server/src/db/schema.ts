@@ -316,6 +316,7 @@ export const tasks = sqliteTable('tasks', {
   title: text('title').notNull().default(''),
   notes: text('notes'),
   description: text('description'),                        // HTML from Tiptap rich editor
+  icon: text('icon'),                                      // task-level emoji icon
   type: text('type').notNull().default('task'),            // task | heading
   headingId: text('heading_id'),                           // FK to tasks(id) for section grouping
   status: text('status').notNull().default('todo'),        // todo | completed | cancelled

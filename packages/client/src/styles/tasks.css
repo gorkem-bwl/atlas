@@ -467,48 +467,32 @@
   flex-shrink: 0;
 }
 
-/* ─── New task inline input ──────────────────────────────────────── */
+/* ─── Persistent add task input (always visible) ─────────────────── */
 
-.task-new-btn {
+.task-new-persistent {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 10px var(--spacing-lg);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
-  border-radius: var(--radius-lg);
-  transition: background var(--transition-fast), color var(--transition-fast);
-  outline: none;
+  padding: 10px var(--spacing-xl);
   margin: 0 var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-primary);
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-primary);
+  z-index: 5;
 }
 
-.task-new-btn:hover {
-  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+.task-new-persistent-icon {
   color: var(--color-accent-primary);
-}
-
-.task-new-inline {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: 10px var(--spacing-lg);
-  margin: 0 var(--spacing-sm);
-}
-
-.task-new-circle {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-border-primary);
   flex-shrink: 0;
+  opacity: 0.7;
 }
 
-.task-new-input {
+.task-new-persistent:focus-within .task-new-persistent-icon {
+  opacity: 1;
+}
+
+.task-new-persistent-input {
   width: 100%;
   background: transparent;
   border: none;
@@ -520,7 +504,7 @@
   line-height: var(--line-height-normal);
 }
 
-.task-new-input::placeholder {
+.task-new-persistent-input::placeholder {
   color: var(--color-text-tertiary);
   font-weight: var(--font-weight-normal);
 }
@@ -789,6 +773,9 @@
 /* ─── Section header ─────────────────────────────────────────────── */
 
 .task-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
@@ -796,6 +783,39 @@
   color: var(--color-text-tertiary);
   padding: var(--spacing-lg) var(--spacing-xl) 6px;
   margin: 0 var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: default;
+  font-family: var(--font-family);
+  width: calc(100% - var(--spacing-md));
+  text-align: left;
+}
+
+.task-section-header-collapsible {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.task-section-header-collapsible:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+}
+
+.task-section-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.task-section-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.task-section-count {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Project row with hover three-dot menu ──────────────────────── */
@@ -911,19 +931,6 @@
 }
 
 /* ─── Section headers for Today/Evening split (feature 2) ─────── */
-
-.task-section-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-tertiary);
-  padding: var(--spacing-lg) var(--spacing-xl) 6px;
-  margin: 0 var(--spacing-sm);
-}
 
 .task-section-today {
   color: #d97706;
@@ -1305,4 +1312,118 @@
   padding-left: 12px;
   margin: 8px 0;
   color: var(--color-text-tertiary);
+}
+
+/* ─── Task item emoji (TickTick feature) ─────────────────────────── */
+
+.task-item-emoji {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ─── Notes indicator icon ───────────────────────────────────────── */
+
+.task-notes-indicator {
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+/* ─── Completed section (bottom of each list) ────────────────────── */
+
+.task-completed-section {
+  margin-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-primary);
+}
+
+.task-completed-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-tertiary);
+  padding: var(--spacing-md) var(--spacing-xl);
+  margin: 0 var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  width: calc(100% - var(--spacing-md));
+  text-align: left;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.task-completed-section-header:hover {
+  background: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
+}
+
+/* ─── Heading toggle + count (TickTick collapsible) ──────────────── */
+
+.task-heading-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.task-heading-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+}
+
+.task-heading-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+
+/* ─── Task detail emoji button ───────────────────────────────────── */
+
+.task-detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.task-detail-title-row .task-detail-title {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.task-detail-emoji-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed var(--color-border-primary);
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--color-text-tertiary);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 0;
+}
+
+.task-detail-emoji-btn:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-secondary);
 }

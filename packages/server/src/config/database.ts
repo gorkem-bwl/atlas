@@ -265,6 +265,7 @@ try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(use
 try { sqlite.prepare(`ALTER TABLE tasks ADD COLUMN type TEXT NOT NULL DEFAULT 'task'`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE tasks ADD COLUMN heading_id TEXT REFERENCES tasks(id) ON DELETE SET NULL`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE tasks ADD COLUMN description TEXT`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE tasks ADD COLUMN icon TEXT`).run(); } catch { /* column already exists */ }
 
 // Task projects feature expansion: description, icon
 try { sqlite.prepare(`ALTER TABLE task_projects ADD COLUMN description TEXT`).run(); } catch { /* column already exists */ }

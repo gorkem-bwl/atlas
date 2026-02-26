@@ -74,6 +74,7 @@ export async function createTask(userId: string, accountId: string, input: Creat
       title: input.title || '',
       notes: input.notes ?? null,
       description: input.description ?? null,
+      icon: input.icon ?? null,
       type: input.type ?? 'task',
       headingId: input.headingId ?? null,
       projectId: input.projectId ?? null,
@@ -98,6 +99,7 @@ export async function updateTask(userId: string, taskId: string, input: UpdateTa
   if (input.title !== undefined) updates.title = input.title;
   if (input.notes !== undefined) updates.notes = input.notes;
   if (input.description !== undefined) updates.description = input.description;
+  if (input.icon !== undefined) updates.icon = input.icon;
   if (input.type !== undefined) updates.type = input.type;
   if (input.headingId !== undefined) updates.headingId = input.headingId;
   if (input.projectId !== undefined) updates.projectId = input.projectId;

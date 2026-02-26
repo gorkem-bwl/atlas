@@ -2,9 +2,9 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Search, Inbox, Star, Calendar, Coffee,
-  Archive, BookOpen, Check, Trash2, X, ChevronRight,
+  Archive, BookOpen, Check, Trash2, X, ChevronRight, ChevronDown,
   Hash, CircleDot, MoreHorizontal, Moon, Sun, GripVertical,
-  Video, Clock,
+  Video, Clock, FileText, Filter, Tag, CheckCircle2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -39,7 +39,7 @@ function getSavedSidebarWidth(): number {
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
 
-type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | `project:${string}`;
+type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | `project:${string}` | `tag:${string}`;
 
 interface NavItem {
   id: NavSection;
@@ -138,6 +138,7 @@ function TaskItem({
   onComplete,
   projects,
   showWhenBadge,
+  showProject = true,
   onDragStart,
   onDragOver,
   onDrop,
@@ -149,6 +150,7 @@ function TaskItem({
   onComplete: () => void;
   projects: TaskProject[];
   showWhenBadge: boolean;
+  showProject?: boolean;
   onDragStart?: (e: React.DragEvent, taskId: string) => void;
   onDragOver?: (e: React.DragEvent, taskId: string) => void;
   onDrop?: (e: React.DragEvent, taskId: string) => void;
@@ -195,20 +197,21 @@ function TaskItem({
           {task.priority !== 'none' && (
             <div className={`task-priority-dot ${task.priority}`} />
           )}
+          {task.icon && <span className="task-item-emoji">{task.icon}</span>}
           <span className={`task-title-text${task.status === 'completed' ? ' completed' : ''}`}>
             {task.title || 'Untitled'}
           </span>
           <WhenBadge when={task.when} dueDate={task.dueDate} showBadge={showWhenBadge} />
         </div>
 
-        {(task.dueDate || project || task.tags.length > 0) && (
+        {(task.dueDate || (showProject && project) || task.tags.length > 0) && (
           <div className="task-meta-row">
             {task.dueDate && (
               <span className={getDueBadgeClass(task.dueDate)}>
                 {formatDueDate(task.dueDate)}
               </span>
             )}
-            {project && (
+            {showProject && project && (
               <span className="task-meta-project">
                 {project.icon ? (
                   <span className="task-meta-project-emoji">{project.icon}</span>
@@ -229,9 +232,50 @@ function TaskItem({
         )}
       </div>
 
+      {/* Notes indicator */}
+      {(task.description || task.notes) && (
+        <FileText size={13} className="task-notes-indicator" />
+      )}
+
       {isSelected && (
         <ChevronRight size={14} color="var(--color-text-tertiary)" style={{ flexShrink: 0, marginTop: 3 }} />
       )}
+    </div>
+  );
+}
+
+// ─── Collapsible Section Header ─────────────────────────────────────
+
+function CollapsibleSection({
+  label,
+  icon: Icon,
+  color,
+  count,
+  defaultOpen = true,
+  children,
+}: {
+  label: string;
+  icon: typeof Inbox;
+  color: string;
+  count: number;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="task-collapsible-section">
+      <button
+        className="task-section-header task-section-header-collapsible"
+        style={{ color }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <ChevronDown size={13} className={`task-section-chevron${isOpen ? '' : ' collapsed'}`} />
+        <Icon size={13} />
+        <span>{label}</span>
+        <span className="task-section-count">{count}</span>
+      </button>
+      {isOpen && children}
     </div>
   );
 }
@@ -240,14 +284,24 @@ function TaskItem({
 
 function HeadingRow({
   task,
+  childCount,
+  isCollapsed,
+  onToggle,
   onDelete,
 }: {
   task: Task;
+  childCount: number;
+  isCollapsed: boolean;
+  onToggle: () => void;
   onDelete: () => void;
 }) {
   return (
     <div className="task-heading-row">
+      <button className="task-heading-toggle" onClick={onToggle}>
+        <ChevronDown size={13} className={`task-section-chevron${isCollapsed ? ' collapsed' : ''}`} />
+      </button>
       <span className="task-heading-title">{task.title}</span>
+      <span className="task-heading-count">{childCount}</span>
       <button className="tasks-icon-btn task-heading-delete" onClick={onDelete} title="Delete section">
         <X size={12} />
       </button>
@@ -304,24 +358,13 @@ function NewTaskCreator({
   headingId?: string | null;
   onCreated?: () => void;
 }) {
-  const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const createTask = useCreateTask();
 
-  useEffect(() => {
-    if (isCreating && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isCreating]);
-
   const handleSubmit = () => {
     const trimmed = title.trim();
-    if (!trimmed) {
-      setIsCreating(false);
-      setTitle('');
-      return;
-    }
+    if (!trimmed) return;
     createTask.mutate(
       {
         title: trimmed,
@@ -344,32 +387,18 @@ function NewTaskCreator({
       e.preventDefault();
       handleSubmit();
     }
-    if (e.key === 'Escape') {
-      setIsCreating(false);
-      setTitle('');
-    }
   };
 
-  if (!isCreating) {
-    return (
-      <button className="task-new-btn" onClick={() => setIsCreating(true)}>
-        <Plus size={16} />
-        New task
-      </button>
-    );
-  }
-
   return (
-    <div className="task-new-inline">
-      <div className="task-new-circle" />
+    <div className="task-new-persistent">
+      <Plus size={16} className="task-new-persistent-icon" />
       <input
         ref={inputRef}
-        className="task-new-input"
+        className="task-new-persistent-input"
         value={title}
         onChange={e => setTitle(e.target.value)}
         onKeyDown={handleKeyDown}
-        onBlur={handleSubmit}
-        placeholder="New task..."
+        placeholder="Add a task..."
       />
     </div>
   );
@@ -448,6 +477,7 @@ function TaskDetailPanel({
   const [when, setWhen] = useState(task.when);
   const [priority, setPriority] = useState(task.priority);
   const [dueDate, setDueDate] = useState(task.dueDate || '');
+  const [showTaskEmoji, setShowTaskEmoji] = useState(false);
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const titleRef = useRef<HTMLInputElement>(null);
@@ -491,16 +521,35 @@ function TaskDetailPanel({
 
       {/* Body */}
       <div className="task-detail-body task-list-scroll">
-        <input
-          ref={titleRef}
-          className="task-detail-title"
-          value={title}
-          onChange={e => {
-            setTitle(e.target.value);
-            autoSave({ title: e.target.value });
-          }}
-          placeholder="Task title..."
-        />
+        {/* Task emoji + title row */}
+        <div className="task-detail-title-row">
+          <div style={{ position: 'relative' }}>
+            <button
+              className="task-detail-emoji-btn"
+              onClick={() => setShowTaskEmoji(!showTaskEmoji)}
+              title="Set icon"
+            >
+              {task.icon || <Plus size={14} />}
+            </button>
+            {showTaskEmoji && (
+              <EmojiPicker
+                onSelect={(emoji) => { updateTask.mutate({ id: task.id, icon: emoji }); setShowTaskEmoji(false); }}
+                onRemove={() => { updateTask.mutate({ id: task.id, icon: null }); setShowTaskEmoji(false); }}
+                onClose={() => setShowTaskEmoji(false)}
+              />
+            )}
+          </div>
+          <input
+            ref={titleRef}
+            className="task-detail-title"
+            value={title}
+            onChange={e => {
+              setTitle(e.target.value);
+              autoSave({ title: e.target.value });
+            }}
+            placeholder="Task title..."
+          />
+        </div>
 
         {/* Rich notes editor (feature 1 + 5: subtasks via checklists) */}
         <TaskNotesEditor
@@ -704,6 +753,11 @@ export function TasksPage() {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
 
+  // Collapsed headings state (keyed by heading task ID)
+  const [collapsedHeadings, setCollapsedHeadings] = useState<Set<string>>(new Set());
+  // Completed section collapsed state
+  const [completedCollapsed, setCompletedCollapsed] = useState(true);
+
   // Data
   const { data: counts } = useTaskCounts();
   const { data: projectsData } = useProjectList();
@@ -720,22 +774,46 @@ export function TasksPage() {
     if (activeSection.startsWith('project:')) {
       return { projectId: activeSection.replace('project:', ''), status: 'todo' };
     }
+    if (activeSection.startsWith('tag:')) {
+      return { status: 'todo' }; // fetch all todo tasks, filter by tag client-side
+    }
     return {};
   }, [activeSection]);
 
   const { data: tasksData, isLoading } = useTaskList(taskFilters);
   const allTasks = tasksData?.tasks ?? [];
 
-  // Client-side filter for upcoming (tasks with due dates)
+  // Fetch completed tasks for the current section (for "Completed" footer)
+  const completedFilters = useMemo(() => {
+    if (activeSection === 'logbook') return null; // logbook already shows completed
+    if (activeSection.startsWith('project:')) {
+      return { projectId: activeSection.replace('project:', ''), status: 'completed' };
+    }
+    // For non-project views, show completed from that "when" bucket
+    if (['inbox', 'today', 'anytime', 'someday'].includes(activeSection)) {
+      return { when: activeSection === 'today' ? 'today' : activeSection, status: 'completed' };
+    }
+    return null;
+  }, [activeSection]);
+
+  const { data: completedData } = useTaskList(completedFilters ?? { status: 'completed' }, { enabled: completedFilters !== null });
+  const completedTasks = completedFilters ? (completedData?.tasks ?? []) : [];
+
+  // Client-side filter for upcoming (tasks with due dates) and tags
   const displayTasks = useMemo(() => {
+    let tasks = allTasks;
     if (activeSection === 'upcoming') {
-      return allTasks.filter(t => t.dueDate).sort((a, b) => (a.dueDate! > b.dueDate! ? 1 : -1));
+      return tasks.filter(t => t.dueDate).sort((a, b) => (a.dueDate! > b.dueDate! ? 1 : -1));
+    }
+    if (activeSection.startsWith('tag:')) {
+      const tag = activeSection.replace('tag:', '');
+      tasks = tasks.filter(t => t.tags.includes(tag));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      return allTasks.filter(t => t.title.toLowerCase().includes(q));
+      tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
     }
-    return allTasks;
+    return tasks;
   }, [allTasks, activeSection, searchQuery]);
 
   // Split today view into daytime + evening (feature 2)
@@ -818,7 +896,12 @@ export function TasksPage() {
 
   // Determine if we should show "when" badges
   const showWhenBadges = useMemo(() => {
-    return activeSection.startsWith('project:') || activeSection === 'upcoming' || activeSection === 'logbook';
+    return activeSection.startsWith('project:') || activeSection.startsWith('tag:') || activeSection === 'upcoming' || activeSection === 'logbook';
+  }, [activeSection]);
+
+  // Show project name only in project views, tags, upcoming, logbook (not in inbox/today/anytime/someday)
+  const showProjectInList = useMemo(() => {
+    return activeSection.startsWith('project:') || activeSection.startsWith('tag:') || activeSection === 'upcoming' || activeSection === 'logbook';
   }, [activeSection]);
 
   const selectedTask = displayTasks.find(t => t.id === selectedTaskId) ?? null;
@@ -854,6 +937,7 @@ export function TasksPage() {
     if (activeSection === 'today') return 'today';
     if (activeSection === 'anytime') return 'anytime';
     if (activeSection === 'someday') return 'someday';
+    if (activeSection.startsWith('tag:')) return 'inbox';
     return 'inbox';
   }, [activeSection]);
 
@@ -913,6 +997,15 @@ export function TasksPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedTaskId, showSearch, projectMenuId]);
+
+  // Collect unique tags from all visible tasks
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const t of allTasks) {
+      for (const tag of t.tags) tagSet.add(tag);
+    }
+    return Array.from(tagSet).sort();
+  }, [allTasks]);
 
   const handleComplete = useCallback((taskId: string) => {
     updateTask.mutate({ id: taskId, status: 'completed' });
@@ -979,6 +1072,9 @@ export function TasksPage() {
     if (activeSection.startsWith('project:')) {
       return null; // We show the project header instead
     }
+    if (activeSection.startsWith('tag:')) {
+      return `#${activeSection.replace('tag:', '')}`;
+    }
     const nav = NAV_ITEMS.find(n => n.id === activeSection);
     return nav ? t(nav.labelKey) : '';
   }, [activeSection, t]);
@@ -1020,6 +1116,7 @@ export function TasksPage() {
       onComplete={() => handleComplete(task.id)}
       projects={projects}
       showWhenBadge={showWhenBadges}
+      showProject={showProjectInList}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -1111,6 +1208,27 @@ export function TasksPage() {
           </div>
         </div>
 
+        {/* Tags section */}
+        {allTags.length > 0 && (
+          <div style={{ marginTop: 16, padding: '0 8px' }}>
+            <div className="tasks-projects-header">
+              <span className="tasks-projects-label">Tags</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {allTags.map(tag => (
+                <button
+                  key={tag}
+                  className={`task-nav-item${activeSection === `tag:${tag}` as any ? ' active' : ''}`}
+                  onClick={() => { setActiveSection(`tag:${tag}` as NavSection); setSelectedTaskId(null); }}
+                >
+                  <Hash size={14} color="var(--color-text-tertiary)" />
+                  <span style={{ flex: 1 }}>{tag}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ flex: 1 }} />
       </div>
 
@@ -1168,29 +1286,18 @@ export function TasksPage() {
             {/* ─── Today view with evening split (feature 2) ─── */}
             {todayTasks ? (
               <>
-                {/* New task creator */}
                 <NewTaskCreator defaultWhen="today" projectId={projectIdForNew} />
 
-                {/* Daytime section */}
                 {todayTasks.daytime.length > 0 && (
-                  <>
-                    <div className="task-section-header task-section-today">
-                      <Sun size={13} />
-                      <span>Today</span>
-                    </div>
+                  <CollapsibleSection label="Today" icon={Sun} color="#d97706" count={todayTasks.daytime.length}>
                     {todayTasks.daytime.map(renderTaskItem)}
-                  </>
+                  </CollapsibleSection>
                 )}
 
-                {/* Evening section */}
                 {todayTasks.evening.length > 0 && (
-                  <>
-                    <div className="task-section-header task-section-evening">
-                      <Moon size={13} />
-                      <span>This evening</span>
-                    </div>
+                  <CollapsibleSection label="This evening" icon={Moon} color="#6366f1" count={todayTasks.evening.length}>
                     {todayTasks.evening.map(renderTaskItem)}
-                  </>
+                  </CollapsibleSection>
                 )}
 
                 {todayTasks.daytime.length === 0 && todayTasks.evening.length === 0 && !isLoading && (
@@ -1200,7 +1307,6 @@ export function TasksPage() {
             ) : projectTaskGroups ? (
               /* ─── Project view with headings (feature 3 + 4) ─── */
               <>
-                {/* New task creator */}
                 <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
 
                 {projectTaskGroups.map((group, idx) => (
@@ -1208,14 +1314,23 @@ export function TasksPage() {
                     {group.heading && (
                       <HeadingRow
                         task={group.heading}
+                        childCount={group.tasks.length}
+                        isCollapsed={collapsedHeadings.has(group.heading.id)}
+                        onToggle={() => {
+                          setCollapsedHeadings(prev => {
+                            const next = new Set(prev);
+                            if (next.has(group.heading!.id)) next.delete(group.heading!.id);
+                            else next.add(group.heading!.id);
+                            return next;
+                          });
+                        }}
                         onDelete={() => handleDeleteHeading(group.heading!.id)}
                       />
                     )}
-                    {group.tasks.map(renderTaskItem)}
+                    {(!group.heading || !collapsedHeadings.has(group.heading.id)) && group.tasks.map(renderTaskItem)}
                   </div>
                 ))}
 
-                {/* Add section button */}
                 {projectIdForNew && <NewHeadingCreator projectId={projectIdForNew} />}
 
                 {displayTasks.filter(t => t.type !== 'heading').length === 0 && !isLoading && (
@@ -1228,14 +1343,15 @@ export function TasksPage() {
                 <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
 
                 {inboxGroups.map((group) => (
-                  <div key={group.label}>
-                    <div className="task-section-header" style={{ color: group.color }}>
-                      <group.icon size={13} />
-                      <span>{group.label}</span>
-                      <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.7 }}>{group.tasks.length}</span>
-                    </div>
+                  <CollapsibleSection
+                    key={group.label}
+                    label={group.label}
+                    icon={group.icon}
+                    color={group.color}
+                    count={group.tasks.length}
+                  >
                     {group.tasks.map(renderTaskItem)}
-                  </div>
+                  </CollapsibleSection>
                 ))}
 
                 {displayTasks.length === 0 && !isLoading && (
@@ -1245,19 +1361,32 @@ export function TasksPage() {
             ) : (
               /* ─── Standard list view ─── */
               <>
-                {/* New task creator (not in logbook or upcoming) */}
                 {activeSection !== 'logbook' && activeSection !== 'upcoming' && (
                   <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
                 )}
 
-                {/* Task items */}
                 {displayTasks.map(renderTaskItem)}
 
-                {/* Empty state */}
                 {displayTasks.length === 0 && !isLoading && (
                   <EmptyState section={activeSection} seeding={seeding} onSeed={handleSeedSampleData} />
                 )}
               </>
+            )}
+
+            {/* ─── Completed section at bottom ─── */}
+            {completedTasks.length > 0 && activeSection !== 'logbook' && (
+              <div className="task-completed-section">
+                <button
+                  className="task-completed-section-header"
+                  onClick={() => setCompletedCollapsed(!completedCollapsed)}
+                >
+                  <ChevronDown size={13} className={`task-section-chevron${completedCollapsed ? ' collapsed' : ''}`} />
+                  <CheckCircle2 size={13} />
+                  <span>Completed</span>
+                  <span className="task-section-count">{completedTasks.length}</span>
+                </button>
+                {!completedCollapsed && completedTasks.map(renderTaskItem)}
+              </div>
             )}
           </div>
 

@@ -13,6 +13,7 @@ export interface Task {
   title: string;
   notes: string | null;
   description: string | null;
+  icon: string | null;
   type: TaskType;
   headingId: string | null;
   status: TaskStatus;
@@ -45,6 +46,7 @@ export interface CreateTaskInput {
   title: string;
   notes?: string | null;
   description?: string | null;
+  icon?: string | null;
   type?: TaskType;
   headingId?: string | null;
   projectId?: string | null;
@@ -58,6 +60,7 @@ export interface UpdateTaskInput {
   title?: string;
   notes?: string | null;
   description?: string | null;
+  icon?: string | null;
   type?: TaskType;
   headingId?: string | null;
   projectId?: string | null;

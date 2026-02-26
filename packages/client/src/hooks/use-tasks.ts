@@ -17,7 +17,7 @@ export function useTaskList(filters?: {
   when?: string;
   projectId?: string | null;
   includeArchived?: boolean;
-}) {
+}, options?: { enabled?: boolean }) {
   const filterKey = filters ? JSON.stringify(filters) : '';
   return useQuery({
     queryKey: queryKeys.tasks.list(filterKey),
@@ -32,6 +32,7 @@ export function useTaskList(filters?: {
       return data.data as ListTasksResponse;
     },
     staleTime: 15_000,
+    enabled: options?.enabled,
   });
 }
 
