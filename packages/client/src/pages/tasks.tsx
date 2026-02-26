@@ -937,9 +937,10 @@ export function TasksPage() {
       else inbox.push(t); // 'inbox' or any other value
     }
 
-    const groups: { label: string; icon: typeof Inbox; color: string; tasks: Task[] }[] = [];
+    const groups: { label: string; icon: typeof Inbox; color: string; tasks: Task[]; noHeader?: boolean }[] = [];
     if (overdue.length > 0) groups.push({ label: 'Overdue', icon: Calendar, color: '#ef4444', tasks: overdue });
-    if (inbox.length > 0) groups.push({ label: 'Inbox', icon: Inbox, color: '#3b82f6', tasks: inbox });
+    // Unscheduled inbox tasks appear without a section header (they're the default)
+    if (inbox.length > 0) groups.push({ label: 'Unscheduled', icon: Inbox, color: '#3b82f6', tasks: inbox, noHeader: true });
     if (today.length > 0) groups.push({ label: 'Today', icon: Star, color: '#f59e0b', tasks: today });
     if (evening.length > 0) groups.push({ label: 'This evening', icon: Moon, color: '#6366f1', tasks: evening });
     if (anytime.length > 0) groups.push({ label: 'Anytime', icon: CircleDot, color: '#06b6d4', tasks: anytime });
@@ -1404,15 +1405,21 @@ export function TasksPage() {
                 <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
 
                 {inboxGroups.map((group) => (
-                  <CollapsibleSection
-                    key={group.label}
-                    label={group.label}
-                    icon={group.icon}
-                    color={group.color}
-                    count={group.tasks.length}
-                  >
-                    {group.tasks.map(renderTaskItem)}
-                  </CollapsibleSection>
+                  group.noHeader ? (
+                    <div key={group.label}>
+                      {group.tasks.map(renderTaskItem)}
+                    </div>
+                  ) : (
+                    <CollapsibleSection
+                      key={group.label}
+                      label={group.label}
+                      icon={group.icon}
+                      color={group.color}
+                      count={group.tasks.length}
+                    >
+                      {group.tasks.map(renderTaskItem)}
+                    </CollapsibleSection>
+                  )
                 ))}
 
                 {displayTasks.length === 0 && !isLoading && (
