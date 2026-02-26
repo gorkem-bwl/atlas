@@ -40,10 +40,24 @@ function AccountSwitchListener() {
   return null;
 }
 
+/** Auto-retry all active queries when the network connection is restored. */
+function ConnectionRestoredListener() {
+  useEffect(() => {
+    function handleRestored() {
+      queryClient.refetchQueries({ type: 'active' });
+    }
+    document.addEventListener('atlasmail:connection-restored', handleRestored);
+    return () => document.removeEventListener('atlasmail:connection-restored', handleRestored);
+  }, []);
+
+  return null;
+}
+
 export function QueryProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AccountSwitchListener />
+      <ConnectionRestoredListener />
       {children}
     </QueryClientProvider>
   );

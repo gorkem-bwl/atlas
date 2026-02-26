@@ -43,7 +43,13 @@ export function useNetworkStatus() {
         if (!mountedRef.current) return;
         const ok = await checkConnection();
         if (!mountedRef.current) return;
-        setState(ok ? 'connected' : 'disconnected');
+        setState((prev) => {
+          // Fire restoration event when transitioning from disconnected to connected
+          if (ok && prev !== 'connected') {
+            document.dispatchEvent(new CustomEvent('atlasmail:connection-restored'));
+          }
+          return ok ? 'connected' : 'disconnected';
+        });
         scheduleTick(ok ? HEALTH_CHECK_INTERVAL : RECONNECT_INTERVAL);
       }, delay);
     },
@@ -59,6 +65,9 @@ export function useNetworkStatus() {
       const ok = await checkConnection();
       if (!mountedRef.current) return;
       setState(ok ? 'connected' : 'disconnected');
+      if (ok) {
+        document.dispatchEvent(new CustomEvent('atlasmail:connection-restored'));
+      }
       scheduleTick(ok ? HEALTH_CHECK_INTERVAL : RECONNECT_INTERVAL);
     };
 
