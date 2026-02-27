@@ -189,22 +189,29 @@ export function useArchiveThread() {
     onMutate: async (threadId) => {
       // Cancel in-flight refetches so they don't overwrite our optimistic remove
       await queryClient.cancelQueries({ queryKey: ['threads', 'mailbox'] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.search.all });
 
-      // Snapshot all mailbox caches for rollback
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot all mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeFromInfiniteCache(old, threadId),
       );
+      removeFromSearchCaches(queryClient, threadId);
 
-      return { previousQueries };
+      return { previousMailbox, previousSearch };
     },
     onError: (_err, _threadId, context) => {
-      // Rollback: restore all caches to previous state
-      if (context?.previousQueries) {
-        for (const [key, data] of context.previousQueries) {
+      if (context?.previousMailbox) {
+        for (const [key, data] of context.previousMailbox) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+      if (context?.previousSearch) {
+        for (const [key, data] of context.previousSearch) {
           queryClient.setQueryData(key, data);
         }
       }
@@ -224,19 +231,27 @@ export function useTrashThread() {
     },
     onMutate: async (threadId) => {
       await queryClient.cancelQueries({ queryKey: ['threads', 'mailbox'] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.search.all });
 
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeFromInfiniteCache(old, threadId),
       );
+      removeFromSearchCaches(queryClient, threadId);
 
-      return { previousQueries };
+      return { previousMailbox, previousSearch };
     },
     onError: (_err, _threadId, context) => {
-      if (context?.previousQueries) {
-        for (const [key, data] of context.previousQueries) {
+      if (context?.previousMailbox) {
+        for (const [key, data] of context.previousMailbox) {
+          queryClient.setQueryData(key, data);
+        }
+      }
+      if (context?.previousSearch) {
+        for (const [key, data] of context.previousSearch) {
           queryClient.setQueryData(key, data);
         }
       }
@@ -267,6 +282,30 @@ function removeManyFromInfiniteCache(old: InfiniteData | undefined, threadIds: S
   return { ...old, pages: old.pages.map((page) => page.filter((t) => !threadIds.has(t.id))) };
 }
 
+// ─── Search cache helpers ─────────────────────────────────────────────
+//
+// Search results are plain Thread[] arrays, not infinite query caches.
+// These helpers snapshot and optimistically remove threads from all active
+// search result caches so items disappear immediately when archived/trashed.
+
+function snapshotSearchCaches(queryClient: ReturnType<typeof useQueryClient>) {
+  return queryClient.getQueriesData<Thread[]>({ queryKey: queryKeys.search.all });
+}
+
+function removeFromSearchCaches(queryClient: ReturnType<typeof useQueryClient>, threadId: string) {
+  queryClient.setQueriesData<Thread[]>(
+    { queryKey: queryKeys.search.all },
+    (old) => old ? old.filter((t) => t.id !== threadId) : old,
+  );
+}
+
+function removeManyFromSearchCaches(queryClient: ReturnType<typeof useQueryClient>, threadIds: Set<string>) {
+  queryClient.setQueriesData<Thread[]>(
+    { queryKey: queryKeys.search.all },
+    (old) => old ? old.filter((t) => !threadIds.has(t.id)) : old,
+  );
+}
+
 function mapInfiniteCache(
   old: InfiniteData | undefined,
   fn: (thread: Thread) => Thread,
@@ -290,21 +329,26 @@ export function useArchiveWithUndo() {
 
   return useCallback(
     (threadId: string, _listKey: readonly unknown[]) => {
-      // Snapshot ALL mailbox caches for rollback (prefix match)
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot ALL mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeFromInfiniteCache(old, threadId),
       );
+      removeFromSearchCaches(queryClient, threadId);
 
       addToast({
         type: 'undo',
         message: i18n.t('toast.conversationArchived'),
         duration: 5000,
         undoAction: () => {
-          for (const [key, data] of previousQueries) {
+          for (const [key, data] of previousMailbox) {
+            queryClient.setQueryData(key, data);
+          }
+          for (const [key, data] of previousSearch) {
             queryClient.setQueryData(key, data);
           }
         },
@@ -326,21 +370,26 @@ export function useTrashWithUndo() {
 
   return useCallback(
     (threadId: string, _listKey: readonly unknown[]) => {
-      // Snapshot ALL mailbox caches for rollback (prefix match)
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot ALL mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeFromInfiniteCache(old, threadId),
       );
+      removeFromSearchCaches(queryClient, threadId);
 
       addToast({
         type: 'undo',
         message: i18n.t('toast.conversationTrashed'),
         duration: 5000,
         undoAction: () => {
-          for (const [key, data] of previousQueries) {
+          for (const [key, data] of previousMailbox) {
+            queryClient.setQueryData(key, data);
+          }
+          for (const [key, data] of previousSearch) {
             queryClient.setQueryData(key, data);
           }
         },
@@ -362,14 +411,16 @@ export function useBulkArchiveWithUndo() {
 
   return useCallback(
     (threadIds: Set<string>, _listKey: readonly unknown[]) => {
-      // Snapshot ALL mailbox caches for rollback (prefix match)
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot ALL mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeManyFromInfiniteCache(old, threadIds),
       );
+      removeManyFromSearchCaches(queryClient, threadIds);
 
       const count = threadIds.size;
       addToast({
@@ -377,7 +428,10 @@ export function useBulkArchiveWithUndo() {
         message: i18n.t('toast.conversationArchived') + (count > 1 ? ` (${count})` : ''),
         duration: 5000,
         undoAction: () => {
-          for (const [key, data] of previousQueries) {
+          for (const [key, data] of previousMailbox) {
+            queryClient.setQueryData(key, data);
+          }
+          for (const [key, data] of previousSearch) {
             queryClient.setQueryData(key, data);
           }
         },
@@ -399,14 +453,16 @@ export function useBulkTrashWithUndo() {
 
   return useCallback(
     (threadIds: Set<string>, _listKey: readonly unknown[]) => {
-      // Snapshot ALL mailbox caches for rollback (prefix match)
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot ALL mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeManyFromInfiniteCache(old, threadIds),
       );
+      removeManyFromSearchCaches(queryClient, threadIds);
 
       const count = threadIds.size;
       addToast({
@@ -414,7 +470,10 @@ export function useBulkTrashWithUndo() {
         message: i18n.t('toast.conversationTrashed') + (count > 1 ? ` (${count})` : ''),
         duration: 5000,
         undoAction: () => {
-          for (const [key, data] of previousQueries) {
+          for (const [key, data] of previousMailbox) {
+            queryClient.setQueryData(key, data);
+          }
+          for (const [key, data] of previousSearch) {
             queryClient.setQueryData(key, data);
           }
         },
@@ -702,21 +761,26 @@ export function useSpamWithUndo() {
 
   return useCallback(
     (threadId: string, _listKey: readonly unknown[]) => {
-      // Snapshot ALL mailbox caches for rollback (prefix match)
-      const previousQueries = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      // Snapshot ALL mailbox + search caches for rollback
+      const previousMailbox = queryClient.getQueriesData<InfiniteData>({ queryKey: ['threads', 'mailbox'] });
+      const previousSearch = snapshotSearchCaches(queryClient);
 
-      // Optimistically remove from ALL mailbox caches
+      // Optimistically remove from ALL mailbox + search caches
       queryClient.setQueriesData<InfiniteData>(
         { queryKey: ['threads', 'mailbox'] },
         (old) => removeFromInfiniteCache(old, threadId),
       );
+      removeFromSearchCaches(queryClient, threadId);
 
       addToast({
         type: 'undo',
         message: i18n.t('toast.conversationSpammed'),
         duration: 5000,
         undoAction: () => {
-          for (const [key, data] of previousQueries) {
+          for (const [key, data] of previousMailbox) {
+            queryClient.setQueryData(key, data);
+          }
+          for (const [key, data] of previousSearch) {
             queryClient.setQueryData(key, data);
           }
         },
