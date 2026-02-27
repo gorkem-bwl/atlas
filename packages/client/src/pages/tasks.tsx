@@ -724,13 +724,15 @@ function TaskDetailPanel({
         </div>
 
         {/* Rich notes editor (below details) */}
-        <TaskNotesEditor
-          content={task.description || task.notes || ''}
-          onChange={(html) => {
-            autoSave({ description: html || null });
-          }}
-          placeholder="Add notes..."
-        />
+        <div style={{ paddingTop: 16 }}>
+          <TaskNotesEditor
+            content={task.description || task.notes || ''}
+            onChange={(html) => {
+              autoSave({ description: html || null });
+            }}
+            placeholder="Add notes..."
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings, Sun, Moon, Monitor, PanelRight, PanelBottom, PanelLeftClose } from 'lucide-react';
+import { Settings, SlidersHorizontal } from 'lucide-react';
 import { useEmailStore } from '../../stores/email-store';
-import { useSettingsStore } from '../../stores/settings-store';
+import { useUIStore } from '../../stores/ui-store';
 import { SearchBar } from '../search/search-bar';
 import { Chip } from '../ui/chip';
 import type { EmailCategory } from '@atlasmail/shared';
@@ -157,26 +157,7 @@ export function ContentToolbar() {
   const activeMailbox = useEmailStore((s) => s.activeMailbox);
   const searchQuery = useEmailStore((s) => s.searchQuery);
   const setSearchQuery = useEmailStore((s) => s.setSearchQuery);
-  const readingPanePosition = useSettingsStore((s) => s.readingPane);
-  const theme = useSettingsStore((s) => s.theme);
-  const density = useSettingsStore((s) => s.density);
-  const setTheme = useSettingsStore((s) => s.setTheme);
-  const setDensity = useSettingsStore((s) => s.setDensity);
-  const setReadingPane = useSettingsStore((s) => s.setReadingPane);
-
-  const [showQuickSettings, setShowQuickSettings] = useState(false);
-  const quickSettingsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showQuickSettings) return;
-    const handler = (e: MouseEvent) => {
-      if (quickSettingsRef.current && !quickSettingsRef.current.contains(e.target as Node)) {
-        setShowQuickSettings(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showQuickSettings]);
+  const { openSettings } = useUIStore();
 
   const isInbox = activeMailbox === 'inbox';
   const parsedFilters = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
@@ -212,18 +193,19 @@ export function ContentToolbar() {
           <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search..." />
         </div>
 
-        {/* Quick settings */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }} ref={quickSettingsRef}>
+        {/* Settings buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4 }}>
+          {/* Global app settings */}
           <button
-            aria-label="Quick settings"
-            onClick={() => setShowQuickSettings((v) => !v)}
+            aria-label="App settings"
+            onClick={() => openSettings()}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               width: 28,
               height: 28,
-              background: showQuickSettings ? 'var(--color-surface-hover)' : 'transparent',
+              background: 'transparent',
               border: 'none',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--color-text-tertiary)',
@@ -231,141 +213,33 @@ export function ContentToolbar() {
               transition: 'background var(--transition-normal), color var(--transition-normal)',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-            onMouseLeave={(e) => { if (!showQuickSettings) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-tertiary)'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
+          >
+            <SlidersHorizontal size={15} />
+          </button>
+
+          {/* Mail settings */}
+          <button
+            aria-label="Mail settings"
+            onClick={() => openSettings('mail')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 28,
+              height: 28,
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-text-tertiary)',
+              cursor: 'pointer',
+              transition: 'background var(--transition-normal), color var(--transition-normal)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
           >
             <Settings size={15} />
           </button>
-
-          {showQuickSettings && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: 4,
-                zIndex: 50,
-                width: 220,
-                background: 'var(--color-bg-elevated)',
-                border: '1px solid var(--color-border-primary)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-lg)',
-                padding: 12,
-                fontFamily: 'var(--font-family)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-              }}
-            >
-              {/* Theme */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-tertiary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Theme
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {([
-                    { value: 'light' as const, icon: Sun, label: 'Light' },
-                    { value: 'dark' as const, icon: Moon, label: 'Dark' },
-                    { value: 'system' as const, icon: Monitor, label: 'System' },
-                  ]).map(({ value, icon: Icon, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => setTheme(value)}
-                      title={label}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 4,
-                        height: 28,
-                        background: theme === value ? 'var(--color-surface-selected)' : 'transparent',
-                        border: `1px solid ${theme === value ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        color: theme === value ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                        fontSize: 11,
-                        fontFamily: 'var(--font-family)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Icon size={12} />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Density */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-tertiary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Density
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {([
-                    { value: 'compact' as const, label: 'Compact' },
-                    { value: 'default' as const, label: 'Default' },
-                    { value: 'comfortable' as const, label: 'Comfy' },
-                  ]).map(({ value, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => setDensity(value)}
-                      title={label}
-                      style={{
-                        flex: 1,
-                        height: 28,
-                        background: density === value ? 'var(--color-surface-selected)' : 'transparent',
-                        border: `1px solid ${density === value ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        color: density === value ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                        fontSize: 11,
-                        fontFamily: 'var(--font-family)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Reading pane */}
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-tertiary)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Reading pane
-                </div>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {([
-                    { value: 'right' as const, icon: PanelRight, label: 'Right' },
-                    { value: 'bottom' as const, icon: PanelBottom, label: 'Bottom' },
-                    { value: 'hidden' as const, icon: PanelLeftClose, label: 'Off' },
-                  ]).map(({ value, icon: Icon, label }) => (
-                    <button
-                      key={value}
-                      onClick={() => { setReadingPane(value); setShowQuickSettings(false); }}
-                      title={label}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 4,
-                        height: 28,
-                        background: readingPanePosition === value ? 'var(--color-surface-selected)' : 'transparent',
-                        border: `1px solid ${readingPanePosition === value ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        color: readingPanePosition === value ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
-                        fontSize: 11,
-                        fontFamily: 'var(--font-family)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Icon size={12} />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
