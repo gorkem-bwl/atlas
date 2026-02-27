@@ -161,6 +161,14 @@ export function useCellRangeSelection(
     [gridRef, excludedColIds, setRange],
   );
 
+  // ── Helper: get sorted column IDs from colIndexMap ─────────────
+
+  const getSortedColIds = useCallback((): string[] => {
+    const entries = Array.from(colIndexMapRef.current.entries());
+    entries.sort((a, b) => a[1] - b[1]);
+    return entries.map(([id]) => id);
+  }, []);
+
   // ── Shift+Arrow key handler (called inside onCellKeyDown) ─────
 
   const handleRangeKeyDown = useCallback(
@@ -187,34 +195,76 @@ export function useCellRangeSelection(
       // Shift+Arrow → extend range
       if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(kbEvent.key)) return;
 
-      // Use requestAnimationFrame so AG Grid processes the arrow key first
-      requestAnimationFrame(() => {
-        const api = gridRef.current?.api;
-        if (!api) return;
-        const focused = api.getFocusedCell();
-        if (!focused || focused.rowPinned != null) return;
+      // Prevent AG Grid's default Shift+Arrow behavior (row selection)
+      kbEvent.preventDefault();
 
-        const focusCoord: CellCoord = {
-          rowIndex: focused.rowIndex,
-          colId: focused.column.getColId(),
-        };
+      const api = gridRef.current?.api;
+      if (!api) return;
 
-        if (excludedColIds?.has(focusCoord.colId)) return;
+      // Determine the current end point (or use focused cell / anchor)
+      const currentEnd = rangeRef.current?.end
+        ?? anchorRef.current
+        ?? (() => {
+          const focused = api.getFocusedCell();
+          if (focused && focused.rowPinned == null) {
+            return { rowIndex: focused.rowIndex, colId: focused.column.getColId() };
+          }
+          return null;
+        })();
 
-        // If no anchor yet, use the cell that was focused before the arrow
-        if (!anchorRef.current) {
-          anchorRef.current = focusCoord;
+      if (!currentEnd) return;
+      if (excludedColIds?.has(currentEnd.colId)) return;
+
+      // If no anchor, set it to the current position
+      if (!anchorRef.current) {
+        anchorRef.current = { ...currentEnd };
+      }
+
+      // Compute next end based on arrow direction
+      const sortedCols = getSortedColIds();
+      const colIdx = sortedCols.indexOf(currentEnd.colId);
+      if (colIdx < 0) return;
+
+      let nextRow = currentEnd.rowIndex;
+      let nextColIdx = colIdx;
+
+      // Find last data row (exclude pinned bottom)
+      const totalRows = api.getDisplayedRowCount();
+      let lastDataRowIdx = totalRows - 1;
+      for (let i = totalRows - 1; i >= 0; i--) {
+        const node = api.getDisplayedRowAtIndex(i);
+        if (node && node.rowPinned !== 'bottom') {
+          lastDataRowIdx = i;
+          break;
         }
+      }
 
-        const newRange: CellRange = {
-          anchor: anchorRef.current,
-          end: focusCoord,
-        };
-        setRange(newRange);
-        gridRef.current?.api?.deselectAll();
-      });
+      switch (kbEvent.key) {
+        case 'ArrowUp':
+          nextRow = Math.max(0, currentEnd.rowIndex - 1);
+          break;
+        case 'ArrowDown':
+          nextRow = Math.min(lastDataRowIdx, currentEnd.rowIndex + 1);
+          break;
+        case 'ArrowLeft':
+          nextColIdx = Math.max(0, colIdx - 1);
+          break;
+        case 'ArrowRight':
+          nextColIdx = Math.min(sortedCols.length - 1, colIdx + 1);
+          break;
+      }
+
+      const nextColId = sortedCols[nextColIdx];
+      const newEnd: CellCoord = { rowIndex: nextRow, colId: nextColId };
+
+      const newRange: CellRange = {
+        anchor: anchorRef.current,
+        end: newEnd,
+      };
+      setRange(newRange);
+      api.deselectAll();
     },
-    [gridRef, excludedColIds, setRange, clearRange],
+    [gridRef, excludedColIds, setRange, clearRange, getSortedColIds],
   );
 
   // ── Clipboard copy ────────────────────────────────────────────
