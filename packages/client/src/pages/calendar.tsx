@@ -1022,6 +1022,15 @@ export function CalendarPage() {
           />
         </button>
 
+        {/* Settings button */}
+        <button
+          onClick={() => openSettings('calendar')}
+          title="Calendar settings"
+          style={iconBtnStyle}
+        >
+          <Settings size={15} />
+        </button>
+
         {/* New event button */}
         <button
           onClick={() => openCreateModal()}
@@ -1242,31 +1251,6 @@ export function CalendarPage() {
               </button>
             )}
 
-            <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '8px 0' }} />
-
-            {/* Settings button */}
-            <button
-              onClick={() => openSettings('calendar')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                width: '100%',
-                padding: '6px 0',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--color-text-secondary)',
-                fontSize: 'var(--font-size-sm)',
-                fontFamily: 'var(--font-family)',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-sm)',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-            >
-              <Settings size={14} />
-              Settings
-            </button>
           </div>
         </div>
         )}

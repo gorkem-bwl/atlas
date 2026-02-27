@@ -1335,17 +1335,6 @@ export function TasksPage() {
         )}
 
         <div style={{ flex: 1 }} />
-
-        {/* Settings button at bottom of sidebar */}
-        <div style={{ padding: '0 var(--spacing-sm) var(--spacing-md)' }}>
-          <button
-            className="task-nav-item"
-            onClick={() => openSettings('tasks')}
-          >
-            <Settings2 size={16} color="var(--color-text-tertiary)" strokeWidth={1.8} />
-            <span style={{ flex: 1 }}>Settings</span>
-          </button>
-        </div>
       </div>
 
       {/* Resize handle */}
@@ -1387,6 +1376,9 @@ export function TasksPage() {
                 <Search size={15} />
               </button>
             )}
+            <button className="tasks-icon-btn" onClick={() => openSettings('tasks')} title="Tasks settings">
+              <Settings2 size={15} strokeWidth={1.8} />
+            </button>
           </div>
         </div>
 

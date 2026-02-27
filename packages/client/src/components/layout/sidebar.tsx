@@ -7,7 +7,6 @@ import {
   Newspaper,
   Bell,
   Star,
-  Settings,
   Edit,
   Sun,
   Moon,
@@ -29,7 +28,6 @@ import { useTranslation } from 'react-i18next';
 import { Chip } from '../ui/chip';
 import { useEmailStore } from '../../stores/email-store';
 import { useSettingsStore } from '../../stores/settings-store';
-import { useUIStore } from '../../stores/ui-store';
 import { useThreadCounts, useGmailLabels, useCreateGmailLabel, useUpdateGmailLabel, useDeleteGmailLabel } from '../../hooks/use-threads';
 import type { GmailLabel } from '../../hooks/use-threads';
 import { AccountSwitcher } from './account-switcher';
@@ -834,13 +832,11 @@ function LabelsPopover({
 export function Sidebar() {
   const { activeCategory, setActiveCategory, activeMailbox, setActiveMailbox, openCompose, filterByLabel, setFilterByLabel } =
     useEmailStore();
-  const { openSettings } = useUIStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [labelsOpen, setLabelsOpen] = useState(false);
   const [labelsAnchorTop, setLabelsAnchorTop] = useState(0);
   const [labelsHovered, setLabelsHovered] = useState(false);
-  const [settingsHovered, setSettingsHovered] = useState(false);
   const labelsBtnRef = useRef<HTMLButtonElement>(null);
   const { data: gmailLabels } = useGmailLabels();
   const { data: counts } = useThreadCounts();
@@ -1099,7 +1095,7 @@ export function Sidebar() {
         </button>
       </nav>
 
-      {/* Bottom section: settings + account switcher */}
+      {/* Bottom section: account switcher */}
       <div
         style={{
           borderTop: '1px solid var(--color-border-primary)',
@@ -1109,34 +1105,6 @@ export function Sidebar() {
           gap: '2px',
         }}
       >
-        {/* Settings button */}
-        <button
-          className="sidebar-nav-btn"
-          onClick={() => openSettings()}
-          aria-label={t('settings.title')}
-          onMouseEnter={() => setSettingsHovered(true)}
-          onMouseLeave={() => setSettingsHovered(false)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-sm)',
-            width: '100%',
-            padding: '6px var(--spacing-md)',
-            background: settingsHovered ? 'var(--color-surface-hover)' : 'transparent',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            color: settingsHovered ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-            fontSize: 'var(--font-size-sm)',
-            fontFamily: 'var(--font-family)',
-            cursor: 'pointer',
-            transition: 'background var(--transition-normal), color var(--transition-normal)',
-            textAlign: 'left',
-          }}
-        >
-          <Settings size={16} className="sidebar-nav-icon" style={{ color: '#7889a0' }} />
-          {t('settings.title')}
-        </button>
-
         <AccountSwitcher />
       </div>
 
