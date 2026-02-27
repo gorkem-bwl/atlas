@@ -54,6 +54,8 @@ const COLUMN_TO_WHEN: Record<string, TaskWhen> = {
 // ─── Helpers ──────────────────────────────────────────────────────────
 
 function getColumnForTask(task: Task): string {
+  // Overdue tasks go to Inbox column (matches list view's separate "Overdue" group)
+  if (task.dueDate && task.dueDate.slice(0, 10) < getTodayStr()) return 'inbox';
   if (task.when === 'today' || task.when === 'evening') return 'today';
   if (task.when === 'anytime') return 'anytime';
   if (task.when === 'someday') return 'someday';
