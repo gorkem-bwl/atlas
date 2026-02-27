@@ -113,8 +113,8 @@ export function SettingsModal() {
           {/* Title */}
           <div
             style={{
-              padding: 'var(--spacing-sm) var(--spacing-md)',
-              marginBottom: 'var(--spacing-lg)',
+              padding: 'var(--spacing-xs) var(--spacing-md)',
+              marginBottom: 'var(--spacing-sm)',
             }}
           >
             <span
@@ -301,7 +301,7 @@ function CategoryButton({
         alignItems: 'center',
         gap: 'var(--spacing-sm)',
         width: '100%',
-        padding: '8px var(--spacing-md)',
+        padding: '7px var(--spacing-md)',
         background: isActive
           ? 'var(--color-surface-selected)'
           : hovered
@@ -319,7 +319,7 @@ function CategoryButton({
         textAlign: 'left',
         transition: 'background var(--transition-normal), color var(--transition-normal)',
         outline: 'none',
-        marginBottom: 2,
+        marginBottom: 1,
       }}
     >
       <span
