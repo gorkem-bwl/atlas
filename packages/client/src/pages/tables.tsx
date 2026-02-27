@@ -70,6 +70,7 @@ import {
 import { ROUTES } from '../config/routes';
 import type { TableColumn, TableRow, TableFieldType, TableViewConfig } from '@atlasmail/shared';
 import { TableCustomHeader } from '../components/tables/TableCustomHeader';
+import { useCellRangeSelection, isCellInRange } from '../hooks/use-cell-range-selection';
 import { ColumnHeaderMenu } from '../components/tables/ColumnHeaderMenu';
 import { RowContextMenu } from '../components/tables/RowContextMenu';
 import { SortPopover } from '../components/tables/SortPopover';
@@ -1047,6 +1048,7 @@ function buildColDefs(
   onMenuOpen?: (columnId: string, x: number, y: number) => void,
   hiddenColumns?: Set<string>,
   frozenColumnCount?: number,
+  onHeaderClicked?: (colId: string) => void,
 ): ColDef[] {
   // Find first visible column index for rowDrag handle
   const firstVisibleIdx = columns.findIndex((c) => !hiddenColumns?.has(c.id));
@@ -1067,6 +1069,19 @@ function buildColDefs(
         fieldTypeIcon: TypeIcon,
         fieldDescription: col.description,
         onMenuOpen,
+        onHeaderClicked,
+      },
+      cellClassRules: {
+        'cell-range-selected': (params: { context: Record<string, unknown>; colDef: { field?: string }; node: { rowIndex: number | null; rowPinned?: string | null } }) => {
+          const { cellRangeRef, colIndexMapRef } = params.context as {
+            cellRangeRef?: { current: import('../hooks/use-cell-range-selection').CellRange | null };
+            colIndexMapRef?: { current: Map<string, number> };
+          };
+          if (!cellRangeRef?.current || !params.colDef.field) return false;
+          const rowIndex = params.node.rowIndex;
+          if (rowIndex == null || params.node.rowPinned === 'bottom') return false;
+          return isCellInRange(rowIndex, params.colDef.field, cellRangeRef.current, colIndexMapRef!.current);
+        },
       },
     };
 
@@ -1603,9 +1618,31 @@ export function TablesPage() {
   // AG Grid ref (needed early for keyboard shortcuts)
   const gridRef = useRef<AgGridReact>(null);
 
+  // ─── Cell range selection ───────────────────────────────────────
+  const {
+    rangeContext,
+    handleCellClicked: handleRangeCellClicked,
+    handleHeaderClicked: handleRangeHeaderClicked,
+    handleRangeKeyDown,
+    handleGlobalKeyDown: handleRangeGlobalKeyDown,
+    clearRange,
+    rebuildColIndexMap,
+    rangeVersion,
+    getSelectedCellCount,
+    getCellsInRange,
+  } = useCellRangeSelection(gridRef);
+
+  // Rebuild column index map when columns / hidden columns change
+  useEffect(() => {
+    rebuildColIndexMap();
+  }, [localColumns, localViewConfig.hiddenColumns, rebuildColIndexMap]);
+
   // Global keyboard shortcuts (undo, redo, search)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Cell range selection shortcuts (Ctrl+C, Escape to clear range)
+      if (handleRangeGlobalKeyDown(e)) return;
+
       const mod = e.metaKey || e.ctrlKey;
 
       // Ctrl/Cmd+Z → undo
@@ -1638,7 +1675,7 @@ export function TablesPage() {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [handleUndo, handleRedo, selectedId, showSearch, selectedRowIds]);
+  }, [handleUndo, handleRedo, selectedId, showSearch, selectedRowIds, handleRangeGlobalKeyDown]);
 
   // ─── Handlers ──────────────────────────────────────────────────────
 
@@ -1877,9 +1914,12 @@ export function TablesPage() {
   const handleSelectionChanged = useCallback(
     (event: SelectionChangedEvent) => {
       const rows = event.api.getSelectedRows() as TableRow[];
-      setSelectedRowIds(rows.map((r) => r._id).filter((id) => id !== PLACEHOLDER_ROW_ID));
+      const ids = rows.map((r) => r._id).filter((id) => id !== PLACEHOLDER_ROW_ID);
+      setSelectedRowIds(ids);
+      // Mutual exclusion: clear cell range when rows are selected via checkbox
+      if (ids.length > 0) clearRange();
     },
-    [],
+    [clearRange],
   );
 
   // Bulk delete selected rows
@@ -1970,9 +2010,42 @@ export function TablesPage() {
       const kbEvent = event.event as KeyboardEvent | undefined;
       if (!kbEvent) return;
 
+      // Shift+Arrow / Arrow → cell range selection
+      handleRangeKeyDown(event);
+
       // Delete/Backspace clears cell value (only when not in edit mode)
       const isEditing = gridRef.current?.api?.getEditingCells()?.length ?? 0;
       if ((kbEvent.key === 'Delete' || kbEvent.key === 'Backspace') && isEditing === 0) {
+        // If a range is active, bulk-clear all cells in the range
+        const rangeCells = getCellsInRange();
+        if (rangeCells.length > 0) {
+          pushUndoState();
+          const api = gridRef.current?.api;
+          if (!api) return;
+          // Collect row IDs and col IDs to clear
+          const clearMap = new Map<string, Set<string>>();
+          for (const cell of rangeCells) {
+            const rowNode = api.getDisplayedRowAtIndex(cell.rowIndex);
+            if (!rowNode || rowNode.rowPinned === 'bottom') continue;
+            const rowId = (rowNode.data as TableRow)?._id;
+            if (!rowId || rowId === PLACEHOLDER_ROW_ID) continue;
+            if (!clearMap.has(rowId)) clearMap.set(rowId, new Set());
+            clearMap.get(rowId)!.add(cell.colId);
+          }
+          const updatedRows = localRows.map((r) => {
+            const colIds = clearMap.get(r._id);
+            if (!colIds) return r;
+            const copy = { ...r };
+            for (const cid of colIds) copy[cid] = undefined;
+            return copy;
+          });
+          setLocalRows(updatedRows);
+          triggerAutoSave({ rows: updatedRows });
+          clearRange();
+          return;
+        }
+
+        // Single cell clear
         const colId = event.colDef.field;
         if (!colId) return;
         const rowId = (event.data as TableRow)?._id;
@@ -1986,7 +2059,7 @@ export function TablesPage() {
         triggerAutoSave({ rows: updatedRows });
       }
     },
-    [localRows, triggerAutoSave, pushUndoState],
+    [localRows, triggerAutoSave, pushUndoState, handleRangeKeyDown, getCellsInRange, clearRange],
   );
 
   // AG Grid row drag reorder
@@ -2193,8 +2266,8 @@ export function TablesPage() {
   );
 
   const columnDefs = useMemo(
-    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount), ADD_COLUMN_COL],
-    [localColumns, t, ROW_NUMBER_COL, ADD_COLUMN_COL, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount],
+    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount, handleRangeHeaderClicked), ADD_COLUMN_COL],
+    [localColumns, t, ROW_NUMBER_COL, ADD_COLUMN_COL, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount, handleRangeHeaderClicked],
   );
 
   // Kanban DnD
@@ -2660,6 +2733,8 @@ export function TablesPage() {
                       readOnlyEdit={true}
                       onCellEditRequest={handleCellEditRequest}
                       onCellKeyDown={handleCellKeyDown}
+                      onCellClicked={handleRangeCellClicked}
+                      onCellEditingStarted={() => clearRange()}
                       onColumnResized={handleColumnResized}
                       onColumnMoved={handleColumnMoved}
                       rowDragManaged={false}
@@ -2677,7 +2752,7 @@ export function TablesPage() {
                       pinnedBottomRowData={pinnedBottomRowData}
                       getRowStyle={getRowStyle}
                       quickFilterText={searchText}
-                      context={{ deleteRow: handleDeleteRow }}
+                      context={{ deleteRow: handleDeleteRow, ...rangeContext }}
                     />
                   </div>
                 </div>
@@ -2690,6 +2765,11 @@ export function TablesPage() {
                       ? t('tables.filteredRowCount', { filtered: filteredRows.length, total: localRows.length })
                       : t('tables.rowCount', { count: localRows.length })}
                   </span>
+                  {rangeVersion > 0 && getSelectedCellCount() > 0 && (
+                    <span className="tables-footer-agg">
+                      {getSelectedCellCount()} cells selected
+                    </span>
+                  )}
                   {footerAgg && (
                     <span className="tables-footer-agg">
                       {footerAgg.label}: {footerAgg.sum} {t('tables.sum')} · {footerAgg.avg} {t('tables.avg')}

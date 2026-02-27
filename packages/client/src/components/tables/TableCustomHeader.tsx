@@ -8,10 +8,11 @@ interface TableCustomHeaderParams extends IHeaderParams {
   fieldTypeIcon?: React.ComponentType<{ size?: number }>;
   fieldDescription?: string;
   onMenuOpen?: (columnId: string, x: number, y: number) => void;
+  onHeaderClicked?: (colId: string) => void;
 }
 
 export function TableCustomHeader(props: TableCustomHeaderParams) {
-  const { displayName, fieldTypeIcon: Icon, fieldDescription, column, onMenuOpen } = props;
+  const { displayName, fieldTypeIcon: Icon, fieldDescription, column, onMenuOpen, onHeaderClicked } = props;
   const btnRef = useRef<HTMLButtonElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -25,11 +26,18 @@ export function TableCustomHeader(props: TableCustomHeaderParams) {
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Don't interfere with the dropdown menu button
+    if ((e.target as HTMLElement).closest('.tables-custom-header-menu')) return;
+    onHeaderClicked?.(column.getColId());
+  };
+
   return (
     <div
       className="tables-custom-header"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={handleClick}
     >
       {Icon && (
         <span className="tables-custom-header-icon">
