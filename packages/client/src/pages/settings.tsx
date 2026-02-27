@@ -99,7 +99,7 @@ export function SettingsModal() {
         {/* Primary sidebar — categories */}
         <div
           style={{
-            width: 200,
+            width: 180,
             flexShrink: 0,
             background: 'var(--color-bg-secondary)',
             borderRight: '1px solid var(--color-border-primary)',
@@ -150,7 +150,7 @@ export function SettingsModal() {
           style={{
             width: 180,
             flexShrink: 0,
-            background: 'var(--color-bg-primary)',
+            background: 'var(--color-bg-tertiary)',
             borderRight: '1px solid var(--color-border-primary)',
             display: 'flex',
             flexDirection: 'column',

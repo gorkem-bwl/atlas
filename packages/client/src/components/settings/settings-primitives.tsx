@@ -264,7 +264,7 @@ export function RadioOption({
           borderRadius: '50%',
           border: selected
             ? '5px solid var(--color-accent-primary)'
-            : '2px solid var(--color-border-primary)',
+            : '2px solid var(--color-text-tertiary)',
           background: 'transparent',
           transition: 'border var(--transition-normal)',
           boxSizing: 'border-box',
