@@ -138,11 +138,19 @@ export function App() {
                 />
                 <Route
                   path={ROUTES.TABLES}
-                  element={<TablesPage />}
+                  element={
+                    <ProtectedRoute>
+                      <TablesPage />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route
                   path={ROUTES.TABLE_DETAIL}
-                  element={<TablesPage />}
+                  element={
+                    <ProtectedRoute>
+                      <TablesPage />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>

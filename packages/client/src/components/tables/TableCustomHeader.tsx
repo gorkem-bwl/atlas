@@ -11,8 +11,7 @@ interface TableCustomHeaderParams extends IHeaderParams {
 }
 
 export function TableCustomHeader(props: TableCustomHeaderParams) {
-  const { displayName, fieldTypeIcon: Icon, column, onMenuOpen } = props;
-  const fieldDescription = (props as TableCustomHeaderParams).fieldDescription;
+  const { displayName, fieldTypeIcon: Icon, fieldDescription, column, onMenuOpen } = props;
   const btnRef = useRef<HTMLButtonElement>(null);
   const [hovered, setHovered] = useState(false);
 

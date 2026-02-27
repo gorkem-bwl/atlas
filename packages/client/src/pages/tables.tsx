@@ -390,6 +390,8 @@ function buildColDefs(
   hiddenColumns?: Set<string>,
   frozenColumnCount?: number,
 ): ColDef[] {
+  // Find first visible column index for rowDrag handle
+  const firstVisibleIdx = columns.findIndex((c) => !hiddenColumns?.has(c.id));
   return columns.map((col, idx) => {
     const TypeIcon = FIELD_TYPE_ICONS[col.type];
     const base: ColDef = {
@@ -399,7 +401,7 @@ function buildColDefs(
       width: col.width || 180,
       resizable: true,
       sortable: true,
-      rowDrag: idx === 0,
+      rowDrag: idx === firstVisibleIdx,
       hide: hiddenColumns?.has(col.id),
       headerComponent: TableCustomHeader,
       headerComponentParams: {
@@ -1234,23 +1236,29 @@ export function TablesPage() {
       if (!event.finished || !event.column) return;
       const api = gridRef.current?.api;
       if (!api) return;
-      // Read new column order from AG Grid, skipping the row number col
+      const hidden = new Set(localViewConfig.hiddenColumns || []);
+      // Read new column order from AG Grid (only visible columns)
       const allDisplayedCols = api.getAllDisplayedColumns();
-      const newOrder: string[] = [];
+      const visibleOrder: string[] = [];
       for (const agCol of allDisplayedCols) {
         const id = agCol.getColId();
         if (localColumns.some((c) => c.id === id)) {
-          newOrder.push(id);
+          visibleOrder.push(id);
         }
       }
-      // Only update if order actually changed
-      const currentOrder = localColumns.map((c) => c.id);
-      if (JSON.stringify(newOrder) === JSON.stringify(currentOrder)) return;
-      const reordered = newOrder.map((id) => localColumns.find((c) => c.id === id)!).filter(Boolean);
+      // Only update if visible order actually changed
+      const currentVisibleOrder = localColumns.filter((c) => !hidden.has(c.id)).map((c) => c.id);
+      if (JSON.stringify(visibleOrder) === JSON.stringify(currentVisibleOrder)) return;
+      // Rebuild full column list: visible columns in new order, then hidden columns preserving original order
+      const visibleSet = new Set(visibleOrder);
+      const reordered = [
+        ...visibleOrder.map((id) => localColumns.find((c) => c.id === id)!),
+        ...localColumns.filter((c) => !visibleSet.has(c.id)),
+      ];
       setLocalColumns(reordered);
       triggerAutoSave({ columns: reordered });
     },
-    [localColumns, triggerAutoSave],
+    [localColumns, localViewConfig.hiddenColumns, triggerAutoSave],
   );
 
   // ─── New column/row handlers for P3 ──────────────────────────────
