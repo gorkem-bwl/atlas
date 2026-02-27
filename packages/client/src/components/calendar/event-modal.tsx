@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, MapPin, AlignLeft, Users, Calendar as CalendarIcon, Clock, Mail, Trash2, Palette, Repeat, Check, Bell, Eye, Video } from 'lucide-react';
 import type { RecurringEditScope } from '@atlasmail/shared';
 import { useCalendarStore } from '../../stores/calendar-store';
+import { useEmailStore } from '../../stores/email-store';
 import { useCalendars, useCreateCalendarEvent, useUpdateCalendarEvent, useDeleteCalendarEvent } from '../../hooks/use-calendar';
 import { useSearchContacts } from '../../hooks/use-contacts';
 import { SchedulingAssistant } from './scheduling-assistant';
@@ -350,6 +351,7 @@ function AttendeeInput({
 
 export function EventModal() {
   const { eventModal, closeEventModal } = useCalendarStore();
+  const openCompose = useEmailStore((s) => s.openCompose);
   const { data: calendars } = useCalendars();
   const createEvent = useCreateCalendarEvent();
   const updateEvent = useUpdateCalendarEvent();
@@ -1260,8 +1262,9 @@ export function EventModal() {
                       .map((a) => a.email)
                       .filter(Boolean)
                       .join(',');
-                    const subject = encodeURIComponent(eventModal.event!.summary || '');
-                    window.open(`mailto:${emails}?subject=${subject}`, '_self');
+                    const subject = eventModal.event!.summary || '';
+                    closeEventModal();
+                    openCompose('new', undefined, emails, subject);
                   }}
                   style={{
                     display: 'flex',

@@ -489,7 +489,7 @@ function DraftSavedBadge({ visible }: { visible: boolean }) {
 
 export function ComposeModal() {
   const { t } = useTranslation();
-  const { composeMode, composeThreadId, composeInitialTo, closeCompose } = useEmailStore();
+  const { composeMode, composeThreadId, composeInitialTo, composeInitialSubject, closeCompose } = useEmailStore();
   const account = useAuthStore((s) => s.account);
   const { saveDraft, updateDraft, deleteDraft, setActiveDraftId } = useDraftStore();
   const sendEmail = useSendEmail();
@@ -715,12 +715,18 @@ export function ComposeModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [composeMode, thread, account?.email]);
 
-  // ─── Prefill To field when composing from contact panel ──────────
+  // ─── Prefill To/Subject when composing from contact panel or calendar ──
   useEffect(() => {
-    if (composeMode === 'new' && composeInitialTo && isOpen) {
-      setToRecipients([{ address: composeInitialTo }]);
+    if (composeMode === 'new' && isOpen) {
+      if (composeInitialTo) {
+        const addresses = composeInitialTo.split(',').map((a) => a.trim()).filter(Boolean);
+        setToRecipients(addresses.map((address) => ({ address })));
+      }
+      if (composeInitialSubject) {
+        setSubject(composeInitialSubject);
+      }
     }
-  }, [composeMode, composeInitialTo, isOpen]);
+  }, [composeMode, composeInitialTo, composeInitialSubject, isOpen]);
 
   // ─── Close / send ─────────────────────────────────────────────────
 

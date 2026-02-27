@@ -101,7 +101,7 @@ export const settingsCategories: SettingsCategory[] = [
     icon: Mail,
     panels: [
       { id: 'composer', label: 'Composer', icon: PenLine, component: MailComposerPanel },
-      { id: 'ai', label: 'AI assistant', icon: Sparkles, component: MailAIPanel },
+      { id: 'ai', label: 'AI assistant in Mail', icon: Sparkles, component: MailAIPanel },
       { id: 'inbox', label: 'Inbox', icon: Inbox, component: MailInboxPanel },
       { id: 'reading-pane', label: 'Reading pane', icon: PanelRight, component: MailReadingPanePanel },
       { id: 'labels', label: 'Labels', icon: Tag, component: MailLabelsPanel },

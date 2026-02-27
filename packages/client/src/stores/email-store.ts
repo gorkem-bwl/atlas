@@ -12,6 +12,7 @@ interface EmailState {
   composeMode: 'new' | 'reply' | 'reply_all' | 'forward' | null;
   composeThreadId: string | null;
   composeInitialTo: string | null;
+  composeInitialSubject: string | null;
   filterByLabel: string | null;
   searchQuery: string;
   setActiveCategory: (category: EmailCategory) => void;
@@ -24,7 +25,7 @@ interface EmailState {
   addToSelection: (threadId: string) => void;
   clearSelection: () => void;
   selectThreads: (threadIds: string[]) => void;
-  openCompose: (mode: 'new' | 'reply' | 'reply_all' | 'forward', threadId?: string, initialTo?: string) => void;
+  openCompose: (mode: 'new' | 'reply' | 'reply_all' | 'forward', threadId?: string, initialTo?: string, initialSubject?: string) => void;
   closeCompose: () => void;
   setFilterByLabel: (labelId: string | null) => void;
 }
@@ -38,6 +39,7 @@ export const useEmailStore = create<EmailState>((set) => ({
   composeMode: null,
   composeThreadId: null,
   composeInitialTo: null,
+  composeInitialSubject: null,
   filterByLabel: null,
   searchQuery: '',
   setActiveCategory: (category) =>
@@ -71,7 +73,7 @@ export const useEmailStore = create<EmailState>((set) => ({
     }),
   clearSelection: () => set({ selectedThreadIds: new Set() }),
   selectThreads: (threadIds) => set({ selectedThreadIds: new Set(threadIds) }),
-  openCompose: (mode, threadId, initialTo) => set({ composeMode: mode, composeThreadId: threadId ?? null, composeInitialTo: initialTo ?? null }),
-  closeCompose: () => set({ composeMode: null, composeThreadId: null, composeInitialTo: null }),
+  openCompose: (mode, threadId, initialTo, initialSubject) => set({ composeMode: mode, composeThreadId: threadId ?? null, composeInitialTo: initialTo ?? null, composeInitialSubject: initialSubject ?? null }),
+  closeCompose: () => set({ composeMode: null, composeThreadId: null, composeInitialTo: null, composeInitialSubject: null }),
   setFilterByLabel: (labelId) => set({ filterByLabel: labelId, activeThreadId: null, cursorIndex: 0, selectedThreadIds: new Set() }),
 }));
