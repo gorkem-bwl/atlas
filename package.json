@@ -35,6 +35,7 @@
     "@tiptap/extension-link": "^3.20.0",
     "@tiptap/extension-underline": "^3.20.0",
     "@tiptap/extension-unique-id": "^3.20.0",
+    "ag-grid-react": "^35.1.0",
     "temporal-polyfill": "^0.3.0"
   }
 }

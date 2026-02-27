@@ -342,7 +342,8 @@
     "mail": "Mail",
     "write": "Yaz",
     "draw": "Çizim",
-    "tasks": "Görevler"
+    "tasks": "Görevler",
+    "tables": "Tablolar"
   },
   "home": {
     "goodMorning": "Günaydın!",
@@ -375,7 +376,9 @@
     "documents_one": "{{count}} belge",
     "documents_other": "{{count}} belge",
     "drawings_one": "{{count}} çizim",
-    "drawings_other": "{{count}} çizim"
+    "drawings_other": "{{count}} çizim",
+    "tables_one": "{{count}} tablo",
+    "tables_other": "{{count}} tablo"
   },
   "calendar": {
     "title": "Takvim",
@@ -570,5 +573,34 @@
     "snoozeUntilRequired": "snoozeUntil değeri gereklidir",
     "tooManyRequests": "Çok fazla istek, lütfen daha sonra tekrar deneyin",
     "tooManyAuthAttempts": "Çok fazla giriş denemesi, lütfen daha sonra tekrar deneyin"
+  },
+  "tables": {
+    "title": "Tablolar",
+    "newTable": "Yeni tablo",
+    "searchTables": "Tablo ara...",
+    "noTables": "Henüz tablo yok",
+    "emptyTitle": "Tablo seçilmedi",
+    "emptyDesc": "Kenar çubuğundan bir tablo seçin veya yeni bir tablo oluşturun.",
+    "backToHome": "Ana sayfaya dön",
+    "column": "Sütun",
+    "columnName": "Sütun adı",
+    "columnNamePlaceholder": "Sütun adını girin",
+    "fieldType": "Alan türü",
+    "options": "Seçenekler (virgülle ayrılmış)",
+    "optionsPlaceholder": "Seçenek 1, Seçenek 2, Seçenek 3",
+    "cancel": "İptal",
+    "addColumn": "Sütun ekle",
+    "addRow": "Satır ekle",
+    "rowCount_one": "{{count}} satır",
+    "rowCount_other": "{{count}} satır",
+    "saving": "Kaydediliyor...",
+    "gridView": "Tablo görünümü",
+    "kanbanView": "Kanban görünümü",
+    "kanbanNoSelectColumn": "Kanban görünümünü kullanmak için tekli seçim sütunu ekleyin.",
+    "noValue": "Değer yok",
+    "noItems": "Öğe yok",
+    "trash": "Çöp kutusu",
+    "delete": "Sil",
+    "restore": "Geri yükle"
   }
 }

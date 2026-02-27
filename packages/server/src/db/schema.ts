@@ -352,6 +352,25 @@ export const tasks = sqliteTable('tasks', {
 
 // ─── Drawings (Excalidraw whiteboards) ──────────────────────────────
 
+// ─── Spreadsheets (Tables / Airtable-like) ──────────────────────────
+
+export const spreadsheets = sqliteTable('spreadsheets', {
+  id: uuid().primaryKey(),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull().default('Untitled table'),
+  columns: text('columns', { mode: 'json' }).notNull().$type<import('@atlasmail/shared').TableColumn[]>().default([]),
+  rows: text('rows', { mode: 'json' }).notNull().$type<import('@atlasmail/shared').TableRow[]>().default([]),
+  viewConfig: text('view_config', { mode: 'json' }).notNull().$type<import('@atlasmail/shared').TableViewConfig>().default({ activeView: 'grid' } as import('@atlasmail/shared').TableViewConfig),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+  createdAt: timestampNow().notNull(),
+  updatedAt: timestampNow().notNull(),
+}, (table) => ({
+  userIdx: index('idx_spreadsheets_user').on(table.userId, table.isArchived),
+  accountIdx: index('idx_spreadsheets_account').on(table.accountId, table.isArchived),
+}));
+
 export const drawings = sqliteTable('drawings', {
   id: uuid().primaryKey(),
   accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),

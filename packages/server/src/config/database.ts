@@ -288,6 +288,27 @@ try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tasks_completed_behav
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tasks_default_sort TEXT NOT NULL DEFAULT 'manual'`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tasks_view_mode TEXT NOT NULL DEFAULT 'list'`).run(); } catch { /* column already exists */ }
 
+// ---- Spreadsheets table (Tables / Airtable-like) ----------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS spreadsheets (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT 'Untitled table',
+    columns TEXT NOT NULL DEFAULT '[]',
+    rows TEXT NOT NULL DEFAULT '[]',
+    view_config TEXT NOT NULL DEFAULT '{"activeView":"grid"}',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_archived INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
+  )
+`).run();
+
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_spreadsheets_user ON spreadsheets(user_id, is_archived)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_spreadsheets_account ON spreadsheets(account_id, is_archived)`).run(); } catch { /* */ }
+
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).
 sqlite.prepare(`

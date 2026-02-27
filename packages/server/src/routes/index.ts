@@ -9,6 +9,7 @@ import calendarRoutes from './calendar.routes';
 import docsRoutes from './docs.routes';
 import drawingsRoutes from './drawings.routes';
 import tasksRoutes from './tasks.routes';
+import tablesRoutes from './tables.routes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/calendar', calendarRoutes);
 router.use('/docs', docsRoutes);
 router.use('/drawings', drawingsRoutes);
 router.use('/tasks', tasksRoutes);
+router.use('/tables', tablesRoutes);
 
 export default router;

@@ -14,6 +14,7 @@ import { CalendarPage } from './pages/calendar';
 import { DocsPage } from './pages/docs';
 import { DrawPage } from './pages/draw';
 import { TasksPage } from './pages/tasks';
+import { TablesPage } from './pages/tables';
 import { HomePage } from './pages/home';
 import { CommandPalette } from './components/ui/command-palette';
 import { ErrorBoundary } from './components/ui/error-boundary';
@@ -134,6 +135,14 @@ export function App() {
                 <Route
                   path={ROUTES.TASKS}
                   element={<TasksPage />}
+                />
+                <Route
+                  path={ROUTES.TABLES}
+                  element={<TablesPage />}
+                />
+                <Route
+                  path={ROUTES.TABLE_DETAIL}
+                  element={<TablesPage />}
                 />
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Mail, Calendar, FileText, Pencil, CheckSquare,
+  Mail, Calendar, FileText, Pencil, CheckSquare, Table2,
   Clock, ArrowRight, Settings,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
@@ -11,6 +11,7 @@ import { useCalendarEvents } from '../hooks/use-calendar';
 import { useTaskCounts } from '../hooks/use-tasks';
 import { useDocumentList } from '../hooks/use-documents';
 import { useDrawingList } from '../hooks/use-drawings';
+import { useTableList } from '../hooks/use-tables';
 import { ROUTES } from '../config/routes';
 import { useUIStore } from '../stores/ui-store';
 import { buildGoogleOAuthUrl } from '../components/auth/login-page';
@@ -480,6 +481,7 @@ export function HomePage() {
   const { data: taskCounts } = useTaskCounts({ enabled: isAuthenticated });
   const { data: docListData } = useDocumentList();
   const { data: drawingListData } = useDrawingList();
+  const { data: tableListData } = useTableList();
   const parallax = useMouseParallax(15);
 
   // Image rotation — changes daily, crossfade on manual cycle
@@ -530,6 +532,7 @@ export function HomePage() {
   const pendingTaskCount = taskCounts?.total ?? 0;
   const docCount = docListData?.documents?.length ?? 0;
   const drawingCount = drawingListData?.drawings?.length ?? 0;
+  const tableCount = tableListData?.spreadsheets?.length ?? 0;
   const timeTint = getTimeTint(hour);
 
   // Upcoming events (next 3 that haven't ended yet)
@@ -893,6 +896,13 @@ export function HomePage() {
             color="#e06c9f"
             badge={drawingCount > 0 ? t('home.drawings', { count: drawingCount }) : undefined}
             onClick={() => navigate(ROUTES.DRAW)}
+          />
+          <AppCard
+            icon={Table2}
+            label={t('nav.tables')}
+            color="#2d8a6e"
+            badge={tableCount > 0 ? t('home.tables', { count: tableCount }) : undefined}
+            onClick={() => navigate(ROUTES.TABLES)}
           />
         </div>
       </div>

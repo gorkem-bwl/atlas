@@ -383,7 +383,8 @@
     "mail": "Mail",
     "write": "Write",
     "draw": "Draw",
-    "tasks": "Tasks"
+    "tasks": "Tasks",
+    "tables": "Tables"
   },
   "home": {
     "goodMorning": "Good Morning!",
@@ -416,7 +417,9 @@
     "documents_one": "{{count}} document",
     "documents_other": "{{count}} documents",
     "drawings_one": "{{count}} drawing",
-    "drawings_other": "{{count}} drawings"
+    "drawings_other": "{{count}} drawings",
+    "tables_one": "{{count}} table",
+    "tables_other": "{{count}} tables"
   },
   "calendar": {
     "title": "Calendar",
@@ -611,5 +614,34 @@
     "snoozeUntilRequired": "snoozeUntil is required",
     "tooManyRequests": "Too many requests, please try again later",
     "tooManyAuthAttempts": "Too many auth attempts, please try again later"
+  },
+  "tables": {
+    "title": "Tables",
+    "newTable": "New table",
+    "searchTables": "Search tables...",
+    "noTables": "No tables yet",
+    "emptyTitle": "No table selected",
+    "emptyDesc": "Select a table from the sidebar or create a new one to get started.",
+    "backToHome": "Back to home",
+    "column": "Column",
+    "columnName": "Column name",
+    "columnNamePlaceholder": "Enter column name",
+    "fieldType": "Field type",
+    "options": "Options (comma separated)",
+    "optionsPlaceholder": "Option 1, Option 2, Option 3",
+    "cancel": "Cancel",
+    "addColumn": "Add column",
+    "addRow": "Add row",
+    "rowCount_one": "{{count}} row",
+    "rowCount_other": "{{count}} rows",
+    "saving": "Saving...",
+    "gridView": "Grid view",
+    "kanbanView": "Kanban view",
+    "kanbanNoSelectColumn": "Add a single select column to use kanban view.",
+    "noValue": "No value",
+    "noItems": "No items",
+    "trash": "Trash",
+    "delete": "Delete",
+    "restore": "Restore"
   }
 }

@@ -342,7 +342,8 @@
     "mail": "Mail",
     "write": "Schreiben",
     "draw": "Zeichnen",
-    "tasks": "Aufgaben"
+    "tasks": "Aufgaben",
+    "tables": "Tabellen"
   },
   "home": {
     "goodMorning": "Guten Morgen!",
@@ -375,7 +376,9 @@
     "documents_one": "{{count}} Dokument",
     "documents_other": "{{count}} Dokumente",
     "drawings_one": "{{count}} Zeichnung",
-    "drawings_other": "{{count}} Zeichnungen"
+    "drawings_other": "{{count}} Zeichnungen",
+    "tables_one": "{{count}} Tabelle",
+    "tables_other": "{{count}} Tabellen"
   },
   "calendar": {
     "title": "Kalender",
@@ -570,5 +573,34 @@
     "snoozeUntilRequired": "snoozeUntil ist erforderlich",
     "tooManyRequests": "Zu viele Anfragen, bitte versuchen Sie es später erneut",
     "tooManyAuthAttempts": "Zu viele Anmeldeversuche, bitte versuchen Sie es später erneut"
+  },
+  "tables": {
+    "title": "Tabellen",
+    "newTable": "Neue Tabelle",
+    "searchTables": "Tabellen suchen...",
+    "noTables": "Noch keine Tabellen",
+    "emptyTitle": "Keine Tabelle ausgewählt",
+    "emptyDesc": "Wählen Sie eine Tabelle aus der Seitenleiste oder erstellen Sie eine neue.",
+    "backToHome": "Zurück zur Startseite",
+    "column": "Spalte",
+    "columnName": "Spaltenname",
+    "columnNamePlaceholder": "Spaltenname eingeben",
+    "fieldType": "Feldtyp",
+    "options": "Optionen (kommagetrennt)",
+    "optionsPlaceholder": "Option 1, Option 2, Option 3",
+    "cancel": "Abbrechen",
+    "addColumn": "Spalte hinzufügen",
+    "addRow": "Zeile hinzufügen",
+    "rowCount_one": "{{count}} Zeile",
+    "rowCount_other": "{{count}} Zeilen",
+    "saving": "Speichern...",
+    "gridView": "Tabellenansicht",
+    "kanbanView": "Kanban-Ansicht",
+    "kanbanNoSelectColumn": "Fügen Sie eine Einfachauswahl-Spalte hinzu, um die Kanban-Ansicht zu verwenden.",
+    "noValue": "Kein Wert",
+    "noItems": "Keine Einträge",
+    "trash": "Papierkorb",
+    "delete": "Löschen",
+    "restore": "Wiederherstellen"
   }
 }

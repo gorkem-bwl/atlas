@@ -342,7 +342,8 @@
     "mail": "Mail",
     "write": "Scrivi",
     "draw": "Disegno",
-    "tasks": "Attività"
+    "tasks": "Attività",
+    "tables": "Tabelle"
   },
   "home": {
     "goodMorning": "Buongiorno!",
@@ -375,7 +376,9 @@
     "documents_one": "{{count}} documento",
     "documents_other": "{{count}} documenti",
     "drawings_one": "{{count}} disegno",
-    "drawings_other": "{{count}} disegni"
+    "drawings_other": "{{count}} disegni",
+    "tables_one": "{{count}} tabella",
+    "tables_other": "{{count}} tabelle"
   },
   "calendar": {
     "title": "Calendario",
@@ -570,5 +573,34 @@
     "snoozeUntilRequired": "snoozeUntil è obbligatorio",
     "tooManyRequests": "Troppe richieste, riprova più tardi",
     "tooManyAuthAttempts": "Troppi tentativi di autenticazione, riprova più tardi"
+  },
+  "tables": {
+    "title": "Tabelle",
+    "newTable": "Nuova tabella",
+    "searchTables": "Cerca tabelle...",
+    "noTables": "Nessuna tabella ancora",
+    "emptyTitle": "Nessuna tabella selezionata",
+    "emptyDesc": "Seleziona una tabella dalla barra laterale o creane una nuova.",
+    "backToHome": "Torna alla home",
+    "column": "Colonna",
+    "columnName": "Nome colonna",
+    "columnNamePlaceholder": "Inserisci il nome della colonna",
+    "fieldType": "Tipo di campo",
+    "options": "Opzioni (separate da virgola)",
+    "optionsPlaceholder": "Opzione 1, Opzione 2, Opzione 3",
+    "cancel": "Annulla",
+    "addColumn": "Aggiungi colonna",
+    "addRow": "Aggiungi riga",
+    "rowCount_one": "{{count}} riga",
+    "rowCount_other": "{{count}} righe",
+    "saving": "Salvataggio...",
+    "gridView": "Vista griglia",
+    "kanbanView": "Vista kanban",
+    "kanbanNoSelectColumn": "Aggiungi una colonna a selezione singola per usare la vista kanban.",
+    "noValue": "Nessun valore",
+    "noItems": "Nessun elemento",
+    "trash": "Cestino",
+    "delete": "Elimina",
+    "restore": "Ripristina"
   }
 }

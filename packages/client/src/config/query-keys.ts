@@ -57,4 +57,9 @@ export const queryKeys = {
     counts: ['tasks', 'counts'] as const,
     projects: ['tasks', 'projects'] as const,
   },
+  tables: {
+    all: ['tables'] as const,
+    list: ['tables', 'list'] as const,
+    detail: (id: string) => ['tables', 'detail', id] as const,
+  },
 };
