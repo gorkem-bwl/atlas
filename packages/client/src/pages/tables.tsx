@@ -115,8 +115,8 @@ const FIELD_TYPES: { value: TableFieldType; label: string }[] = [
 // ─── Tag color palette ──────────────────────────────────────────────
 
 const TAG_COLORS = [
-  '#e8f5e9', '#e3f2fd', '#fce4ec', '#fff3e0', '#f3e5f5',
-  '#e0f7fa', '#fff8e1', '#ede7f6', '#e8eaf6', '#fbe9e7',
+  '#d4edda', '#cce5ff', '#f8d7da', '#fff3cd', '#e2d5f1',
+  '#d1ecf1', '#ffeeba', '#d6d8db', '#c3dafe', '#fde2e2',
 ];
 
 function getTagColor(value: string): string {
@@ -381,6 +381,19 @@ function DateRenderer(params: ICellRendererParams) {
   return <span>{d.toLocaleDateString()}</span>;
 }
 
+// ─── Add column header ("+") ────────────────────────────────────────
+
+function AddColumnHeader(props: { setShowAddColumn: (v: boolean) => void }) {
+  return (
+    <div
+      className="tables-add-column-header"
+      onClick={() => props.setShowAddColumn(true)}
+    >
+      <Plus size={16} />
+    </div>
+  );
+}
+
 // ─── Build AG Grid column defs ──────────────────────────────────────
 
 function buildColDefs(
@@ -426,6 +439,7 @@ function buildColDefs(
       case 'number':
         base.cellEditor = 'agNumberCellEditor';
         base.cellEditorParams = { precision: 2 };
+        base.cellStyle = { textAlign: 'right' };
         break;
       case 'checkbox':
         base.cellRenderer = 'agCheckboxCellRenderer';
@@ -459,6 +473,7 @@ function buildColDefs(
         base.cellEditor = 'agNumberCellEditor';
         base.cellEditorParams = { precision: 2 };
         base.cellRenderer = CurrencyRenderer;
+        base.cellStyle = { textAlign: 'right' };
         break;
       case 'rating':
         base.cellEditor = 'agNumberCellEditor';
@@ -1377,6 +1392,19 @@ export function TablesPage() {
     cellStyle: { padding: 0 },
   }), [RowNumberRenderer]);
 
+  const ADD_COLUMN_COL: ColDef = useMemo(() => ({
+    headerName: '',
+    width: 44,
+    maxWidth: 44,
+    minWidth: 44,
+    editable: false,
+    sortable: false,
+    resizable: false,
+    suppressMovable: true,
+    headerComponent: () => <AddColumnHeader setShowAddColumn={setShowAddColumn} />,
+    cellRenderer: () => null,
+  }), []);
+
   const handleColumnMenuOpen = useCallback((columnId: string, x: number, y: number) => {
     setColumnMenu({ columnId, x, y });
   }, []);
@@ -1387,8 +1415,8 @@ export function TablesPage() {
   );
 
   const columnDefs = useMemo(
-    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount)],
-    [localColumns, t, ROW_NUMBER_COL, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount],
+    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount), ADD_COLUMN_COL],
+    [localColumns, t, ROW_NUMBER_COL, ADD_COLUMN_COL, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount],
   );
 
   // Kanban DnD
@@ -1623,6 +1651,26 @@ export function TablesPage() {
                 onBlur={() => triggerAutoSave({ title: localTitle })}
               />
 
+              {/* View toggle — right after title */}
+              <div className="tables-view-toggle">
+                <button
+                  className={localViewConfig.activeView === 'grid' ? 'active' : ''}
+                  onClick={() => handleViewToggle('grid')}
+                  title={t('tables.gridView')}
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  className={localViewConfig.activeView === 'kanban' ? 'active' : ''}
+                  onClick={() => handleViewToggle('kanban')}
+                  title={t('tables.kanbanView')}
+                >
+                  <Kanban size={14} />
+                </button>
+              </div>
+
+              <div className="tables-toolbar-divider" />
+
               <div style={{ position: 'relative' }}>
                 <button className="tables-toolbar-btn" onClick={() => setShowAddColumn(!showAddColumn)}>
                   <Plus size={14} /> {t('tables.column')}
@@ -1702,7 +1750,7 @@ export function TablesPage() {
                     color: 'var(--color-text-secondary)',
                     fontSize: 'var(--font-size-sm)',
                     fontFamily: 'var(--font-family)',
-                    height: 30,
+                    height: 28,
                   }}
                 >
                   {selectColumns.map((c) => (
@@ -1710,6 +1758,8 @@ export function TablesPage() {
                   ))}
                 </select>
               )}
+
+              <div className="tables-toolbar-divider" />
 
               <button
                 className="tables-toolbar-btn"
@@ -1743,24 +1793,6 @@ export function TablesPage() {
                   {t('tables.saving')}
                 </span>
               )}
-
-              {/* View toggle */}
-              <div className="tables-view-toggle">
-                <button
-                  className={localViewConfig.activeView === 'grid' ? 'active' : ''}
-                  onClick={() => handleViewToggle('grid')}
-                  title={t('tables.gridView')}
-                >
-                  <LayoutGrid size={14} />
-                </button>
-                <button
-                  className={localViewConfig.activeView === 'kanban' ? 'active' : ''}
-                  onClick={() => handleViewToggle('kanban')}
-                  title={t('tables.kanbanView')}
-                >
-                  <Kanban size={14} />
-                </button>
-              </div>
             </div>
 
             {/* Search bar */}

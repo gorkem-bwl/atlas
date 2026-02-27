@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import type { IHeaderParams } from 'ag-grid-community';
-import { MoreHorizontal, Info } from 'lucide-react';
+import { ChevronDown, Info } from 'lucide-react';
 import type { TableFieldType } from '@atlasmail/shared';
 
 interface TableCustomHeaderParams extends IHeaderParams {
@@ -50,7 +50,7 @@ export function TableCustomHeader(props: TableCustomHeaderParams) {
           onClick={handleMenuClick}
           tabIndex={-1}
         >
-          <MoreHorizontal size={14} />
+          <ChevronDown size={12} />
         </button>
       )}
     </div>
