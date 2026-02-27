@@ -3110,17 +3110,26 @@ export function TablesPage() {
                     </button>
                   );
                 })}
-                <div style={{ position: 'relative' }}>
-                  <button
-                    ref={addViewBtnRef}
-                    className="tables-topbar-view-tab tables-topbar-view-add"
-                    onClick={() => setShowAddViewDropdown(!showAddViewDropdown)}
-                    title="Add view"
-                  >
-                    <Plus size={13} />
-                  </button>
-                  {showAddViewDropdown && (
-                    <div ref={addViewDropdownRef} className="tables-add-view-dropdown">
+                <button
+                  ref={addViewBtnRef}
+                  className="tables-topbar-view-tab tables-topbar-view-add"
+                  onClick={() => setShowAddViewDropdown(!showAddViewDropdown)}
+                  title="Add view"
+                >
+                  <Plus size={13} />
+                </button>
+                {showAddViewDropdown && (() => {
+                  const rect = addViewBtnRef.current?.getBoundingClientRect();
+                  return (
+                    <div
+                      ref={addViewDropdownRef}
+                      className="tables-add-view-dropdown"
+                      style={{
+                        position: 'fixed',
+                        top: rect ? rect.bottom + 4 : 0,
+                        left: rect ? rect.left : 0,
+                      }}
+                    >
                       {[
                         { key: 'grid' as const, icon: LayoutGrid, label: 'Grid view' },
                         { key: 'kanban' as const, icon: Kanban, label: 'Kanban' },
@@ -3137,8 +3146,8 @@ export function TablesPage() {
                         </button>
                       ))}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
               </div>
             </div>
             {/* Tools row */}
