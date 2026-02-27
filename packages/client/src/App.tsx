@@ -117,43 +117,23 @@ export function App() {
                 />
                 <Route
                   path={ROUTES.DOCS}
-                  element={
-                    <ProtectedRoute>
-                      <DocsPage />
-                    </ProtectedRoute>
-                  }
+                  element={<DocsPage />}
                 />
                 <Route
                   path={ROUTES.DOC_DETAIL}
-                  element={
-                    <ProtectedRoute>
-                      <DocsPage />
-                    </ProtectedRoute>
-                  }
+                  element={<DocsPage />}
                 />
                 <Route
                   path={ROUTES.DRAW}
-                  element={
-                    <ProtectedRoute>
-                      <DrawPage />
-                    </ProtectedRoute>
-                  }
+                  element={<DrawPage />}
                 />
                 <Route
                   path={ROUTES.DRAW_DETAIL}
-                  element={
-                    <ProtectedRoute>
-                      <DrawPage />
-                    </ProtectedRoute>
-                  }
+                  element={<DrawPage />}
                 />
                 <Route
                   path={ROUTES.TASKS}
-                  element={
-                    <ProtectedRoute>
-                      <TasksPage />
-                    </ProtectedRoute>
-                  }
+                  element={<TasksPage />}
                 />
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>

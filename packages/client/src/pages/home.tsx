@@ -878,10 +878,7 @@ export function HomePage() {
             label={t('nav.tasks')}
             color="#6366f1"
             badge={pendingTaskCount > 0 ? t('home.pendingTasks', { count: pendingTaskCount }) : undefined}
-            onClick={() => {
-              if (isAuthenticated) { navigate(ROUTES.TASKS); }
-              else { window.location.href = buildGoogleOAuthUrl(); }
-            }}
+            onClick={() => navigate(ROUTES.TASKS)}
           />
           <AppCard
             icon={FileText}
