@@ -11,6 +11,7 @@ import {
   type ICellRendererParams,
   type CellKeyDownEvent,
   type ColumnResizedEvent,
+  type ColumnMovedEvent,
 } from 'ag-grid-community';
 import {
   Plus,
@@ -68,6 +69,9 @@ import { SortPopover } from '../components/tables/SortPopover';
 import { FilterPopover } from '../components/tables/FilterPopover';
 import { ExpandRowModal } from '../components/tables/ExpandRowModal';
 import { MultiSelectCellEditor } from '../components/tables/MultiSelectCellEditor';
+import { RowHeightPopover } from '../components/tables/RowHeightPopover';
+import { HideFieldsPopover } from '../components/tables/HideFieldsPopover';
+import { RowColorPopover } from '../components/tables/RowColorPopover';
 import '../styles/tables.css';
 
 // ─── AG Grid module registration ────────────────────────────────────
@@ -77,6 +81,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 // ─── Constants ──────────────────────────────────────────────────────
 
 const PLACEHOLDER_ROW_ID = '__placeholder__';
+const ROW_HEIGHT_MAP: Record<string, number> = { short: 28, medium: 36, tall: 52, extraTall: 72 };
 const SIDEBAR_WIDTH_KEY = 'atlasmail_tables_sidebar_width';
 const DEFAULT_SIDEBAR_WIDTH = 260;
 const MIN_SIDEBAR_WIDTH = 200;
@@ -163,6 +168,130 @@ function createDefaultRows(count = 3): TableRow[] {
     _createdAt: new Date().toISOString(),
   }));
 }
+
+// ─── Example table templates ─────────────────────────────────────────
+
+interface TableTemplate {
+  key: string;
+  titleKey: string;
+  icon: string;
+  createData: () => { title: string; columns: TableColumn[]; rows: TableRow[] };
+}
+
+const TABLE_TEMPLATES: TableTemplate[] = [
+  {
+    key: 'projectTracker',
+    titleKey: 'tables.templateProjectTracker',
+    icon: '📋',
+    createData: () => {
+      const cols: TableColumn[] = [
+        { id: crypto.randomUUID(), name: 'Task', type: 'text', width: 250 },
+        { id: crypto.randomUUID(), name: 'Assignee', type: 'text', width: 150 },
+        { id: crypto.randomUUID(), name: 'Status', type: 'singleSelect', width: 140, options: ['Not started', 'In progress', 'Done', 'Blocked'] },
+        { id: crypto.randomUUID(), name: 'Priority', type: 'singleSelect', width: 120, options: ['Low', 'Medium', 'High', 'Critical'] },
+        { id: crypto.randomUUID(), name: 'Due date', type: 'date', width: 130 },
+        { id: crypto.randomUUID(), name: 'Progress', type: 'percent', width: 120 },
+      ];
+      const rows: TableRow[] = [
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Design homepage wireframe', [cols[1].id]: 'Alice', [cols[2].id]: 'In progress', [cols[3].id]: 'High', [cols[5].id]: 60 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Set up CI/CD pipeline', [cols[1].id]: 'Bob', [cols[2].id]: 'Done', [cols[3].id]: 'Critical', [cols[5].id]: 100 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Write API documentation', [cols[1].id]: 'Carol', [cols[2].id]: 'Not started', [cols[3].id]: 'Medium', [cols[5].id]: 0 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'User authentication', [cols[1].id]: 'Alice', [cols[2].id]: 'In progress', [cols[3].id]: 'High', [cols[5].id]: 40 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Database migration', [cols[1].id]: 'Bob', [cols[2].id]: 'Blocked', [cols[3].id]: 'Critical', [cols[5].id]: 20 },
+      ];
+      return { title: 'Project tracker', columns: cols, rows };
+    },
+  },
+  {
+    key: 'crmContacts',
+    titleKey: 'tables.templateCRM',
+    icon: '👥',
+    createData: () => {
+      const cols: TableColumn[] = [
+        { id: crypto.randomUUID(), name: 'Name', type: 'text', width: 180 },
+        { id: crypto.randomUUID(), name: 'Email', type: 'email', width: 220 },
+        { id: crypto.randomUUID(), name: 'Company', type: 'text', width: 160 },
+        { id: crypto.randomUUID(), name: 'Phone', type: 'phone', width: 150 },
+        { id: crypto.randomUUID(), name: 'Stage', type: 'singleSelect', width: 140, options: ['Lead', 'Qualified', 'Proposal', 'Closed won', 'Closed lost'] },
+        { id: crypto.randomUUID(), name: 'Deal value', type: 'currency', width: 120 },
+      ];
+      const rows: TableRow[] = [
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Jane Cooper', [cols[1].id]: 'jane@acme.com', [cols[2].id]: 'Acme Corp', [cols[3].id]: '(555) 123-4567', [cols[4].id]: 'Qualified', [cols[5].id]: 15000 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Marcus Chen', [cols[1].id]: 'marcus@globex.com', [cols[2].id]: 'Globex Inc', [cols[3].id]: '(555) 987-6543', [cols[4].id]: 'Proposal', [cols[5].id]: 42000 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Sarah Miller', [cols[1].id]: 'sarah@initech.com', [cols[2].id]: 'Initech', [cols[3].id]: '(555) 246-8135', [cols[4].id]: 'Lead', [cols[5].id]: 8500 },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Tom Wilson', [cols[1].id]: 'tom@wayne.com', [cols[2].id]: 'Wayne Enterprises', [cols[3].id]: '(555) 369-1478', [cols[4].id]: 'Closed won', [cols[5].id]: 75000 },
+      ];
+      return { title: 'CRM contacts', columns: cols, rows };
+    },
+  },
+  {
+    key: 'contentCalendar',
+    titleKey: 'tables.templateContentCalendar',
+    icon: '📅',
+    createData: () => {
+      const cols: TableColumn[] = [
+        { id: crypto.randomUUID(), name: 'Title', type: 'text', width: 240 },
+        { id: crypto.randomUUID(), name: 'Type', type: 'singleSelect', width: 130, options: ['Blog post', 'Social media', 'Newsletter', 'Video'] },
+        { id: crypto.randomUUID(), name: 'Status', type: 'singleSelect', width: 130, options: ['Idea', 'Drafting', 'Review', 'Scheduled', 'Published'] },
+        { id: crypto.randomUUID(), name: 'Author', type: 'text', width: 140 },
+        { id: crypto.randomUUID(), name: 'Publish date', type: 'date', width: 130 },
+        { id: crypto.randomUUID(), name: 'URL', type: 'url', width: 200 },
+      ];
+      const rows: TableRow[] = [
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: '10 tips for productivity', [cols[1].id]: 'Blog post', [cols[2].id]: 'Published', [cols[3].id]: 'Alex' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Product launch announcement', [cols[1].id]: 'Social media', [cols[2].id]: 'Scheduled', [cols[3].id]: 'Jamie' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Monthly newsletter - March', [cols[1].id]: 'Newsletter', [cols[2].id]: 'Drafting', [cols[3].id]: 'Pat' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Feature deep-dive video', [cols[1].id]: 'Video', [cols[2].id]: 'Idea', [cols[3].id]: 'Alex' },
+      ];
+      return { title: 'Content calendar', columns: cols, rows };
+    },
+  },
+  {
+    key: 'inventory',
+    titleKey: 'tables.templateInventory',
+    icon: '📦',
+    createData: () => {
+      const cols: TableColumn[] = [
+        { id: crypto.randomUUID(), name: 'Product', type: 'text', width: 220 },
+        { id: crypto.randomUUID(), name: 'SKU', type: 'text', width: 120 },
+        { id: crypto.randomUUID(), name: 'Category', type: 'singleSelect', width: 140, options: ['Electronics', 'Clothing', 'Food', 'Office supplies'] },
+        { id: crypto.randomUUID(), name: 'Quantity', type: 'number', width: 100 },
+        { id: crypto.randomUUID(), name: 'Price', type: 'currency', width: 110 },
+        { id: crypto.randomUUID(), name: 'In stock', type: 'checkbox', width: 100 },
+      ];
+      const rows: TableRow[] = [
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Wireless keyboard', [cols[1].id]: 'WK-001', [cols[2].id]: 'Electronics', [cols[3].id]: 45, [cols[4].id]: 59.99, [cols[5].id]: true },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Cotton t-shirt (M)', [cols[1].id]: 'TS-024', [cols[2].id]: 'Clothing', [cols[3].id]: 120, [cols[4].id]: 19.99, [cols[5].id]: true },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Organic coffee beans (1kg)', [cols[1].id]: 'CB-100', [cols[2].id]: 'Food', [cols[3].id]: 0, [cols[4].id]: 24.50, [cols[5].id]: false },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Sticky notes (pack of 12)', [cols[1].id]: 'SN-050', [cols[2].id]: 'Office supplies', [cols[3].id]: 200, [cols[4].id]: 8.99, [cols[5].id]: true },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'USB-C hub', [cols[1].id]: 'UH-003', [cols[2].id]: 'Electronics', [cols[3].id]: 12, [cols[4].id]: 34.99, [cols[5].id]: true },
+      ];
+      return { title: 'Inventory', columns: cols, rows };
+    },
+  },
+  {
+    key: 'bugTracker',
+    titleKey: 'tables.templateBugTracker',
+    icon: '🐛',
+    createData: () => {
+      const cols: TableColumn[] = [
+        { id: crypto.randomUUID(), name: 'Bug title', type: 'text', width: 260 },
+        { id: crypto.randomUUID(), name: 'Severity', type: 'singleSelect', width: 120, options: ['Low', 'Medium', 'High', 'Critical'] },
+        { id: crypto.randomUUID(), name: 'Status', type: 'singleSelect', width: 130, options: ['Open', 'Investigating', 'Fix in progress', 'Resolved', 'Closed'] },
+        { id: crypto.randomUUID(), name: 'Reported by', type: 'text', width: 140 },
+        { id: crypto.randomUUID(), name: 'Description', type: 'longText', width: 300 },
+        { id: crypto.randomUUID(), name: 'Created', type: 'date', width: 130 },
+      ];
+      const rows: TableRow[] = [
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Login page crash on Safari', [cols[1].id]: 'Critical', [cols[2].id]: 'Fix in progress', [cols[3].id]: 'QA Team', [cols[4].id]: 'Page crashes when clicking sign in on Safari 17' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Misaligned button on mobile', [cols[1].id]: 'Low', [cols[2].id]: 'Open', [cols[3].id]: 'Jane', [cols[4].id]: 'Submit button overlaps footer on iPhone SE' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'Email notifications not sent', [cols[1].id]: 'High', [cols[2].id]: 'Investigating', [cols[3].id]: 'Support', [cols[4].id]: 'Users not receiving password reset emails' },
+        { _id: crypto.randomUUID(), _createdAt: new Date().toISOString(), [cols[0].id]: 'CSV export missing headers', [cols[1].id]: 'Medium', [cols[2].id]: 'Resolved', [cols[3].id]: 'Tom', [cols[4].id]: 'Exported CSV files are missing the header row' },
+      ];
+      return { title: 'Bug tracker', columns: cols, rows };
+    },
+  },
+];
 
 // ─── Cell renderers ─────────────────────────────────────────────────
 
@@ -258,6 +387,8 @@ function buildColDefs(
   columns: TableColumn[],
   t: (key: string) => string,
   onMenuOpen?: (columnId: string, x: number, y: number) => void,
+  hiddenColumns?: Set<string>,
+  frozenColumnCount?: number,
 ): ColDef[] {
   return columns.map((col, idx) => {
     const TypeIcon = FIELD_TYPE_ICONS[col.type];
@@ -269,13 +400,21 @@ function buildColDefs(
       resizable: true,
       sortable: true,
       rowDrag: idx === 0,
+      hide: hiddenColumns?.has(col.id),
       headerComponent: TableCustomHeader,
       headerComponentParams: {
         fieldType: col.type,
         fieldTypeIcon: TypeIcon,
+        fieldDescription: col.description,
         onMenuOpen,
       },
     };
+
+    // Freeze columns
+    if (frozenColumnCount && idx < frozenColumnCount) {
+      base.pinned = 'left';
+      base.lockPosition = 'left';
+    }
 
     switch (col.type) {
       case 'text':
@@ -634,13 +773,24 @@ export function TablesPage() {
   const canUndo = undoCounter >= 0 && undoPastRef.current.length > 0;
   const canRedo = undoCounter >= 0 && undoFutureRef.current.length > 0;
 
-  // Placeholder row style
-  const getRowStyle = useCallback((params: { data?: { _id?: string } }) => {
+  // Placeholder row style + conditional row coloring
+  const getRowStyle = useCallback((params: { data?: { _id?: string; [key: string]: unknown } }) => {
     if (params.data?._id === PLACEHOLDER_ROW_ID) {
       return { opacity: '0.4', fontStyle: 'italic' } as Record<string, string>;
     }
+    if (
+      localViewConfig.rowColorMode === 'bySelectField' &&
+      localViewConfig.rowColorColumnId &&
+      params.data
+    ) {
+      const val = params.data[localViewConfig.rowColorColumnId];
+      if (val != null && String(val) !== '') {
+        const color = getTagColor(String(val));
+        return { borderLeft: `3px solid ${color}`, background: `${color}33` } as Record<string, string>;
+      }
+    }
     return undefined;
-  }, []);
+  }, [localViewConfig.rowColorMode, localViewConfig.rowColorColumnId]);
 
   // ─── Data pipeline: filter → sort → rowData ─────────────────────
 
@@ -758,6 +908,17 @@ export function TablesPage() {
     const created = await createTable.mutateAsync({ columns, rows });
     handleSelectTable(created.id);
   }, [createTable, handleSelectTable]);
+
+  const handleCreateFromTemplate = useCallback(
+    async (templateKey: string) => {
+      const tpl = TABLE_TEMPLATES.find((t) => t.key === templateKey);
+      if (!tpl) return;
+      const { title, columns, rows } = tpl.createData();
+      const created = await createTable.mutateAsync({ title, columns, rows });
+      handleSelectTable(created.id);
+    },
+    [createTable, handleSelectTable],
+  );
 
   const handleDeleteTable = useCallback(
     (id: string) => {
@@ -1067,6 +1228,101 @@ export function TablesPage() {
     [localColumns, triggerAutoSave],
   );
 
+  // Column reorder via drag
+  const handleColumnMoved = useCallback(
+    (event: ColumnMovedEvent) => {
+      if (!event.finished || !event.column) return;
+      const api = gridRef.current?.api;
+      if (!api) return;
+      // Read new column order from AG Grid, skipping the row number col
+      const allDisplayedCols = api.getAllDisplayedColumns();
+      const newOrder: string[] = [];
+      for (const agCol of allDisplayedCols) {
+        const id = agCol.getColId();
+        if (localColumns.some((c) => c.id === id)) {
+          newOrder.push(id);
+        }
+      }
+      // Only update if order actually changed
+      const currentOrder = localColumns.map((c) => c.id);
+      if (JSON.stringify(newOrder) === JSON.stringify(currentOrder)) return;
+      const reordered = newOrder.map((id) => localColumns.find((c) => c.id === id)!).filter(Boolean);
+      setLocalColumns(reordered);
+      triggerAutoSave({ columns: reordered });
+    },
+    [localColumns, triggerAutoSave],
+  );
+
+  // ─── New column/row handlers for P3 ──────────────────────────────
+
+  const handleHideColumn = useCallback(
+    (colId: string) => {
+      const hidden = new Set(localViewConfig.hiddenColumns || []);
+      hidden.add(colId);
+      const updated = { ...localViewConfig, hiddenColumns: Array.from(hidden) };
+      setLocalViewConfig(updated);
+      triggerAutoSave({ viewConfig: updated });
+    },
+    [localViewConfig, triggerAutoSave],
+  );
+
+  const handleFreezeUpTo = useCallback(
+    (colId: string) => {
+      const idx = localColumns.findIndex((c) => c.id === colId);
+      if (idx < 0) return;
+      const count = Math.min(idx + 1, 3);
+      const updated = { ...localViewConfig, frozenColumnCount: count };
+      setLocalViewConfig(updated);
+      triggerAutoSave({ viewConfig: updated });
+    },
+    [localColumns, localViewConfig, triggerAutoSave],
+  );
+
+  const handleUnfreezeColumns = useCallback(() => {
+    const updated = { ...localViewConfig, frozenColumnCount: 0 };
+    setLocalViewConfig(updated);
+    triggerAutoSave({ viewConfig: updated });
+  }, [localViewConfig, triggerAutoSave]);
+
+  const handleInsertColumnLeft = useCallback(
+    (colId: string) => {
+      pushUndoState();
+      const idx = localColumns.findIndex((c) => c.id === colId);
+      if (idx < 0) return;
+      const newCol: TableColumn = { id: crypto.randomUUID(), name: t('tables.newColumnName'), type: 'text', width: 180 };
+      const updated = [...localColumns];
+      updated.splice(idx, 0, newCol);
+      setLocalColumns(updated);
+      triggerAutoSave({ columns: updated });
+    },
+    [localColumns, triggerAutoSave, pushUndoState, t],
+  );
+
+  const handleInsertColumnRight = useCallback(
+    (colId: string) => {
+      pushUndoState();
+      const idx = localColumns.findIndex((c) => c.id === colId);
+      if (idx < 0) return;
+      const newCol: TableColumn = { id: crypto.randomUUID(), name: t('tables.newColumnName'), type: 'text', width: 180 };
+      const updated = [...localColumns];
+      updated.splice(idx + 1, 0, newCol);
+      setLocalColumns(updated);
+      triggerAutoSave({ columns: updated });
+    },
+    [localColumns, triggerAutoSave, pushUndoState, t],
+  );
+
+  const handleEditColumnDescription = useCallback(
+    (colId: string, description: string) => {
+      const updated = localColumns.map((c) =>
+        c.id === colId ? { ...c, description: description || undefined } : c,
+      );
+      setLocalColumns(updated);
+      triggerAutoSave({ columns: updated });
+    },
+    [localColumns, triggerAutoSave],
+  );
+
   // View toggle
   const handleViewToggle = useCallback(
     (view: 'grid' | 'kanban') => {
@@ -1117,9 +1373,14 @@ export function TablesPage() {
     setColumnMenu({ columnId, x, y });
   }, []);
 
+  const hiddenColumnsSet = useMemo(
+    () => new Set(localViewConfig.hiddenColumns || []),
+    [localViewConfig.hiddenColumns],
+  );
+
   const columnDefs = useMemo(
-    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen)],
-    [localColumns, t, ROW_NUMBER_COL, handleColumnMenuOpen],
+    () => [ROW_NUMBER_COL, ...buildColDefs(localColumns, t, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount)],
+    [localColumns, t, ROW_NUMBER_COL, handleColumnMenuOpen, hiddenColumnsSet, localViewConfig.frozenColumnCount],
   );
 
   // Kanban DnD
@@ -1327,6 +1588,21 @@ export function TablesPage() {
             <button className="tables-toolbar-btn" onClick={handleCreateTable}>
               <Plus size={14} /> {t('tables.newTable')}
             </button>
+            <div className="tables-templates-section">
+              <div className="tables-templates-label">{t('tables.startFromTemplate')}</div>
+              <div className="tables-templates-grid">
+                {TABLE_TEMPLATES.map((tpl) => (
+                  <button
+                    key={tpl.key}
+                    className="tables-template-card"
+                    onClick={() => handleCreateFromTemplate(tpl.key)}
+                  >
+                    <span className="tables-template-icon">{tpl.icon}</span>
+                    <span className="tables-template-name">{t(tpl.titleKey)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <>
@@ -1350,6 +1626,16 @@ export function TablesPage() {
                 )}
               </div>
 
+              <HideFieldsPopover
+                columns={localColumns}
+                viewConfig={localViewConfig}
+                onUpdate={(hiddenColumns) => {
+                  const updated = { ...localViewConfig, hiddenColumns };
+                  setLocalViewConfig(updated);
+                  triggerAutoSave({ viewConfig: updated });
+                }}
+              />
+
               <SortPopover
                 columns={localColumns}
                 viewConfig={localViewConfig}
@@ -1365,6 +1651,25 @@ export function TablesPage() {
                 viewConfig={localViewConfig}
                 onUpdate={(filters) => {
                   const updated = { ...localViewConfig, filters };
+                  setLocalViewConfig(updated);
+                  triggerAutoSave({ viewConfig: updated });
+                }}
+              />
+
+              <RowHeightPopover
+                viewConfig={localViewConfig}
+                onUpdate={(rowHeight) => {
+                  const updated = { ...localViewConfig, rowHeight };
+                  setLocalViewConfig(updated);
+                  triggerAutoSave({ viewConfig: updated });
+                }}
+              />
+
+              <RowColorPopover
+                columns={localColumns}
+                viewConfig={localViewConfig}
+                onUpdate={(mode, columnId) => {
+                  const updated = { ...localViewConfig, rowColorMode: mode, rowColorColumnId: columnId };
                   setLocalViewConfig(updated);
                   triggerAutoSave({ viewConfig: updated });
                 }}
@@ -1477,10 +1782,12 @@ export function TablesPage() {
                       columnDefs={columnDefs}
                       rowData={rowData}
                       getRowId={getRowId}
+                      rowHeight={ROW_HEIGHT_MAP[localViewConfig.rowHeight || 'medium']}
                       readOnlyEdit={true}
                       onCellEditRequest={handleCellEditRequest}
                       onCellKeyDown={handleCellKeyDown}
                       onColumnResized={handleColumnResized}
+                      onColumnMoved={handleColumnMoved}
                       rowDragManaged={false}
                       onRowDragEnd={handleRowDragEnd}
                       animateRows={true}
@@ -1504,7 +1811,11 @@ export function TablesPage() {
                   <button className="tables-footer-btn" onClick={handleAddRow}>
                     <Plus size={14} /> {t('tables.addRow')}
                   </button>
-                  <span>{t('tables.rowCount', { count: localRows.length })}</span>
+                  <span>
+                    {filteredRows.length !== localRows.length
+                      ? t('tables.filteredRowCount', { filtered: filteredRows.length, total: localRows.length })
+                      : t('tables.rowCount', { count: localRows.length })}
+                  </span>
                 </div>
               </>
             )}
@@ -1559,11 +1870,15 @@ export function TablesPage() {
       {columnMenu && (() => {
         const col = localColumns.find((c) => c.id === columnMenu.columnId);
         if (!col) return null;
+        const colIdx = localColumns.findIndex((c) => c.id === columnMenu.columnId);
         return (
           <ColumnHeaderMenu
             columnId={columnMenu.columnId}
             columnName={col.name}
             columnType={col.type}
+            columnDescription={col.description}
+            columnIndex={colIdx}
+            frozenCount={localViewConfig.frozenColumnCount || 0}
             x={columnMenu.x}
             y={columnMenu.y}
             onClose={() => setColumnMenu(null)}
@@ -1573,6 +1888,12 @@ export function TablesPage() {
             onChangeType={handleChangeColumnType}
             onSortAsc={(colId) => handleSortByColumn(colId, 'asc')}
             onSortDesc={(colId) => handleSortByColumn(colId, 'desc')}
+            onHide={handleHideColumn}
+            onFreeze={handleFreezeUpTo}
+            onUnfreeze={handleUnfreezeColumns}
+            onInsertLeft={handleInsertColumnLeft}
+            onInsertRight={handleInsertColumnRight}
+            onEditDescription={handleEditColumnDescription}
           />
         );
       })()}

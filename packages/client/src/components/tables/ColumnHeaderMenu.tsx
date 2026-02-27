@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import {
   Type, Hash, CheckSquare, ChevronDown, List, Calendar, Link2,
   AtSign, DollarSign, Phone, Star, Percent, AlignLeft, Paperclip,
-  Trash2, Copy, ArrowUpAZ, ArrowDownAZ, Pencil,
+  Trash2, Copy, ArrowUpAZ, ArrowDownAZ, Pencil, EyeOff,
+  Lock, Unlock, ArrowLeftToLine, ArrowRightToLine, FileText,
 } from 'lucide-react';
 import type { TableFieldType } from '@atlasmail/shared';
 
@@ -28,6 +29,9 @@ interface ColumnHeaderMenuProps {
   columnId: string;
   columnName: string;
   columnType: TableFieldType;
+  columnDescription?: string;
+  columnIndex: number;
+  frozenCount: number;
   x: number;
   y: number;
   onClose: () => void;
@@ -37,18 +41,31 @@ interface ColumnHeaderMenuProps {
   onChangeType: (colId: string, newType: TableFieldType) => void;
   onSortAsc: (colId: string) => void;
   onSortDesc: (colId: string) => void;
+  onHide: (colId: string) => void;
+  onFreeze: (colId: string) => void;
+  onUnfreeze: () => void;
+  onInsertLeft: (colId: string) => void;
+  onInsertRight: (colId: string) => void;
+  onEditDescription: (colId: string, desc: string) => void;
 }
 
 export function ColumnHeaderMenu({
-  columnId, columnName, columnType, x, y, onClose,
+  columnId, columnName, columnType, columnDescription, columnIndex, frozenCount,
+  x, y, onClose,
   onRename, onDelete, onDuplicate, onChangeType, onSortAsc, onSortDesc,
+  onHide, onFreeze, onUnfreeze, onInsertLeft, onInsertRight, onEditDescription,
 }: ColumnHeaderMenuProps) {
   const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [showTypeSubmenu, setShowTypeSubmenu] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(columnName);
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState(columnDescription || '');
   const renameRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+
+  const isFrozen = columnIndex < frozenCount;
 
   // Adjust position to stay in viewport
   const [pos, setPos] = useState({ x, y });
@@ -81,10 +98,19 @@ export function ColumnHeaderMenu({
     if (isRenaming) renameRef.current?.focus();
   }, [isRenaming]);
 
+  useEffect(() => {
+    if (isEditingDesc) descRef.current?.focus();
+  }, [isEditingDesc]);
+
   const handleRenameSubmit = () => {
     if (renameValue.trim() && renameValue.trim() !== columnName) {
       onRename(columnId, renameValue.trim());
     }
+    onClose();
+  };
+
+  const handleDescSubmit = () => {
+    onEditDescription(columnId, descValue.trim());
     onClose();
   };
 
@@ -107,11 +133,43 @@ export function ColumnHeaderMenu({
             onBlur={handleRenameSubmit}
           />
         </div>
+      ) : isEditingDesc ? (
+        <div className="tables-context-menu-rename">
+          <textarea
+            ref={descRef}
+            value={descValue}
+            onChange={(e) => setDescValue(e.target.value)}
+            placeholder={t('tables.descriptionPlaceholder')}
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '5px 8px',
+              border: '1px solid var(--color-border-focus)',
+              borderRadius: 'var(--radius-md, 4px)',
+              background: 'var(--color-bg-primary)',
+              color: 'var(--color-text-primary)',
+              fontSize: 'var(--font-size-sm)',
+              fontFamily: 'var(--font-family)',
+              outline: 'none',
+              resize: 'vertical',
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleDescSubmit(); }
+              if (e.key === 'Escape') onClose();
+            }}
+            onBlur={handleDescSubmit}
+          />
+        </div>
       ) : (
         <>
           <button className="tables-context-menu-item" onClick={() => setIsRenaming(true)}>
             <Pencil size={14} />
             <span>{t('tables.rename')}</span>
+          </button>
+
+          <button className="tables-context-menu-item" onClick={() => setIsEditingDesc(true)}>
+            <FileText size={14} />
+            <span>{t('tables.editDescription')}</span>
           </button>
 
           <div
@@ -141,6 +199,16 @@ export function ColumnHeaderMenu({
             )}
           </div>
 
+          <button className="tables-context-menu-item" onClick={() => { onInsertLeft(columnId); onClose(); }}>
+            <ArrowLeftToLine size={14} />
+            <span>{t('tables.insertLeft')}</span>
+          </button>
+
+          <button className="tables-context-menu-item" onClick={() => { onInsertRight(columnId); onClose(); }}>
+            <ArrowRightToLine size={14} />
+            <span>{t('tables.insertRight')}</span>
+          </button>
+
           <button className="tables-context-menu-item" onClick={() => { onDuplicate(columnId); onClose(); }}>
             <Copy size={14} />
             <span>{t('tables.duplicateColumn')}</span>
@@ -155,6 +223,29 @@ export function ColumnHeaderMenu({
             <ArrowDownAZ size={14} />
             <span>{t('tables.sortDesc')}</span>
           </button>
+
+          <div className="tables-context-menu-divider" />
+
+          <button className="tables-context-menu-item" onClick={() => { onHide(columnId); onClose(); }}>
+            <EyeOff size={14} />
+            <span>{t('tables.hideField')}</span>
+          </button>
+
+          {isFrozen ? (
+            <button className="tables-context-menu-item" onClick={() => { onUnfreeze(); onClose(); }}>
+              <Unlock size={14} />
+              <span>{t('tables.unfreezeColumns')}</span>
+            </button>
+          ) : (
+            <button
+              className="tables-context-menu-item"
+              onClick={() => { onFreeze(columnId); onClose(); }}
+              disabled={columnIndex >= 3}
+            >
+              <Lock size={14} />
+              <span>{t('tables.freezeUpTo')}</span>
+            </button>
+          )}
 
           <div className="tables-context-menu-divider" />
 

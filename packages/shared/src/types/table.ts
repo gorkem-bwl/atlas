@@ -21,6 +21,7 @@ export interface TableColumn {
   width?: number;
   options?: string[];
   required?: boolean;
+  description?: string;
 }
 
 export interface TableRow {
@@ -35,6 +36,10 @@ export interface TableViewConfig {
   sorts?: Array<{ columnId: string; direction: 'asc' | 'desc' }>;
   filters?: Array<{ columnId: string; operator: string; value: unknown }>;
   hiddenColumns?: string[];
+  rowHeight?: 'short' | 'medium' | 'tall' | 'extraTall';
+  frozenColumnCount?: number;
+  rowColorMode?: 'none' | 'bySelectField';
+  rowColorColumnId?: string;
 }
 
 export interface Spreadsheet {

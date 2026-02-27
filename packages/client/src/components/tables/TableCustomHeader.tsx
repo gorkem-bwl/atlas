@@ -1,16 +1,18 @@
 import { useState, useRef } from 'react';
 import type { IHeaderParams } from 'ag-grid-community';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Info } from 'lucide-react';
 import type { TableFieldType } from '@atlasmail/shared';
 
 interface TableCustomHeaderParams extends IHeaderParams {
   fieldType?: TableFieldType;
   fieldTypeIcon?: React.ComponentType<{ size?: number }>;
+  fieldDescription?: string;
   onMenuOpen?: (columnId: string, x: number, y: number) => void;
 }
 
 export function TableCustomHeader(props: TableCustomHeaderParams) {
   const { displayName, fieldTypeIcon: Icon, column, onMenuOpen } = props;
+  const fieldDescription = (props as TableCustomHeaderParams).fieldDescription;
   const btnRef = useRef<HTMLButtonElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -36,6 +38,11 @@ export function TableCustomHeader(props: TableCustomHeaderParams) {
         </span>
       )}
       <span className="tables-custom-header-name">{displayName}</span>
+      {fieldDescription && (
+        <span className="tables-custom-header-desc-icon" title={fieldDescription}>
+          <Info size={10} />
+        </span>
+      )}
       {onMenuOpen && (
         <button
           ref={btnRef}
