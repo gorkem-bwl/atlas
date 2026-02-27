@@ -108,6 +108,49 @@
   font-size: var(--font-size-sm);
 }
 
+/* ─── Sidebar bottom: views + settings ────────────────────────────── */
+
+.tables-sidebar-bottom {
+  border-top: 1px solid var(--color-border);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tables-sidebar-views {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tables-sidebar-view-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: background 100ms ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-family);
+}
+
+.tables-sidebar-view-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.tables-sidebar-view-item.active {
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+  color: var(--color-accent-primary);
+  font-weight: 500;
+}
+
 /* ─── Resize handle ───────────────────────────────────────────────── */
 
 .tables-sidebar-resize {

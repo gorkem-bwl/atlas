@@ -42,6 +42,7 @@ import {
   ExternalLink,
   Paperclip,
   FileIcon,
+  Settings2,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -79,6 +80,7 @@ import { RowHeightPopover } from '../components/tables/RowHeightPopover';
 import { HideFieldsPopover } from '../components/tables/HideFieldsPopover';
 import { RowColorPopover } from '../components/tables/RowColorPopover';
 import { useTablesSettingsStore } from '../stores/tables-settings-store';
+import { useUIStore } from '../stores/ui-store';
 import { FindReplaceBar } from '../components/tables/FindReplaceBar';
 import { BatchEditOverlay } from '../components/tables/BatchEditOverlay';
 import { GroupHeaderRenderer } from '../components/tables/GroupHeaderRow';
@@ -1460,6 +1462,7 @@ export function TablesPage() {
   const restoreTable = useRestoreTable();
   const { save: autoSave, isSaving } = useAutoSaveTable();
   const tablesSettings = useTablesSettingsStore();
+  const { openSettings } = useUIStore();
 
   const [selectedId, setSelectedId] = useState<string | null>(
     paramId ?? localStorage.getItem(LAST_TABLE_KEY) ?? null,
@@ -2954,6 +2957,34 @@ export function TablesPage() {
           )}
         </div>
 
+        {/* Sidebar bottom: view types + settings */}
+        <div className="tables-sidebar-bottom">
+          <div className="tables-sidebar-views">
+            {[
+              { key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') },
+              { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') },
+              { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') },
+              { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') },
+            ].map((v) => (
+              <button
+                key={v.key}
+                className={`tables-sidebar-view-item${localViewConfig.activeView === v.key ? ' active' : ''}`}
+                onClick={() => handleViewToggle(v.key)}
+              >
+                <v.icon size={14} />
+                <span>{v.label}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            className="tables-sidebar-view-item"
+            onClick={() => openSettings('tables')}
+            title="Tables settings"
+          >
+            <Settings2 size={14} />
+            <span>Settings</span>
+          </button>
+        </div>
 
         {/* Resize handle */}
         <div className="tables-sidebar-resize" onMouseDown={handleResizeStart} />
@@ -3112,27 +3143,6 @@ export function TablesPage() {
             </div>
             {/* Tools row */}
             <div className="tables-toolbar">
-              {/* View tabs */}
-              <div className="tables-view-tabs">
-                {[
-                  { key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') },
-                  { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') },
-                  { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') },
-                  { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') },
-                ].map((v) => (
-                  <button
-                    key={v.key}
-                    className={`tables-view-tab${localViewConfig.activeView === v.key ? ' active' : ''}`}
-                    onClick={() => handleViewToggle(v.key)}
-                  >
-                    <v.icon size={14} />
-                    <span>{v.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="tables-toolbar-divider" />
-
               <div style={{ position: 'relative' }}>
                 <button className="tables-toolbar-btn" onClick={() => setShowAddColumn(!showAddColumn)}>
                   <Plus size={14} /> {t('tables.column')}
