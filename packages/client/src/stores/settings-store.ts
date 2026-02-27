@@ -1,6 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import i18n from '../i18n';
+import { api } from '../lib/api-client';
+import { queryKeys } from '../config/query-keys';
 import type { ThemeMode, Density, ColorThemeId } from '@atlasmail/shared';
 
 export type FontFamilyId = 'inter' | 'geist' | 'system' | 'roboto' | 'open-sans' | 'lato';
@@ -56,6 +59,7 @@ interface SettingsState {
   aiQuickReplies: boolean;
   aiThreadSummary: boolean;
   aiTranslation: boolean;
+  _hydrated: boolean;
   setTheme: (theme: ThemeMode) => void;
   setColorTheme: (colorTheme: ColorThemeId) => void;
   setDensity: (density: Density) => void;
@@ -85,78 +89,163 @@ interface SettingsState {
   setAIQuickReplies: (value: boolean) => void;
   setAIThreadSummary: (value: boolean) => void;
   setAITranslation: (value: boolean) => void;
+  _hydrateFromServer: (data: Record<string, unknown>) => void;
 }
 
-export const useSettingsStore = create<SettingsState>()(
-  persist(
-    (set) => ({
-      theme: 'dark',
-      density: 'default',
-      fontFamily: 'inter',
-      language: i18n.language?.split('-')[0] || 'en',
-      customShortcuts: {},
-      readingPane: 'right',
-      autoAdvance: 'next',
-      desktopNotifications: true,
-      soundNotifications: false,
-      showBadgeCount: true,
-      notificationLevel: 'smart',
-      composeMode: 'rich',
-      signature: '',
-      signatureHtml: '',
-      includeSignatureInReplies: true,
-      undoSendDelay: 5,
-      sendAnimation: true,
-      themeTransition: true,
-      colorTheme: 'default',
-      trackingEnabled: false,
-      // AI defaults
-      aiEnabled: false,
-      aiProvider: 'openai',
-      aiApiKeys: {},
-      aiCustomProvider: { name: '', baseUrl: '', apiKey: '' },
-      aiWritingAssistant: true,
-      aiQuickReplies: true,
-      aiThreadSummary: true,
-      aiTranslation: true,
-      setTheme: (theme) => set({ theme }),
-      setColorTheme: (colorTheme) => set({ colorTheme }),
-      setDensity: (density) => set({ density }),
-      setFontFamily: (fontFamily) => set({ fontFamily }),
-      setCustomShortcut: (id, keys) =>
-        set((s) => ({ customShortcuts: { ...s.customShortcuts, [id]: keys } })),
-      setReadingPane: (readingPane) => set({ readingPane }),
-      setAutoAdvance: (autoAdvance) => set({ autoAdvance }),
-      setDesktopNotifications: (desktopNotifications) => set({ desktopNotifications }),
-      setSoundNotifications: (soundNotifications) => set({ soundNotifications }),
-      setShowBadgeCount: (showBadgeCount) => set({ showBadgeCount }),
-      setNotificationLevel: (notificationLevel) => set({ notificationLevel }),
-      setComposeMode: (composeMode) => set({ composeMode }),
-      setSignature: (signature) => set({ signature }),
-      setSignatureHtml: (signatureHtml) => set({ signatureHtml }),
-      setIncludeSignatureInReplies: (includeSignatureInReplies) =>
-        set({ includeSignatureInReplies }),
-      setUndoSendDelay: (undoSendDelay) => set({ undoSendDelay }),
-      setSendAnimation: (sendAnimation) => set({ sendAnimation }),
-      setThemeTransition: (themeTransition) => set({ themeTransition }),
-      setTrackingEnabled: (trackingEnabled) => set({ trackingEnabled }),
-      setLanguage: (language) => {
-        i18n.changeLanguage(language);
-        localStorage.setItem('atlasmail-language', language);
-        set({ language });
-      },
-      // AI setters
-      setAIEnabled: (aiEnabled) => set({ aiEnabled }),
-      setAIProvider: (aiProvider) => set({ aiProvider }),
-      setAIApiKey: (provider, key) =>
-        set((s) => ({ aiApiKeys: { ...s.aiApiKeys, [provider]: key } })),
-      setAICustomProvider: (partial) =>
-        set((s) => ({ aiCustomProvider: { ...s.aiCustomProvider, ...partial } })),
-      setAIWritingAssistant: (aiWritingAssistant) => set({ aiWritingAssistant }),
-      setAIQuickReplies: (aiQuickReplies) => set({ aiQuickReplies }),
-      setAIThreadSummary: (aiThreadSummary) => set({ aiThreadSummary }),
-      setAITranslation: (aiTranslation) => set({ aiTranslation }),
-    }),
-    { name: 'atlasmail-settings' },
-  ),
+// Map from local field names to server column names
+const TO_SERVER: Record<string, string> = {
+  theme: 'theme',
+  density: 'density',
+  language: 'language',
+  fontFamily: 'fontFamily',
+  customShortcuts: 'customShortcuts',
+  readingPane: 'readingPane',
+  autoAdvance: 'autoAdvance',
+  desktopNotifications: 'desktopNotifications',
+  soundNotifications: 'notificationSound',
+  showBadgeCount: 'showBadgeCount',
+  notificationLevel: 'notificationLevel',
+  composeMode: 'composeMode',
+  signature: 'signature',
+  signatureHtml: 'signatureHtml',
+  includeSignatureInReplies: 'includeSignatureInReplies',
+  undoSendDelay: 'undoSendDelay',
+  sendAnimation: 'sendAnimation',
+  themeTransition: 'themeTransition',
+  colorTheme: 'colorTheme',
+  trackingEnabled: 'trackingEnabled',
+  aiEnabled: 'aiEnabled',
+  aiProvider: 'aiProvider',
+  aiApiKeys: 'aiApiKeys',
+  aiCustomProvider: 'aiCustomProvider',
+  aiWritingAssistant: 'aiWritingAssistant',
+  aiQuickReplies: 'aiQuickReplies',
+  aiThreadSummary: 'aiThreadSummary',
+  aiTranslation: 'aiTranslation',
+};
+
+const FROM_SERVER: Record<string, string> = Object.fromEntries(
+  Object.entries(TO_SERVER).map(([local, server]) => [server, local])
 );
+
+// Persist to server (fire-and-forget)
+function persistToServer(serverKey: string, value: unknown) {
+  api.put('/settings', { [serverKey]: value }).catch(() => {});
+}
+
+export const useSettingsStore = create<SettingsState>()((set) => ({
+  theme: 'dark',
+  density: 'default',
+  fontFamily: 'inter',
+  language: i18n.language?.split('-')[0] || 'en',
+  customShortcuts: {},
+  readingPane: 'right',
+  autoAdvance: 'next',
+  desktopNotifications: true,
+  soundNotifications: false,
+  showBadgeCount: true,
+  notificationLevel: 'smart',
+  composeMode: 'rich',
+  signature: '',
+  signatureHtml: '',
+  includeSignatureInReplies: true,
+  undoSendDelay: 5,
+  sendAnimation: true,
+  themeTransition: true,
+  colorTheme: 'default',
+  trackingEnabled: false,
+  // AI defaults
+  aiEnabled: false,
+  aiProvider: 'openai',
+  aiApiKeys: {},
+  aiCustomProvider: { name: '', baseUrl: '', apiKey: '' },
+  aiWritingAssistant: true,
+  aiQuickReplies: true,
+  aiThreadSummary: true,
+  aiTranslation: true,
+  _hydrated: false,
+  setTheme: (theme) => { set({ theme }); persistToServer('theme', theme); },
+  setColorTheme: (colorTheme) => { set({ colorTheme }); persistToServer('colorTheme', colorTheme); },
+  setDensity: (density) => { set({ density }); persistToServer('density', density); },
+  setFontFamily: (fontFamily) => { set({ fontFamily }); persistToServer('fontFamily', fontFamily); },
+  setCustomShortcut: (id, keys) =>
+    set((s) => {
+      const customShortcuts = { ...s.customShortcuts, [id]: keys };
+      persistToServer('customShortcuts', customShortcuts);
+      return { customShortcuts };
+    }),
+  setReadingPane: (readingPane) => { set({ readingPane }); persistToServer('readingPane', readingPane); },
+  setAutoAdvance: (autoAdvance) => { set({ autoAdvance }); persistToServer('autoAdvance', autoAdvance); },
+  setDesktopNotifications: (desktopNotifications) => { set({ desktopNotifications }); persistToServer('desktopNotifications', desktopNotifications); },
+  setSoundNotifications: (soundNotifications) => { set({ soundNotifications }); persistToServer('notificationSound', soundNotifications); },
+  setShowBadgeCount: (showBadgeCount) => { set({ showBadgeCount }); persistToServer('showBadgeCount', showBadgeCount); },
+  setNotificationLevel: (notificationLevel) => { set({ notificationLevel }); persistToServer('notificationLevel', notificationLevel); },
+  setComposeMode: (composeMode) => { set({ composeMode }); persistToServer('composeMode', composeMode); },
+  setSignature: (signature) => { set({ signature }); persistToServer('signature', signature); },
+  setSignatureHtml: (signatureHtml) => { set({ signatureHtml }); persistToServer('signatureHtml', signatureHtml); },
+  setIncludeSignatureInReplies: (includeSignatureInReplies) => { set({ includeSignatureInReplies }); persistToServer('includeSignatureInReplies', includeSignatureInReplies); },
+  setUndoSendDelay: (undoSendDelay) => { set({ undoSendDelay }); persistToServer('undoSendDelay', undoSendDelay); },
+  setSendAnimation: (sendAnimation) => { set({ sendAnimation }); persistToServer('sendAnimation', sendAnimation); },
+  setThemeTransition: (themeTransition) => { set({ themeTransition }); persistToServer('themeTransition', themeTransition); },
+  setTrackingEnabled: (trackingEnabled) => { set({ trackingEnabled }); persistToServer('trackingEnabled', trackingEnabled); },
+  setLanguage: (language) => {
+    i18n.changeLanguage(language);
+    set({ language });
+    persistToServer('language', language);
+  },
+  // AI setters
+  setAIEnabled: (aiEnabled) => { set({ aiEnabled }); persistToServer('aiEnabled', aiEnabled); },
+  setAIProvider: (aiProvider) => { set({ aiProvider }); persistToServer('aiProvider', aiProvider); },
+  setAIApiKey: (provider, key) =>
+    set((s) => {
+      const aiApiKeys = { ...s.aiApiKeys, [provider]: key };
+      persistToServer('aiApiKeys', aiApiKeys);
+      return { aiApiKeys };
+    }),
+  setAICustomProvider: (partial) =>
+    set((s) => {
+      const aiCustomProvider = { ...s.aiCustomProvider, ...partial };
+      persistToServer('aiCustomProvider', aiCustomProvider);
+      return { aiCustomProvider };
+    }),
+  setAIWritingAssistant: (aiWritingAssistant) => { set({ aiWritingAssistant }); persistToServer('aiWritingAssistant', aiWritingAssistant); },
+  setAIQuickReplies: (aiQuickReplies) => { set({ aiQuickReplies }); persistToServer('aiQuickReplies', aiQuickReplies); },
+  setAIThreadSummary: (aiThreadSummary) => { set({ aiThreadSummary }); persistToServer('aiThreadSummary', aiThreadSummary); },
+  setAITranslation: (aiTranslation) => { set({ aiTranslation }); persistToServer('aiTranslation', aiTranslation); },
+  _hydrateFromServer: (data: Record<string, unknown>) => {
+    const patch: Record<string, unknown> = {};
+    for (const [serverKey, localKey] of Object.entries(FROM_SERVER)) {
+      if (serverKey in data && data[serverKey] !== undefined && data[serverKey] !== null) {
+        patch[localKey] = data[serverKey];
+      }
+    }
+    if (data.language && typeof data.language === 'string') {
+      i18n.changeLanguage(data.language);
+    }
+    set({ ...patch, _hydrated: true } as Partial<SettingsState>);
+  },
+}));
+
+/**
+ * Hook to sync settings store from server on mount.
+ * Call this once near the app root (e.g. in App.tsx or a layout provider).
+ */
+export function useSettingsSync() {
+  const hydrateFromServer = useSettingsStore((s) => s._hydrateFromServer);
+  const hydrated = useSettingsStore((s) => s._hydrated);
+
+  const { data: serverSettings } = useQuery({
+    queryKey: queryKeys.settings.all,
+    queryFn: async () => {
+      const { data } = await api.get('/settings');
+      return data.data as Record<string, unknown> | null;
+    },
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (serverSettings && !hydrated) {
+      hydrateFromServer(serverSettings);
+    }
+  }, [serverSettings, hydrated, hydrateFromServer]);
+}

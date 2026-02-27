@@ -300,6 +300,62 @@ try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tables_show_field_typ
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tables_default_row_count INTEGER NOT NULL DEFAULT 3`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN tables_include_row_ids_in_export INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
+// ---- Calendar settings columns on user_settings ------------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_default_view TEXT NOT NULL DEFAULT 'week'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_week_starts_on_monday INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_show_week_numbers INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_density TEXT NOT NULL DEFAULT 'default'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_work_start_hour INTEGER NOT NULL DEFAULT 9`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_work_end_hour INTEGER NOT NULL DEFAULT 17`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_secondary_timezone TEXT`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN cal_event_reminder_minutes INTEGER NOT NULL DEFAULT 10`).run(); } catch { /* column already exists */ }
+
+// ---- General app settings columns on user_settings ---------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN language TEXT NOT NULL DEFAULT 'en'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN font_family TEXT NOT NULL DEFAULT 'inter'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN color_theme TEXT NOT NULL DEFAULT 'default'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN show_badge_count INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN notification_level TEXT NOT NULL DEFAULT 'smart'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN compose_mode TEXT NOT NULL DEFAULT 'rich'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN signature TEXT NOT NULL DEFAULT ''`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN include_signature_in_replies INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN undo_send_delay INTEGER NOT NULL DEFAULT 5`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN send_animation INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN theme_transition INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN shortcuts_preset TEXT NOT NULL DEFAULT 'superhuman'`).run(); } catch { /* column already exists */ }
+// AI settings
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_enabled INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_provider TEXT NOT NULL DEFAULT 'openai'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_api_keys TEXT NOT NULL DEFAULT '{}'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_custom_provider TEXT NOT NULL DEFAULT '{}'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_writing_assistant INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_quick_replies INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_thread_summary INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN ai_translation INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+
+// ---- Docs settings columns on user_settings ----------------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_font_style TEXT NOT NULL DEFAULT 'default'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_small_text INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_full_width INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_spell_check INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_open_last_visited INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN docs_sidebar_default TEXT NOT NULL DEFAULT 'tree'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN doc_favorites TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN doc_recent TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+
+// ---- Draw settings columns on user_settings ----------------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_grid_mode INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_snap_to_grid INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_default_background TEXT NOT NULL DEFAULT 'white'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_export_quality INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_export_with_background INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_auto_save_interval INTEGER NOT NULL DEFAULT 2000`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_sort_order TEXT NOT NULL DEFAULT 'modified'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_library TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+
+// ---- Search settings columns on user_settings --------------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN recent_searches TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+
 // ---- Spreadsheets table (Tables / Airtable-like) ----------------------------
 
 sqlite.prepare(`

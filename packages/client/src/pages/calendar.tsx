@@ -18,6 +18,7 @@ import { config } from '../config/env';
 import '../styles/calendar.css';
 import { useCalendars, useCalendarEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
 import { useCalendarStore } from '../stores/calendar-store';
+import { useCalendarSettingsStore } from '../stores/calendar-settings-store';
 import { useToastStore } from '../stores/toast-store';
 import { EventModal } from '../components/calendar/event-modal';
 import { MiniMonth } from '../components/calendar/mini-month';
@@ -79,17 +80,20 @@ export function CalendarPage() {
     setSelectedDate,
     view,
     setView,
+    openCreateModal,
+    openEditModal,
+  } = useCalendarStore();
+
+  const {
     weekStartsOnMonday,
     showWeekNumbers,
-    calendarDensity,
+    density: calendarDensity,
     workStartHour,
     workEndHour,
     secondaryTimezone,
     setSecondaryTimezone,
     eventReminderMinutes,
-    openCreateModal,
-    openEditModal,
-  } = useCalendarStore();
+  } = useCalendarSettingsStore();
 
   const hourHeight = calendarDensity === 'compact' ? 40 : calendarDensity === 'comfortable' ? 72 : 56;
 

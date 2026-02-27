@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AgGridReact } from 'ag-grid-react';
@@ -3169,7 +3170,7 @@ export function TablesPage() {
                 </button>
                 {showAddViewDropdown && (() => {
                   const rect = addViewBtnRef.current?.getBoundingClientRect();
-                  return (
+                  return createPortal(
                     <div
                       ref={addViewDropdownRef}
                       className="tables-add-view-dropdown"
@@ -3194,7 +3195,8 @@ export function TablesPage() {
                           <span>{v.label}</span>
                         </button>
                       ))}
-                    </div>
+                    </div>,
+                    document.body,
                   );
                 })()}
               </div>
@@ -3751,7 +3753,8 @@ export function TablesPage() {
 
       {/* Expand row modal */}
       {expandedRowId && (() => {
-        const row = localRows.find((r) => r._id === expandedRowId);
+        const rowIdx = localRows.findIndex((r) => r._id === expandedRowId);
+        const row = rowIdx >= 0 ? localRows[rowIdx] : undefined;
         if (!row) return null;
         return (
           <ExpandRowModal
@@ -3760,6 +3763,15 @@ export function TablesPage() {
             open={true}
             onOpenChange={(open) => { if (!open) setExpandedRowId(null); }}
             onUpdateField={handleUpdateRowField}
+            onNavigateRow={(direction) => {
+              const nextIdx = direction === 'prev' ? rowIdx - 1 : rowIdx + 1;
+              if (nextIdx >= 0 && nextIdx < localRows.length) {
+                setExpandedRowId(localRows[nextIdx]._id);
+              }
+            }}
+            onAddColumn={handleAddColumn}
+            hasPrev={rowIdx > 0}
+            hasNext={rowIdx < localRows.length - 1}
           />
         );
       })()}

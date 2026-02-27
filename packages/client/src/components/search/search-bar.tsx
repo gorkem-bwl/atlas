@@ -102,31 +102,61 @@ const SEARCH_OPERATORS: SearchOperator[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Recent searches (persisted in localStorage)
+// Recent searches (server-backed)
 // ---------------------------------------------------------------------------
 
-const RECENT_SEARCHES_KEY = 'atlasmail-recent-searches';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { api } from '../../lib/api-client';
+import { queryKeys } from '../../config/query-keys';
+
 const MAX_RECENT = 5;
 
-function getRecentSearches(): string[] {
-  try {
-    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+function useRecentSearches() {
+  const queryClient = useQueryClient();
 
-function addRecentSearch(query: string) {
-  const trimmed = query.trim();
-  if (!trimmed) return;
-  const recent = getRecentSearches().filter((s) => s !== trimmed);
-  recent.unshift(trimmed);
-  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
-}
+  const { data: serverSettings } = useQuery({
+    queryKey: queryKeys.settings.all,
+    queryFn: async () => {
+      const { data } = await api.get('/settings');
+      return data.data as Record<string, unknown> | null;
+    },
+    staleTime: 60_000,
+  });
 
-function clearRecentSearches() {
-  localStorage.removeItem(RECENT_SEARCHES_KEY);
+  const mutation = useMutation({
+    mutationFn: async (patch: Record<string, unknown>) => {
+      const { data } = await api.put('/settings', patch);
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
+    },
+  });
+
+  const recent: string[] = Array.isArray(serverSettings?.recentSearches)
+    ? serverSettings.recentSearches as string[]
+    : [];
+
+  const addRecentSearch = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const next = [trimmed, ...recent.filter((s) => s !== trimmed)].slice(0, MAX_RECENT);
+    queryClient.setQueryData(queryKeys.settings.all, (old: Record<string, unknown> | null | undefined) => ({
+      ...(old ?? {}),
+      recentSearches: next,
+    }));
+    mutation.mutate({ recentSearches: next });
+  };
+
+  const clearRecentSearches = () => {
+    queryClient.setQueryData(queryKeys.settings.all, (old: Record<string, unknown> | null | undefined) => ({
+      ...(old ?? {}),
+      recentSearches: [],
+    }));
+    mutation.mutate({ recentSearches: [] });
+  };
+
+  return { recent, addRecentSearch, clearRecentSearches };
 }
 
 // ---------------------------------------------------------------------------
@@ -152,7 +182,7 @@ export function SearchBar({
   const [isFocused, setIsFocused] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const { recent: recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
   const { setSearchFocused } = useUIStore();
 
   // Listen for "/" shortcut event from inbox.tsx
@@ -195,7 +225,6 @@ export function SearchBar({
   function handleFocus() {
     setIsFocused(true);
     setSearchFocused(true);
-    setRecentSearches(getRecentSearches());
     setShowDropdown(true);
     setHighlightIndex(-1);
   }
@@ -252,8 +281,7 @@ export function SearchBar({
 
   const handleClearRecent = useCallback(() => {
     clearRecentSearches();
-    setRecentSearches([]);
-  }, []);
+  }, [clearRecentSearches]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {

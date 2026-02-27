@@ -27,7 +27,10 @@ import {
 } from '../hooks/use-documents';
 import { DocSettingsModal } from '../components/docs/doc-settings-modal';
 import { useUIStore } from '../stores/ui-store';
-import { useDocSettingsStore } from '../stores/docs-settings-store';
+import { useDocSettingsStore, useDocSettingsSync } from '../stores/docs-settings-store';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../lib/api-client';
+import { queryKeys } from '../config/query-keys';
 import { useDrawingList } from '../hooks/use-drawings';
 import { EmojiPicker } from '../components/shared/emoji-picker';
 import { CoverPicker, isCoverGradient } from '../components/shared/cover-picker';
@@ -916,6 +919,7 @@ function downloadFile(filename: string, content: string, mimeType: string) {
 // ─── DocsPage ───────────────────────────────────────────────────────────
 
 export function DocsPage() {
+  useDocSettingsSync();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [selectedId, setSelectedId] = useState<string | undefined>(id);
@@ -933,21 +937,27 @@ export function DocsPage() {
   // Auto-select a document when none is selected.
   // If openLastVisited is on, prefer the most recently viewed doc.
   const openLastVisited = useDocSettingsStore((s) => s.openLastVisited);
+  const { data: serverSettings } = useQuery({
+    queryKey: queryKeys.settings.all,
+    queryFn: async () => {
+      const { data } = await api.get('/settings');
+      return data.data as Record<string, unknown> | null;
+    },
+    staleTime: 60_000,
+  });
+  const docRecent = Array.isArray(serverSettings?.docRecent) ? serverSettings.docRecent as string[] : [];
   useEffect(() => {
     if (!selectedId && listData?.tree && listData.tree.length > 0) {
       let target: string | undefined;
       if (openLastVisited) {
-        try {
-          const recent: string[] = JSON.parse(localStorage.getItem('atlasmail_doc_recent') || '[]');
-          const allIds = new Set(listData.documents.map((d) => d.id));
-          target = recent.find((rid) => allIds.has(rid));
-        } catch { /* ignore */ }
+        const allIds = new Set(listData.documents.map((d) => d.id));
+        target = docRecent.find((rid) => allIds.has(rid));
       }
       if (!target) target = listData.tree[0].id;
       setSelectedId(target);
       navigate(`/docs/${target}`, { replace: true });
     }
-  }, [selectedId, listData, navigate, openLastVisited]);
+  }, [selectedId, listData, navigate, openLastVisited, docRecent]);
 
   const handleSelect = useCallback(
     (docId: string) => {

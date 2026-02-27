@@ -33,7 +33,7 @@ import {
   useAutoSaveDrawing,
 } from '../hooks/use-drawings';
 import { useSettingsStore } from '../stores/settings-store';
-import { useDrawSettingsStore, type DrawSortOrder } from '../stores/draw-settings-store';
+import { useDrawSettingsStore, useDrawSettingsSync, type DrawSortOrder } from '../stores/draw-settings-store';
 import { DrawSettingsModal } from '../components/draw/draw-settings-modal';
 import { useUIStore } from '../stores/ui-store';
 import { DRAWING_TEMPLATES } from '../config/drawing-templates';
@@ -1272,15 +1272,16 @@ function pickAppState(appState: Record<string, unknown>): Record<string, unknown
   return picked;
 }
 
-// ─── Library persistence (localStorage) ──────────────────────────────
+// ─── Library persistence (server-backed) ─────────────────────────────
 
-const LIBRARY_STORAGE_KEY = 'atlasmail_excalidraw_library';
+import { api as drawApi } from '../lib/api-client';
 
 const libraryAdapter = {
   async load() {
     try {
-      const stored = localStorage.getItem(LIBRARY_STORAGE_KEY);
-      const userItems = stored ? JSON.parse(stored).libraryItems || [] : [];
+      const { data } = await drawApi.get('/settings');
+      const serverLib = data.data?.drawLibrary;
+      const userItems = Array.isArray(serverLib) ? serverLib : [];
       return { libraryItems: [...userItems, ...DEFAULT_LIBRARY_ITEMS] as any[] };
     } catch {
       return { libraryItems: DEFAULT_LIBRARY_ITEMS as any[] };
@@ -1291,7 +1292,9 @@ const libraryAdapter = {
     const userItems = libraryData.libraryItems.filter(
       (item: any) => !item.id?.startsWith('lib-'),
     );
-    localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify({ libraryItems: userItems }));
+    try {
+      await drawApi.put('/settings', { drawLibrary: userItems });
+    } catch { /* save failed */ }
   },
 };
 
@@ -1457,6 +1460,7 @@ function ExcalidrawCanvas({
 // ─── Draw page ───────────────────────────────────────────────────────
 
 export function DrawPage() {
+  useDrawSettingsSync();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();

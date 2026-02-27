@@ -27,36 +27,62 @@ import { ROUTES } from '../../config/routes';
 import { useDocSettingsStore } from '../../stores/docs-settings-store';
 import type { DocumentTreeNode } from '@atlasmail/shared';
 
-// ─── localStorage helpers for favorites & recently viewed ───────────────
+// ─── Server-backed helpers for favorites & recently viewed ──────────────
 
-const FAVORITES_KEY = 'atlasmail_doc_favorites';
-const RECENT_KEY = 'atlasmail_doc_recent';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../lib/api-client';
+import { queryKeys } from '../../config/query-keys';
+
 const MAX_RECENT = 10;
 
-function getFavorites(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
+function useDocFavoritesAndRecent() {
+  const queryClient = useQueryClient();
 
-function setFavorites(ids: string[]) {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
-}
+  const { data: serverSettings } = useQuery({
+    queryKey: queryKeys.settings.all,
+    queryFn: async () => {
+      const { data } = await api.get('/settings');
+      return data.data as Record<string, unknown> | null;
+    },
+    staleTime: 60_000,
+  });
 
-function getRecentlyViewed(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
+  const mutation = useMutation({
+    mutationFn: async (patch: Record<string, unknown>) => {
+      const { data } = await api.put('/settings', patch);
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
+    },
+  });
 
-function addRecentlyViewed(id: string) {
-  const recent = getRecentlyViewed().filter((r) => r !== id);
-  recent.unshift(id);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+  const favorites: string[] = Array.isArray(serverSettings?.docFavorites)
+    ? serverSettings.docFavorites as string[]
+    : [];
+
+  const recent: string[] = Array.isArray(serverSettings?.docRecent)
+    ? serverSettings.docRecent as string[]
+    : [];
+
+  const setFavorites = (ids: string[]) => {
+    queryClient.setQueryData(queryKeys.settings.all, (old: Record<string, unknown> | null | undefined) => ({
+      ...(old ?? {}),
+      docFavorites: ids,
+    }));
+    mutation.mutate({ docFavorites: ids });
+  };
+
+  const addRecentlyViewed = (id: string) => {
+    const next = [id, ...recent.filter((r) => r !== id)].slice(0, MAX_RECENT);
+    queryClient.setQueryData(queryKeys.settings.all, (old: Record<string, unknown> | null | undefined) => ({
+      ...(old ?? {}),
+      docRecent: next,
+    }));
+    mutation.mutate({ docRecent: next });
+  };
+
+  return { favorites, recent, setFavorites, addRecentlyViewed };
 }
 
 // ─── Sidebar view modes ─────────────────────────────────────────────────
@@ -96,7 +122,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSideb
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [view, setView] = useState<SidebarView>(useDocSettingsStore.getState().sidebarDefault);
-  const [favorites, setFavoritesState] = useState<string[]>(getFavorites());
+  const { favorites, recent: recentIds, setFavorites: setServerFavorites, addRecentlyViewed } = useDocFavoritesAndRecent();
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
   const [isResizing, setIsResizing] = useState(false);
@@ -190,15 +216,12 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSideb
 
   const toggleFavorite = useCallback(
     (id: string) => {
-      setFavoritesState((prev) => {
-        const next = prev.includes(id)
-          ? prev.filter((f) => f !== id)
-          : [...prev, id];
-        setFavorites(next);
-        return next;
-      });
+      const next = favorites.includes(id)
+        ? favorites.filter((f) => f !== id)
+        : [...favorites, id];
+      setServerFavorites(next);
     },
-    [],
+    [favorites, setServerFavorites],
   );
 
   const tree = data?.tree ?? [];
@@ -213,7 +236,6 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSideb
   const favoriteDocs = allDocs.filter((d) => favorites.includes(d.id));
 
   // Build recently viewed list
-  const recentIds = getRecentlyViewed();
   const recentDocs = recentIds
     .map((id) => allDocs.find((d) => d.id === id))
     .filter(Boolean) as typeof allDocs;
@@ -420,6 +442,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSideb
                 onDuplicate={handleDuplicate}
                 onToggleFavorite={toggleFavorite}
                 isFavorite={favorites.includes(node.id)}
+                allFavorites={favorites}
                 dragOverId={dragOverId}
                 onDragOverChange={setDragOverId}
               />
@@ -825,6 +848,7 @@ interface TreeNodeProps {
   onDuplicate: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   isFavorite: boolean;
+  allFavorites: string[];
   dragOverId: string | null;
   onDragOverChange: (id: string | null) => void;
 }
@@ -840,6 +864,7 @@ function TreeNode({
   onDuplicate,
   onToggleFavorite,
   isFavorite,
+  allFavorites,
   dragOverId,
   onDragOverChange,
 }: TreeNodeProps) {
@@ -1044,7 +1069,8 @@ function TreeNode({
               onDelete={onDelete}
               onDuplicate={onDuplicate}
               onToggleFavorite={onToggleFavorite}
-              isFavorite={getFavorites().includes(child.id)}
+              isFavorite={allFavorites.includes(child.id)}
+              allFavorites={allFavorites}
               dragOverId={dragOverId}
               onDragOverChange={onDragOverChange}
             />

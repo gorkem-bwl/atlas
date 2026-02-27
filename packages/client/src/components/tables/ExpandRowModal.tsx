@@ -1,11 +1,28 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
-import { X, Paperclip, FileIcon } from 'lucide-react';
-import type { TableColumn, TableRow, TableAttachment } from '@atlasmail/shared';
+import { X, Paperclip, FileIcon, ChevronUp, ChevronDown, Plus } from 'lucide-react';
+import type { TableColumn, TableRow, TableAttachment, TableFieldType } from '@atlasmail/shared';
 import { FIELD_TYPE_ICONS } from '../../lib/field-type-icons';
 import { api } from '../../lib/api-client';
+
+const FIELD_TYPES: { value: TableFieldType; label: string }[] = [
+  { value: 'text', label: 'Text' },
+  { value: 'number', label: 'Number' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'singleSelect', label: 'Single select' },
+  { value: 'multiSelect', label: 'Multi select' },
+  { value: 'date', label: 'Date' },
+  { value: 'url', label: 'URL' },
+  { value: 'email', label: 'Email' },
+  { value: 'currency', label: 'Currency' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'rating', label: 'Rating' },
+  { value: 'percent', label: 'Percent' },
+  { value: 'longText', label: 'Long text' },
+  { value: 'attachment', label: 'Attachment' },
+];
 
 interface ExpandRowModalProps {
   row: TableRow;
@@ -13,12 +30,45 @@ interface ExpandRowModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateField: (rowId: string, colId: string, value: unknown) => void;
+  onNavigateRow?: (direction: 'prev' | 'next') => void;
+  onAddColumn?: (name: string, type: TableFieldType, options?: string[]) => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
-export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField }: ExpandRowModalProps) {
+export function ExpandRowModal({
+  row,
+  columns,
+  open,
+  onOpenChange,
+  onUpdateField,
+  onNavigateRow,
+  onAddColumn,
+  hasPrev = false,
+  hasNext = false,
+}: ExpandRowModalProps) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingColRef = useRef<string | null>(null);
+  const [showAddField, setShowAddField] = useState(false);
+
+  // Keyboard navigation: arrow up/down when not focused on an input
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'ArrowUp' && onNavigateRow && hasPrev) {
+        e.preventDefault();
+        onNavigateRow('prev');
+      } else if (e.key === 'ArrowDown' && onNavigateRow && hasNext) {
+        e.preventDefault();
+        onNavigateRow('next');
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onNavigateRow, hasPrev, hasNext]);
 
   const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,6 +95,11 @@ export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField
     const existing: TableAttachment[] = Array.isArray(row[colId]) ? (row[colId] as TableAttachment[]) : [];
     onUpdateField(row._id, colId, existing.filter((_, i) => i !== index));
   };
+
+  // Extract primary field (first column) vs remaining fields
+  const primaryCol = columns[0];
+  const bodyColumns = columns.slice(1);
+  const primaryValue = primaryCol ? (row[primaryCol.id] != null ? String(row[primaryCol.id]) : '') : '';
 
   const renderField = (col: TableColumn) => {
     const value = row[col.id];
@@ -204,8 +259,30 @@ export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField
             <Dialog.Title>{t('tables.expandRow')}</Dialog.Title>
           </VisuallyHidden.Root>
 
-          <div className="tables-expand-header">
-            <span className="tables-expand-title">{t('tables.expandRow')}</span>
+          {/* Top bar: nav arrows + close */}
+          <div className="tables-expand-topbar">
+            <div className="tables-expand-topbar-left">
+              {onNavigateRow && (
+                <>
+                  <button
+                    className="tables-expand-nav-btn"
+                    disabled={!hasPrev}
+                    onClick={() => onNavigateRow('prev')}
+                    title="Previous row"
+                  >
+                    <ChevronUp size={16} />
+                  </button>
+                  <button
+                    className="tables-expand-nav-btn"
+                    disabled={!hasNext}
+                    onClick={() => onNavigateRow('next')}
+                    title="Next row"
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                </>
+              )}
+            </div>
             <Dialog.Close asChild>
               <button className="tables-expand-close">
                 <X size={16} />
@@ -213,8 +290,27 @@ export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField
             </Dialog.Close>
           </div>
 
+          {/* Primary field as big header */}
+          {primaryCol && (
+            <div className="tables-expand-primary">
+              <div className="tables-expand-primary-label">
+                {(() => { const Icon = FIELD_TYPE_ICONS[primaryCol.type]; return Icon ? <Icon size={12} /> : null; })()}
+                {primaryCol.name}
+              </div>
+              <input
+                className="tables-expand-primary-value"
+                value={primaryValue}
+                onChange={(e) => onUpdateField(row._id, primaryCol.id, e.target.value)}
+                placeholder="Untitled"
+              />
+            </div>
+          )}
+
+          <hr className="tables-expand-divider" />
+
+          {/* Field rows */}
           <div className="tables-expand-body">
-            {columns.map((col) => {
+            {bodyColumns.map((col) => {
               const Icon = FIELD_TYPE_ICONS[col.type];
               return (
                 <div key={col.id} className="tables-expand-field">
@@ -228,6 +324,29 @@ export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField
                 </div>
               );
             })}
+
+            {/* Add a field button */}
+            {onAddColumn && (
+              <div className="tables-expand-add-field-wrapper">
+                {!showAddField ? (
+                  <button
+                    className="tables-expand-add-field-btn"
+                    onClick={() => setShowAddField(true)}
+                  >
+                    <Plus size={14} />
+                    <span>{t('tables.addFieldToTable', 'Add a field to this table')}</span>
+                  </button>
+                ) : (
+                  <InlineAddField
+                    onAdd={(name, type, options) => {
+                      onAddColumn(name, type, options);
+                      setShowAddField(false);
+                    }}
+                    onClose={() => setShowAddField(false)}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           {/* Hidden file input for attachment uploads */}
@@ -240,5 +359,126 @@ export function ExpandRowModal({ row, columns, open, onOpenChange, onUpdateField
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+/* ─── Inline add-field form ──────────────────────────────────────── */
+
+function InlineAddField({
+  onAdd,
+  onClose,
+}: {
+  onAdd: (name: string, type: TableFieldType, options?: string[]) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [name, setName] = useState('');
+  const [type, setType] = useState<TableFieldType>('text');
+  const [options, setOptions] = useState('');
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  // Close type dropdown on Escape
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (showTypeDropdown) {
+        e.stopPropagation();
+        setShowTypeDropdown(false);
+      } else {
+        onClose();
+      }
+    }
+  }, [showTypeDropdown, onClose]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const needsOptions = type === 'singleSelect' || type === 'multiSelect';
+  const selectedFieldType = FIELD_TYPES.find((ft) => ft.value === type);
+  const TypeIcon = FIELD_TYPE_ICONS[type];
+
+  const handleSubmit = () => {
+    if (!name.trim()) return;
+    const opts = needsOptions
+      ? options.split(',').map((o) => o.trim()).filter(Boolean)
+      : undefined;
+    onAdd(name.trim(), type, opts);
+  };
+
+  return (
+    <div ref={wrapperRef} className="tables-expand-add-field-form" onClick={(e) => e.stopPropagation()}>
+      <div className="tables-expand-add-field-row">
+        <input
+          ref={nameRef}
+          className="tables-expand-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t('tables.columnNamePlaceholder', 'Field name')}
+          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+        />
+      </div>
+      <div className="tables-expand-add-field-row" style={{ position: 'relative' }} ref={typeDropdownRef}>
+        <button
+          className="tables-field-type-trigger"
+          onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+          type="button"
+        >
+          <TypeIcon size={14} />
+          <span>{selectedFieldType?.label}</span>
+          <ChevronDown size={14} />
+        </button>
+        {showTypeDropdown && (
+          <div className="tables-field-type-dropdown" style={{ bottom: '100%', top: 'auto', marginBottom: 4 }}>
+            {FIELD_TYPES.map((ft) => {
+              const Icon = FIELD_TYPE_ICONS[ft.value];
+              return (
+                <button
+                  key={ft.value}
+                  className={`tables-field-type-option${ft.value === type ? ' selected' : ''}`}
+                  onClick={() => { setType(ft.value); setShowTypeDropdown(false); }}
+                  type="button"
+                >
+                  <Icon size={14} />
+                  <span>{ft.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {needsOptions && (
+        <div className="tables-expand-add-field-row">
+          <input
+            className="tables-expand-input"
+            value={options}
+            onChange={(e) => setOptions(e.target.value)}
+            placeholder={t('tables.optionsPlaceholder', 'Option 1, Option 2, ...')}
+          />
+        </div>
+      )}
+      <div className="tables-expand-add-field-actions">
+        <button className="tables-expand-add-field-cancel" onClick={onClose}>{t('tables.cancel', 'Cancel')}</button>
+        <button className="tables-expand-add-field-submit" onClick={handleSubmit}>{t('tables.addColumn', 'Add field')}</button>
+      </div>
+    </div>
   );
 }

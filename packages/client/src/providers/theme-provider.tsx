@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { useSettingsStore } from '../stores/settings-store';
+import { useSettingsStore, useSettingsSync } from '../stores/settings-store';
 import type { FontFamilyId } from '../stores/settings-store';
 import { applyColorTheme } from '../lib/color-themes';
 
@@ -86,6 +86,7 @@ function applyThemeWithTransition(root: HTMLElement, newValue: string) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  useSettingsSync();
   const theme = useSettingsStore((s) => s.theme);
   const density = useSettingsStore((s) => s.density);
   const fontFamily = useSettingsStore((s) => s.fontFamily);

@@ -1,5 +1,5 @@
 import { type ReactElement } from 'react';
-import { useCalendarStore } from '../../stores/calendar-store';
+import { useCalendarSettingsStore } from '../../stores/calendar-settings-store';
 import {
   SettingsSection,
   SettingsRow,
@@ -37,7 +37,7 @@ export function CalendarGeneralPanel(): ReactElement {
     setWorkEndHour,
     eventReminderMinutes,
     setEventReminderMinutes,
-  } = useCalendarStore();
+  } = useCalendarSettingsStore();
 
   const viewOptions: Array<{ value: typeof defaultView; label: string }> = [
     { value: 'day', label: 'Day' },
@@ -125,13 +125,13 @@ export function CalendarGeneralPanel(): ReactElement {
 
 export function CalendarAppearancePanel(): ReactElement {
   const {
-    calendarDensity,
-    setCalendarDensity,
+    density,
+    setDensity,
     secondaryTimezone,
     setSecondaryTimezone,
-  } = useCalendarStore();
+  } = useCalendarSettingsStore();
 
-  const densityOptions: Array<{ id: typeof calendarDensity; label: string; desc: string }> = [
+  const densityOptions: Array<{ id: typeof density; label: string; desc: string }> = [
     { id: 'compact', label: 'Compact', desc: 'Smaller rows, fits more events' },
     { id: 'default', label: 'Default', desc: 'Balanced spacing' },
     { id: 'comfortable', label: 'Comfortable', desc: 'Larger rows, easier to read' },
@@ -164,15 +164,15 @@ export function CalendarAppearancePanel(): ReactElement {
           {densityOptions.map((opt) => (
             <SelectableCard
               key={opt.id}
-              selected={calendarDensity === opt.id}
-              onClick={() => setCalendarDensity(opt.id)}
+              selected={density === opt.id}
+              onClick={() => setDensity(opt.id)}
               style={{ padding: 'var(--spacing-md) var(--spacing-lg)' }}
             >
               <span
                 style={{
                   fontSize: 'var(--font-size-sm)',
-                  fontWeight: calendarDensity === opt.id ? 'var(--font-weight-medium)' : 'var(--font-weight-normal)',
-                  color: calendarDensity === opt.id ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
+                  fontWeight: density === opt.id ? 'var(--font-weight-medium)' : 'var(--font-weight-normal)',
+                  color: density === opt.id ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
                 } as React.CSSProperties}
               >
                 {opt.label}
