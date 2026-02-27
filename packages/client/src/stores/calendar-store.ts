@@ -26,6 +26,8 @@ interface CalendarStoreState {
   workStartHour: number;
   workEndHour: number;
   secondaryTimezone: string | null;
+  defaultView: 'week' | 'month-grid' | 'day' | 'agenda';
+  eventReminderMinutes: number;
   eventModal: EventModalState;
   setSelectedDate: (date: string) => void;
   setView: (view: 'week' | 'month-grid' | 'day' | 'agenda') => void;
@@ -35,6 +37,8 @@ interface CalendarStoreState {
   setWorkStartHour: (val: number) => void;
   setWorkEndHour: (val: number) => void;
   setSecondaryTimezone: (tz: string | null) => void;
+  setDefaultView: (val: 'week' | 'month-grid' | 'day' | 'agenda') => void;
+  setEventReminderMinutes: (val: number) => void;
   openCreateModal: (start?: string, end?: string, isAllDay?: boolean) => void;
   openCreateModalWithPrefill: (prefill: PrefillData, start?: string, end?: string) => void;
   openEditModal: (event: CalendarEvent) => void;
@@ -50,13 +54,15 @@ function toYMD(date: Date = new Date()): string {
 
 export const useCalendarStore = create<CalendarStoreState>((set) => ({
   selectedDate: toYMD(),
-  view: 'week',
+  view: (localStorage.getItem('cal_defaultView') as 'week' | 'month-grid' | 'day' | 'agenda') || 'week',
   weekStartsOnMonday: localStorage.getItem('cal_weekStartsOnMonday') === 'true',
   showWeekNumbers: localStorage.getItem('cal_showWeekNumbers') === 'true',
   calendarDensity: (localStorage.getItem('cal_density') as 'compact' | 'default' | 'comfortable') || 'default',
   workStartHour: parseInt(localStorage.getItem('cal_workStartHour') || '9', 10),
   workEndHour: parseInt(localStorage.getItem('cal_workEndHour') || '17', 10),
   secondaryTimezone: localStorage.getItem('cal_secondaryTimezone') || null,
+  defaultView: (localStorage.getItem('cal_defaultView') as 'week' | 'month-grid' | 'day' | 'agenda') || 'week',
+  eventReminderMinutes: parseInt(localStorage.getItem('cal_eventReminderMinutes') || '10', 10),
   eventModal: {
     open: false,
     mode: 'create',
@@ -92,6 +98,14 @@ export const useCalendarStore = create<CalendarStoreState>((set) => ({
     if (tz) localStorage.setItem('cal_secondaryTimezone', tz);
     else localStorage.removeItem('cal_secondaryTimezone');
     set({ secondaryTimezone: tz });
+  },
+  setDefaultView: (val) => {
+    localStorage.setItem('cal_defaultView', val);
+    set({ defaultView: val });
+  },
+  setEventReminderMinutes: (val) => {
+    localStorage.setItem('cal_eventReminderMinutes', String(val));
+    set({ eventReminderMinutes: val });
   },
   openCreateModal: (start, end, isAllDay) =>
     set({

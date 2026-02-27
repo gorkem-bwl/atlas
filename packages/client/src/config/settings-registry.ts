@@ -22,6 +22,7 @@ import {
   Rocket,
   Pencil,
   Download,
+  Calendar,
 } from 'lucide-react';
 
 import {
@@ -53,6 +54,11 @@ import {
   DrawCanvasPanel,
   DrawExportPanel,
 } from '../components/draw/draw-settings-modal';
+
+import {
+  CalendarGeneralPanel,
+  CalendarAppearancePanel,
+} from '../components/calendar/calendar-settings-modal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,6 +106,15 @@ export const settingsCategories: SettingsCategory[] = [
       { id: 'reading-pane', label: 'Reading pane', icon: PanelRight, component: MailReadingPanePanel },
       { id: 'labels', label: 'Labels', icon: Tag, component: MailLabelsPanel },
       { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard, component: MailShortcutsPanel },
+    ],
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: Calendar,
+    panels: [
+      { id: 'general', label: 'General', icon: Settings, component: CalendarGeneralPanel },
+      { id: 'appearance', label: 'Appearance', icon: Palette, component: CalendarAppearancePanel },
     ],
   },
   {

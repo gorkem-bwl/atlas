@@ -10,8 +10,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Settings,
 } from 'lucide-react';
 import { useMediaQuery } from '../hooks/use-media-query';
+import { useUIStore } from '../stores/ui-store';
 import { config } from '../config/env';
 import '../styles/calendar.css';
 import { useCalendars, useCalendarEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
@@ -71,23 +73,20 @@ function formatWeekRange(weekStart: Date): string {
 export function CalendarPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { openSettings } = useUIStore();
   const {
     selectedDate,
     setSelectedDate,
     view,
     setView,
     weekStartsOnMonday,
-    setWeekStartsOnMonday,
     showWeekNumbers,
-    setShowWeekNumbers,
     calendarDensity,
-    setCalendarDensity,
     workStartHour,
     workEndHour,
-    setWorkStartHour,
-    setWorkEndHour,
     secondaryTimezone,
     setSecondaryTimezone,
+    eventReminderMinutes,
     openCreateModal,
     openEditModal,
   } = useCalendarStore();
@@ -203,6 +202,7 @@ export function CalendarPage() {
   useEffect(() => {
     if (!events || events.length === 0) return;
     if (!('Notification' in window)) return;
+    if (eventReminderMinutes <= 0) return;
 
     // Request permission if not yet decided
     if (Notification.permission === 'default') {
@@ -212,7 +212,7 @@ export function CalendarPage() {
     const checkUpcoming = () => {
       if (Notification.permission !== 'granted') return;
       const now = Date.now();
-      const tenMinMs = 10 * 60 * 1000;
+      const reminderMs = eventReminderMinutes * 60 * 1000;
 
       for (const ev of events) {
         if (!selectedCalendarIds.has(ev.calendarId)) continue;
@@ -220,8 +220,8 @@ export function CalendarPage() {
         const startMs = new Date(ev.startTime).getTime();
         const diff = startMs - now;
 
-        // Notify if event starts in the next 10 minutes and we haven't already
-        if (diff > 0 && diff <= tenMinMs && !notifiedRef.current.has(ev.id)) {
+        // Notify if event starts within the reminder window and we haven't already
+        if (diff > 0 && diff <= reminderMs && !notifiedRef.current.has(ev.id)) {
           notifiedRef.current.add(ev.id);
           const minutesAway = Math.ceil(diff / 60_000);
           new Notification(ev.summary || 'Upcoming event', {
@@ -236,7 +236,7 @@ export function CalendarPage() {
     checkUpcoming();
     const id = setInterval(checkUpcoming, 60_000);
     return () => clearInterval(id);
-  }, [events, selectedCalendarIds]);
+  }, [events, selectedCalendarIds, eventReminderMinutes]);
 
   const goToday = useCallback(() => setSelectedDate(toYMD(new Date())), [setSelectedDate]);
 
@@ -1244,156 +1244,29 @@ export function CalendarPage() {
 
             <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '8px 0' }} />
 
-            {/* Settings */}
-            <div
+            {/* Settings button */}
+            <button
+              onClick={() => openSettings('calendar')}
               style={{
-                fontSize: 'var(--font-size-xs)',
-                fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                width: '100%',
+                padding: '6px 0',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--color-text-secondary)',
+                fontSize: 'var(--font-size-sm)',
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+                borderRadius: 'var(--radius-sm)',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
             >
+              <Settings size={14} />
               Settings
-            </div>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '4px 0',
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-primary)',
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={weekStartsOnMonday}
-                onChange={(e) => setWeekStartsOnMonday(e.target.checked)}
-                style={{ width: 14, height: 14, cursor: 'pointer' }}
-              />
-              Week starts on Monday
-            </label>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '4px 0',
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-primary)',
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={showWeekNumbers}
-                onChange={(e) => setShowWeekNumbers(e.target.checked)}
-                style={{ width: 14, height: 14, cursor: 'pointer' }}
-              />
-              Show week numbers
-            </label>
-
-            {/* Density selector */}
-            <div style={{ padding: '4px 0' }}>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: 4,
-                }}
-              >
-                Density
-              </div>
-              <select
-                value={calendarDensity}
-                onChange={(e) => setCalendarDensity(e.target.value as 'compact' | 'default' | 'comfortable')}
-                style={{
-                  width: '100%',
-                  height: 26,
-                  padding: '0 6px',
-                  border: '1px solid var(--color-border-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--color-bg-primary)',
-                  color: 'var(--color-text-primary)',
-                  fontSize: 'var(--font-size-xs)',
-                  fontFamily: 'var(--font-family)',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <option value="compact">Compact</option>
-                <option value="default">Default</option>
-                <option value="comfortable">Comfortable</option>
-              </select>
-            </div>
-
-            {/* Working hours */}
-            <div style={{ padding: '4px 0' }}>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: 4,
-                }}
-              >
-                Working hours
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <select
-                  value={workStartHour}
-                  onChange={(e) => setWorkStartHour(parseInt(e.target.value, 10))}
-                  style={{
-                    flex: 1,
-                    height: 26,
-                    padding: '0 6px',
-                    border: '1px solid var(--color-border-primary)',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--color-bg-primary)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: 'var(--font-size-xs)',
-                    fontFamily: 'var(--font-family)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`}
-                    </option>
-                  ))}
-                </select>
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>to</span>
-                <select
-                  value={workEndHour}
-                  onChange={(e) => setWorkEndHour(parseInt(e.target.value, 10))}
-                  style={{
-                    flex: 1,
-                    height: 26,
-                    padding: '0 6px',
-                    border: '1px solid var(--color-border-primary)',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--color-bg-primary)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: 'var(--font-size-xs)',
-                    fontFamily: 'var(--font-family)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            </button>
           </div>
         </div>
         )}
