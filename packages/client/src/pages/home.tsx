@@ -416,15 +416,15 @@ function AppCard({
             position: 'absolute',
             top: 8,
             right: 8,
-            fontSize: 9,
-            fontWeight: 600,
+            fontSize: 10,
+            fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
             color: '#fff',
-            background: 'rgba(255,255,255,0.2)',
+            background: 'rgba(0,0,0,0.35)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            padding: '2px 6px',
+            padding: '3px 7px',
             borderRadius: 6,
             lineHeight: 1.2,
           }}
@@ -932,6 +932,12 @@ export function HomePage() {
             onClick={() => navigate(ROUTES.TABLES)}
           />
           <AppCard
+            icon={HardDrive}
+            label="Drive"
+            color="#64748b"
+            onClick={() => navigate(ROUTES.DRIVE)}
+          />
+          <AppCard
             icon={Receipt}
             label="Invoice"
             color="#e67e22"
@@ -948,12 +954,6 @@ export function HomePage() {
             label="CRM"
             color="#8b5cf6"
             upcoming
-          />
-          <AppCard
-            icon={HardDrive}
-            label="Drive"
-            color="#64748b"
-            onClick={() => navigate(ROUTES.DRIVE)}
           />
         </div>
       </div>
