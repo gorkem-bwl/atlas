@@ -36,6 +36,7 @@ router.post('/batch/move', driveController.batchMove);
 router.post('/batch/favourite', driveController.batchFavourite);
 router.get('/:id', driveController.getItem);
 router.get('/:id/breadcrumbs', driveController.getBreadcrumbs);
+router.get('/:id/preview', driveController.previewFile);
 router.get('/:id/download', driveController.downloadFile);
 router.get('/:id/download-zip', driveController.downloadZip);
 router.post('/:id/duplicate', driveController.duplicateItem);

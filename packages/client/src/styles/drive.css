@@ -465,6 +465,68 @@
   border-radius: var(--radius-md, 4px);
 }
 
+.drive-preview-text-content {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.drive-preview-pre {
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary, #f8f9fa);
+  border-radius: var(--radius-md, 4px);
+  min-height: 100%;
+}
+
+.drive-preview-table-wrap {
+  width: 100%;
+  overflow: auto;
+}
+
+.drive-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.drive-preview-table th,
+.drive-preview-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border, #d0d5dd);
+  text-align: left;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drive-preview-table th {
+  background: var(--color-bg-secondary, #f8f9fa);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.drive-preview-table tbody tr:hover {
+  background: var(--color-bg-hover, #f1f5f9);
+}
+
+.drive-preview-truncated {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  border-top: 1px solid var(--color-border, #d0d5dd);
+}
+
 .drive-preview-icon {
   display: flex;
   align-items: center;

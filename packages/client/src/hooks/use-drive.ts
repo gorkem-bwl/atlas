@@ -123,6 +123,26 @@ export function useDriveStorage() {
   });
 }
 
+interface FilePreviewResponse {
+  content: string;
+  truncated: boolean;
+  totalSize: number;
+  mimeType: string | null;
+  name: string;
+}
+
+export function useFilePreview(itemId: string | undefined) {
+  return useQuery({
+    queryKey: ['drive', 'preview', itemId] as const,
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/${itemId}/preview`);
+      return data.data as FilePreviewResponse;
+    },
+    enabled: !!itemId,
+    staleTime: 60_000,
+  });
+}
+
 // ─── Mutations ───────────────────────────────────────────────────────
 
 export function useCreateFolder() {

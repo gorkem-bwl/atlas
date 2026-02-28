@@ -13,7 +13,7 @@ import {
   useUpdateDriveItem, useDeleteDriveItem, useRestoreDriveItem,
   usePermanentDeleteDriveItem, useDriveStorage, useDriveFolders,
   useDuplicateDriveItem, useBatchDeleteDriveItems, useBatchMoveDriveItems,
-  useBatchFavouriteDriveItems,
+  useBatchFavouriteDriveItems, useFilePreview,
 } from '../hooks/use-drive';
 import { useToastStore } from '../stores/toast-store';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../components/ui/context-menu';
@@ -82,6 +82,47 @@ function parseTag(tag: string): { color: string; label: string } {
   return { color: '#6b7280', label: tag };
 }
 
+function isTextPreviewable(mimeType: string | null, name: string): boolean {
+  if (!mimeType && !name) return false;
+  if (mimeType) {
+    if (mimeType.startsWith('text/')) return true;
+    if (['application/json', 'application/xml', 'application/javascript', 'application/csv', 'application/x-yaml'].some((m) => mimeType.includes(m))) return true;
+  }
+  const ext = name.split('.').pop()?.toLowerCase();
+  return ['csv', 'md', 'json', 'txt', 'xml', 'yaml', 'yml', 'sh', 'js', 'ts', 'html', 'css', 'log', 'ini', 'toml', 'sql'].includes(ext || '');
+}
+
+function getFileExtension(name: string): string {
+  return name.split('.').pop()?.toLowerCase() || '';
+}
+
+function parseCsvToRows(content: string): string[][] {
+  const rows: string[][] = [];
+  const lines = content.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    // Simple CSV parsing — handles quoted fields
+    const row: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+        else if (ch === '"') inQuotes = false;
+        else current += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') { row.push(current.trim()); current = ''; }
+        else current += ch;
+      }
+    }
+    row.push(current.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
 // ─── Drive page ──────────────────────────────────────────────────────
 
 export function DrivePage() {
@@ -135,6 +176,8 @@ export function DrivePage() {
   const { data: searchData } = useDriveSearch(searchQuery);
   const { data: storageData } = useDriveStorage();
   const { data: foldersData } = useDriveFolders();
+  const previewFileId = previewItem && previewItem.type === 'file' && isTextPreviewable(previewItem.mimeType, previewItem.name) ? previewItem.id : undefined;
+  const { data: filePreviewData, isLoading: previewLoading } = useFilePreview(previewFileId);
 
   // Mutations
   const createFolder = useCreateFolder();
@@ -1315,6 +1358,45 @@ export function DrivePage() {
                 className="drive-preview-iframe"
                 title={previewItem.name}
               />
+            ) : previewFileId && filePreviewData ? (
+              <div className="drive-preview-text-content">
+                {getFileExtension(previewItem.name) === 'csv' ? (
+                  (() => {
+                    const rows = parseCsvToRows(filePreviewData.content);
+                    if (rows.length === 0) return <pre className="drive-preview-pre">(empty)</pre>;
+                    const header = rows[0];
+                    const body = rows.slice(1);
+                    return (
+                      <div className="drive-preview-table-wrap">
+                        <table className="drive-preview-table">
+                          <thead>
+                            <tr>{header.map((h, i) => <th key={i}>{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {body.map((row, ri) => (
+                              <tr key={ri}>{row.map((cell, ci) => <td key={ci}>{cell}</td>)}</tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {filePreviewData.truncated && (
+                          <div className="drive-preview-truncated">File truncated — showing first 512 KB</div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <>
+                    <pre className="drive-preview-pre">{filePreviewData.content}</pre>
+                    {filePreviewData.truncated && (
+                      <div className="drive-preview-truncated">File truncated — showing first 512 KB</div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : previewFileId && previewLoading ? (
+              <div className="drive-preview-icon">
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 13 }}>Loading preview…</span>
+              </div>
             ) : (
               <div className="drive-preview-icon">
                 {(() => {
