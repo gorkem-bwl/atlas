@@ -209,3 +209,47 @@ export function usePermanentDeleteDriveItem() {
     },
   });
 }
+
+// ─── Linked resource mutations ───────────────────────────────────────
+
+export function useCreateLinkedDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { parentId?: string | null }) => {
+      const { data } = await api.post('/drive/create-document', input);
+      return data.data as { driveItem: DriveItem; resourceId: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+export function useCreateLinkedDrawing() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { parentId?: string | null }) => {
+      const { data } = await api.post('/drive/create-drawing', input);
+      return data.data as { driveItem: DriveItem; resourceId: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+export function useCreateLinkedSpreadsheet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { parentId?: string | null }) => {
+      const { data } = await api.post('/drive/create-spreadsheet', input);
+      return data.data as { driveItem: DriveItem; resourceId: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}

@@ -301,3 +301,101 @@ export async function listFolders(userId: string) {
     .where(and(eq(driveItems.userId, userId), eq(driveItems.type, 'folder'), eq(driveItems.isArchived, false)))
     .orderBy(asc(driveItems.name));
 }
+
+// ─── Create linked resources ─────────────────────────────────────────
+
+export async function createLinkedDocument(userId: string, accountId: string, parentId?: string | null) {
+  const { createDocument } = await import('./document.service');
+  const doc = await createDocument(userId, accountId, { title: 'Untitled document' });
+
+  const now = new Date().toISOString();
+  const [maxSort] = await db
+    .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
+    .from(driveItems)
+    .where(eq(driveItems.userId, userId));
+  const sortOrder = (maxSort?.max ?? -1) + 1;
+
+  const [created] = await db
+    .insert(driveItems)
+    .values({
+      accountId,
+      userId,
+      name: 'Untitled document',
+      type: 'file',
+      mimeType: 'application/vnd.atlasmail.document',
+      parentId: parentId || null,
+      linkedResourceType: 'document',
+      linkedResourceId: doc.id,
+      sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  logger.info({ userId, itemId: created.id, resourceId: doc.id }, 'Linked document created in Drive');
+  return { driveItem: created, resourceId: doc.id };
+}
+
+export async function createLinkedDrawing(userId: string, accountId: string, parentId?: string | null) {
+  const { createDrawing } = await import('./drawing.service');
+  const drawing = await createDrawing(userId, accountId, { title: 'Untitled drawing' });
+
+  const now = new Date().toISOString();
+  const [maxSort] = await db
+    .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
+    .from(driveItems)
+    .where(eq(driveItems.userId, userId));
+  const sortOrder = (maxSort?.max ?? -1) + 1;
+
+  const [created] = await db
+    .insert(driveItems)
+    .values({
+      accountId,
+      userId,
+      name: 'Untitled drawing',
+      type: 'file',
+      mimeType: 'application/vnd.atlasmail.drawing',
+      parentId: parentId || null,
+      linkedResourceType: 'drawing',
+      linkedResourceId: drawing.id,
+      sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  logger.info({ userId, itemId: created.id, resourceId: drawing.id }, 'Linked drawing created in Drive');
+  return { driveItem: created, resourceId: drawing.id };
+}
+
+export async function createLinkedSpreadsheet(userId: string, accountId: string, parentId?: string | null) {
+  const { createSpreadsheet } = await import('./table.service');
+  const spreadsheet = await createSpreadsheet(userId, accountId, { title: 'Untitled spreadsheet' });
+
+  const now = new Date().toISOString();
+  const [maxSort] = await db
+    .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
+    .from(driveItems)
+    .where(eq(driveItems.userId, userId));
+  const sortOrder = (maxSort?.max ?? -1) + 1;
+
+  const [created] = await db
+    .insert(driveItems)
+    .values({
+      accountId,
+      userId,
+      name: 'Untitled spreadsheet',
+      type: 'file',
+      mimeType: 'application/vnd.atlasmail.spreadsheet',
+      parentId: parentId || null,
+      linkedResourceType: 'spreadsheet',
+      linkedResourceId: spreadsheet.id,
+      sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  logger.info({ userId, itemId: created.id, resourceId: spreadsheet.id }, 'Linked spreadsheet created in Drive');
+  return { driveItem: created, resourceId: spreadsheet.id };
+}

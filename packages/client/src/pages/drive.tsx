@@ -5,13 +5,16 @@ import {
   Plus, Search, Upload, FolderPlus, ArrowLeft, Trash2, RotateCcw,
   Star, MoreHorizontal, Pencil, Download, FolderInput, ChevronRight,
   LayoutGrid, LayoutList, Home, Clock, Heart, HardDrive, Upload as UploadIcon,
+  ExternalLink, FileText, Table2, ChevronDown,
 } from 'lucide-react';
 import {
   useDriveItems, useDriveBreadcrumbs, useDriveFavourites, useDriveRecent,
   useDriveTrash, useDriveSearch, useCreateFolder, useUploadFiles,
   useUpdateDriveItem, useDeleteDriveItem, useRestoreDriveItem,
   usePermanentDeleteDriveItem, useDriveStorage, useDriveFolders,
+  useCreateLinkedDocument, useCreateLinkedDrawing, useCreateLinkedSpreadsheet,
 } from '../hooks/use-drive';
+import { api } from '../lib/api-client';
 import { useToastStore } from '../stores/toast-store';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../components/ui/context-menu';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
@@ -63,6 +66,7 @@ export function DrivePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; item: DriveItem } | null>(null);
+  const [newDropdownOpen, setNewDropdownOpen] = useState(false);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -76,6 +80,7 @@ export function DrivePage() {
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resizingRef = useRef(false);
+  const newDropdownRef = useRef<HTMLDivElement>(null);
 
   // Queries
   const currentParentId = folderId || null;
@@ -95,6 +100,9 @@ export function DrivePage() {
   const deleteItem = useDeleteDriveItem();
   const restoreItem = useRestoreDriveItem();
   const permanentDelete = usePermanentDeleteDriveItem();
+  const createLinkedDocument = useCreateLinkedDocument();
+  const createLinkedDrawing = useCreateLinkedDrawing();
+  const createLinkedSpreadsheet = useCreateLinkedSpreadsheet();
 
   // Determine which items to show
   const displayItems = useMemo(() => {
@@ -112,6 +120,18 @@ export function DrivePage() {
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
+
+  // Close new dropdown on click outside
+  useEffect(() => {
+    if (!newDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (newDropdownRef.current && !newDropdownRef.current.contains(e.target as Node)) {
+        setNewDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [newDropdownOpen]);
 
   // ─── Sidebar resize ────────────────────────────────────────────────
 
@@ -184,9 +204,18 @@ export function DrivePage() {
       navigate(`/drive/folder/${item.id}`);
       setSidebarView('files');
       setSearchQuery('');
-    } else {
-      setSelectedId(item.id === selectedId ? null : item.id);
+      return;
     }
+
+    // Open linked resources in their native editor
+    if (item.linkedResourceType && item.linkedResourceId) {
+      if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
+      return;
+    }
+
+    setSelectedId(item.id === selectedId ? null : item.id);
   }, [navigate, selectedId]);
 
   const handleRename = useCallback((item: DriveItem) => {
@@ -197,16 +226,30 @@ export function DrivePage() {
 
   const handleRenameSubmit = useCallback(() => {
     if (!renameId || !renameValue.trim()) return;
+    const trimmedName = renameValue.trim();
+    const item = displayItems.find((i) => i.id === renameId);
+
     updateItem.mutate(
-      { id: renameId, name: renameValue.trim() },
+      { id: renameId, name: trimmedName },
       {
         onSuccess: () => {
           setRenameId(null);
           addToast({ type: 'success', message: 'Renamed' });
+
+          // Sync title to linked resource
+          if (item?.linkedResourceType && item?.linkedResourceId) {
+            if (item.linkedResourceType === 'document') {
+              api.patch(`/docs/${item.linkedResourceId}`, { title: trimmedName }).catch(() => {});
+            } else if (item.linkedResourceType === 'drawing') {
+              api.patch(`/drawings/${item.linkedResourceId}`, { title: trimmedName }).catch(() => {});
+            } else if (item.linkedResourceType === 'spreadsheet') {
+              api.patch(`/tables/${item.linkedResourceId}`, { title: trimmedName }).catch(() => {});
+            }
+          }
         },
       },
     );
-  }, [renameId, renameValue, updateItem, addToast]);
+  }, [renameId, renameValue, updateItem, addToast, displayItems]);
 
   const handleToggleFavourite = useCallback((item: DriveItem) => {
     updateItem.mutate(
@@ -388,30 +431,103 @@ export function DrivePage() {
         </div>
 
         <div className="drive-sidebar-actions">
-          <button
-            onClick={() => setNewFolderOpen(true)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              height: 32,
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-bg-primary)',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--font-size-sm)',
-              fontFamily: 'var(--font-family)',
-              cursor: 'pointer',
-              transition: 'background var(--transition-fast)',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-bg-primary)'; }}
-          >
-            <FolderPlus size={14} />
-            New folder
-          </button>
+          <div ref={newDropdownRef} style={{ flex: 1, position: 'relative' }}>
+            <button
+              onClick={() => setNewDropdownOpen((v) => !v)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                height: 32,
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg-primary)',
+                color: 'var(--color-text-secondary)',
+                fontSize: 'var(--font-size-sm)',
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+                transition: 'background var(--transition-fast)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-bg-primary)'; }}
+            >
+              <Plus size={14} />
+              New
+              <ChevronDown size={12} />
+            </button>
+            {newDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                marginTop: 4,
+                background: 'var(--color-bg-primary)',
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 50,
+                padding: '4px 0',
+                minWidth: 180,
+              }}>
+                <button
+                  onClick={() => { setNewDropdownOpen(false); setNewFolderOpen(true); }}
+                  className="drive-new-dropdown-item"
+                >
+                  <FolderPlus size={14} />
+                  New folder
+                </button>
+                <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 0' }} />
+                <button
+                  onClick={() => {
+                    setNewDropdownOpen(false);
+                    createLinkedDocument.mutate({ parentId: currentParentId }, {
+                      onSuccess: (data) => {
+                        navigate(`/docs/${data.resourceId}`);
+                      },
+                      onError: () => addToast({ type: 'error', message: 'Failed to create document' }),
+                    });
+                  }}
+                  className="drive-new-dropdown-item"
+                >
+                  <FileText size={14} />
+                  New document
+                </button>
+                <button
+                  onClick={() => {
+                    setNewDropdownOpen(false);
+                    createLinkedDrawing.mutate({ parentId: currentParentId }, {
+                      onSuccess: (data) => {
+                        navigate(`/draw/${data.resourceId}`);
+                      },
+                      onError: () => addToast({ type: 'error', message: 'Failed to create drawing' }),
+                    });
+                  }}
+                  className="drive-new-dropdown-item"
+                >
+                  <Pencil size={14} />
+                  New drawing
+                </button>
+                <button
+                  onClick={() => {
+                    setNewDropdownOpen(false);
+                    createLinkedSpreadsheet.mutate({ parentId: currentParentId }, {
+                      onSuccess: (data) => {
+                        navigate(`/tables/${data.resourceId}`);
+                      },
+                      onError: () => addToast({ type: 'error', message: 'Failed to create spreadsheet' }),
+                    });
+                  }}
+                  className="drive-new-dropdown-item"
+                >
+                  <Table2 size={14} />
+                  New spreadsheet
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => fileInputRef.current?.click()}
             style={{
@@ -747,7 +863,20 @@ export function DrivePage() {
             </>
           ) : (
             <>
-              {contextMenu.item.type === 'file' && (
+              {contextMenu.item.linkedResourceType && contextMenu.item.linkedResourceId && (
+                <ContextMenuItem
+                  icon={<ExternalLink size={14} />}
+                  label="Open in editor"
+                  onClick={() => {
+                    const item = contextMenu.item;
+                    setContextMenu(null);
+                    if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
+                    else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
+                    else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
+                  }}
+                />
+              )}
+              {contextMenu.item.type === 'file' && !contextMenu.item.linkedResourceType && (
                 <ContextMenuItem
                   icon={<Download size={14} />}
                   label="Download"

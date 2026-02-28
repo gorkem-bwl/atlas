@@ -398,3 +398,30 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
 }
+
+/* ─── New dropdown ────────────────────────────────────────────────── */
+
+.drive-new-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  text-align: left;
+}
+
+.drive-new-dropdown-item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.drive-new-dropdown-item svg {
+  flex-shrink: 0;
+}

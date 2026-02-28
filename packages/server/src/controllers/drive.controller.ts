@@ -258,6 +258,51 @@ export async function permanentDelete(req: Request, res: Response) {
   }
 }
 
+// POST /api/drive/create-document
+export async function createLinkedDocument(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { parentId } = req.body as { parentId?: string };
+
+    const result = await driveService.createLinkedDocument(userId, accountId, parentId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create linked document');
+    res.status(500).json({ success: false, error: 'Failed to create linked document' });
+  }
+}
+
+// POST /api/drive/create-drawing
+export async function createLinkedDrawing(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { parentId } = req.body as { parentId?: string };
+
+    const result = await driveService.createLinkedDrawing(userId, accountId, parentId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create linked drawing');
+    res.status(500).json({ success: false, error: 'Failed to create linked drawing' });
+  }
+}
+
+// POST /api/drive/create-spreadsheet
+export async function createLinkedSpreadsheet(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { parentId } = req.body as { parentId?: string };
+
+    const result = await driveService.createLinkedSpreadsheet(userId, accountId, parentId);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create linked spreadsheet');
+    res.status(500).json({ success: false, error: 'Failed to create linked spreadsheet' });
+  }
+}
+
 // GET /api/drive/:id/download
 export async function downloadFile(req: Request, res: Response) {
   try {

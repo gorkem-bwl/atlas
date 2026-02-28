@@ -407,6 +407,10 @@ try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_parent ON 
 try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_archived ON drive_items(user_id, is_archived)`).run(); } catch { /* */ }
 try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_favourite ON drive_items(user_id, is_favourite)`).run(); } catch { /* */ }
 
+// ---- Drive linked resource columns -------------------------------------------
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_type TEXT`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_id TEXT`).run(); } catch { /* column already exists */ }
+
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).
 sqlite.prepare(`

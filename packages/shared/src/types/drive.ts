@@ -8,6 +8,8 @@ export interface DriveItem {
   size: number | null;
   parentId: string | null;
   storagePath: string | null;
+  linkedResourceType: 'document' | 'drawing' | 'spreadsheet' | null;
+  linkedResourceId: string | null;
   isFavourite: boolean;
   isArchived: boolean;
   sortOrder: number;
