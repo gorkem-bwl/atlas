@@ -171,6 +171,8 @@ export const TableEmbed = Node.create({
       const body = document.createElement('div');
       Object.assign(body.style, {
         overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '220px',
       });
 
       const loadingEl = document.createElement('div');
@@ -304,21 +306,21 @@ export const TableEmbed = Node.create({
             table.appendChild(tbody);
             body.appendChild(table);
 
-            // Footer with row count
+            // Footer with row count (outside scrollable body)
             if (hasMoreRows || spreadsheet.rows.length > 0) {
               const footer = document.createElement('div');
               Object.assign(footer.style, {
                 padding: '6px 12px',
                 fontSize: '11px',
                 color: 'var(--color-text-tertiary)',
-                borderTop: hasMoreRows ? '1px solid var(--color-border-primary)' : 'none',
+                borderTop: '1px solid var(--color-border-primary)',
                 background: 'var(--color-bg-tertiary)',
               });
               const total = spreadsheet.rows.length;
               footer.textContent = hasMoreRows
                 ? `Showing ${MAX_PREVIEW_ROWS} of ${total} rows`
                 : `${total} row${total !== 1 ? 's' : ''}`;
-              body.appendChild(footer);
+              dom.appendChild(footer);
             }
           })
           .catch(() => {
