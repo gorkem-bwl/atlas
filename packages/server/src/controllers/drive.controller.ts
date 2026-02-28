@@ -147,8 +147,8 @@ export async function listFolders(req: Request, res: Response) {
 export async function getStorageUsage(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
-    const total = await driveService.getStorageUsage(userId);
-    res.json({ success: true, data: { totalBytes: total } });
+    const usage = await driveService.getStorageUsage(userId);
+    res.json({ success: true, data: usage });
   } catch (error) {
     logger.error({ error }, 'Failed to get storage usage');
     res.status(500).json({ success: false, error: 'Failed to get storage usage' });

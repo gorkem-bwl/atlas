@@ -118,7 +118,7 @@ export function useDriveStorage() {
     queryKey: queryKeys.drive.storage,
     queryFn: async () => {
       const { data } = await api.get('/drive/storage');
-      return data.data as { totalBytes: number };
+      return data.data as { totalBytes: number; fileCount: number };
     },
     staleTime: 60_000,
   });

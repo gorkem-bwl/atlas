@@ -378,7 +378,9 @@
     "drawings_one": "{{count}} çizim",
     "drawings_other": "{{count}} çizim",
     "tables_one": "{{count}} tablo",
-    "tables_other": "{{count}} tablo"
+    "tables_other": "{{count}} tablo",
+    "files_one": "{{count}} dosya",
+    "files_other": "{{count}} dosya"
   },
   "calendar": {
     "title": "Takvim",

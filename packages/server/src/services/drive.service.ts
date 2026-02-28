@@ -301,11 +301,14 @@ export async function getBreadcrumbs(userId: string, itemId: string) {
 
 export async function getStorageUsage(userId: string) {
   const [result] = await db
-    .select({ total: sql<number>`COALESCE(SUM(${driveItems.size}), 0)` })
+    .select({
+      total: sql<number>`COALESCE(SUM(${driveItems.size}), 0)`,
+      fileCount: sql<number>`COUNT(*)`,
+    })
     .from(driveItems)
-    .where(and(eq(driveItems.userId, userId), eq(driveItems.type, 'file')));
+    .where(and(eq(driveItems.userId, userId), eq(driveItems.type, 'file'), eq(driveItems.isArchived, false)));
 
-  return result?.total ?? 0;
+  return { totalBytes: result?.total ?? 0, fileCount: result?.fileCount ?? 0 };
 }
 
 // ─── Seed sample folder on first visit ───────────────────────────────
