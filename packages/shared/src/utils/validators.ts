@@ -107,6 +107,20 @@ export const settingsSchema = z.object({
   drawAutoSaveInterval: z.union([z.literal(1000), z.literal(2000), z.literal(5000), z.literal(10000)]).optional(),
   drawSortOrder: z.enum(['name', 'created', 'modified']).optional(),
   drawLibrary: z.array(z.unknown()).optional(),
+  // Drive settings
+  driveDefaultView: z.enum(['list', 'grid']).optional(),
+  driveDefaultSort: z.enum(['default', 'name', 'size', 'date', 'type']).optional(),
+  driveSidebarDefault: z.enum(['files', 'favourites', 'recent']).optional(),
+  driveShowPreviewPanel: z.boolean().optional(),
+  driveCompactMode: z.boolean().optional(),
+  driveConfirmDelete: z.boolean().optional(),
+  driveAutoVersionOnReplace: z.boolean().optional(),
+  driveMaxVersions: z.union([z.literal(5), z.literal(10), z.literal(20), z.literal(50)]).optional(),
+  driveShareDefaultExpiry: z.enum(['never', '1', '7', '30']).optional(),
+  driveDuplicateHandling: z.enum(['rename', 'replace', 'ask']).optional(),
+  driveShowThumbnails: z.boolean().optional(),
+  driveShowFileExtensions: z.boolean().optional(),
+  driveSortOrder: z.enum(['asc', 'desc']).optional(),
   // Search
   recentSearches: z.array(z.string()).optional(),
 });

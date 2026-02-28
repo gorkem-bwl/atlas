@@ -13,6 +13,7 @@ import { useTaskCounts } from '../hooks/use-tasks';
 import { useDocumentList } from '../hooks/use-documents';
 import { useDrawingList } from '../hooks/use-drawings';
 import { useTableList } from '../hooks/use-tables';
+import { useDriveStorage } from '../hooks/use-drive';
 import { ROUTES } from '../config/routes';
 import { useUIStore } from '../stores/ui-store';
 import { buildGoogleOAuthUrl } from '../components/auth/login-page';
@@ -509,6 +510,7 @@ export function HomePage() {
   const { data: docListData } = useDocumentList(false, { enabled: isAuthenticated });
   const { data: drawingListData } = useDrawingList(false, { enabled: isAuthenticated });
   const { data: tableListData } = useTableList(false, { enabled: isAuthenticated });
+  const { data: driveStorageData } = useDriveStorage();
   const parallax = useMouseParallax(15);
 
   // Image rotation — changes daily, crossfade on manual cycle
@@ -560,6 +562,7 @@ export function HomePage() {
   const docCount = docListData?.documents?.length ?? 0;
   const drawingCount = drawingListData?.drawings?.length ?? 0;
   const tableCount = tableListData?.spreadsheets?.length ?? 0;
+  const driveFileCount = driveStorageData?.fileCount ?? 0;
   const timeTint = getTimeTint(hour);
 
   // Upcoming events (next 3 that haven't ended yet)
@@ -935,6 +938,7 @@ export function HomePage() {
             icon={HardDrive}
             label="Drive"
             color="#64748b"
+            badge={driveFileCount > 0 ? t('home.files', { count: driveFileCount }) : undefined}
             onClick={() => navigate(ROUTES.DRIVE)}
           />
           <AppCard

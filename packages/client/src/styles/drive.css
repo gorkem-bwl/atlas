@@ -200,6 +200,12 @@
   align-items: center;
 }
 
+.drive-list-row.compact {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: var(--font-size-xs);
+}
+
 .drive-list-row:hover {
   background: var(--color-surface-hover);
 }
@@ -249,6 +255,7 @@
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
   text-align: center;
+  position: relative;
 }
 
 .drive-grid-card:hover {
@@ -268,6 +275,8 @@
   justify-content: center;
   width: 48px;
   height: 48px;
+  overflow: hidden;
+  border-radius: var(--radius-sm, 2px);
 }
 
 .drive-grid-card-name {
@@ -283,6 +292,15 @@
 .drive-grid-card-meta {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
+}
+
+/* ─── Image thumbnails ────────────────────────────────────────────── */
+
+.drive-grid-card-thumbnail {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-sm, 2px);
 }
 
 /* ─── Upload drop zone ────────────────────────────────────────────── */
@@ -397,6 +415,405 @@
 .drive-storage-label {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
+}
+
+/* ─── Preview panel ──────────────────────────────────────────────── */
+
+.drive-preview-panel {
+  width: 380px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--color-border-secondary);
+  background: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drive-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  flex-shrink: 0;
+}
+
+.drive-preview-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.drive-preview-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.drive-preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md, 4px);
+}
+
+.drive-preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--radius-md, 4px);
+}
+
+.drive-preview-text-content {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.drive-preview-pre {
+  margin: 0;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary, #f8f9fa);
+  border-radius: var(--radius-md, 4px);
+  min-height: 100%;
+}
+
+.drive-preview-table-wrap {
+  width: 100%;
+  overflow: auto;
+}
+
+.drive-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.drive-preview-table th,
+.drive-preview-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border, #d0d5dd);
+  text-align: left;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drive-preview-table th {
+  background: var(--color-bg-secondary, #f8f9fa);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.drive-preview-table tbody tr:hover {
+  background: var(--color-bg-hover, #f1f5f9);
+}
+
+.drive-preview-truncated {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  text-align: center;
+  border-top: 1px solid var(--color-border, #d0d5dd);
+}
+
+.drive-preview-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drive-preview-meta {
+  padding: 16px;
+  border-top: 1px solid var(--color-border-secondary);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drive-preview-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.drive-preview-meta-label {
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* ─── Bulk action bar (floating bottom card) ─────────────────────── */
+
+.drive-bulk-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.drive-bulk-count {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--color-accent-primary);
+  margin-right: 4px;
+}
+
+.drive-bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md, 4px);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.drive-bulk-btn:hover {
+  background: var(--color-surface-hover);
+}
+
+.drive-bulk-btn-destructive {
+  color: var(--color-error, #ef4444);
+  border-color: color-mix(in srgb, var(--color-error, #ef4444) 30%, transparent);
+}
+
+.drive-bulk-btn-destructive:hover {
+  background: color-mix(in srgb, var(--color-error, #ef4444) 8%, var(--color-bg-primary));
+}
+
+/* ─── Upload progress ─────────────────────────────────────────────── */
+
+.drive-upload-progress {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  flex-shrink: 0;
+}
+
+.drive-upload-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.drive-upload-progress-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-bg-tertiary);
+  overflow: hidden;
+}
+
+.drive-upload-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-accent-primary);
+  transition: width 0.2s ease;
+}
+
+/* ─── Drag & drop highlights ─────────────────────────────────────── */
+
+.drive-drag-over {
+  border-color: var(--color-accent-primary) !important;
+  background: color-mix(in srgb, var(--color-accent-primary) 6%, var(--color-bg-primary)) !important;
+  box-shadow: inset 0 0 0 1px var(--color-accent-primary);
+}
+
+/* ─── Checkbox ────────────────────────────────────────────────────── */
+
+.drive-checkbox {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--color-accent-primary);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.drive-list-row:hover .drive-checkbox,
+.drive-list-row.selected .drive-checkbox,
+.drive-grid-card:hover .drive-checkbox,
+.drive-grid-card.selected .drive-checkbox {
+  opacity: 1;
+}
+
+.drive-grid-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+/* ─── Sort ────────────────────────────────────────────────────────── */
+
+.drive-sort-header {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.drive-sort-header:hover {
+  color: var(--color-text-primary);
+}
+
+.drive-sort-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  padding: 4px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md, 4px);
+  background: var(--color-bg-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+}
+
+.drive-sort-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: var(--radius-sm, 2px);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.drive-sort-option:hover {
+  background: var(--color-surface-hover);
+}
+
+.drive-sort-option.active {
+  color: var(--color-accent-primary);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+/* ─── Tags ────────────────────────────────────────────────────────── */
+
+.drive-tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* ─── Sidebar divider + section label ─────────────────────────────── */
+
+.drive-nav-divider {
+  height: 1px;
+  background: var(--color-border-secondary);
+  margin: 8px 10px;
+}
+
+.drive-nav-section-label {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px 2px;
+}
+
+/* ─── Video preview ───────────────────────────────────────────────── */
+
+.drive-preview-video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius-md, 4px);
+}
+
+/* ─── Audio preview ───────────────────────────────────────────────── */
+
+.drive-preview-audio-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+
+/* ─── Version history list ────────────────────────────────────────── */
+
+.drive-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.drive-version-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm, 2px);
+  transition: background var(--transition-fast);
+}
+
+.drive-version-row:hover {
+  background: var(--color-surface-hover);
+}
+
+/* ─── Share links list ────────────────────────────────────────────── */
+
+.drive-share-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--color-border-secondary);
+  padding-top: 12px;
+}
+
+.drive-share-link-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 /* ─── New dropdown ────────────────────────────────────────────────── */

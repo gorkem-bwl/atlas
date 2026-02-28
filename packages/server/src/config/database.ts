@@ -353,6 +353,25 @@ try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_auto_save_interv
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_sort_order TEXT NOT NULL DEFAULT 'modified'`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN draw_library TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
 
+// ---- Drive settings columns on user_settings ----------------------------------
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_default_view TEXT NOT NULL DEFAULT 'list'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_default_sort TEXT NOT NULL DEFAULT 'default'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_sidebar_default TEXT NOT NULL DEFAULT 'files'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_show_preview_panel INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_compact_mode INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_confirm_delete INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_auto_version_on_replace INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_max_versions INTEGER NOT NULL DEFAULT 20`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_share_default_expiry TEXT NOT NULL DEFAULT 'never'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_duplicate_handling TEXT NOT NULL DEFAULT 'rename'`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_show_thumbnails INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_show_file_extensions INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN drive_sort_order TEXT NOT NULL DEFAULT 'asc'`).run(); } catch { /* column already exists */ }
+
+// ---- Drive linked resource columns -------------------------------------------
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_type TEXT`).run(); } catch { /* column already exists */ }
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_id TEXT`).run(); } catch { /* column already exists */ }
+
 // ---- Search settings columns on user_settings --------------------------------
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN recent_searches TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
 
@@ -407,9 +426,47 @@ try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_parent ON 
 try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_archived ON drive_items(user_id, is_archived)`).run(); } catch { /* */ }
 try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_favourite ON drive_items(user_id, is_favourite)`).run(); } catch { /* */ }
 
-// ---- Drive linked resource columns -------------------------------------------
+// Drive items: tags column
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+// Drive items: icon column
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN icon TEXT`).run(); } catch { /* column already exists */ }
+// Drive linked resource columns
 try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_type TEXT`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN linked_resource_id TEXT`).run(); } catch { /* column already exists */ }
+
+// ---- Drive item versions table -----------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS drive_item_versions (
+    id TEXT PRIMARY KEY,
+    drive_item_id TEXT NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    mime_type TEXT,
+    size INTEGER,
+    storage_path TEXT,
+    createdAt TEXT NOT NULL
+  )
+`).run();
+
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_versions_item ON drive_item_versions(drive_item_id, createdAt)`).run(); } catch { /* */ }
+
+// ---- Drive share links table -------------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS drive_share_links (
+    id TEXT PRIMARY KEY,
+    drive_item_id TEXT NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    share_token TEXT NOT NULL UNIQUE,
+    expires_at TEXT,
+    createdAt TEXT NOT NULL
+  )
+`).run();
+
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_share_links_token ON drive_share_links(share_token)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_share_links_item ON drive_share_links(drive_item_id)`).run(); } catch { /* */ }
 
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).

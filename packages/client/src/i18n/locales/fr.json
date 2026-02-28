@@ -378,7 +378,9 @@
     "drawings_one": "{{count}} dessin",
     "drawings_other": "{{count}} dessins",
     "tables_one": "{{count}} tableau",
-    "tables_other": "{{count}} tableaux"
+    "tables_other": "{{count}} tableaux",
+    "files_one": "{{count}} fichier",
+    "files_other": "{{count}} fichiers"
   },
   "calendar": {
     "title": "Calendrier",

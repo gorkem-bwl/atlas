@@ -5,13 +5,19 @@ import {
   Plus, Search, Upload, FolderPlus, ArrowLeft, Trash2, RotateCcw,
   Star, MoreHorizontal, Pencil, Download, FolderInput, ChevronRight,
   LayoutGrid, LayoutList, Home, Clock, Heart, HardDrive, Upload as UploadIcon,
-  ExternalLink, FileText, Table2, ChevronDown,
+  Copy, X, Check, ChevronDown, Tag, FileArchive, Share2, History,
+  FileImage, FileText, FileVideo, FileAudio, Link2, Trash, Music, Settings,
+  ExternalLink, Table2,
 } from 'lucide-react';
 import {
   useDriveItems, useDriveBreadcrumbs, useDriveFavourites, useDriveRecent,
   useDriveTrash, useDriveSearch, useCreateFolder, useUploadFiles,
   useUpdateDriveItem, useDeleteDriveItem, useRestoreDriveItem,
   usePermanentDeleteDriveItem, useDriveStorage, useDriveFolders,
+  useDuplicateDriveItem, useBatchDeleteDriveItems, useBatchMoveDriveItems,
+  useBatchFavouriteDriveItems, useFilePreview, useFileVersions,
+  useReplaceFile, useRestoreVersion, useShareLinks, useCreateShareLink,
+  useDeleteShareLink, useDriveItemsByType,
   useCreateLinkedDocument, useCreateLinkedDrawing, useCreateLinkedSpreadsheet,
 } from '../hooks/use-drive';
 import { api } from '../lib/api-client';
@@ -19,9 +25,13 @@ import { useToastStore } from '../stores/toast-store';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../components/ui/context-menu';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import { Modal } from '../components/ui/modal';
-import { getFileIcon, getFileIconColor, formatBytes, formatRelativeDate } from '../lib/drive-utils';
+import { Chip } from '../components/ui/chip';
+import { EmojiPicker } from '../components/shared/emoji-picker';
+import { getFileIcon, getFileIconColor, formatBytes, formatRelativeDate, isImageFile } from '../lib/drive-utils';
 import { ROUTES } from '../config/routes';
-import type { DriveItem } from '@atlasmail/shared';
+import { useDriveSettingsStore, useDriveSettingsSync } from '../stores/drive-settings-store';
+import { useUIStore } from '../stores/ui-store';
+import type { DriveItem, DriveShareLink } from '@atlasmail/shared';
 import '../styles/drive.css';
 
 // ─── Constants ───────────────────────────────────────────────────────
@@ -33,7 +43,111 @@ const MAX_SIDEBAR_WIDTH = 400;
 const VIEW_MODE_KEY = 'atlasmail_drive_view_mode';
 
 type ViewMode = 'list' | 'grid';
-type SidebarView = 'files' | 'favourites' | 'recent' | 'trash';
+type SidebarView = 'files' | 'favourites' | 'recent' | 'trash' | 'images' | 'documents' | 'videos' | 'audio';
+type SortBy = 'default' | 'name' | 'size' | 'date' | 'type';
+type TypeFilter = 'all' | 'folders' | 'documents' | 'spreadsheets' | 'presentations' | 'photos' | 'pdfs' | 'videos' | 'archives' | 'audio' | 'drawings';
+type ModifiedFilter = 'any' | 'today' | '7days' | '30days' | 'thisYear' | 'lastYear';
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'default', label: 'Default' },
+  { value: 'name', label: 'Name' },
+  { value: 'size', label: 'Size' },
+  { value: 'date', label: 'Date modified' },
+  { value: 'type', label: 'Type' },
+];
+
+const TYPE_FILTER_OPTIONS: { value: TypeFilter; label: string }[] = [
+  { value: 'all', label: 'Any type' },
+  { value: 'folders', label: 'Folders' },
+  { value: 'documents', label: 'Documents' },
+  { value: 'spreadsheets', label: 'Spreadsheets' },
+  { value: 'presentations', label: 'Presentations' },
+  { value: 'photos', label: 'Photos & images' },
+  { value: 'pdfs', label: 'PDFs' },
+  { value: 'videos', label: 'Videos' },
+  { value: 'archives', label: 'Archives' },
+  { value: 'audio', label: 'Audio' },
+  { value: 'drawings', label: 'Drawings' },
+];
+
+function getModifiedFilterOptions(): { value: ModifiedFilter; label: string }[] {
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  return [
+    { value: 'any', label: 'Any time' },
+    { value: 'today', label: 'Today' },
+    { value: '7days', label: 'Last 7 days' },
+    { value: '30days', label: 'Last 30 days' },
+    { value: 'thisYear', label: `This year (${thisYear})` },
+    { value: 'lastYear', label: `Last year (${thisYear - 1})` },
+  ];
+}
+
+function matchesTypeFilter(item: DriveItem, filter: TypeFilter): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'folders') return item.type === 'folder';
+  const mime = (item.mimeType || '').toLowerCase();
+  const name = (item.name || '').toLowerCase();
+  switch (filter) {
+    case 'documents':
+      return mime === 'application/vnd.atlasmail.document' || (/word|document|\.docx?$|\.odt$|\.rtf$|text\/plain/.test(mime + name) && !mime.startsWith('application/pdf'));
+    case 'spreadsheets':
+      return mime === 'application/vnd.atlasmail.spreadsheet' || /spreadsheet|excel|\.xlsx?$|\.csv$|\.ods$/.test(mime + name);
+    case 'presentations':
+      return /presentation|powerpoint|\.pptx?$|\.odp$/.test(mime + name);
+    case 'photos':
+      return mime.startsWith('image/');
+    case 'pdfs':
+      return mime === 'application/pdf' || name.endsWith('.pdf');
+    case 'videos':
+      return mime.startsWith('video/');
+    case 'archives':
+      return /zip|rar|7z|tar|gz|bz2|archive|compressed/.test(mime + name);
+    case 'audio':
+      return mime.startsWith('audio/');
+    case 'drawings':
+      return mime === 'application/vnd.atlasmail.drawing' || /drawing|\.svg$|\.sketch$|\.fig$/.test(mime + name) || mime === 'image/svg+xml';
+    default:
+      return true;
+  }
+}
+
+function matchesModifiedFilter(item: DriveItem, filter: ModifiedFilter): boolean {
+  if (filter === 'any') return true;
+  const itemDate = new Date(item.updatedAt);
+  const now = new Date();
+  switch (filter) {
+    case 'today': {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return itemDate >= start;
+    }
+    case '7days': {
+      const start = new Date(now);
+      start.setDate(start.getDate() - 7);
+      return itemDate >= start;
+    }
+    case '30days': {
+      const start = new Date(now);
+      start.setDate(start.getDate() - 30);
+      return itemDate >= start;
+    }
+    case 'thisYear':
+      return itemDate.getFullYear() === now.getFullYear();
+    case 'lastYear':
+      return itemDate.getFullYear() === now.getFullYear() - 1;
+    default:
+      return true;
+  }
+}
+
+const TAG_COLORS = [
+  { name: 'red', hex: '#ef4444' },
+  { name: 'blue', hex: '#3b82f6' },
+  { name: 'green', hex: '#22c55e' },
+  { name: 'orange', hex: '#f97316' },
+  { name: 'purple', hex: '#8b5cf6' },
+  { name: 'gray', hex: '#6b7280' },
+];
 
 function getSavedSidebarWidth(): number {
   try {
@@ -51,6 +165,64 @@ function getSavedViewMode(): ViewMode {
   return 'list';
 }
 
+function getTokenParam(): string {
+  const token = localStorage.getItem('atlasmail_token');
+  return token ? `?token=${encodeURIComponent(token)}` : '';
+}
+
+function parseTag(tag: string): { color: string; label: string } {
+  const idx = tag.indexOf(':');
+  if (idx > 0) return { color: tag.slice(0, idx), label: tag.slice(idx + 1) };
+  return { color: '#6b7280', label: tag };
+}
+
+function isTextPreviewable(mimeType: string | null, name: string): boolean {
+  if (!mimeType && !name) return false;
+  if (mimeType) {
+    if (mimeType.startsWith('text/')) return true;
+    if (['application/json', 'application/xml', 'application/javascript', 'application/csv', 'application/x-yaml'].some((m) => mimeType.includes(m))) return true;
+  }
+  const ext = name.split('.').pop()?.toLowerCase();
+  return ['csv', 'md', 'json', 'txt', 'xml', 'yaml', 'yml', 'sh', 'js', 'ts', 'html', 'css', 'log', 'ini', 'toml', 'sql'].includes(ext || '');
+}
+
+function getFileExtension(name: string): string {
+  return name.split('.').pop()?.toLowerCase() || '';
+}
+
+function parseCsvToRows(content: string): string[][] {
+  const rows: string[][] = [];
+  const lines = content.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    // Simple CSV parsing — handles quoted fields
+    const row: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+        else if (ch === '"') inQuotes = false;
+        else current += ch;
+      } else {
+        if (ch === '"') inQuotes = true;
+        else if (ch === ',') { row.push(current.trim()); current = ''; }
+        else current += ch;
+      }
+    }
+    row.push(current.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
+function stripExtension(name: string, type: string): string {
+  if (type !== 'file') return name;
+  const lastDot = name.lastIndexOf('.');
+  return lastDot > 0 ? name.slice(0, lastDot) : name;
+}
+
 // ─── Drive page ──────────────────────────────────────────────────────
 
 export function DrivePage() {
@@ -58,13 +230,19 @@ export function DrivePage() {
   const navigate = useNavigate();
   const { id: folderId } = useParams<{ id: string }>();
   const addToast = useToastStore((s) => s.addToast);
+  const openSettings = useUIStore((s) => s.openSettings);
+
+  // Drive settings (persisted to server)
+  useDriveSettingsSync();
+  const driveSettings = useDriveSettingsStore();
 
   // State
   const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
-  const [viewMode, setViewMode] = useState<ViewMode>(getSavedViewMode);
-  const [sidebarView, setSidebarView] = useState<SidebarView>('files');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => driveSettings.defaultView as ViewMode || getSavedViewMode());
+  const [sidebarView, setSidebarView] = useState<SidebarView>(() => driveSettings.sidebarDefault as SidebarView || 'files');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [lastClickedId, setLastClickedId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; item: DriveItem } | null>(null);
   const [newDropdownOpen, setNewDropdownOpen] = useState(false);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
@@ -77,14 +255,38 @@ export function DrivePage() {
   const [moveItem, setMoveItem] = useState<DriveItem | null>(null);
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [sortBy, setSortBy] = useState<SortBy>(() => driveSettings.defaultSort as SortBy || 'default');
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [modifiedFilter, setModifiedFilter] = useState<ModifiedFilter>('any');
+  const [modifiedDropdownOpen, setModifiedDropdownOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<DriveItem | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ loaded: number; total: number } | null>(null);
+  const [tagModalItem, setTagModalItem] = useState<DriveItem | null>(null);
+  const [tagLabel, setTagLabel] = useState('');
+  const [tagColor, setTagColor] = useState(TAG_COLORS[0].hex);
+  const [iconPickerItem, setIconPickerItem] = useState<DriveItem | null>(null);
+  const [dragItemId, setDragItemId] = useState<string | null>(null);
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [batchMoveOpen, setBatchMoveOpen] = useState(false);
+  const [batchMoveTargetId, setBatchMoveTargetId] = useState<string | null>(null);
+  const [shareModalItem, setShareModalItem] = useState<DriveItem | null>(null);
+  const [shareExpiry, setShareExpiry] = useState<string>(() => driveSettings.shareDefaultExpiry || 'never');
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
   const resizingRef = useRef(false);
   const newDropdownRef = useRef<HTMLDivElement>(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const modifiedDropdownRef = useRef<HTMLDivElement>(null);
 
   // Queries
   const currentParentId = folderId || null;
-  const { data: itemsData, isLoading: itemsLoading } = useDriveItems(sidebarView === 'files' ? currentParentId : undefined);
+  const { data: itemsData, isLoading: itemsLoading } = useDriveItems(sidebarView === 'files' ? currentParentId : undefined, sortBy, driveSettings.sortOrder);
   const { data: breadcrumbsData } = useDriveBreadcrumbs(folderId);
   const { data: favouritesData } = useDriveFavourites();
   const { data: recentData } = useDriveRecent();
@@ -92,6 +294,17 @@ export function DrivePage() {
   const { data: searchData } = useDriveSearch(searchQuery);
   const { data: storageData } = useDriveStorage();
   const { data: foldersData } = useDriveFolders();
+  const previewFileId = previewItem && previewItem.type === 'file' && isTextPreviewable(previewItem.mimeType, previewItem.name) ? previewItem.id : undefined;
+  const { data: filePreviewData, isLoading: previewLoading } = useFilePreview(previewFileId);
+
+  // Type filter queries
+  const typeCategory = ['images', 'documents', 'videos', 'audio'].includes(sidebarView) ? sidebarView : undefined;
+  const { data: typeData } = useDriveItemsByType(typeCategory);
+
+  // Version & share queries
+  const versionItemId = previewItem?.type === 'file' ? previewItem.id : undefined;
+  const { data: versionsData } = useFileVersions(versionHistoryOpen ? versionItemId : undefined);
+  const { data: shareLinksData } = useShareLinks(shareModalItem?.id);
 
   // Mutations
   const createFolder = useCreateFolder();
@@ -100,38 +313,92 @@ export function DrivePage() {
   const deleteItem = useDeleteDriveItem();
   const restoreItem = useRestoreDriveItem();
   const permanentDelete = usePermanentDeleteDriveItem();
+  const duplicateItem = useDuplicateDriveItem();
+  const batchDelete = useBatchDeleteDriveItems();
+  const batchMove = useBatchMoveDriveItems();
+  const batchFavourite = useBatchFavouriteDriveItems();
+  const replaceFile = useReplaceFile();
+  const restoreVersion = useRestoreVersion();
+  const createShareLink = useCreateShareLink();
+  const deleteShareLink = useDeleteShareLink();
   const createLinkedDocument = useCreateLinkedDocument();
   const createLinkedDrawing = useCreateLinkedDrawing();
   const createLinkedSpreadsheet = useCreateLinkedSpreadsheet();
 
   // Determine which items to show
   const displayItems = useMemo(() => {
-    if (searchQuery.trim()) return searchData?.items ?? [];
-    if (sidebarView === 'favourites') return favouritesData?.items ?? [];
-    if (sidebarView === 'recent') return recentData?.items ?? [];
-    if (sidebarView === 'trash') return trashData?.items ?? [];
-    return itemsData?.items ?? [];
-  }, [sidebarView, searchQuery, itemsData, favouritesData, recentData, trashData, searchData]);
+    let items: DriveItem[];
+    if (searchQuery.trim()) items = searchData?.items ?? [];
+    else if (sidebarView === 'favourites') items = favouritesData?.items ?? [];
+    else if (sidebarView === 'recent') items = recentData?.items ?? [];
+    else if (sidebarView === 'trash') items = trashData?.items ?? [];
+    else if (['images', 'documents', 'videos', 'audio'].includes(sidebarView)) items = typeData?.items ?? [];
+    else items = itemsData?.items ?? [];
+
+    // Apply toolbar filters
+    if (typeFilter !== 'all') {
+      items = items.filter((item) => matchesTypeFilter(item, typeFilter));
+    }
+    if (modifiedFilter !== 'any') {
+      items = items.filter((item) => matchesModifiedFilter(item, modifiedFilter));
+    }
+    return items;
+  }, [sidebarView, searchQuery, itemsData, favouritesData, recentData, trashData, searchData, typeData, typeFilter, modifiedFilter]);
 
   const isLoading = sidebarView === 'files' && itemsLoading;
   const breadcrumbs = breadcrumbsData?.breadcrumbs ?? [];
+  const hasSelection = selectedIds.size > 0;
 
   // Save view mode
   useEffect(() => {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
 
-  // Close new dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
-    if (!newDropdownOpen) return;
+    if (!sortDropdownOpen && !typeDropdownOpen && !modifiedDropdownOpen && !newDropdownOpen) return;
     const handler = (e: MouseEvent) => {
-      if (newDropdownRef.current && !newDropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (newDropdownOpen && newDropdownRef.current && !newDropdownRef.current.contains(target)) {
         setNewDropdownOpen(false);
+      }
+      if (sortDropdownOpen && sortDropdownRef.current && !sortDropdownRef.current.contains(target)) {
+        setSortDropdownOpen(false);
+      }
+      if (typeDropdownOpen && typeDropdownRef.current && !typeDropdownRef.current.contains(target)) {
+        setTypeDropdownOpen(false);
+      }
+      if (modifiedDropdownOpen && modifiedDropdownRef.current && !modifiedDropdownRef.current.contains(target)) {
+        setModifiedDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [newDropdownOpen]);
+  }, [sortDropdownOpen, typeDropdownOpen, modifiedDropdownOpen, newDropdownOpen]);
+
+  // Close preview on Escape
+  useEffect(() => {
+    if (!previewItem) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewItem(null);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [previewItem]);
+
+  // Auto-dismiss upload progress
+  useEffect(() => {
+    if (uploadProgress && uploadProgress.loaded >= uploadProgress.total) {
+      const timer = setTimeout(() => setUploadProgress(null), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadProgress]);
+
+  // Clear selection when navigating
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setPreviewItem(null);
+  }, [folderId, sidebarView]);
 
   // ─── Sidebar resize ────────────────────────────────────────────────
 
@@ -159,6 +426,59 @@ export function DrivePage() {
     document.addEventListener('mouseup', onUp);
   }, [sidebarWidth]);
 
+  // ─── Selection helpers ─────────────────────────────────────────────
+
+  const handleItemClick = useCallback((item: DriveItem, e: React.MouseEvent) => {
+    if (item.type === 'folder' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      navigate(`/drive/folder/${item.id}`);
+      setSidebarView('files');
+      setSearchQuery('');
+      return;
+    }
+
+    // Open linked resources in their native editor
+    if (item.linkedResourceType && item.linkedResourceId && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
+      return;
+    }
+
+    if (e.ctrlKey || e.metaKey) {
+      // Toggle selection
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(item.id)) next.delete(item.id);
+        else next.add(item.id);
+        return next;
+      });
+      setLastClickedId(item.id);
+    } else if (e.shiftKey && lastClickedId) {
+      // Range select
+      const items = displayItems;
+      const lastIdx = items.findIndex((i) => i.id === lastClickedId);
+      const curIdx = items.findIndex((i) => i.id === item.id);
+      if (lastIdx >= 0 && curIdx >= 0) {
+        const start = Math.min(lastIdx, curIdx);
+        const end = Math.max(lastIdx, curIdx);
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          for (let i = start; i <= end; i++) next.add(items[i].id);
+          return next;
+        });
+      }
+    } else {
+      // Single click on file → preview (if enabled in settings)
+      if (item.type === 'file') {
+        if (driveSettings.showPreviewPanel) setPreviewItem(item);
+        setSelectedIds(new Set([item.id]));
+      } else {
+        setSelectedIds(new Set([item.id]));
+      }
+      setLastClickedId(item.id);
+    }
+  }, [navigate, lastClickedId, displayItems]);
+
   // ─── File operations ──────────────────────────────────────────────
 
   const handleCreateFolder = useCallback(() => {
@@ -179,14 +499,21 @@ export function DrivePage() {
     const files = Array.from(fileList);
     if (files.length === 0) return;
 
+    setUploadProgress({ loaded: 0, total: 1 });
+
     uploadFiles.mutate(
-      { files, parentId: currentParentId },
+      {
+        files,
+        parentId: currentParentId,
+        onProgress: (progress) => setUploadProgress(progress),
+      },
       {
         onSuccess: (data) => {
           addToast({ type: 'success', message: `${data.items.length} file${data.items.length > 1 ? 's' : ''} uploaded` });
         },
         onError: () => {
           addToast({ type: 'error', message: 'Upload failed' });
+          setUploadProgress(null);
         },
       },
     );
@@ -199,25 +526,6 @@ export function DrivePage() {
     }
   }, [handleUpload]);
 
-  const handleItemClick = useCallback((item: DriveItem) => {
-    if (item.type === 'folder') {
-      navigate(`/drive/folder/${item.id}`);
-      setSidebarView('files');
-      setSearchQuery('');
-      return;
-    }
-
-    // Open linked resources in their native editor
-    if (item.linkedResourceType && item.linkedResourceId) {
-      if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
-      else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
-      else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
-      return;
-    }
-
-    setSelectedId(item.id === selectedId ? null : item.id);
-  }, [navigate, selectedId]);
-
   const handleRename = useCallback((item: DriveItem) => {
     setRenameId(item.id);
     setRenameValue(item.name);
@@ -227,6 +535,8 @@ export function DrivePage() {
   const handleRenameSubmit = useCallback(() => {
     if (!renameId || !renameValue.trim()) return;
     const trimmedName = renameValue.trim();
+
+    // Find the item to check for linked resource
     const item = displayItems.find((i) => i.id === renameId);
 
     updateItem.mutate(
@@ -264,9 +574,18 @@ export function DrivePage() {
   }, [updateItem, addToast]);
 
   const handleMoveToTrash = useCallback((item: DriveItem) => {
-    setConfirmDelete(item);
+    if (driveSettings.confirmDelete) {
+      setConfirmDelete(item);
+    } else {
+      deleteItem.mutate(item.id, {
+        onSuccess: () => {
+          addToast({ type: 'success', message: `"${item.name}" moved to trash` });
+          if (previewItem?.id === item.id) setPreviewItem(null);
+        },
+      });
+    }
     setContextMenu(null);
-  }, []);
+  }, [driveSettings.confirmDelete, deleteItem, addToast, previewItem]);
 
   const confirmMoveToTrash = useCallback(() => {
     if (!confirmDelete) return;
@@ -274,6 +593,7 @@ export function DrivePage() {
       onSuccess: () => {
         addToast({ type: 'success', message: 'Moved to trash' });
         setConfirmDelete(null);
+        setSelectedIds((prev) => { const n = new Set(prev); n.delete(confirmDelete.id); return n; });
       },
     });
   }, [confirmDelete, deleteItem, addToast]);
@@ -304,7 +624,15 @@ export function DrivePage() {
 
   const handleDownload = useCallback((item: DriveItem) => {
     if (item.type !== 'file') return;
-    window.open(`/api/drive/${item.id}/download`, '_blank');
+    const token = localStorage.getItem('atlasmail_token');
+    window.open(`/api/v1/drive/${item.id}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`, '_blank');
+    setContextMenu(null);
+  }, []);
+
+  const handleDownloadZip = useCallback((item: DriveItem) => {
+    if (item.type !== 'folder') return;
+    const token = localStorage.getItem('atlasmail_token');
+    window.open(`/api/v1/drive/${item.id}/download-zip${token ? `?token=${encodeURIComponent(token)}` : ''}`, '_blank');
     setContextMenu(null);
   }, []);
 
@@ -329,25 +657,146 @@ export function DrivePage() {
     );
   }, [moveItem, moveTargetId, updateItem, addToast]);
 
+  const handleDuplicate = useCallback((item: DriveItem) => {
+    duplicateItem.mutate(item.id, {
+      onSuccess: () => {
+        addToast({ type: 'success', message: 'Duplicated' });
+      },
+    });
+    setContextMenu(null);
+  }, [duplicateItem, addToast]);
+
   const handleContextMenu = useCallback((e: React.MouseEvent, item: DriveItem) => {
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, item });
   }, []);
 
-  // ─── Drag & drop upload ───────────────────────────────────────────
+  // ─── Folder icon ───────────────────────────────────────────────────
+
+  const handleSetIcon = useCallback((item: DriveItem) => {
+    setIconPickerItem(item);
+    setContextMenu(null);
+  }, []);
+
+  const handleIconSelect = useCallback((emoji: string) => {
+    if (!iconPickerItem) return;
+    updateItem.mutate(
+      { id: iconPickerItem.id, icon: emoji },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Icon updated' });
+          setIconPickerItem(null);
+        },
+      },
+    );
+  }, [iconPickerItem, updateItem, addToast]);
+
+  const handleIconRemove = useCallback(() => {
+    if (!iconPickerItem) return;
+    updateItem.mutate(
+      { id: iconPickerItem.id, icon: null },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Icon removed' });
+          setIconPickerItem(null);
+        },
+      },
+    );
+  }, [iconPickerItem, updateItem, addToast]);
+
+  // ─── Tags ──────────────────────────────────────────────────────────
+
+  const handleAddTag = useCallback((item: DriveItem) => {
+    setTagModalItem(item);
+    setTagLabel('');
+    setTagColor(TAG_COLORS[0].hex);
+    setContextMenu(null);
+  }, []);
+
+  const handleTagSubmit = useCallback(() => {
+    if (!tagModalItem || !tagLabel.trim()) return;
+    const tag = `${tagColor}:${tagLabel.trim()}`;
+    const newTags = [...(tagModalItem.tags || []), tag];
+    updateItem.mutate(
+      { id: tagModalItem.id, tags: newTags },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Tag added' });
+          setTagModalItem(null);
+        },
+      },
+    );
+  }, [tagModalItem, tagLabel, tagColor, updateItem, addToast]);
+
+  const handleRemoveTag = useCallback((item: DriveItem, tagIndex: number) => {
+    const newTags = item.tags.filter((_, i) => i !== tagIndex);
+    updateItem.mutate({ id: item.id, tags: newTags });
+  }, [updateItem]);
+
+  // ─── Bulk operations ──────────────────────────────────────────────
+
+  const handleBulkDelete = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    batchDelete.mutate(ids, {
+      onSuccess: () => {
+        addToast({ type: 'success', message: `${ids.length} item${ids.length > 1 ? 's' : ''} moved to trash` });
+        setSelectedIds(new Set());
+      },
+    });
+  }, [selectedIds, batchDelete, addToast]);
+
+  const handleBulkFavourite = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    batchFavourite.mutate(
+      { itemIds: ids, isFavourite: true },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Added to favourites' });
+          setSelectedIds(new Set());
+        },
+      },
+    );
+  }, [selectedIds, batchFavourite, addToast]);
+
+  const handleBulkMoveSubmit = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    batchMove.mutate(
+      { itemIds: ids, parentId: batchMoveTargetId },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Moved' });
+          setBatchMoveOpen(false);
+          setSelectedIds(new Set());
+        },
+      },
+    );
+  }, [selectedIds, batchMoveTargetId, batchMove, addToast]);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedIds(new Set(displayItems.map((i) => i.id)));
+  }, [displayItems]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  // ─── Drag & drop (file upload from OS) ────────────────────────────
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    // Only handle file drops from OS, not internal drags
+    if (dragItemId) return;
     dragCounter.current++;
     if (dragCounter.current === 1) setIsDraggingOver(true);
-  }, []);
+  }, [dragItemId]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    if (dragItemId) return;
     dragCounter.current--;
     if (dragCounter.current === 0) setIsDraggingOver(false);
-  }, []);
+  }, [dragItemId]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -357,10 +806,116 @@ export function DrivePage() {
     e.preventDefault();
     dragCounter.current = 0;
     setIsDraggingOver(false);
+    if (dragItemId) return; // internal drag, not file upload
     if (e.dataTransfer.files.length > 0) {
       handleUpload(e.dataTransfer.files);
     }
-  }, [handleUpload]);
+  }, [handleUpload, dragItemId]);
+
+  // ─── Drag & drop (internal move) ──────────────────────────────────
+
+  const handleItemDragStart = useCallback((e: React.DragEvent, item: DriveItem) => {
+    e.dataTransfer.setData('text/plain', item.id);
+    e.dataTransfer.effectAllowed = 'move';
+    setDragItemId(item.id);
+  }, []);
+
+  const handleItemDragEnd = useCallback(() => {
+    setDragItemId(null);
+    setDragOverFolderId(null);
+  }, []);
+
+  const handleFolderDragOver = useCallback((e: React.DragEvent, folderId: string) => {
+    if (!dragItemId || dragItemId === folderId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverFolderId(folderId);
+  }, [dragItemId]);
+
+  const handleFolderDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverFolderId(null);
+  }, []);
+
+  const handleFolderDrop = useCallback((e: React.DragEvent, targetFolderId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const itemId = e.dataTransfer.getData('text/plain');
+    if (!itemId || itemId === targetFolderId) return;
+
+    // If we have multiple selected and the dragged item is among them, move all
+    if (selectedIds.has(itemId) && selectedIds.size > 1) {
+      batchMove.mutate(
+        { itemIds: Array.from(selectedIds), parentId: targetFolderId },
+        {
+          onSuccess: () => {
+            addToast({ type: 'success', message: `${selectedIds.size} items moved` });
+            setSelectedIds(new Set());
+          },
+        },
+      );
+    } else {
+      updateItem.mutate(
+        { id: itemId, parentId: targetFolderId },
+        {
+          onSuccess: () => addToast({ type: 'success', message: 'Moved' }),
+        },
+      );
+    }
+    setDragItemId(null);
+    setDragOverFolderId(null);
+  }, [selectedIds, batchMove, updateItem, addToast]);
+
+  // Drag to sidebar trash = delete
+  const handleSidebarTrashDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData('text/plain');
+    if (!itemId) return;
+
+    if (selectedIds.has(itemId) && selectedIds.size > 1) {
+      batchDelete.mutate(Array.from(selectedIds), {
+        onSuccess: () => {
+          addToast({ type: 'success', message: `${selectedIds.size} items moved to trash` });
+          setSelectedIds(new Set());
+        },
+      });
+    } else {
+      deleteItem.mutate(itemId, {
+        onSuccess: () => addToast({ type: 'success', message: 'Moved to trash' }),
+      });
+    }
+    setDragItemId(null);
+    setDragOverFolderId(null);
+  }, [selectedIds, batchDelete, deleteItem, addToast]);
+
+  // Drag to sidebar "My drive" = move to root
+  const handleSidebarRootDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData('text/plain');
+    if (!itemId) return;
+
+    if (selectedIds.has(itemId) && selectedIds.size > 1) {
+      batchMove.mutate(
+        { itemIds: Array.from(selectedIds), parentId: null },
+        {
+          onSuccess: () => {
+            addToast({ type: 'success', message: 'Moved to root' });
+            setSelectedIds(new Set());
+          },
+        },
+      );
+    } else {
+      updateItem.mutate(
+        { id: itemId, parentId: null },
+        {
+          onSuccess: () => addToast({ type: 'success', message: 'Moved to root' }),
+        },
+      );
+    }
+    setDragItemId(null);
+    setDragOverFolderId(null);
+  }, [selectedIds, batchMove, updateItem, addToast]);
 
   // ─── Title for the view ────────────────────────────────────────────
 
@@ -381,7 +936,7 @@ export function DrivePage() {
     function buildLevel(parentId: string | null, depth: number) {
       const children = folders.filter((f) => f.parentId === parentId);
       for (const child of children) {
-        if (moveItem && child.id === moveItem.id) continue; // Don't show self
+        if (moveItem && child.id === moveItem.id) continue;
         tree.push({ id: child.id, name: child.name, depth });
         buildLevel(child.id, depth + 1);
       }
@@ -390,6 +945,54 @@ export function DrivePage() {
     buildLevel(null, 0);
     return tree;
   }, [foldersData, moveItem]);
+
+  // Folder tree for batch move
+  const batchFolderTree = useMemo(() => {
+    const folders = foldersData?.folders ?? [];
+    const tree: Array<{ id: string; name: string; depth: number }> = [];
+
+    function buildLevel(parentId: string | null, depth: number) {
+      const children = folders.filter((f) => f.parentId === parentId);
+      for (const child of children) {
+        if (selectedIds.has(child.id)) continue;
+        tree.push({ id: child.id, name: child.name, depth });
+        buildLevel(child.id, depth + 1);
+      }
+    }
+
+    buildLevel(null, 0);
+    return tree;
+  }, [foldersData, selectedIds]);
+
+  // ─── Render helpers ────────────────────────────────────────────────
+
+  const renderTags = (item: DriveItem) => {
+    if (!item.tags || item.tags.length === 0) return null;
+    return (
+      <div className="drive-tags">
+        {item.tags.map((tag, i) => {
+          const { color, label } = parseTag(tag);
+          return (
+            <Chip key={i} color={color} height={18} onRemove={() => handleRemoveTag(item, i)}>
+              {label}
+            </Chip>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderImageThumbnail = (item: DriveItem) => {
+    if (!isImageFile(item.mimeType) || !item.storagePath) return null;
+    return (
+      <img
+        src={`/api/v1/uploads/${item.storagePath}${getTokenParam()}`}
+        alt={item.name}
+        className="drive-grid-card-thumbnail"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      />
+    );
+  };
 
   return (
     <div className="drive-page">
@@ -558,6 +1161,8 @@ export function DrivePage() {
           <button
             className={`drive-nav-item ${sidebarView === 'files' && !folderId ? 'active' : ''}`}
             onClick={() => { setSidebarView('files'); setSearchQuery(''); navigate(ROUTES.DRIVE); }}
+            onDragOver={(e) => { if (dragItemId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }}
+            onDrop={handleSidebarRootDrop}
           >
             <HardDrive size={16} />
             My drive
@@ -579,9 +1184,42 @@ export function DrivePage() {
           <button
             className={`drive-nav-item ${sidebarView === 'trash' ? 'active' : ''}`}
             onClick={() => { setSidebarView('trash'); setSearchQuery(''); }}
+            onDragOver={(e) => { if (dragItemId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }}
+            onDrop={handleSidebarTrashDrop}
           >
             <Trash2 size={16} />
             Trash
+          </button>
+
+          <div className="drive-nav-divider" />
+          <div className="drive-nav-section-label">File types</div>
+          <button
+            className={`drive-nav-item ${sidebarView === 'images' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('images'); setSearchQuery(''); }}
+          >
+            <FileImage size={16} />
+            Images
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'documents' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('documents'); setSearchQuery(''); }}
+          >
+            <FileText size={16} />
+            Documents
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'videos' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('videos'); setSearchQuery(''); }}
+          >
+            <FileVideo size={16} />
+            Videos
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'audio' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('audio'); setSearchQuery(''); }}
+          >
+            <FileAudio size={16} />
+            Audio
           </button>
         </nav>
 
@@ -611,7 +1249,23 @@ export function DrivePage() {
       </div>
 
       {/* ─── Main content ────────────────────────────────────────── */}
-      <div className="drive-main">
+      <div className="drive-main" style={{ flex: previewItem ? undefined : 1 }}>
+        {/* Upload progress bar */}
+        {uploadProgress && (
+          <div className="drive-upload-progress">
+            <div className="drive-upload-progress-info">
+              <span>Uploading...</span>
+              <span>{Math.round((uploadProgress.loaded / uploadProgress.total) * 100)}%</span>
+            </div>
+            <div className="drive-upload-progress-bar">
+              <div
+                className="drive-upload-progress-fill"
+                style={{ width: `${Math.round((uploadProgress.loaded / uploadProgress.total) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Toolbar */}
         <div className="drive-toolbar">
           <div className="drive-toolbar-left">
@@ -643,6 +1297,120 @@ export function DrivePage() {
           </div>
 
           <div className="drive-toolbar-right">
+            {/* Type filter dropdown */}
+            <div ref={typeDropdownRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  height: 32,
+                  padding: '0 10px',
+                  border: '1px solid var(--color-border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  background: typeFilter !== 'all' ? 'color-mix(in srgb, var(--color-accent-primary) 8%, var(--color-bg-primary))' : 'var(--color-bg-primary)',
+                  color: typeFilter !== 'all' ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                }}
+              >
+                {TYPE_FILTER_OPTIONS.find((o) => o.value === typeFilter)?.label || 'Type'}
+                <ChevronDown size={12} />
+              </button>
+              {typeDropdownOpen && (
+                <div className="drive-sort-dropdown" style={{ minWidth: 180 }}>
+                  {TYPE_FILTER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`drive-sort-option ${typeFilter === opt.value ? 'active' : ''}`}
+                      onClick={() => { setTypeFilter(opt.value); setTypeDropdownOpen(false); }}
+                    >
+                      {opt.label}
+                      {typeFilter === opt.value && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modified filter dropdown */}
+            <div ref={modifiedDropdownRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setModifiedDropdownOpen(!modifiedDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  height: 32,
+                  padding: '0 10px',
+                  border: '1px solid var(--color-border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  background: modifiedFilter !== 'any' ? 'color-mix(in srgb, var(--color-accent-primary) 8%, var(--color-bg-primary))' : 'var(--color-bg-primary)',
+                  color: modifiedFilter !== 'any' ? 'var(--color-accent-primary)' : 'var(--color-text-secondary)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                }}
+              >
+                {getModifiedFilterOptions().find((o) => o.value === modifiedFilter)?.label || 'Modified'}
+                <ChevronDown size={12} />
+              </button>
+              {modifiedDropdownOpen && (
+                <div className="drive-sort-dropdown" style={{ minWidth: 180 }}>
+                  {getModifiedFilterOptions().map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`drive-sort-option ${modifiedFilter === opt.value ? 'active' : ''}`}
+                      onClick={() => { setModifiedFilter(opt.value); setModifiedDropdownOpen(false); }}
+                    >
+                      {opt.label}
+                      {modifiedFilter === opt.value && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sort dropdown */}
+            <div ref={sortDropdownRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  height: 32,
+                  padding: '0 10px',
+                  border: '1px solid var(--color-border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-bg-primary)',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: 'var(--font-size-xs)',
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                }}
+              >
+                {SORT_OPTIONS.find((s) => s.value === sortBy)?.label || 'Sort'}
+                <ChevronDown size={12} />
+              </button>
+              {sortDropdownOpen && (
+                <div className="drive-sort-dropdown">
+                  {SORT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`drive-sort-option ${sortBy === opt.value ? 'active' : ''}`}
+                      onClick={() => { setSortBy(opt.value); setSortDropdownOpen(false); }}
+                    >
+                      {opt.label}
+                      {sortBy === opt.value && <Check size={12} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Search */}
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-tertiary)' }} />
@@ -676,6 +1444,29 @@ export function DrivePage() {
             >
               {viewMode === 'list' ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
             </button>
+
+            {/* Settings */}
+            <button
+              onClick={() => openSettings('drive')}
+              title="Drive settings"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg-primary)',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+                transition: 'background var(--transition-fast)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-bg-primary)'; }}
+            >
+              <Settings size={16} />
+            </button>
           </div>
         </div>
 
@@ -686,7 +1477,7 @@ export function DrivePage() {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          onClick={() => { setSelectedId(null); setContextMenu(null); }}
+          onClick={() => { if (!hasSelection) { setSelectedIds(new Set()); } setContextMenu(null); }}
         >
           {/* Drop zone overlay */}
           {isDraggingOver && (
@@ -743,26 +1534,67 @@ export function DrivePage() {
             <>
               {/* List header */}
               <div className="drive-list-header">
-                <span>Name</span>
-                <span>Size</span>
-                <span>Modified</span>
+                <span
+                  className="drive-sort-header"
+                  onClick={() => setSortBy(sortBy === 'name' ? 'default' : 'name')}
+                >
+                  Name {sortBy === 'name' && '↑'}
+                </span>
+                <span
+                  className="drive-sort-header"
+                  onClick={() => setSortBy(sortBy === 'size' ? 'default' : 'size')}
+                >
+                  Size {sortBy === 'size' && '↓'}
+                </span>
+                <span
+                  className="drive-sort-header"
+                  onClick={() => setSortBy(sortBy === 'date' ? 'default' : 'date')}
+                >
+                  Modified {sortBy === 'date' && '↓'}
+                </span>
               </div>
               {displayItems.map((item) => {
                 const Icon = getFileIcon(item.mimeType, item.type);
                 const iconColor = getFileIconColor(item.mimeType, item.type);
                 const isRenaming = renameId === item.id;
-                const isSelected = selectedId === item.id;
+                const isSelected = selectedIds.has(item.id);
+                const isDragTarget = dragOverFolderId === item.id;
 
                 return (
                   <div
                     key={item.id}
-                    className={`drive-list-row ${isSelected ? 'selected' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
+                    className={`drive-list-row ${isSelected ? 'selected' : ''} ${isDragTarget ? 'drive-drag-over' : ''} ${driveSettings.compactMode ? 'compact' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); handleItemClick(item, e); }}
                     onContextMenu={(e) => handleContextMenu(e, item)}
-                    onDoubleClick={() => { if (item.type === 'folder') handleItemClick(item); }}
+                    onDoubleClick={() => { if (item.type === 'folder') { navigate(`/drive/folder/${item.id}`); setSidebarView('files'); } }}
+                    draggable={!isRenaming}
+                    onDragStart={(e) => handleItemDragStart(e, item)}
+                    onDragEnd={handleItemDragEnd}
+                    onDragOver={item.type === 'folder' ? (e) => handleFolderDragOver(e, item.id) : undefined}
+                    onDragLeave={item.type === 'folder' ? handleFolderDragLeave : undefined}
+                    onDrop={item.type === 'folder' ? (e) => handleFolderDrop(e, item.id) : undefined}
                   >
                     <div className="drive-list-name">
-                      <Icon size={18} color={iconColor} />
+                      <input
+                        type="checkbox"
+                        className="drive-checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(item.id)) next.delete(item.id);
+                            else next.add(item.id);
+                            return next;
+                          });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      {item.icon ? (
+                        <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+                      ) : (
+                        <Icon size={18} color={iconColor} />
+                      )}
                       {isRenaming ? (
                         <input
                           className="drive-rename-input"
@@ -777,11 +1609,12 @@ export function DrivePage() {
                           onClick={(e) => e.stopPropagation()}
                         />
                       ) : (
-                        <span>{item.name}</span>
+                        <span>{driveSettings.showFileExtensions ? item.name : stripExtension(item.name, item.type)}</span>
                       )}
                       {item.isFavourite && (
                         <Star size={12} fill="var(--color-star, #f59e0b)" color="var(--color-star, #f59e0b)" />
                       )}
+                      {renderTags(item)}
                     </div>
                     <span className="drive-list-size">
                       {item.type === 'file' ? formatBytes(item.size) : '—'}
@@ -799,18 +1632,53 @@ export function DrivePage() {
               {displayItems.map((item) => {
                 const Icon = getFileIcon(item.mimeType, item.type);
                 const iconColor = getFileIconColor(item.mimeType, item.type);
-                const isSelected = selectedId === item.id;
+                const isSelected = selectedIds.has(item.id);
                 const isRenaming = renameId === item.id;
+                const showThumb = driveSettings.showThumbnails && isImageFile(item.mimeType) && item.storagePath;
+                const isDragTarget = dragOverFolderId === item.id;
 
                 return (
                   <div
                     key={item.id}
-                    className={`drive-grid-card ${isSelected ? 'selected' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); handleItemClick(item); }}
+                    className={`drive-grid-card ${isSelected ? 'selected' : ''} ${isDragTarget ? 'drive-drag-over' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); handleItemClick(item, e); }}
                     onContextMenu={(e) => handleContextMenu(e, item)}
+                    draggable={!isRenaming}
+                    onDragStart={(e) => handleItemDragStart(e, item)}
+                    onDragEnd={handleItemDragEnd}
+                    onDragOver={item.type === 'folder' ? (e) => handleFolderDragOver(e, item.id) : undefined}
+                    onDragLeave={item.type === 'folder' ? handleFolderDragLeave : undefined}
+                    onDrop={item.type === 'folder' ? (e) => handleFolderDrop(e, item.id) : undefined}
                   >
+                    {/* Checkbox */}
+                    <input
+                      type="checkbox"
+                      className="drive-checkbox drive-grid-checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(item.id)) next.delete(item.id);
+                          else next.add(item.id);
+                          return next;
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                     <div className="drive-grid-card-icon">
-                      <Icon size={36} color={iconColor} strokeWidth={1.4} />
+                      {showThumb ? (
+                        <img
+                          src={`/api/v1/uploads/${item.storagePath}${getTokenParam()}`}
+                          alt={item.name}
+                          className="drive-grid-card-thumbnail"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : item.type === 'folder' && item.icon ? (
+                        <span style={{ fontSize: 36, lineHeight: 1 }}>{item.icon}</span>
+                      ) : (
+                        <Icon size={36} color={iconColor} strokeWidth={1.4} />
+                      )}
                     </div>
                     {isRenaming ? (
                       <input
@@ -827,11 +1695,12 @@ export function DrivePage() {
                         style={{ textAlign: 'center' }}
                       />
                     ) : (
-                      <span className="drive-grid-card-name">{item.name}</span>
+                      <span className="drive-grid-card-name">{driveSettings.showFileExtensions ? item.name : stripExtension(item.name, item.type)}</span>
                     )}
                     <span className="drive-grid-card-meta">
                       {item.type === 'file' ? formatBytes(item.size) : `${formatRelativeDate(item.updatedAt)}`}
                     </span>
+                    {renderTags(item)}
                     {item.isFavourite && (
                       <Star size={12} fill="var(--color-star, #f59e0b)" color="var(--color-star, #f59e0b)" style={{ position: 'absolute', top: 8, right: 8 }} />
                     )}
@@ -842,6 +1711,193 @@ export function DrivePage() {
           )}
         </div>
       </div>
+
+      {/* ─── Preview panel ─────────────────────────────────────────── */}
+      {previewItem && (
+        <div className="drive-preview-panel">
+          <div className="drive-preview-header">
+            <span className="drive-preview-title">{previewItem.name}</span>
+            <button
+              onClick={() => setPreviewItem(null)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 28,
+                height: 28,
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                background: 'transparent',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="drive-preview-body">
+            {isImageFile(previewItem.mimeType) && previewItem.storagePath ? (
+              <img
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                alt={previewItem.name}
+                className="drive-preview-image"
+              />
+            ) : previewItem.mimeType?.includes('pdf') && previewItem.storagePath ? (
+              <iframe
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                className="drive-preview-iframe"
+                title={previewItem.name}
+              />
+            ) : previewItem.mimeType?.startsWith('video/') && previewItem.storagePath ? (
+              <video
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                controls
+                className="drive-preview-video"
+              />
+            ) : previewItem.mimeType?.startsWith('audio/') && previewItem.storagePath ? (
+              <div className="drive-preview-audio-wrap">
+                <Music size={64} color="var(--color-text-tertiary)" strokeWidth={1.2} />
+                <audio
+                  src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                  controls
+                  style={{ width: '100%', marginTop: 16 }}
+                />
+              </div>
+            ) : previewFileId && filePreviewData ? (
+              <div className="drive-preview-text-content">
+                {getFileExtension(previewItem.name) === 'csv' ? (
+                  (() => {
+                    const rows = parseCsvToRows(filePreviewData.content);
+                    if (rows.length === 0) return <pre className="drive-preview-pre">(empty)</pre>;
+                    const header = rows[0];
+                    const body = rows.slice(1);
+                    return (
+                      <div className="drive-preview-table-wrap">
+                        <table className="drive-preview-table">
+                          <thead>
+                            <tr>{header.map((h, i) => <th key={i}>{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {body.map((row, ri) => (
+                              <tr key={ri}>{row.map((cell, ci) => <td key={ci}>{cell}</td>)}</tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {filePreviewData.truncated && (
+                          <div className="drive-preview-truncated">File truncated — showing first 512 KB</div>
+                        )}
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <>
+                    <pre className="drive-preview-pre">{filePreviewData.content}</pre>
+                    {filePreviewData.truncated && (
+                      <div className="drive-preview-truncated">File truncated — showing first 512 KB</div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : previewFileId && previewLoading ? (
+              <div className="drive-preview-icon">
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 13 }}>Loading preview…</span>
+              </div>
+            ) : (
+              <div className="drive-preview-icon">
+                {(() => {
+                  const Icon = getFileIcon(previewItem.mimeType, previewItem.type);
+                  const color = getFileIconColor(previewItem.mimeType, previewItem.type);
+                  return <Icon size={64} color={color} strokeWidth={1.2} />;
+                })()}
+              </div>
+            )}
+          </div>
+
+          <div className="drive-preview-meta">
+            <div className="drive-preview-meta-row">
+              <span className="drive-preview-meta-label">Size</span>
+              <span>{formatBytes(previewItem.size)}</span>
+            </div>
+            <div className="drive-preview-meta-row">
+              <span className="drive-preview-meta-label">Modified</span>
+              <span>{formatRelativeDate(previewItem.updatedAt)}</span>
+            </div>
+            {previewItem.mimeType && (
+              <div className="drive-preview-meta-row">
+                <span className="drive-preview-meta-label">Type</span>
+                <span>{previewItem.mimeType}</span>
+              </div>
+            )}
+            {previewItem.tags && previewItem.tags.length > 0 && (
+              <div className="drive-preview-meta-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+                <span className="drive-preview-meta-label">Tags</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {previewItem.tags.map((tag, i) => {
+                    const { color, label } = parseTag(tag);
+                    return <Chip key={i} color={color} height={20}>{label}</Chip>;
+                  })}
+                </div>
+              </div>
+            )}
+            {previewItem.type === 'file' && (
+              <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 8 }}>
+                <button
+                  onClick={() => setVersionHistoryOpen(!versionHistoryOpen)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                    padding: '4px 0', border: 'none', background: 'transparent',
+                    color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)',
+                    fontFamily: 'var(--font-family)', cursor: 'pointer',
+                  }}
+                >
+                  <History size={13} />
+                  Version history
+                  <ChevronDown size={12} style={{ marginLeft: 'auto', transform: versionHistoryOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                </button>
+                {versionHistoryOpen && versionsData && (
+                  <div className="drive-version-list">
+                    {versionsData.versions.length === 0 ? (
+                      <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>No previous versions</span>
+                    ) : (
+                      versionsData.versions.map((v) => (
+                        <div key={v.id} className="drive-version-row">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                            <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
+                              {formatRelativeDate(v.createdAt)} · {formatBytes(v.size)}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button
+                              onClick={() => {
+                                restoreVersion.mutate({ itemId: previewItem.id, versionId: v.id }, {
+                                  onSuccess: () => addToast({ type: 'success', message: 'Version restored' }),
+                                });
+                              }}
+                              title="Restore this version"
+                              style={{ padding: 2, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
+                            >
+                              <RotateCcw size={12} />
+                            </button>
+                            <a
+                              href={`/api/v1/drive/${previewItem.id}/versions/${v.id}/download${getTokenParam()}`}
+                              title="Download this version"
+                              style={{ padding: 2, color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Download size={12} />
+                            </a>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ─── Context menu ────────────────────────────────────────── */}
       {contextMenu && (
@@ -883,10 +1939,29 @@ export function DrivePage() {
                   onClick={() => handleDownload(contextMenu.item)}
                 />
               )}
+              {contextMenu.item.type === 'folder' && (
+                <ContextMenuItem
+                  icon={<FileArchive size={14} />}
+                  label="Download as ZIP"
+                  onClick={() => handleDownloadZip(contextMenu.item)}
+                />
+              )}
               <ContextMenuItem
                 icon={<Pencil size={14} />}
                 label="Rename"
                 onClick={() => handleRename(contextMenu.item)}
+              />
+              {contextMenu.item.type === 'folder' && (
+                <ContextMenuItem
+                  icon={<span style={{ fontSize: 14, lineHeight: 1 }}>{contextMenu.item.icon || '😀'}</span>}
+                  label={contextMenu.item.icon ? 'Change icon' : 'Add icon'}
+                  onClick={() => handleSetIcon(contextMenu.item)}
+                />
+              )}
+              <ContextMenuItem
+                icon={<Copy size={14} />}
+                label="Duplicate"
+                onClick={() => handleDuplicate(contextMenu.item)}
               />
               <ContextMenuItem
                 icon={<FolderInput size={14} />}
@@ -898,6 +1973,27 @@ export function DrivePage() {
                 label={contextMenu.item.isFavourite ? 'Remove from favourites' : 'Add to favourites'}
                 onClick={() => handleToggleFavourite(contextMenu.item)}
               />
+              <ContextMenuItem
+                icon={<Tag size={14} />}
+                label="Add tag"
+                onClick={() => handleAddTag(contextMenu.item)}
+              />
+              <ContextMenuItem
+                icon={<Share2 size={14} />}
+                label="Share"
+                onClick={() => { setShareModalItem(contextMenu.item); setContextMenu(null); }}
+              />
+              {contextMenu.item.type === 'file' && (
+                <ContextMenuItem
+                  icon={<Upload size={14} />}
+                  label="Upload new version"
+                  onClick={() => {
+                    setReplaceTargetId(contextMenu.item.id);
+                    setContextMenu(null);
+                    setTimeout(() => replaceFileInputRef.current?.click(), 50);
+                  }}
+                />
+              )}
               <ContextMenuSeparator />
               <ContextMenuItem
                 icon={<Trash2 size={14} />}
@@ -974,7 +2070,6 @@ export function DrivePage() {
       {/* ─── Move modal ──────────────────────────────────────────── */}
       <Modal open={moveModalOpen} onOpenChange={setMoveModalOpen} width={400} title="Move to...">
         <div style={{ padding: 'var(--spacing-xl)', maxHeight: 400, overflowY: 'auto' }}>
-          {/* Root */}
           <button
             onClick={() => setMoveTargetId(null)}
             style={{
@@ -1061,6 +2156,299 @@ export function DrivePage() {
         </div>
       </Modal>
 
+      {/* ─── Batch move modal ─────────────────────────────────────── */}
+      <Modal open={batchMoveOpen} onOpenChange={setBatchMoveOpen} width={400} title={`Move ${selectedIds.size} items to...`}>
+        <div style={{ padding: 'var(--spacing-xl)', maxHeight: 400, overflowY: 'auto' }}>
+          <button
+            onClick={() => setBatchMoveTargetId(null)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '8px 10px',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              background: batchMoveTargetId === null ? 'var(--color-surface-active)' : 'transparent',
+              color: 'var(--color-text-primary)',
+              fontSize: 'var(--font-size-sm)',
+              fontFamily: 'var(--font-family)',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <HardDrive size={16} />
+            My drive (root)
+          </button>
+          {batchFolderTree.map((folder) => (
+            <button
+              key={folder.id}
+              onClick={() => setBatchMoveTargetId(folder.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '8px 10px',
+                paddingLeft: 10 + folder.depth * 20,
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                background: batchMoveTargetId === folder.id ? 'var(--color-surface-active)' : 'transparent',
+                color: 'var(--color-text-primary)',
+                fontSize: 'var(--font-size-sm)',
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <FolderPlus size={16} color="#64748b" />
+              {folder.name}
+            </button>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16, borderTop: '1px solid var(--color-border-secondary)', paddingTop: 16 }}>
+            <button
+              onClick={() => setBatchMoveOpen(false)}
+              style={{
+                height: 34,
+                padding: '0 16px',
+                background: 'transparent',
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text-secondary)',
+                fontSize: 'var(--font-size-md)',
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBulkMoveSubmit}
+              style={{
+                height: 34,
+                padding: '0 16px',
+                background: 'var(--color-accent-primary)',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                color: '#fff',
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 500,
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+              }}
+            >
+              Move here
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ─── Tag modal ────────────────────────────────────────────── */}
+      <Modal open={!!tagModalItem} onOpenChange={() => setTagModalItem(null)} width={360} title="Add tag">
+        <div style={{ padding: 'var(--spacing-xl)' }}>
+          <input
+            value={tagLabel}
+            onChange={(e) => setTagLabel(e.target.value)}
+            placeholder="Tag name"
+            autoFocus
+            onKeyDown={(e) => { if (e.key === 'Enter') handleTagSubmit(); }}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              border: '1px solid var(--color-border-primary)',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-bg-primary)',
+              color: 'var(--color-text-primary)',
+              fontSize: 'var(--font-size-md)',
+              fontFamily: 'var(--font-family)',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {TAG_COLORS.map((c) => (
+              <button
+                key={c.name}
+                onClick={() => setTagColor(c.hex)}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  border: tagColor === c.hex ? `2px solid ${c.hex}` : '2px solid transparent',
+                  background: c.hex,
+                  cursor: 'pointer',
+                  outline: tagColor === c.hex ? `2px solid var(--color-bg-primary)` : 'none',
+                  outlineOffset: -4,
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+            <button
+              onClick={() => setTagModalItem(null)}
+              style={{
+                height: 34,
+                padding: '0 16px',
+                background: 'transparent',
+                border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text-secondary)',
+                fontSize: 'var(--font-size-md)',
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleTagSubmit}
+              disabled={!tagLabel.trim()}
+              style={{
+                height: 34,
+                padding: '0 16px',
+                background: tagLabel.trim() ? 'var(--color-accent-primary)' : 'var(--color-bg-tertiary)',
+                border: 'none',
+                borderRadius: 'var(--radius-md)',
+                color: tagLabel.trim() ? '#fff' : 'var(--color-text-tertiary)',
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 500,
+                fontFamily: 'var(--font-family)',
+                cursor: tagLabel.trim() ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ─── Share modal ──────────────────────────────────────────── */}
+      <Modal open={!!shareModalItem} onOpenChange={() => setShareModalItem(null)} width={440} title={`Share "${shareModalItem?.name || ''}"`}>
+        <div style={{ padding: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <select
+              value={shareExpiry}
+              onChange={(e) => setShareExpiry(e.target.value)}
+              style={{
+                flex: 1, padding: '8px 12px', border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)', background: 'var(--color-bg-primary)',
+                color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)',
+                fontFamily: 'var(--font-family)', outline: 'none',
+              }}
+            >
+              <option value="never">Never expires</option>
+              <option value="1">Expires in 1 day</option>
+              <option value="7">Expires in 7 days</option>
+              <option value="30">Expires in 30 days</option>
+            </select>
+            <button
+              onClick={() => {
+                if (!shareModalItem) return;
+                const expiresAt = shareExpiry === 'never' ? undefined : new Date(Date.now() + parseInt(shareExpiry) * 86400000).toISOString();
+                createShareLink.mutate({ itemId: shareModalItem.id, expiresAt }, {
+                  onSuccess: () => addToast({ type: 'success', message: 'Share link created' }),
+                });
+              }}
+              style={{
+                height: 34, padding: '0 16px', background: 'var(--color-accent-primary)',
+                border: 'none', borderRadius: 'var(--radius-md)', color: '#fff',
+                fontSize: 'var(--font-size-sm)', fontWeight: 500, fontFamily: 'var(--font-family)',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              <Link2 size={14} style={{ marginRight: 4, verticalAlign: -2 }} />
+              Create link
+            </button>
+          </div>
+          {shareLinksData && shareLinksData.links.length > 0 && (
+            <div className="drive-share-links-list">
+              {shareLinksData.links.map((link) => {
+                const shareUrl = `${window.location.origin}/api/v1/share/${link.shareToken}/download`;
+                return (
+                  <div key={link.id} className="drive-share-link-row">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <input
+                        readOnly
+                        value={shareUrl}
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                        style={{
+                          width: '100%', padding: '4px 8px', border: '1px solid var(--color-border-secondary)',
+                          borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
+                          color: 'var(--color-text-primary)', fontSize: 11, fontFamily: 'var(--font-family)',
+                          outline: 'none',
+                        }}
+                      />
+                      <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 2 }}>
+                        Created {formatRelativeDate(link.createdAt)}
+                        {link.expiresAt ? ` · Expires ${formatRelativeDate(link.expiresAt)}` : ' · No expiry'}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(shareUrl); addToast({ type: 'success', message: 'Link copied' }); }}
+                        title="Copy link"
+                        style={{ padding: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
+                      >
+                        <Copy size={13} />
+                      </button>
+                      <button
+                        onClick={() => deleteShareLink.mutate(link.id, { onSuccess: () => addToast({ type: 'success', message: 'Link deleted' }) })}
+                        title="Delete link"
+                        style={{ padding: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-error, #ef4444)' }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* ─── Hidden replace file input ─────────────────────────────── */}
+      <input
+        type="file"
+        ref={replaceFileInputRef}
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && replaceTargetId) {
+            replaceFile.mutate({ itemId: replaceTargetId, file }, {
+              onSuccess: () => {
+                addToast({ type: 'success', message: 'New version uploaded' });
+                setReplaceTargetId(null);
+              },
+            });
+          }
+          e.target.value = '';
+        }}
+      />
+
+      {/* ─── Floating bulk action bar ──────────────────────────────── */}
+      {hasSelection && (
+        <div className="drive-bulk-bar">
+          <span className="drive-bulk-count">{selectedIds.size} selected</span>
+          <button className="drive-bulk-btn" onClick={handleSelectAll} title="Select all">
+            <Check size={14} /> Select all
+          </button>
+          <button className="drive-bulk-btn" onClick={handleClearSelection} title="Clear">
+            <X size={14} /> Clear
+          </button>
+          <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
+          <button className="drive-bulk-btn" onClick={() => { setBatchMoveTargetId(null); setBatchMoveOpen(true); }} title="Move">
+            <FolderInput size={14} /> Move
+          </button>
+          <button className="drive-bulk-btn" onClick={handleBulkFavourite} title="Favourite">
+            <Star size={14} /> Favourite
+          </button>
+          <button className="drive-bulk-btn drive-bulk-btn-destructive" onClick={handleBulkDelete} title="Delete">
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      )}
+
       {/* ─── Confirm dialogs ─────────────────────────────────────── */}
       <ConfirmDialog
         open={!!confirmDelete}
@@ -1081,6 +2469,16 @@ export function DrivePage() {
         onConfirm={confirmPermanentDelete}
         destructive
       />
+
+      {iconPickerItem && (
+        <Modal open onOpenChange={() => setIconPickerItem(null)} title="Choose folder icon">
+          <EmojiPicker
+            onSelect={handleIconSelect}
+            onRemove={iconPickerItem.icon ? handleIconRemove : undefined}
+            onClose={() => setIconPickerItem(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

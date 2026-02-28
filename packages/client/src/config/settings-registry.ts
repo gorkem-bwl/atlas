@@ -25,6 +25,8 @@ import {
   Calendar,
   Table2,
   Languages,
+  HardDrive,
+  File,
 } from 'lucide-react';
 
 import {
@@ -66,6 +68,12 @@ import {
   CalendarGeneralPanel,
   CalendarAppearancePanel,
 } from '../components/calendar/calendar-settings-modal';
+
+import {
+  DriveGeneralPanel,
+  DriveDisplayPanel,
+  DriveFilesPanel,
+} from '../components/drive/drive-settings-modal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -159,6 +167,16 @@ export const settingsCategories: SettingsCategory[] = [
     panels: [
       { id: 'canvas', label: 'Canvas', icon: Palette, component: DrawCanvasPanel },
       { id: 'export', label: 'Export', icon: Download, component: DrawExportPanel },
+    ],
+  },
+  {
+    id: 'drive',
+    label: 'Drive',
+    icon: HardDrive,
+    panels: [
+      { id: 'general', label: 'General', icon: Settings, component: DriveGeneralPanel },
+      { id: 'display', label: 'Display', icon: Eye, component: DriveDisplayPanel },
+      { id: 'files', label: 'Files', icon: File, component: DriveFilesPanel },
     ],
   },
 ];

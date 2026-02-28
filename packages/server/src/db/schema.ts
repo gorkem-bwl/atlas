@@ -209,6 +209,20 @@ export const userSettings = sqliteTable('user_settings', {
   drawAutoSaveInterval: integer('draw_auto_save_interval').notNull().default(2000),
   drawSortOrder: text('draw_sort_order').notNull().default('modified'),
   drawLibrary: text('draw_library', { mode: 'json' }).notNull().$type<unknown[]>().default([]),
+  // Drive settings
+  driveDefaultView: text('drive_default_view').notNull().default('list'),
+  driveDefaultSort: text('drive_default_sort').notNull().default('default'),
+  driveSidebarDefault: text('drive_sidebar_default').notNull().default('files'),
+  driveShowPreviewPanel: integer('drive_show_preview_panel', { mode: 'boolean' }).notNull().default(true),
+  driveCompactMode: integer('drive_compact_mode', { mode: 'boolean' }).notNull().default(false),
+  driveConfirmDelete: integer('drive_confirm_delete', { mode: 'boolean' }).notNull().default(true),
+  driveAutoVersionOnReplace: integer('drive_auto_version_on_replace', { mode: 'boolean' }).notNull().default(true),
+  driveMaxVersions: integer('drive_max_versions').notNull().default(20),
+  driveShareDefaultExpiry: text('drive_share_default_expiry').notNull().default('never'),
+  driveDuplicateHandling: text('drive_duplicate_handling').notNull().default('rename'),
+  driveShowThumbnails: integer('drive_show_thumbnails', { mode: 'boolean' }).notNull().default(true),
+  driveShowFileExtensions: integer('drive_show_file_extensions', { mode: 'boolean' }).notNull().default(true),
+  driveSortOrder: text('drive_sort_order').notNull().default('asc'),
   // Search
   recentSearches: text('recent_searches', { mode: 'json' }).notNull().$type<string[]>().default([]),
   createdAt: timestampNow().notNull(),
@@ -446,10 +460,12 @@ export const driveItems = sqliteTable('drive_items', {
   size: integer('size'),
   parentId: text('parent_id').references((): AnySQLiteColumn => driveItems.id, { onDelete: 'set null' }),
   storagePath: text('storage_path'),
+  icon: text('icon'),
   linkedResourceType: text('linked_resource_type'),
   linkedResourceId: text('linked_resource_id'),
   isFavourite: integer('is_favourite', { mode: 'boolean' }).notNull().default(false),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+  tags: text('tags', { mode: 'json' }).notNull().$type<string[]>().default([]),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestampNow().notNull(),
   updatedAt: timestampNow().notNull(),
@@ -457,6 +473,36 @@ export const driveItems = sqliteTable('drive_items', {
   userParentIdx: index('idx_drive_items_user_parent').on(table.userId, table.parentId, table.isArchived),
   userArchivedIdx: index('idx_drive_items_user_archived').on(table.userId, table.isArchived),
   userFavouriteIdx: index('idx_drive_items_user_favourite').on(table.userId, table.isFavourite),
+}));
+
+// ─── Drive item versions (file versioning) ───────────────────────────
+
+export const driveItemVersions = sqliteTable('drive_item_versions', {
+  id: uuid().primaryKey(),
+  driveItemId: text('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  mimeType: text('mime_type'),
+  size: integer('size'),
+  storagePath: text('storage_path'),
+  createdAt: timestampNow().notNull(),
+}, (table) => ({
+  itemIdx: index('idx_drive_versions_item').on(table.driveItemId, table.createdAt),
+}));
+
+// ─── Drive share links ───────────────────────────────────────────────
+
+export const driveShareLinks = sqliteTable('drive_share_links', {
+  id: uuid().primaryKey(),
+  driveItemId: text('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shareToken: text('share_token').notNull().unique(),
+  expiresAt: text('expires_at'),
+  createdAt: timestampNow().notNull(),
+}, (table) => ({
+  tokenIdx: index('idx_share_links_token').on(table.shareToken),
+  itemIdx: index('idx_share_links_item').on(table.driveItemId),
 }));
 
 export const drawings = sqliteTable('drawings', {

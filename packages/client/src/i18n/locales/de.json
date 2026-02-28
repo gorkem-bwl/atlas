@@ -378,7 +378,9 @@
     "drawings_one": "{{count}} Zeichnung",
     "drawings_other": "{{count}} Zeichnungen",
     "tables_one": "{{count}} Tabelle",
-    "tables_other": "{{count}} Tabellen"
+    "tables_other": "{{count}} Tabellen",
+    "files_one": "{{count}} Datei",
+    "files_other": "{{count}} Dateien"
   },
   "calendar": {
     "title": "Kalender",
