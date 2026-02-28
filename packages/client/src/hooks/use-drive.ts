@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { DriveItem, UpdateDriveItemInput } from '@atlasmail/shared';
+import type { DriveItem, DriveItemVersion, DriveShareLink, UpdateDriveItemInput } from '@atlasmail/shared';
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
@@ -140,6 +140,48 @@ export function useFilePreview(itemId: string | undefined) {
     },
     enabled: !!itemId,
     staleTime: 60_000,
+  });
+}
+
+// ─── File versioning queries ─────────────────────────────────────────
+
+export function useFileVersions(itemId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.drive.versions(itemId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/${itemId}/versions`);
+      return data.data as { versions: DriveItemVersion[] };
+    },
+    enabled: !!itemId,
+    staleTime: 30_000,
+  });
+}
+
+// ─── Share link queries ──────────────────────────────────────────────
+
+export function useShareLinks(itemId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.drive.shareLinks(itemId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/${itemId}/share`);
+      return data.data as { links: DriveShareLink[] };
+    },
+    enabled: !!itemId,
+    staleTime: 30_000,
+  });
+}
+
+// ─── File type filter query ──────────────────────────────────────────
+
+export function useDriveItemsByType(typeCategory: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.drive.byType(typeCategory!),
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/by-type?type=${typeCategory}`);
+      return data.data as ListItemsResponse;
+    },
+    enabled: !!typeCategory,
+    staleTime: 30_000,
   });
 }
 
@@ -292,6 +334,69 @@ export function useBatchFavouriteDriveItems() {
   return useMutation({
     mutationFn: async ({ itemIds, isFavourite }: { itemIds: string[]; isFavourite: boolean }) => {
       await api.post('/drive/batch/favourite', { itemIds, isFavourite });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+// ─── File versioning mutations ───────────────────────────────────────
+
+export function useReplaceFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post(`/drive/${itemId}/replace`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data.data as DriveItem;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+export function useRestoreVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ itemId, versionId }: { itemId: string; versionId: string }) => {
+      const { data } = await api.post(`/drive/${itemId}/versions/${versionId}/restore`);
+      return data.data as DriveItem;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+// ─── Share link mutations ────────────────────────────────────────────
+
+export function useCreateShareLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ itemId, expiresAt }: { itemId: string; expiresAt?: string }) => {
+      const { data } = await api.post(`/drive/${itemId}/share`, { expiresAt });
+      return data.data as DriveShareLink;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+export function useDeleteShareLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (linkId: string) => {
+      await api.delete(`/drive/share/${linkId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });

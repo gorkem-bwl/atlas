@@ -5,7 +5,8 @@ import {
   Plus, Search, Upload, FolderPlus, ArrowLeft, Trash2, RotateCcw,
   Star, MoreHorizontal, Pencil, Download, FolderInput, ChevronRight,
   LayoutGrid, LayoutList, Home, Clock, Heart, HardDrive, Upload as UploadIcon,
-  Copy, X, Check, ChevronDown, Tag, FileArchive,
+  Copy, X, Check, ChevronDown, Tag, FileArchive, Share2, History,
+  FileImage, FileText, FileVideo, FileAudio, Link2, Trash, Music,
 } from 'lucide-react';
 import {
   useDriveItems, useDriveBreadcrumbs, useDriveFavourites, useDriveRecent,
@@ -13,7 +14,9 @@ import {
   useUpdateDriveItem, useDeleteDriveItem, useRestoreDriveItem,
   usePermanentDeleteDriveItem, useDriveStorage, useDriveFolders,
   useDuplicateDriveItem, useBatchDeleteDriveItems, useBatchMoveDriveItems,
-  useBatchFavouriteDriveItems, useFilePreview,
+  useBatchFavouriteDriveItems, useFilePreview, useFileVersions,
+  useReplaceFile, useRestoreVersion, useShareLinks, useCreateShareLink,
+  useDeleteShareLink, useDriveItemsByType,
 } from '../hooks/use-drive';
 import { useToastStore } from '../stores/toast-store';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../components/ui/context-menu';
@@ -23,7 +26,7 @@ import { Chip } from '../components/ui/chip';
 import { EmojiPicker } from '../components/shared/emoji-picker';
 import { getFileIcon, getFileIconColor, formatBytes, formatRelativeDate, isImageFile } from '../lib/drive-utils';
 import { ROUTES } from '../config/routes';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem, DriveShareLink } from '@atlasmail/shared';
 import '../styles/drive.css';
 
 // ─── Constants ───────────────────────────────────────────────────────
@@ -35,7 +38,7 @@ const MAX_SIDEBAR_WIDTH = 400;
 const VIEW_MODE_KEY = 'atlasmail_drive_view_mode';
 
 type ViewMode = 'list' | 'grid';
-type SidebarView = 'files' | 'favourites' | 'recent' | 'trash';
+type SidebarView = 'files' | 'favourites' | 'recent' | 'trash' | 'images' | 'documents' | 'videos' | 'audio';
 type SortBy = 'default' | 'name' | 'size' | 'date' | 'type';
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
@@ -161,8 +164,13 @@ export function DrivePage() {
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [batchMoveOpen, setBatchMoveOpen] = useState(false);
   const [batchMoveTargetId, setBatchMoveTargetId] = useState<string | null>(null);
+  const [shareModalItem, setShareModalItem] = useState<DriveItem | null>(null);
+  const [shareExpiry, setShareExpiry] = useState<string>('never');
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
   const resizingRef = useRef(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -179,6 +187,15 @@ export function DrivePage() {
   const previewFileId = previewItem && previewItem.type === 'file' && isTextPreviewable(previewItem.mimeType, previewItem.name) ? previewItem.id : undefined;
   const { data: filePreviewData, isLoading: previewLoading } = useFilePreview(previewFileId);
 
+  // Type filter queries
+  const typeCategory = ['images', 'documents', 'videos', 'audio'].includes(sidebarView) ? sidebarView : undefined;
+  const { data: typeData } = useDriveItemsByType(typeCategory);
+
+  // Version & share queries
+  const versionItemId = previewItem?.type === 'file' ? previewItem.id : undefined;
+  const { data: versionsData } = useFileVersions(versionHistoryOpen ? versionItemId : undefined);
+  const { data: shareLinksData } = useShareLinks(shareModalItem?.id);
+
   // Mutations
   const createFolder = useCreateFolder();
   const uploadFiles = useUploadFiles();
@@ -190,6 +207,10 @@ export function DrivePage() {
   const batchDelete = useBatchDeleteDriveItems();
   const batchMove = useBatchMoveDriveItems();
   const batchFavourite = useBatchFavouriteDriveItems();
+  const replaceFile = useReplaceFile();
+  const restoreVersion = useRestoreVersion();
+  const createShareLink = useCreateShareLink();
+  const deleteShareLink = useDeleteShareLink();
 
   // Determine which items to show
   const displayItems = useMemo(() => {
@@ -197,8 +218,9 @@ export function DrivePage() {
     if (sidebarView === 'favourites') return favouritesData?.items ?? [];
     if (sidebarView === 'recent') return recentData?.items ?? [];
     if (sidebarView === 'trash') return trashData?.items ?? [];
+    if (['images', 'documents', 'videos', 'audio'].includes(sidebarView)) return typeData?.items ?? [];
     return itemsData?.items ?? [];
-  }, [sidebarView, searchQuery, itemsData, favouritesData, recentData, trashData, searchData]);
+  }, [sidebarView, searchQuery, itemsData, favouritesData, recentData, trashData, searchData, typeData]);
 
   const isLoading = sidebarView === 'files' && itemsLoading;
   const breadcrumbs = breadcrumbsData?.breadcrumbs ?? [];
@@ -929,6 +951,37 @@ export function DrivePage() {
             <Trash2 size={16} />
             Trash
           </button>
+
+          <div className="drive-nav-divider" />
+          <div className="drive-nav-section-label">File types</div>
+          <button
+            className={`drive-nav-item ${sidebarView === 'images' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('images'); setSearchQuery(''); }}
+          >
+            <FileImage size={16} />
+            Images
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'documents' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('documents'); setSearchQuery(''); }}
+          >
+            <FileText size={16} />
+            Documents
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'videos' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('videos'); setSearchQuery(''); }}
+          >
+            <FileVideo size={16} />
+            Videos
+          </button>
+          <button
+            className={`drive-nav-item ${sidebarView === 'audio' ? 'active' : ''}`}
+            onClick={() => { setSidebarView('audio'); setSearchQuery(''); }}
+          >
+            <FileAudio size={16} />
+            Audio
+          </button>
         </nav>
 
         {/* Storage usage */}
@@ -1348,16 +1401,31 @@ export function DrivePage() {
           <div className="drive-preview-body">
             {isImageFile(previewItem.mimeType) && previewItem.storagePath ? (
               <img
-                src={`/api/v1/uploads/${previewItem.storagePath}${getTokenParam()}`}
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
                 alt={previewItem.name}
                 className="drive-preview-image"
               />
             ) : previewItem.mimeType?.includes('pdf') && previewItem.storagePath ? (
               <iframe
-                src={`/api/v1/uploads/${previewItem.storagePath}${getTokenParam()}`}
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
                 className="drive-preview-iframe"
                 title={previewItem.name}
               />
+            ) : previewItem.mimeType?.startsWith('video/') && previewItem.storagePath ? (
+              <video
+                src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                controls
+                className="drive-preview-video"
+              />
+            ) : previewItem.mimeType?.startsWith('audio/') && previewItem.storagePath ? (
+              <div className="drive-preview-audio-wrap">
+                <Music size={64} color="var(--color-text-tertiary)" strokeWidth={1.2} />
+                <audio
+                  src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
+                  controls
+                  style={{ width: '100%', marginTop: 16 }}
+                />
+              </div>
             ) : previewFileId && filePreviewData ? (
               <div className="drive-preview-text-content">
                 {getFileExtension(previewItem.name) === 'csv' ? (
@@ -1434,6 +1502,61 @@ export function DrivePage() {
                 </div>
               </div>
             )}
+            {previewItem.type === 'file' && (
+              <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 8 }}>
+                <button
+                  onClick={() => setVersionHistoryOpen(!versionHistoryOpen)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                    padding: '4px 0', border: 'none', background: 'transparent',
+                    color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)',
+                    fontFamily: 'var(--font-family)', cursor: 'pointer',
+                  }}
+                >
+                  <History size={13} />
+                  Version history
+                  <ChevronDown size={12} style={{ marginLeft: 'auto', transform: versionHistoryOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                </button>
+                {versionHistoryOpen && versionsData && (
+                  <div className="drive-version-list">
+                    {versionsData.versions.length === 0 ? (
+                      <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>No previous versions</span>
+                    ) : (
+                      versionsData.versions.map((v) => (
+                        <div key={v.id} className="drive-version-row">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
+                            <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
+                              {formatRelativeDate(v.createdAt)} · {formatBytes(v.size)}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button
+                              onClick={() => {
+                                restoreVersion.mutate({ itemId: previewItem.id, versionId: v.id }, {
+                                  onSuccess: () => addToast({ type: 'success', message: 'Version restored' }),
+                                });
+                              }}
+                              title="Restore this version"
+                              style={{ padding: 2, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
+                            >
+                              <RotateCcw size={12} />
+                            </button>
+                            <a
+                              href={`/api/v1/drive/${previewItem.id}/versions/${v.id}/download${getTokenParam()}`}
+                              title="Download this version"
+                              style={{ padding: 2, color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center' }}
+                            >
+                              <Download size={12} />
+                            </a>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1504,6 +1627,22 @@ export function DrivePage() {
                 label="Add tag"
                 onClick={() => handleAddTag(contextMenu.item)}
               />
+              <ContextMenuItem
+                icon={<Share2 size={14} />}
+                label="Share"
+                onClick={() => { setShareModalItem(contextMenu.item); setContextMenu(null); }}
+              />
+              {contextMenu.item.type === 'file' && (
+                <ContextMenuItem
+                  icon={<Upload size={14} />}
+                  label="Upload new version"
+                  onClick={() => {
+                    setReplaceTargetId(contextMenu.item.id);
+                    setContextMenu(null);
+                    setTimeout(() => replaceFileInputRef.current?.click(), 50);
+                  }}
+                />
+              )}
               <ContextMenuSeparator />
               <ContextMenuItem
                 icon={<Trash2 size={14} />}
@@ -1831,6 +1970,110 @@ export function DrivePage() {
           </div>
         </div>
       </Modal>
+
+      {/* ─── Share modal ──────────────────────────────────────────── */}
+      <Modal open={!!shareModalItem} onOpenChange={() => setShareModalItem(null)} width={440} title={`Share "${shareModalItem?.name || ''}"`}>
+        <div style={{ padding: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <select
+              value={shareExpiry}
+              onChange={(e) => setShareExpiry(e.target.value)}
+              style={{
+                flex: 1, padding: '8px 12px', border: '1px solid var(--color-border-primary)',
+                borderRadius: 'var(--radius-md)', background: 'var(--color-bg-primary)',
+                color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)',
+                fontFamily: 'var(--font-family)', outline: 'none',
+              }}
+            >
+              <option value="never">Never expires</option>
+              <option value="1">Expires in 1 day</option>
+              <option value="7">Expires in 7 days</option>
+              <option value="30">Expires in 30 days</option>
+            </select>
+            <button
+              onClick={() => {
+                if (!shareModalItem) return;
+                const expiresAt = shareExpiry === 'never' ? undefined : new Date(Date.now() + parseInt(shareExpiry) * 86400000).toISOString();
+                createShareLink.mutate({ itemId: shareModalItem.id, expiresAt }, {
+                  onSuccess: () => addToast({ type: 'success', message: 'Share link created' }),
+                });
+              }}
+              style={{
+                height: 34, padding: '0 16px', background: 'var(--color-accent-primary)',
+                border: 'none', borderRadius: 'var(--radius-md)', color: '#fff',
+                fontSize: 'var(--font-size-sm)', fontWeight: 500, fontFamily: 'var(--font-family)',
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              <Link2 size={14} style={{ marginRight: 4, verticalAlign: -2 }} />
+              Create link
+            </button>
+          </div>
+          {shareLinksData && shareLinksData.links.length > 0 && (
+            <div className="drive-share-links-list">
+              {shareLinksData.links.map((link) => {
+                const shareUrl = `${window.location.origin}/api/v1/share/${link.shareToken}/download`;
+                return (
+                  <div key={link.id} className="drive-share-link-row">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <input
+                        readOnly
+                        value={shareUrl}
+                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                        style={{
+                          width: '100%', padding: '4px 8px', border: '1px solid var(--color-border-secondary)',
+                          borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
+                          color: 'var(--color-text-primary)', fontSize: 11, fontFamily: 'var(--font-family)',
+                          outline: 'none',
+                        }}
+                      />
+                      <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 2 }}>
+                        Created {formatRelativeDate(link.createdAt)}
+                        {link.expiresAt ? ` · Expires ${formatRelativeDate(link.expiresAt)}` : ' · No expiry'}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(shareUrl); addToast({ type: 'success', message: 'Link copied' }); }}
+                        title="Copy link"
+                        style={{ padding: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}
+                      >
+                        <Copy size={13} />
+                      </button>
+                      <button
+                        onClick={() => deleteShareLink.mutate(link.id, { onSuccess: () => addToast({ type: 'success', message: 'Link deleted' }) })}
+                        title="Delete link"
+                        style={{ padding: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-error, #ef4444)' }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* ─── Hidden replace file input ─────────────────────────────── */}
+      <input
+        type="file"
+        ref={replaceFileInputRef}
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && replaceTargetId) {
+            replaceFile.mutate({ itemId: replaceTargetId, file }, {
+              onSuccess: () => {
+                addToast({ type: 'success', message: 'New version uploaded' });
+                setReplaceTargetId(null);
+              },
+            });
+          }
+          e.target.value = '';
+        }}
+      />
 
       {/* ─── Floating bulk action bar ──────────────────────────────── */}
       {hasSelection && (

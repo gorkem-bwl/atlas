@@ -733,3 +733,79 @@
   flex-shrink: 0;
   margin-left: 4px;
 }
+
+/* ─── Sidebar divider + section label ─────────────────────────────── */
+
+.drive-nav-divider {
+  height: 1px;
+  background: var(--color-border-secondary);
+  margin: 8px 10px;
+}
+
+.drive-nav-section-label {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px 2px;
+}
+
+/* ─── Video preview ───────────────────────────────────────────────── */
+
+.drive-preview-video {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius-md, 4px);
+}
+
+/* ─── Audio preview ───────────────────────────────────────────────── */
+
+.drive-preview-audio-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+}
+
+/* ─── Version history list ────────────────────────────────────────── */
+
+.drive-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.drive-version-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm, 2px);
+  transition: background var(--transition-fast);
+}
+
+.drive-version-row:hover {
+  background: var(--color-surface-hover);
+}
+
+/* ─── Share links list ────────────────────────────────────────────── */
+
+.drive-share-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--color-border-secondary);
+  padding-top: 12px;
+}
+
+.drive-share-link-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}

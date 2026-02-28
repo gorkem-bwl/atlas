@@ -412,6 +412,40 @@ try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN tags TEXT NOT NULL DEFA
 // Drive items: icon column
 try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN icon TEXT`).run(); } catch { /* column already exists */ }
 
+// ---- Drive item versions table -----------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS drive_item_versions (
+    id TEXT PRIMARY KEY,
+    drive_item_id TEXT NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    mime_type TEXT,
+    size INTEGER,
+    storage_path TEXT,
+    createdAt TEXT NOT NULL
+  )
+`).run();
+
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_versions_item ON drive_item_versions(drive_item_id, createdAt)`).run(); } catch { /* */ }
+
+// ---- Drive share links table -------------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS drive_share_links (
+    id TEXT PRIMARY KEY,
+    drive_item_id TEXT NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    share_token TEXT NOT NULL UNIQUE,
+    expires_at TEXT,
+    createdAt TEXT NOT NULL
+  )
+`).run();
+
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_share_links_token ON drive_share_links(share_token)`).run(); } catch { /* */ }
+try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_share_links_item ON drive_share_links(drive_item_id)`).run(); } catch { /* */ }
+
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).
 sqlite.prepare(`

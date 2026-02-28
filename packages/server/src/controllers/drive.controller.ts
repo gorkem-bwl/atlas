@@ -408,6 +408,220 @@ export async function downloadFile(req: Request, res: Response) {
   }
 }
 
+// GET /api/drive/:id/view — inline view (for PDF/video/audio preview)
+export async function viewFile(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const itemId = req.params.id as string;
+
+    const item = await driveService.getItem(userId, itemId);
+    if (!item || item.type !== 'file' || !item.storagePath) {
+      res.status(404).json({ success: false, error: 'File not found' });
+      return;
+    }
+
+    const filePath = path.join(UPLOADS_DIR, item.storagePath);
+    if (!existsSync(filePath)) {
+      res.status(404).json({ success: false, error: 'File not found on disk' });
+      return;
+    }
+
+    const stat = statSync(filePath);
+    const mimeType = item.mimeType || 'application/octet-stream';
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', stat.size);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(item.name)}"`);
+
+    createReadStream(filePath).pipe(res);
+  } catch (error) {
+    logger.error({ error }, 'Failed to view file');
+    res.status(500).json({ success: false, error: 'Failed to view file' });
+  }
+}
+
+// GET /api/drive/by-type?type=images|documents|videos|audio
+export async function listItemsByType(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const typeCategory = (req.query.type as string) || '';
+
+    if (!['images', 'documents', 'videos', 'audio'].includes(typeCategory)) {
+      res.status(400).json({ success: false, error: 'Invalid type category' });
+      return;
+    }
+
+    const items = await driveService.listItemsByType(userId, typeCategory);
+    res.json({ success: true, data: { items } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list items by type');
+    res.status(500).json({ success: false, error: 'Failed to list items by type' });
+  }
+}
+
+// GET /api/drive/:id/versions
+export async function listVersions(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const itemId = req.params.id as string;
+
+    const versions = await driveService.listVersions(userId, itemId);
+    res.json({ success: true, data: { versions } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list versions');
+    res.status(500).json({ success: false, error: 'Failed to list versions' });
+  }
+}
+
+// POST /api/drive/:id/replace — upload new version
+export async function replaceFile(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const itemId = req.params.id as string;
+    const file = req.file as Express.Multer.File;
+
+    if (!file) {
+      res.status(400).json({ success: false, error: 'No file uploaded' });
+      return;
+    }
+
+    const item = await driveService.getItem(userId, itemId);
+    if (!item || item.type !== 'file') {
+      res.status(404).json({ success: false, error: 'File not found' });
+      return;
+    }
+
+    // Snapshot current file as a version
+    await driveService.createVersion(userId, accountId, itemId);
+
+    // Update main record with new file data
+    const now = new Date().toISOString();
+    await driveService.updateItem(userId, itemId, { name: file.originalname });
+
+    // Also update mimeType, size, storagePath via raw update
+    const { db: database } = await import('../config/database');
+    const { driveItems: driveItemsTable } = await import('../db/schema');
+    const { eq, and } = await import('drizzle-orm');
+    await database
+      .update(driveItemsTable)
+      .set({
+        mimeType: file.mimetype,
+        size: file.size,
+        storagePath: file.filename,
+        updatedAt: now,
+      })
+      .where(and(eq(driveItemsTable.id, itemId), eq(driveItemsTable.userId, userId)));
+
+    const updated = await driveService.getItem(userId, itemId);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    logger.error({ error }, 'Failed to replace file');
+    res.status(500).json({ success: false, error: 'Failed to replace file' });
+  }
+}
+
+// POST /api/drive/:id/versions/:versionId/restore
+export async function restoreVersion(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const itemId = req.params.id as string;
+    const versionId = req.params.versionId as string;
+
+    const item = await driveService.restoreVersion(userId, accountId, itemId, versionId);
+    if (!item) {
+      res.status(404).json({ success: false, error: 'Version not found' });
+      return;
+    }
+
+    res.json({ success: true, data: item });
+  } catch (error) {
+    logger.error({ error }, 'Failed to restore version');
+    res.status(500).json({ success: false, error: 'Failed to restore version' });
+  }
+}
+
+// GET /api/drive/:id/versions/:versionId/download
+export async function downloadVersion(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const versionId = req.params.versionId as string;
+
+    const version = await driveService.getVersion(userId, versionId);
+    if (!version || !version.storagePath) {
+      res.status(404).json({ success: false, error: 'Version not found' });
+      return;
+    }
+
+    const filePath = path.join(UPLOADS_DIR, version.storagePath);
+    if (!existsSync(filePath)) {
+      res.status(404).json({ success: false, error: 'Version file not found on disk' });
+      return;
+    }
+
+    const stat = statSync(filePath);
+    const mimeType = version.mimeType || 'application/octet-stream';
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', stat.size);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(version.name)}"`);
+
+    createReadStream(filePath).pipe(res);
+  } catch (error) {
+    logger.error({ error }, 'Failed to download version');
+    res.status(500).json({ success: false, error: 'Failed to download version' });
+  }
+}
+
+// POST /api/drive/:id/share — create share link
+export async function createShareLink(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const itemId = req.params.id as string;
+    const { expiresAt } = req.body as { expiresAt?: string };
+
+    const link = await driveService.createShareLink(userId, itemId, expiresAt);
+    if (!link) {
+      res.status(404).json({ success: false, error: 'Item not found' });
+      return;
+    }
+
+    res.json({ success: true, data: link });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create share link');
+    res.status(500).json({ success: false, error: 'Failed to create share link' });
+  }
+}
+
+// GET /api/drive/:id/share — list share links
+export async function listShareLinks(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const itemId = req.params.id as string;
+
+    const links = await driveService.getShareLinks(userId, itemId);
+    res.json({ success: true, data: { links } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list share links');
+    res.status(500).json({ success: false, error: 'Failed to list share links' });
+  }
+}
+
+// DELETE /api/drive/share/:linkId
+export async function deleteShareLink(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const linkId = req.params.linkId as string;
+
+    await driveService.deleteShareLink(userId, linkId);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete share link');
+    res.status(500).json({ success: false, error: 'Failed to delete share link' });
+  }
+}
+
 // GET /api/drive/:id/preview — return text content for previewable files
 const MAX_PREVIEW_BYTES = 512 * 1024; // 512KB max preview
 const PREVIEWABLE_MIMES = [

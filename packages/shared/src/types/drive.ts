@@ -34,3 +34,24 @@ export interface UpdateDriveItemInput {
   isArchived?: boolean;
   tags?: string[];
 }
+
+export interface DriveItemVersion {
+  id: string;
+  driveItemId: string;
+  accountId: string;
+  userId: string;
+  name: string;
+  mimeType: string | null;
+  size: number | null;
+  storagePath: string | null;
+  createdAt: string;
+}
+
+export interface DriveShareLink {
+  id: string;
+  driveItemId: string;
+  userId: string;
+  shareToken: string;
+  expiresAt: string | null;
+  createdAt: string;
+}

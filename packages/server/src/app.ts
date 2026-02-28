@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import routes from './routes';
 import trackingRoutes from './routes/tracking.routes';
 import pushRoutes from './routes/push.routes';
+import shareRoutes from './routes/share.routes';
 import { errorHandler } from './middleware/error-handler';
 import { apiLimiter } from './middleware/rate-limit';
 import { authMiddleware } from './middleware/auth';
@@ -12,7 +13,7 @@ import { authMiddleware } from './middleware/auth';
 export function createApp() {
   const app = express();
 
-  app.use(helmet());
+  app.use(helmet({ frameguard: false }));
   app.use(cors({ origin: true, credentials: true }));
   app.use(express.json({ limit: '10mb' }));
 
@@ -26,6 +27,9 @@ export function createApp() {
 
   // Gmail push notification webhook — no auth (Pub/Sub can't send JWTs)
   app.use('/webhooks/push', pushRoutes);
+
+  // Public share routes — no auth required
+  app.use('/api/v1/share', shareRoutes);
 
   // Serve uploaded files (auth via query token)
   app.use('/api/v1/uploads', authMiddleware, express.static(path.join(__dirname, '../uploads')));

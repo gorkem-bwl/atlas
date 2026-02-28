@@ -459,6 +459,36 @@ export const driveItems = sqliteTable('drive_items', {
   userFavouriteIdx: index('idx_drive_items_user_favourite').on(table.userId, table.isFavourite),
 }));
 
+// ─── Drive item versions (file versioning) ───────────────────────────
+
+export const driveItemVersions = sqliteTable('drive_item_versions', {
+  id: uuid().primaryKey(),
+  driveItemId: text('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  mimeType: text('mime_type'),
+  size: integer('size'),
+  storagePath: text('storage_path'),
+  createdAt: timestampNow().notNull(),
+}, (table) => ({
+  itemIdx: index('idx_drive_versions_item').on(table.driveItemId, table.createdAt),
+}));
+
+// ─── Drive share links ───────────────────────────────────────────────
+
+export const driveShareLinks = sqliteTable('drive_share_links', {
+  id: uuid().primaryKey(),
+  driveItemId: text('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shareToken: text('share_token').notNull().unique(),
+  expiresAt: text('expires_at'),
+  createdAt: timestampNow().notNull(),
+}, (table) => ({
+  tokenIdx: index('idx_share_links_token').on(table.shareToken),
+  itemIdx: index('idx_share_links_item').on(table.driveItemId),
+}));
+
 export const drawings = sqliteTable('drawings', {
   id: uuid().primaryKey(),
   accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),

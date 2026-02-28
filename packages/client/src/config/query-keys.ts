@@ -73,5 +73,8 @@ export const queryKeys = {
     search: (q: string) => ['drive', 'search', q] as const,
     folders: ['drive', 'folders'] as const,
     storage: ['drive', 'storage'] as const,
+    versions: (id: string) => ['drive', 'versions', id] as const,
+    shareLinks: (id: string) => ['drive', 'shareLinks', id] as const,
+    byType: (type: string) => ['drive', 'byType', type] as const,
   },
 };

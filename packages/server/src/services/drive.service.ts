@@ -1,5 +1,5 @@
 import { db } from '../config/database';
-import { driveItems } from '../db/schema';
+import { driveItems, driveItemVersions, driveShareLinks } from '../db/schema';
 import { eq, and, asc, desc, sql, isNull, inArray } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import { unlinkSync, existsSync, copyFileSync } from 'node:fs';
@@ -434,6 +434,179 @@ export async function batchFavourite(userId: string, itemIds: string[], isFavour
     .update(driveItems)
     .set({ isFavourite, updatedAt: now })
     .where(and(eq(driveItems.userId, userId), inArray(driveItems.id, itemIds)));
+}
+
+// ─── File versioning ─────────────────────────────────────────────────
+
+export async function createVersion(userId: string, accountId: string, itemId: string) {
+  const item = await getItem(userId, itemId);
+  if (!item || item.type !== 'file') return null;
+
+  const [version] = await db
+    .insert(driveItemVersions)
+    .values({
+      driveItemId: item.id,
+      accountId,
+      userId,
+      name: item.name,
+      mimeType: item.mimeType,
+      size: item.size,
+      storagePath: item.storagePath,
+      createdAt: new Date().toISOString(),
+    })
+    .returning();
+
+  logger.info({ userId, itemId, versionId: version.id }, 'Drive file version created');
+  return version;
+}
+
+export async function listVersions(userId: string, itemId: string) {
+  return db
+    .select()
+    .from(driveItemVersions)
+    .where(and(eq(driveItemVersions.driveItemId, itemId), eq(driveItemVersions.userId, userId)))
+    .orderBy(desc(driveItemVersions.createdAt))
+    .limit(20);
+}
+
+export async function restoreVersion(userId: string, accountId: string, itemId: string, versionId: string) {
+  const item = await getItem(userId, itemId);
+  if (!item || item.type !== 'file') return null;
+
+  const [version] = await db
+    .select()
+    .from(driveItemVersions)
+    .where(and(eq(driveItemVersions.id, versionId), eq(driveItemVersions.userId, userId)))
+    .limit(1);
+
+  if (!version) return null;
+
+  // Snapshot current file as a new version before restoring
+  await createVersion(userId, accountId, itemId);
+
+  // Overwrite main record with version data
+  const now = new Date().toISOString();
+  await db
+    .update(driveItems)
+    .set({
+      name: version.name,
+      mimeType: version.mimeType,
+      size: version.size,
+      storagePath: version.storagePath,
+      updatedAt: now,
+    })
+    .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)));
+
+  const [restored] = await db
+    .select()
+    .from(driveItems)
+    .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)))
+    .limit(1);
+
+  logger.info({ userId, itemId, versionId }, 'Drive file version restored');
+  return normalizeTags(restored) || null;
+}
+
+export async function getVersion(userId: string, versionId: string) {
+  const [version] = await db
+    .select()
+    .from(driveItemVersions)
+    .where(and(eq(driveItemVersions.id, versionId), eq(driveItemVersions.userId, userId)))
+    .limit(1);
+  return version || null;
+}
+
+// ─── Link sharing ────────────────────────────────────────────────────
+
+export async function createShareLink(userId: string, itemId: string, expiresAt?: string | null) {
+  const item = await getItem(userId, itemId);
+  if (!item) return null;
+
+  const shareToken = crypto.randomUUID();
+  const [link] = await db
+    .insert(driveShareLinks)
+    .values({
+      driveItemId: itemId,
+      userId,
+      shareToken,
+      expiresAt: expiresAt || null,
+      createdAt: new Date().toISOString(),
+    })
+    .returning();
+
+  logger.info({ userId, itemId, linkId: link.id }, 'Share link created');
+  return link;
+}
+
+export async function getShareLinks(userId: string, itemId: string) {
+  return db
+    .select()
+    .from(driveShareLinks)
+    .where(and(eq(driveShareLinks.driveItemId, itemId), eq(driveShareLinks.userId, userId)))
+    .orderBy(desc(driveShareLinks.createdAt));
+}
+
+export async function deleteShareLink(userId: string, linkId: string) {
+  await db
+    .delete(driveShareLinks)
+    .where(and(eq(driveShareLinks.id, linkId), eq(driveShareLinks.userId, userId)));
+}
+
+export async function getItemByShareToken(token: string) {
+  const [link] = await db
+    .select()
+    .from(driveShareLinks)
+    .where(eq(driveShareLinks.shareToken, token))
+    .limit(1);
+
+  if (!link) return null;
+
+  // Check expiry
+  if (link.expiresAt && new Date(link.expiresAt) < new Date()) return null;
+
+  const [item] = await db
+    .select()
+    .from(driveItems)
+    .where(eq(driveItems.id, link.driveItemId))
+    .limit(1);
+
+  return normalizeTags(item) || null;
+}
+
+// ─── File type filtering ─────────────────────────────────────────────
+
+export async function listItemsByType(userId: string, typeCategory: string) {
+  let mimeCondition: ReturnType<typeof sql>;
+  switch (typeCategory) {
+    case 'images':
+      mimeCondition = sql`${driveItems.mimeType} LIKE 'image/%'`;
+      break;
+    case 'documents':
+      mimeCondition = sql`(${driveItems.mimeType} LIKE 'application/pdf' OR ${driveItems.mimeType} LIKE '%document%' OR ${driveItems.mimeType} LIKE '%word%' OR ${driveItems.mimeType} LIKE 'text/%')`;
+      break;
+    case 'videos':
+      mimeCondition = sql`${driveItems.mimeType} LIKE 'video/%'`;
+      break;
+    case 'audio':
+      mimeCondition = sql`${driveItems.mimeType} LIKE 'audio/%'`;
+      break;
+    default:
+      return [];
+  }
+
+  const items = await db
+    .select()
+    .from(driveItems)
+    .where(and(
+      eq(driveItems.userId, userId),
+      eq(driveItems.type, 'file'),
+      eq(driveItems.isArchived, false),
+      mimeCondition,
+    ))
+    .orderBy(desc(driveItems.updatedAt))
+    .limit(100);
+
+  return normalizeAll(items);
 }
 
 // ─── Get all items in a folder recursively (for ZIP) ─────────────────
