@@ -1655,7 +1655,7 @@ export function MailAIPanel() {
     <div>
       {/* Master toggle */}
       <SettingsSection
-        title="AtlasMail AI"
+        title="Mail AI"
         description="AI helps you draft, summarize, translate emails, and reply faster. Your data remains private and is not used for training."
       >
         <SettingsRow
