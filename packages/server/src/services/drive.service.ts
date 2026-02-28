@@ -9,6 +9,19 @@ import type { CreateDriveItemInput, UpdateDriveItemInput } from '@atlasmail/shar
 
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
 
+function normalizeTags(item: any) {
+  if (!item) return item;
+  if (typeof item.tags === 'string') {
+    try { item.tags = JSON.parse(item.tags); } catch { item.tags = []; }
+  }
+  if (!Array.isArray(item.tags)) item.tags = [];
+  return item;
+}
+
+function normalizeAll(items: any[]) {
+  return items.map(normalizeTags);
+}
+
 // ─── List items in a folder ──────────────────────────────────────────
 
 export async function listItems(userId: string, parentId: string | null, includeArchived = false, sortBy?: string) {
@@ -44,11 +57,12 @@ export async function listItems(userId: string, parentId: string | null, include
       sortClauses = [foldersFirst, asc(driveItems.sortOrder), asc(driveItems.name)];
   }
 
-  return db
+  const items = await db
     .select()
     .from(driveItems)
     .where(and(...conditions))
     .orderBy(...sortClauses);
+  return normalizeAll(items);
 }
 
 // ─── Get a single item ──────────────────────────────────────────────
@@ -60,7 +74,7 @@ export async function getItem(userId: string, itemId: string) {
     .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)))
     .limit(1);
 
-  return item || null;
+  return normalizeTags(item) || null;
 }
 
 // ─── Create a folder ─────────────────────────────────────────────────
@@ -150,7 +164,7 @@ export async function updateItem(userId: string, itemId: string, input: UpdateDr
     .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)))
     .limit(1);
 
-  return updated || null;
+  return normalizeTags(updated) || null;
 }
 
 // ─── Soft delete (move to trash) ─────────────────────────────────────
@@ -175,7 +189,7 @@ export async function restoreItem(userId: string, itemId: string) {
     .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)))
     .limit(1);
 
-  return restored || null;
+  return normalizeTags(restored) || null;
 }
 
 // ─── Permanent delete + unlink from disk ─────────────────────────────
@@ -216,39 +230,42 @@ export async function permanentDelete(userId: string, itemId: string) {
 // ─── List trash ──────────────────────────────────────────────────────
 
 export async function listTrash(userId: string) {
-  return db
+  const items = await db
     .select()
     .from(driveItems)
     .where(and(eq(driveItems.userId, userId), eq(driveItems.isArchived, true)))
     .orderBy(desc(driveItems.updatedAt));
+  return normalizeAll(items);
 }
 
 // ─── List favourites ─────────────────────────────────────────────────
 
 export async function listFavourites(userId: string) {
-  return db
+  const items = await db
     .select()
     .from(driveItems)
     .where(and(eq(driveItems.userId, userId), eq(driveItems.isFavourite, true), eq(driveItems.isArchived, false)))
     .orderBy(desc(driveItems.updatedAt));
+  return normalizeAll(items);
 }
 
 // ─── List recent files ───────────────────────────────────────────────
 
 export async function listRecent(userId: string, limit = 20) {
-  return db
+  const items = await db
     .select()
     .from(driveItems)
     .where(and(eq(driveItems.userId, userId), eq(driveItems.type, 'file'), eq(driveItems.isArchived, false)))
     .orderBy(desc(driveItems.updatedAt))
     .limit(limit);
+  return normalizeAll(items);
 }
 
 // ─── Search items by name ────────────────────────────────────────────
 
 export async function searchItems(userId: string, query: string) {
   const searchTerm = `%${query}%`;
-  return db
+  const items = await db
     .select()
     .from(driveItems)
     .where(
@@ -260,6 +277,7 @@ export async function searchItems(userId: string, query: string) {
     )
     .orderBy(desc(driveItems.updatedAt))
     .limit(50);
+  return normalizeAll(items);
 }
 
 // ─── Get breadcrumbs ─────────────────────────────────────────────────
@@ -382,7 +400,7 @@ export async function duplicateItem(userId: string, itemId: string) {
     .returning();
 
   logger.info({ userId, itemId: created.id }, 'Drive item duplicated');
-  return created;
+  return normalizeTags(created);
 }
 
 // ─── Batch delete (soft) ─────────────────────────────────────────────
