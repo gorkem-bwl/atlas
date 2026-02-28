@@ -191,7 +191,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 100px 140px;
   gap: 8px;
-  padding: 6px 16px;
+  padding: 10px 16px;
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   border-bottom: 1px solid var(--color-border-secondary);
@@ -201,8 +201,8 @@
 }
 
 .drive-list-row.compact {
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   font-size: var(--font-size-xs);
 }
 

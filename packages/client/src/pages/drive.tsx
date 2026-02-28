@@ -429,21 +429,6 @@ export function DrivePage() {
   // ─── Selection helpers ─────────────────────────────────────────────
 
   const handleItemClick = useCallback((item: DriveItem, e: React.MouseEvent) => {
-    if (item.type === 'folder' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      navigate(`/drive/folder/${item.id}`);
-      setSidebarView('files');
-      setSearchQuery('');
-      return;
-    }
-
-    // Open linked resources in their native editor
-    if (item.linkedResourceType && item.linkedResourceId && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
-      else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
-      else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
-      return;
-    }
-
     if (e.ctrlKey || e.metaKey) {
       // Toggle selection
       setSelectedIds((prev) => {
@@ -468,16 +453,32 @@ export function DrivePage() {
         });
       }
     } else {
-      // Single click on file → preview (if enabled in settings)
-      if (item.type === 'file') {
-        if (driveSettings.showPreviewPanel) setPreviewItem(item);
-        setSelectedIds(new Set([item.id]));
-      } else {
-        setSelectedIds(new Set([item.id]));
+      // Single click → select + show preview if applicable
+      setSelectedIds(new Set([item.id]));
+      if (item.type === 'file' && driveSettings.showPreviewPanel) {
+        setPreviewItem(item);
       }
       setLastClickedId(item.id);
     }
-  }, [navigate, lastClickedId, displayItems]);
+  }, [lastClickedId, displayItems]);
+
+  const handleItemDoubleClick = useCallback((item: DriveItem) => {
+    if (item.type === 'folder') {
+      navigate(`/drive/folder/${item.id}`);
+      setSidebarView('files');
+      setSearchQuery('');
+      return;
+    }
+    // Open linked resources in their native editor
+    if (item.linkedResourceType && item.linkedResourceId) {
+      if (item.linkedResourceType === 'document') navigate(`/docs/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'drawing') navigate(`/draw/${item.linkedResourceId}`);
+      else if (item.linkedResourceType === 'spreadsheet') navigate(`/tables/${item.linkedResourceId}`);
+      return;
+    }
+    // For regular files, open preview panel
+    if (driveSettings.showPreviewPanel) setPreviewItem(item);
+  }, [navigate]);
 
   // ─── File operations ──────────────────────────────────────────────
 
@@ -1566,7 +1567,7 @@ export function DrivePage() {
                     className={`drive-list-row ${isSelected ? 'selected' : ''} ${isDragTarget ? 'drive-drag-over' : ''} ${driveSettings.compactMode ? 'compact' : ''}`}
                     onClick={(e) => { e.stopPropagation(); handleItemClick(item, e); }}
                     onContextMenu={(e) => handleContextMenu(e, item)}
-                    onDoubleClick={() => { if (item.type === 'folder') { navigate(`/drive/folder/${item.id}`); setSidebarView('files'); } }}
+                    onDoubleClick={() => handleItemDoubleClick(item)}
                     draggable={!isRenaming}
                     onDragStart={(e) => handleItemDragStart(e, item)}
                     onDragEnd={handleItemDragEnd}
@@ -1591,9 +1592,9 @@ export function DrivePage() {
                         onClick={(e) => e.stopPropagation()}
                       />
                       {item.icon ? (
-                        <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+                        <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
                       ) : (
-                        <Icon size={18} />
+                        <Icon size={22} />
                       )}
                       {isRenaming ? (
                         <input
@@ -1642,6 +1643,7 @@ export function DrivePage() {
                     key={item.id}
                     className={`drive-grid-card ${isSelected ? 'selected' : ''} ${isDragTarget ? 'drive-drag-over' : ''}`}
                     onClick={(e) => { e.stopPropagation(); handleItemClick(item, e); }}
+                    onDoubleClick={() => handleItemDoubleClick(item)}
                     onContextMenu={(e) => handleContextMenu(e, item)}
                     draggable={!isRenaming}
                     onDragStart={(e) => handleItemDragStart(e, item)}
@@ -1675,9 +1677,9 @@ export function DrivePage() {
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       ) : item.type === 'folder' && item.icon ? (
-                        <span style={{ fontSize: 36, lineHeight: 1 }}>{item.icon}</span>
+                        <span style={{ fontSize: 42, lineHeight: 1 }}>{item.icon}</span>
                       ) : (
-                        <Icon size={36} />
+                        <Icon size={42} />
                       )}
                     </div>
                     {isRenaming ? (
