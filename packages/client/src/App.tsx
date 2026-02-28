@@ -61,11 +61,14 @@ function getOrCreateClientId(): string {
 function LocalIdentityInit() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const addAccount = useAuthStore((s) => s.addAccount);
-  const called = useRef(false);
+  const setLoading = useAuthStore((s) => s.setLoading);
+  const inflight = useRef(false);
 
   useEffect(() => {
-    if (DEV_MODE || isAuthenticated || called.current) return;
-    called.current = true;
+    if (DEV_MODE || isAuthenticated || inflight.current) return;
+    inflight.current = true;
+    // Signal that auth is initialising so pages can wait before firing API calls
+    setLoading(true);
 
     const clientId = getOrCreateClientId();
     api.post('/auth/local', { clientId }).then(({ data }) => {
@@ -73,13 +76,44 @@ function LocalIdentityInit() {
       addAccount(account, accessToken, refreshToken);
     }).catch(() => {
       // Non-critical — user can still use Google OAuth to authenticate
-      called.current = false;
+      setLoading(false);
+    }).finally(() => {
+      inflight.current = false;
     });
-  }, [isAuthenticated, addAccount]);
+  }, [isAuthenticated, addAccount, setLoading]);
 
   return null;
 }
 
+/** Waits for auth init (local or Google) before rendering children. Does NOT redirect. */
+function AuthReadyGate({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+
+  if (!isAuthenticated && isLoading && !DEV_MODE) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          background: 'var(--color-bg-primary)',
+          color: 'var(--color-text-secondary)',
+          fontFamily: 'var(--font-family)',
+          fontSize: 'var(--font-size-md)',
+        }}
+      >
+        {t('common.loading')}
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+/** Requires Google OAuth. Redirects to HOME if not authenticated. */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -154,31 +188,31 @@ export function App() {
                 />
                 <Route
                   path={ROUTES.DOCS}
-                  element={<DocsPage />}
+                  element={<AuthReadyGate><DocsPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.DOC_DETAIL}
-                  element={<DocsPage />}
+                  element={<AuthReadyGate><DocsPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.DRAW}
-                  element={<DrawPage />}
+                  element={<AuthReadyGate><DrawPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.DRAW_DETAIL}
-                  element={<DrawPage />}
+                  element={<AuthReadyGate><DrawPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.TASKS}
-                  element={<TasksPage />}
+                  element={<AuthReadyGate><TasksPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.TABLES}
-                  element={<TablesPage />}
+                  element={<AuthReadyGate><TablesPage /></AuthReadyGate>}
                 />
                 <Route
                   path={ROUTES.TABLE_DETAIL}
-                  element={<TablesPage />}
+                  element={<AuthReadyGate><TablesPage /></AuthReadyGate>}
                 />
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>
