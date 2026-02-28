@@ -336,7 +336,7 @@ export function DrivePage() {
   const previewFileId = previewItem && previewItem.type === 'file' && isTextPreviewable(previewItem.mimeType, previewItem.name) ? previewItem.id : undefined;
   const { data: filePreviewData, isLoading: previewLoading } = useFilePreview(previewFileId);
 
-  // Linked resource content preview (Write documents)
+  // Linked resource content previews
   const linkedDocId = previewItem?.linkedResourceType === 'document' ? previewItem.linkedResourceId : undefined;
   const { data: linkedDocData } = useQuery({
     queryKey: ['docs', 'detail', linkedDocId],
@@ -345,6 +345,26 @@ export function DrivePage() {
       return data.data as { id: string; title: string; content: Record<string, unknown> | null };
     },
     enabled: !!linkedDocId,
+  });
+
+  const linkedDrawingId = previewItem?.linkedResourceType === 'drawing' ? previewItem.linkedResourceId : undefined;
+  const { data: linkedDrawingData } = useQuery({
+    queryKey: ['drawings', 'detail', linkedDrawingId],
+    queryFn: async () => {
+      const { data } = await api.get(`/drawings/${linkedDrawingId}`);
+      return data.data as { id: string; title: string; content: Record<string, unknown> | null };
+    },
+    enabled: !!linkedDrawingId,
+  });
+
+  const linkedTableId = previewItem?.linkedResourceType === 'spreadsheet' ? previewItem.linkedResourceId : undefined;
+  const { data: linkedTableData } = useQuery({
+    queryKey: ['tables', 'detail', linkedTableId],
+    queryFn: async () => {
+      const { data } = await api.get(`/tables/${linkedTableId}`);
+      return data.data as { id: string; title: string; columns: Array<{ id: string; name: string; type: string }>; rows: Array<Record<string, unknown>> };
+    },
+    enabled: !!linkedTableId,
   });
 
   // Type filter queries
@@ -1884,36 +1904,143 @@ export function DrivePage() {
                   </button>
                 </div>
               </div>
-            ) : previewItem.linkedResourceType && previewItem.linkedResourceId ? (
-              <div className="drive-preview-icon" style={{ gap: 16 }}>
+            ) : previewItem.linkedResourceType === 'drawing' && linkedDrawingData ? (
+              <div className="drive-preview-text-content">
                 {(() => {
-                  const Icon = getFileTypeIcon(previewItem.mimeType, previewItem.type, previewItem.linkedResourceType);
-                  return <Icon size={64} />;
+                  const content = linkedDrawingData.content as Record<string, unknown> | null;
+                  const elements = (content && Array.isArray((content as any).elements)) ? (content as any).elements as Array<{ type: string; text?: string }> : [];
+                  if (elements.length === 0) return (
+                    <div className="drive-preview-icon" style={{ gap: 8, padding: 24 }}>
+                      <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>(empty canvas)</span>
+                    </div>
+                  );
+                  const shapeCounts: Record<string, number> = {};
+                  elements.forEach((el) => {
+                    const t = el.type || 'unknown';
+                    shapeCounts[t] = (shapeCounts[t] || 0) + 1;
+                  });
+                  const textElements = elements.filter((el) => el.type === 'text' && el.text);
+                  return (
+                    <div style={{ padding: 16 }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 8 }}>
+                        {elements.length} element{elements.length !== 1 ? 's' : ''}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: textElements.length > 0 ? 12 : 0 }}>
+                        {Object.entries(shapeCounts).map(([type, count]) => (
+                          <span key={type} style={{
+                            padding: '3px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'var(--color-surface-secondary)',
+                            fontSize: 11,
+                            color: 'var(--color-text-secondary)',
+                          }}>
+                            {count} {type}{count !== 1 ? 's' : ''}
+                          </span>
+                        ))}
+                      </div>
+                      {textElements.length > 0 && (
+                        <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 10 }}>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 6 }}>Text content</div>
+                          <pre className="drive-preview-pre" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12 }}>
+                            {textElements.map((el) => el.text).join('\n')}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  );
                 })()}
-                <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-                  {previewItem.linkedResourceType === 'drawing' ? 'Draw canvas' : 'Table spreadsheet'}
-                </span>
-                <button
-                  onClick={() => {
-                    if (previewItem.linkedResourceType === 'drawing') navigate(`/draw/${previewItem.linkedResourceId}`);
-                    else if (previewItem.linkedResourceType === 'spreadsheet') navigate(`/tables/${previewItem.linkedResourceId}`);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 14px',
-                    border: '1px solid var(--color-border-primary)',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--color-surface-primary)',
-                    color: 'var(--color-text-primary)',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <ExternalLink size={14} />
-                  Open in editor
-                </button>
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--color-border-secondary)' }}>
+                  <button
+                    onClick={() => navigate(`/draw/${previewItem.linkedResourceId}`)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 14px',
+                      border: '1px solid var(--color-border-primary)',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--color-surface-primary)',
+                      color: 'var(--color-text-primary)',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      width: '100%',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    Open in editor
+                  </button>
+                </div>
+              </div>
+            ) : previewItem.linkedResourceType === 'spreadsheet' && linkedTableData ? (
+              <div className="drive-preview-text-content">
+                {(() => {
+                  const cols = linkedTableData.columns || [];
+                  const rows = linkedTableData.rows || [];
+                  if (cols.length === 0) return (
+                    <div className="drive-preview-icon" style={{ gap: 8, padding: 24 }}>
+                      <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)' }}>(empty spreadsheet)</span>
+                    </div>
+                  );
+                  const previewRows = rows.slice(0, 10);
+                  const previewCols = cols.slice(0, 6);
+                  return (
+                    <div style={{ padding: 16 }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 8 }}>
+                        {cols.length} column{cols.length !== 1 ? 's' : ''}, {rows.length} row{rows.length !== 1 ? 's' : ''}
+                      </div>
+                      <div className="drive-preview-table-wrap">
+                        <table className="drive-preview-table">
+                          <thead>
+                            <tr>
+                              {previewCols.map((col) => <th key={col.id}>{col.name}</th>)}
+                              {cols.length > 6 && <th style={{ color: 'var(--color-text-tertiary)' }}>+{cols.length - 6}</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewRows.map((row, ri) => (
+                              <tr key={ri}>
+                                {previewCols.map((col) => (
+                                  <td key={col.id}>{row[col.id] != null ? String(row[col.id]) : ''}</td>
+                                ))}
+                                {cols.length > 6 && <td>…</td>}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {rows.length > 10 && (
+                          <div className="drive-preview-truncated">Showing first 10 of {rows.length} rows</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div style={{ padding: '12px 16px', borderTop: '1px solid var(--color-border-secondary)' }}>
+                  <button
+                    onClick={() => navigate(`/tables/${previewItem.linkedResourceId}`)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 14px',
+                      border: '1px solid var(--color-border-primary)',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--color-surface-primary)',
+                      color: 'var(--color-text-primary)',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      width: '100%',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ExternalLink size={14} />
+                    Open in editor
+                  </button>
+                </div>
+              </div>
+            ) : previewItem.linkedResourceType && previewItem.linkedResourceId ? (
+              <div className="drive-preview-icon">
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 13 }}>Loading preview…</span>
               </div>
             ) : (
               <div className="drive-preview-icon">
