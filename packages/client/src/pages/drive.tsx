@@ -20,6 +20,7 @@ import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../component
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import { Modal } from '../components/ui/modal';
 import { Chip } from '../components/ui/chip';
+import { EmojiPicker } from '../components/shared/emoji-picker';
 import { getFileIcon, getFileIconColor, formatBytes, formatRelativeDate, isImageFile } from '../lib/drive-utils';
 import { ROUTES } from '../config/routes';
 import type { DriveItem } from '@atlasmail/shared';
@@ -114,6 +115,7 @@ export function DrivePage() {
   const [tagModalItem, setTagModalItem] = useState<DriveItem | null>(null);
   const [tagLabel, setTagLabel] = useState('');
   const [tagColor, setTagColor] = useState(TAG_COLORS[0].hex);
+  const [iconPickerItem, setIconPickerItem] = useState<DriveItem | null>(null);
   const [dragItemId, setDragItemId] = useState<string | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [batchMoveOpen, setBatchMoveOpen] = useState(false);
@@ -438,6 +440,39 @@ export function DrivePage() {
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, item });
   }, []);
+
+  // ─── Folder icon ───────────────────────────────────────────────────
+
+  const handleSetIcon = useCallback((item: DriveItem) => {
+    setIconPickerItem(item);
+    setContextMenu(null);
+  }, []);
+
+  const handleIconSelect = useCallback((emoji: string) => {
+    if (!iconPickerItem) return;
+    updateItem.mutate(
+      { id: iconPickerItem.id, icon: emoji },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Icon updated' });
+          setIconPickerItem(null);
+        },
+      },
+    );
+  }, [iconPickerItem, updateItem, addToast]);
+
+  const handleIconRemove = useCallback(() => {
+    if (!iconPickerItem) return;
+    updateItem.mutate(
+      { id: iconPickerItem.id, icon: null },
+      {
+        onSuccess: () => {
+          addToast({ type: 'success', message: 'Icon removed' });
+          setIconPickerItem(null);
+        },
+      },
+    );
+  }, [iconPickerItem, updateItem, addToast]);
 
   // ─── Tags ──────────────────────────────────────────────────────────
 
@@ -896,29 +931,6 @@ export function DrivePage() {
           </div>
         )}
 
-        {/* Bulk action bar */}
-        {hasSelection && (
-          <div className="drive-bulk-bar">
-            <span className="drive-bulk-count">{selectedIds.size} selected</span>
-            <button className="drive-bulk-btn" onClick={handleSelectAll} title="Select all">
-              <Check size={14} /> Select all
-            </button>
-            <button className="drive-bulk-btn" onClick={handleClearSelection} title="Clear">
-              <X size={14} /> Clear
-            </button>
-            <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
-            <button className="drive-bulk-btn" onClick={() => { setBatchMoveTargetId(null); setBatchMoveOpen(true); }} title="Move">
-              <FolderInput size={14} /> Move
-            </button>
-            <button className="drive-bulk-btn" onClick={handleBulkFavourite} title="Favourite">
-              <Star size={14} /> Favourite
-            </button>
-            <button className="drive-bulk-btn drive-bulk-btn-destructive" onClick={handleBulkDelete} title="Delete">
-              <Trash2 size={14} /> Delete
-            </button>
-          </div>
-        )}
-
         {/* Toolbar */}
         <div className="drive-toolbar">
           <div className="drive-toolbar-left">
@@ -1144,7 +1156,11 @@ export function DrivePage() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <Icon size={18} color={iconColor} />
+                      {item.icon ? (
+                        <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
+                      ) : (
+                        <Icon size={18} color={iconColor} />
+                      )}
                       {isRenaming ? (
                         <input
                           className="drive-rename-input"
@@ -1224,6 +1240,8 @@ export function DrivePage() {
                           className="drive-grid-card-thumbnail"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
+                      ) : item.type === 'folder' && item.icon ? (
+                        <span style={{ fontSize: 36, lineHeight: 1 }}>{item.icon}</span>
                       ) : (
                         <Icon size={36} color={iconColor} strokeWidth={1.4} />
                       )}
@@ -1377,6 +1395,13 @@ export function DrivePage() {
                 label="Rename"
                 onClick={() => handleRename(contextMenu.item)}
               />
+              {contextMenu.item.type === 'folder' && (
+                <ContextMenuItem
+                  icon={<span style={{ fontSize: 14, lineHeight: 1 }}>{contextMenu.item.icon || '😀'}</span>}
+                  label={contextMenu.item.icon ? 'Change icon' : 'Add icon'}
+                  onClick={() => handleSetIcon(contextMenu.item)}
+                />
+              )}
               <ContextMenuItem
                 icon={<Copy size={14} />}
                 label="Duplicate"
@@ -1725,6 +1750,29 @@ export function DrivePage() {
         </div>
       </Modal>
 
+      {/* ─── Floating bulk action bar ──────────────────────────────── */}
+      {hasSelection && (
+        <div className="drive-bulk-bar">
+          <span className="drive-bulk-count">{selectedIds.size} selected</span>
+          <button className="drive-bulk-btn" onClick={handleSelectAll} title="Select all">
+            <Check size={14} /> Select all
+          </button>
+          <button className="drive-bulk-btn" onClick={handleClearSelection} title="Clear">
+            <X size={14} /> Clear
+          </button>
+          <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
+          <button className="drive-bulk-btn" onClick={() => { setBatchMoveTargetId(null); setBatchMoveOpen(true); }} title="Move">
+            <FolderInput size={14} /> Move
+          </button>
+          <button className="drive-bulk-btn" onClick={handleBulkFavourite} title="Favourite">
+            <Star size={14} /> Favourite
+          </button>
+          <button className="drive-bulk-btn drive-bulk-btn-destructive" onClick={handleBulkDelete} title="Delete">
+            <Trash2 size={14} /> Delete
+          </button>
+        </div>
+      )}
+
       {/* ─── Confirm dialogs ─────────────────────────────────────── */}
       <ConfirmDialog
         open={!!confirmDelete}
@@ -1745,6 +1793,16 @@ export function DrivePage() {
         onConfirm={confirmPermanentDelete}
         destructive
       />
+
+      {iconPickerItem && (
+        <Modal open onOpenChange={() => setIconPickerItem(null)} title="Choose folder icon">
+          <EmojiPicker
+            onSelect={handleIconSelect}
+            onRemove={iconPickerItem.icon ? handleIconRemove : undefined}
+            onClose={() => setIconPickerItem(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

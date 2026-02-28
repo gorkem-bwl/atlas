@@ -8,6 +8,7 @@ export interface DriveItem {
   size: number | null;
   parentId: string | null;
   storagePath: string | null;
+  icon: string | null;
   isFavourite: boolean;
   isArchived: boolean;
   tags: string[];
@@ -28,6 +29,7 @@ export interface CreateDriveItemInput {
 export interface UpdateDriveItemInput {
   name?: string;
   parentId?: string | null;
+  icon?: string | null;
   isFavourite?: boolean;
   isArchived?: boolean;
   tags?: string[];

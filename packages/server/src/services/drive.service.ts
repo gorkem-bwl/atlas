@@ -134,6 +134,7 @@ export async function updateItem(userId: string, itemId: string, input: UpdateDr
 
   if (input.name !== undefined) updates.name = input.name;
   if (input.parentId !== undefined) updates.parentId = input.parentId;
+  if (input.icon !== undefined) updates.icon = input.icon;
   if (input.isFavourite !== undefined) updates.isFavourite = input.isFavourite;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
   if (input.tags !== undefined) updates.tags = JSON.stringify(input.tags);

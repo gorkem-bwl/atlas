@@ -409,6 +409,8 @@ try { sqlite.prepare(`CREATE INDEX IF NOT EXISTS idx_drive_items_user_favourite 
 
 // Drive items: tags column
 try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
+// Drive items: icon column
+try { sqlite.prepare(`ALTER TABLE drive_items ADD COLUMN icon TEXT`).run(); } catch { /* column already exists */ }
 
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).

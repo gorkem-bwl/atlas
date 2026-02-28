@@ -192,11 +192,12 @@ export async function updateItem(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
-    const { name, parentId, isFavourite, isArchived, tags } = req.body;
+    const { name, parentId, icon, isFavourite, isArchived, tags } = req.body;
 
     const item = await driveService.updateItem(userId, itemId, {
       name,
       parentId,
+      icon,
       isFavourite,
       isArchived,
       tags,

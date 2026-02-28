@@ -446,6 +446,7 @@ export const driveItems = sqliteTable('drive_items', {
   size: integer('size'),
   parentId: text('parent_id').references((): AnySQLiteColumn => driveItems.id, { onDelete: 'set null' }),
   storagePath: text('storage_path'),
+  icon: text('icon'),
   isFavourite: integer('is_favourite', { mode: 'boolean' }).notNull().default(false),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
   tags: text('tags', { mode: 'json' }).notNull().$type<string[]>().default([]),
