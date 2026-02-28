@@ -27,7 +27,7 @@ import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import { Modal } from '../components/ui/modal';
 import { Chip } from '../components/ui/chip';
 import { EmojiPicker } from '../components/shared/emoji-picker';
-import { getFileIcon, getFileIconColor, formatBytes, formatRelativeDate, isImageFile } from '../lib/drive-utils';
+import { getFileTypeIcon, formatBytes, formatRelativeDate, isImageFile } from '../lib/drive-utils';
 import { ROUTES } from '../config/routes';
 import { useDriveSettingsStore, useDriveSettingsSync } from '../stores/drive-settings-store';
 import { useUIStore } from '../stores/ui-store';
@@ -1554,8 +1554,8 @@ export function DrivePage() {
                 </span>
               </div>
               {displayItems.map((item) => {
-                const Icon = getFileIcon(item.mimeType, item.type);
-                const iconColor = getFileIconColor(item.mimeType, item.type);
+                const Icon = getFileTypeIcon(item.mimeType, item.type, item.linkedResourceType);
+
                 const isRenaming = renameId === item.id;
                 const isSelected = selectedIds.has(item.id);
                 const isDragTarget = dragOverFolderId === item.id;
@@ -1593,7 +1593,7 @@ export function DrivePage() {
                       {item.icon ? (
                         <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{item.icon}</span>
                       ) : (
-                        <Icon size={18} color={iconColor} />
+                        <Icon size={18} />
                       )}
                       {isRenaming ? (
                         <input
@@ -1630,8 +1630,8 @@ export function DrivePage() {
             /* Grid view */
             <div className="drive-grid">
               {displayItems.map((item) => {
-                const Icon = getFileIcon(item.mimeType, item.type);
-                const iconColor = getFileIconColor(item.mimeType, item.type);
+                const Icon = getFileTypeIcon(item.mimeType, item.type, item.linkedResourceType);
+
                 const isSelected = selectedIds.has(item.id);
                 const isRenaming = renameId === item.id;
                 const showThumb = driveSettings.showThumbnails && isImageFile(item.mimeType) && item.storagePath;
@@ -1677,7 +1677,7 @@ export function DrivePage() {
                       ) : item.type === 'folder' && item.icon ? (
                         <span style={{ fontSize: 36, lineHeight: 1 }}>{item.icon}</span>
                       ) : (
-                        <Icon size={36} color={iconColor} strokeWidth={1.4} />
+                        <Icon size={36} />
                       )}
                     </div>
                     {isRenaming ? (
@@ -1806,9 +1806,8 @@ export function DrivePage() {
             ) : (
               <div className="drive-preview-icon">
                 {(() => {
-                  const Icon = getFileIcon(previewItem.mimeType, previewItem.type);
-                  const color = getFileIconColor(previewItem.mimeType, previewItem.type);
-                  return <Icon size={64} color={color} strokeWidth={1.2} />;
+                  const Icon = getFileTypeIcon(previewItem.mimeType, previewItem.type, previewItem.linkedResourceType);
+                  return <Icon size={64} />;
                 })()}
               </div>
             )}
