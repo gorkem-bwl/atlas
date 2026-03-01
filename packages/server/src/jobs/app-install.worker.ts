@@ -161,14 +161,18 @@ export function startAppBackupWorker() {
 export async function addAppInstallJob(tenantId: string, input: InstallAppInput) {
   const queue = getInstallQueue();
   if (!queue) {
-    logger.warn('Redis not configured — cannot enqueue app install job, running synchronously');
-    const { installApp } = await import('../services/platform/install.service');
-    await installApp(tenantId, input);
+    logger.warn('Redis not configured — running install in background (fire and forget)');
+    void Promise.resolve().then(async () => {
+      const { installApp } = await import('../services/platform/install.service');
+      await installApp(tenantId, input);
+    }).catch((err) => {
+      logger.error({ err, tenantId, catalogAppId: input.catalogAppId }, 'Background install failed');
+    });
     return;
   }
 
   await queue.add('install', { tenantId, input }, {
-    jobId: `install:${tenantId}:${input.catalogAppId}:${Date.now()}`,
+    jobId: `install-${tenantId}-${input.catalogAppId}-${Date.now()}`,
   });
   logger.info({ tenantId, catalogAppId: input.catalogAppId }, 'App install job enqueued');
 }
@@ -181,9 +185,44 @@ export async function addAppBackupJob(installationId: string, triggeredBy: strin
   }
 
   await queue.add('backup', { installationId, triggeredBy }, {
-    jobId: `backup:${installationId}:${Date.now()}`,
+    jobId: `backup-${installationId}-${Date.now()}`,
   });
   logger.info({ installationId }, 'App backup job enqueued');
+}
+
+// ---------------------------------------------------------------------------
+// Health check scheduler (produces jobs for the health worker)
+// ---------------------------------------------------------------------------
+
+let healthInterval: ReturnType<typeof setInterval> | null = null;
+
+export function startHealthCheckScheduler() {
+  const conn = getConnection();
+  if (!conn) return;
+
+  let healthQueue: Queue | null = null;
+  if (!healthQueue) {
+    healthQueue = new Queue('app-health', { connection: conn });
+  }
+
+  // Enqueue health checks for all running installations every 60 seconds
+  healthInterval = setInterval(async () => {
+    try {
+      const { listRunningInstallationIds } = await import('../services/platform/install.service');
+      const ids = await listRunningInstallationIds();
+      for (const id of ids) {
+        await healthQueue!.add('health', { installationId: id }, {
+          jobId: `health-${id}-${Date.now()}`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        });
+      }
+    } catch (err) {
+      logger.error({ err }, 'Failed to enqueue health check jobs');
+    }
+  }, 60_000);
+
+  logger.info('Health check scheduler started (every 60s)');
 }
 
 // ---------------------------------------------------------------------------
@@ -191,6 +230,7 @@ export async function addAppBackupJob(installationId: string, triggeredBy: strin
 // ---------------------------------------------------------------------------
 
 export async function stopPlatformWorkers() {
+  if (healthInterval) { clearInterval(healthInterval); healthInterval = null; }
   if (installWorker) { await installWorker.close(); installWorker = null; }
   if (healthWorker) { await healthWorker.close(); healthWorker = null; }
   if (backupWorker) { await backupWorker.close(); backupWorker = null; }

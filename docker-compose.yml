@@ -47,7 +47,7 @@ services:
       retries: 5
 
   traefik:
-    image: traefik:v3.2
+    image: traefik:v2.11
     container_name: traefik
     restart: unless-stopped
     command:
@@ -61,7 +61,7 @@ services:
       - "80:80"
       - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /Users/gorkemcetin/.docker/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - atlas-net
 
