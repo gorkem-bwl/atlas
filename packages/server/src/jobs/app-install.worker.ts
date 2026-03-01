@@ -80,13 +80,20 @@ export function startAppInstallWorker() {
   installWorker = new Worker(
     'app-install',
     async (job: Job) => {
-      const { tenantId, input } = job.data as { tenantId: string; input: InstallAppInput };
+      const { tenantId, input, userId } = job.data as { tenantId: string; input: InstallAppInput; userId?: string };
       const log = logger.child({ jobId: job.id, tenantId, catalogAppId: input.catalogAppId });
 
       log.info('Processing app install job');
 
       const { installApp } = await import('../services/platform/install.service');
-      await installApp(tenantId, input);
+      const installation = await installApp(tenantId, input);
+
+      // Auto-assign the installing user as admin
+      if (userId && installation) {
+        const { assignUserToApp } = await import('../services/platform/assignment.service');
+        await assignUserToApp(installation.id, userId, 'admin', userId);
+        log.info({ userId, installationId: installation.id }, 'Auto-assigned installer as admin');
+      }
 
       log.info('App install job completed');
     },
@@ -158,7 +165,7 @@ export function startAppBackupWorker() {
 // Job helpers
 // ---------------------------------------------------------------------------
 
-export async function addAppInstallJob(tenantId: string, input: InstallAppInput) {
+export async function addAppInstallJob(tenantId: string, input: InstallAppInput, userId?: string) {
   const queue = getInstallQueue();
   if (!queue) {
     // In development, run inline (no Redis needed). In production, Redis is required.
@@ -167,11 +174,18 @@ export async function addAppInstallJob(tenantId: string, input: InstallAppInput)
     }
     logger.warn('Redis not configured — running install inline (dev mode)');
     const { installApp } = await import('../services/platform/install.service');
-    await installApp(tenantId, input);
+    const installation = await installApp(tenantId, input);
+
+    // Auto-assign the installing user as admin
+    if (userId && installation) {
+      const { assignUserToApp } = await import('../services/platform/assignment.service');
+      await assignUserToApp(installation.id, userId, 'admin', userId);
+      logger.info({ userId, installationId: installation.id }, 'Auto-assigned installer as admin (inline)');
+    }
     return;
   }
 
-  await queue.add('install', { tenantId, input }, {
+  await queue.add('install', { tenantId, input, userId }, {
     jobId: `install-${tenantId}-${input.catalogAppId}-${Date.now()}`,
   });
   logger.info({ tenantId, catalogAppId: input.catalogAppId }, 'App install job enqueued');

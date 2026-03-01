@@ -4,6 +4,7 @@ export type TenantPlan = 'starter' | 'pro' | 'enterprise';
 export type TenantStatus = 'active' | 'suspended' | 'deleted';
 export type TenantMemberRole = 'owner' | 'admin' | 'member';
 export type InstallationStatus = 'installing' | 'running' | 'stopped' | 'error' | 'uninstalling';
+export type AppRole = 'admin' | 'member' | 'viewer';
 export type AddonType = 'postgresql' | 'redis' | 'smtp' | 's3';
 export type BackupTrigger = 'scheduled' | 'manual' | 'pre-update';
 export type BackupStatus = 'pending' | 'running' | 'completed' | 'failed';
@@ -138,6 +139,21 @@ export interface AppAddon {
   database: string;
   username: string;
   createdAt: string;
+}
+
+// ─── App User Assignments ───────────────────────────────────────────
+
+export interface AppUserAssignment {
+  id: string;
+  installationId: string;
+  userId: string;
+  appRole: AppRole;
+  assignedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  email?: string;
+  name?: string;
 }
 
 // ─── Backups ─────────────────────────────────────────────────────────

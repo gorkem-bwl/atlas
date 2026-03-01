@@ -121,6 +121,17 @@ export async function migratePlatformSchema() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS app_user_assignments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        installation_id UUID NOT NULL REFERENCES app_installations(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL,
+        app_role VARCHAR(50) NOT NULL DEFAULT 'member',
+        assigned_by UUID NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(installation_id, user_id)
+      );
+
       CREATE TABLE IF NOT EXISTS app_backups (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         installation_id UUID NOT NULL REFERENCES app_installations(id) ON DELETE CASCADE,
@@ -139,6 +150,8 @@ export async function migratePlatformSchema() {
       'CREATE INDEX IF NOT EXISTS idx_app_catalog_category ON app_catalog(category)',
       'CREATE INDEX IF NOT EXISTS idx_installations_tenant ON app_installations(tenant_id)',
       'CREATE INDEX IF NOT EXISTS idx_addons_installation ON app_addons(installation_id)',
+      'CREATE INDEX IF NOT EXISTS idx_app_assignments_installation ON app_user_assignments(installation_id)',
+      'CREATE INDEX IF NOT EXISTS idx_app_assignments_user ON app_user_assignments(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_backups_installation ON app_backups(installation_id)',
     ];
 

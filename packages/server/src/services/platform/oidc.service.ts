@@ -16,6 +16,7 @@ const authCodes = new Map<string, {
   tenantSlug: string;
   tenantId: string;
   redirectUri: string;
+  appRole: string;
   expiresAt: number;
 }>();
 
@@ -52,7 +53,7 @@ export function getDiscoveryDocument(tenantSlug: string, requestBaseUrl?: string
     id_token_signing_alg_values_supported: ['RS256'],
     scopes_supported: ['openid', 'profile', 'email'],
     token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
-    claims_supported: ['sub', 'email', 'name', 'atlas_tenant_id', 'atlas_roles'],
+    claims_supported: ['sub', 'email', 'name', 'atlas_tenant_id', 'atlas_roles', 'atlas_app_role'],
   };
 }
 
@@ -93,6 +94,7 @@ export function createAuthorizationCode(opts: {
   tenantSlug: string;
   tenantId: string;
   redirectUri: string;
+  appRole: string;
 }): string {
   const code = crypto.randomBytes(32).toString('base64url');
   authCodes.set(code, {
@@ -158,6 +160,7 @@ export async function exchangeCode(
       name: codeData.email.split('@')[0], // simplified — real impl should look up user name
       atlas_tenant_id: codeData.tenantId,
       atlas_roles: roles,
+      atlas_app_role: codeData.appRole,
       aud: clientId,
       iss: issuer,
       iat: Math.floor(Date.now() / 1000),

@@ -347,13 +347,14 @@ export function AdminTenantDetailPage() {
                 <th style={thStyle}>Subdomain</th>
                 <th style={thStyle}>Status</th>
                 <th style={thStyle}>Health</th>
+                <th style={thStyle}>Assigned</th>
                 <th style={thStyle}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {tenant.installations.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+                  <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
                     No installations
                   </td>
                 </tr>
@@ -373,6 +374,9 @@ export function AdminTenantDetailPage() {
                     {inst.lastHealthStatus
                       ? <Badge variant={statusVariant(inst.lastHealthStatus)}>{inst.lastHealthStatus}</Badge>
                       : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>
+                    {inst.assignedCount ?? '—'}
                   </td>
                   <td style={{ ...tdStyle }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>

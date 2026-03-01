@@ -78,6 +78,7 @@ export interface AdminTenantDetail extends Omit<AdminTenant, 'memberCount' | 'in
     createdAt: string;
     appName: string | null;
     manifestId: string | null;
+    assignedCount: number;
   }>;
 }
 

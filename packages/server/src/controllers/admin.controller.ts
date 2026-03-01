@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { getPlatformDb } from '../config/platform-database';
-import { tenants, tenantMembers, appInstallations, appCatalog } from '../db/schema-platform';
+import { tenants, tenantMembers, appInstallations, appCatalog, appUserAssignments } from '../db/schema-platform';
 import { eq, count } from 'drizzle-orm';
 import { listAtlasContainers } from '../services/platform/docker.service';
 import { startApp, stopApp, restartApp } from '../services/platform/install.service';
@@ -147,6 +147,13 @@ export async function getTenant(req: Request, res: Response) {
       .leftJoin(appCatalog, eq(appInstallations.catalogAppId, appCatalog.id))
       .where(eq(appInstallations.tenantId, id));
 
+    // Get assignment counts per installation
+    const assignmentCounts = await db
+      .select({ installationId: appUserAssignments.installationId, count: count() })
+      .from(appUserAssignments)
+      .groupBy(appUserAssignments.installationId);
+    const assignmentMap = new Map(assignmentCounts.map((r) => [r.installationId, r.count]));
+
     res.json({
       success: true,
       data: {
@@ -156,6 +163,7 @@ export async function getTenant(req: Request, res: Response) {
           ...i.installation,
           appName: i.appName,
           manifestId: i.manifestId,
+          assignedCount: assignmentMap.get(i.installation.id) ?? 0,
         })),
       },
     });

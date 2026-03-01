@@ -2,9 +2,11 @@ import type { Request, Response } from 'express';
 import * as tenantService from '../services/platform/tenant.service';
 import * as catalogService from '../services/platform/catalog.service';
 import * as installService from '../services/platform/install.service';
+import * as assignmentService from '../services/platform/assignment.service';
 import { addAppInstallJob, addAppBackupJob } from '../jobs/app-install.worker';
 import { logger } from '../utils/logger';
 import { env } from '../config/env';
+import type { AppRole } from '@atlasmail/shared';
 
 /** Safely extract a route param (Express 5 returns string | string[]). */
 function param(req: Request, name: string): string {
@@ -223,8 +225,8 @@ export async function installApp(req: Request, res: Response) {
       return;
     }
 
-    // Enqueue install job (async via BullMQ)
-    await addAppInstallJob(tenantId, { catalogAppId, subdomain, customEnv });
+    // Enqueue install job (async via BullMQ) — pass userId for auto-assignment
+    await addAppInstallJob(tenantId, { catalogAppId, subdomain, customEnv }, req.auth!.userId);
 
     res.status(202).json({
       success: true,
@@ -337,5 +339,106 @@ export async function uninstallApp(req: Request, res: Response) {
   } catch (err) {
     logger.error({ err }, 'Failed to uninstall app');
     res.status(500).json({ success: false, error: 'Failed to uninstall app' });
+  }
+}
+
+// ─── App Assignments ────────────────────────────────────────────────
+
+const VALID_APP_ROLES: AppRole[] = ['admin', 'member', 'viewer'];
+
+export async function listAssignments(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const assignments = await assignmentService.listAppAssignments(inst.id);
+    res.json({ success: true, data: { assignments } });
+  } catch (err) {
+    logger.error({ err }, 'Failed to list assignments');
+    res.status(500).json({ success: false, error: 'Failed to list assignments' });
+  }
+}
+
+export async function assignUser(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const { userId, appRole = 'member' } = req.body;
+    if (!userId) {
+      res.status(400).json({ success: false, error: 'userId is required' });
+      return;
+    }
+
+    if (!VALID_APP_ROLES.includes(appRole)) {
+      res.status(400).json({ success: false, error: `appRole must be one of: ${VALID_APP_ROLES.join(', ')}` });
+      return;
+    }
+
+    // Verify the target user is a tenant member
+    const membership = await tenantService.getTenantMembership(inst.tenantId, userId);
+    if (!membership) {
+      res.status(400).json({ success: false, error: 'User is not a member of this tenant' });
+      return;
+    }
+
+    const assignment = await assignmentService.assignUserToApp(inst.id, userId, appRole, req.auth!.userId);
+    res.status(201).json({ success: true, data: assignment });
+  } catch (err) {
+    logger.error({ err }, 'Failed to assign user');
+    res.status(500).json({ success: false, error: 'Failed to assign user' });
+  }
+}
+
+export async function updateAssignment(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const userId = param(req, 'userId');
+    const { appRole } = req.body;
+
+    if (!appRole || !VALID_APP_ROLES.includes(appRole)) {
+      res.status(400).json({ success: false, error: `appRole must be one of: ${VALID_APP_ROLES.join(', ')}` });
+      return;
+    }
+
+    const updated = await assignmentService.updateAppRole(inst.id, userId, appRole);
+    if (!updated) {
+      res.status(404).json({ success: false, error: 'Assignment not found' });
+      return;
+    }
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    logger.error({ err }, 'Failed to update assignment');
+    res.status(500).json({ success: false, error: 'Failed to update assignment' });
+  }
+}
+
+export async function removeAssignment(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const userId = param(req, 'userId');
+    const removed = await assignmentService.removeUserFromApp(inst.id, userId);
+    if (!removed) {
+      res.status(404).json({ success: false, error: 'Assignment not found' });
+      return;
+    }
+
+    res.json({ success: true, data: { message: 'Assignment removed' } });
+  } catch (err) {
+    logger.error({ err }, 'Failed to remove assignment');
+    res.status(500).json({ success: false, error: 'Failed to remove assignment' });
   }
 }

@@ -94,6 +94,22 @@ export const appAddons = pgTable('app_addons', {
   installationIdx: index('idx_addons_installation').on(table.installationId),
 }));
 
+// ─── App User Assignments ──────────────────────────────────────────
+
+export const appUserAssignments = pgTable('app_user_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  installationId: uuid('installation_id').notNull().references(() => appInstallations.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  appRole: varchar('app_role', { length: 50 }).notNull().default('member'),
+  assignedBy: uuid('assigned_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  uniqueAssignment: uniqueIndex('idx_app_assignments_unique').on(table.installationId, table.userId),
+  installationIdx: index('idx_app_assignments_installation').on(table.installationId),
+  userIdx: index('idx_app_assignments_user').on(table.userId),
+}));
+
 // ─── App Backups ────────────────────────────────────────────────────
 
 export const appBackups = pgTable('app_backups', {

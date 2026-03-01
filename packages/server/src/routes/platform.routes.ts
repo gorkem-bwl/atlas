@@ -25,4 +25,10 @@ router.post('/tenants/:id/installations/:iid/backup', ctrl.createBackup);
 router.get('/tenants/:id/installations/:iid/backups', ctrl.listBackups);
 router.delete('/tenants/:id/installations/:iid', ctrl.uninstallApp);
 
+// ─── App Assignments ───────────────────────────────────────────────
+router.get('/tenants/:id/installations/:iid/assignments', ctrl.listAssignments);
+router.post('/tenants/:id/installations/:iid/assignments', ctrl.assignUser);
+router.put('/tenants/:id/installations/:iid/assignments/:userId', ctrl.updateAssignment);
+router.delete('/tenants/:id/installations/:iid/assignments/:userId', ctrl.removeAssignment);
+
 export default router;

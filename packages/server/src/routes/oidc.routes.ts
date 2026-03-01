@@ -94,6 +94,17 @@ router.get('/tenants/:slug/authorize', async (req, res) => {
       return;
     }
 
+    // Check per-app assignment
+    const { getAppAssignment } = await import('../services/platform/assignment.service');
+    const assignment = await getAppAssignment(client.installationId, payload.userId);
+    if (!assignment) {
+      res.status(403).json({
+        error: 'access_denied',
+        error_description: 'You are not assigned to this application. Contact your workspace admin.',
+      });
+      return;
+    }
+
     // Issue authorization code
     const code = oidcService.createAuthorizationCode({
       clientId: client_id,
@@ -102,6 +113,7 @@ router.get('/tenants/:slug/authorize', async (req, res) => {
       tenantSlug: slug,
       tenantId: tenant.id,
       redirectUri: effectiveRedirectUri,
+      appRole: assignment.appRole,
     });
 
     const redirectTo = new URL(effectiveRedirectUri);
@@ -171,6 +183,7 @@ router.get('/tenants/:slug/userinfo', async (req, res) => {
       name: payload.name,
       atlas_tenant_id: payload.atlas_tenant_id,
       atlas_roles: payload.atlas_roles,
+      atlas_app_role: payload.atlas_app_role,
     });
   } catch {
     res.status(401).json({ error: 'invalid_token' });

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { CatalogApp, Tenant, AppInstallation, InstallAppInput, CreateTenantInput } from '@atlasmail/shared';
+import type { CatalogApp, Tenant, AppInstallation, InstallAppInput, CreateTenantInput, AppUserAssignment, AppRole } from '@atlasmail/shared';
 
 // ─── Catalog ─────────────────────────────────────────────────────────
 
@@ -118,6 +118,67 @@ export function useUninstallApp(tenantId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.platform.installations(tenantId) });
+    },
+  });
+}
+
+// ─── App Assignments ────────────────────────────────────────────────
+
+export function useAppAssignments(tenantId: string, installationId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.platform.assignments(tenantId, installationId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/platform/tenants/${tenantId}/installations/${installationId}/assignments`);
+      return data.data.assignments as AppUserAssignment[];
+    },
+    enabled: !!installationId,
+    staleTime: 10_000,
+  });
+}
+
+export function useAssignUser(tenantId: string, installationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { userId: string; appRole?: AppRole }) => {
+      const { data } = await api.post(
+        `/platform/tenants/${tenantId}/installations/${installationId}/assignments`,
+        input,
+      );
+      return data.data as AppUserAssignment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.assignments(tenantId, installationId) });
+    },
+  });
+}
+
+export function useUpdateAssignment(tenantId: string, installationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { userId: string; appRole: AppRole }) => {
+      const { data } = await api.put(
+        `/platform/tenants/${tenantId}/installations/${installationId}/assignments/${input.userId}`,
+        { appRole: input.appRole },
+      );
+      return data.data as AppUserAssignment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.assignments(tenantId, installationId) });
+    },
+  });
+}
+
+export function useRemoveAssignment(tenantId: string, installationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { data } = await api.delete(
+        `/platform/tenants/${tenantId}/installations/${installationId}/assignments/${userId}`,
+      );
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.assignments(tenantId, installationId) });
     },
   });
 }

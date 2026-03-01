@@ -77,6 +77,8 @@ export const queryKeys = {
     catalogApp: (manifestId: string) => ['platform', 'catalog-app', manifestId] as const,
     tenants: ['platform', 'tenants'] as const,
     installations: (tenantId: string) => ['platform', 'installations', tenantId] as const,
+    assignments: (tenantId: string, installationId: string) =>
+      ['platform', 'assignments', tenantId, installationId] as const,
   },
   drive: {
     all: ['drive'] as const,
