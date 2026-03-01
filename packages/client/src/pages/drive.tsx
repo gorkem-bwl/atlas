@@ -287,9 +287,9 @@ function getFriendlyTypeName(mimeType: string | null, name: string): string {
   if (ext && extMap[ext]) return extMap[ext];
   // By MIME type patterns
   if (mimeType.includes('pdf')) return 'PDF document';
-  if (mimeType.includes('word') || mimeType.includes('document')) return 'MS Word document';
   if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'MS Excel spreadsheet';
   if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'MS PowerPoint presentation';
+  if (mimeType.includes('word') || mimeType.includes('document')) return 'MS Word document';
   if (mimeType.startsWith('image/')) return `${mimeType.split('/')[1].toUpperCase()} image`;
   if (mimeType.startsWith('video/')) return `${mimeType.split('/')[1].toUpperCase()} video`;
   if (mimeType.startsWith('audio/')) return `${mimeType.split('/')[1].toUpperCase()} audio`;

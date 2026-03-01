@@ -247,9 +247,9 @@ export function getFileTypeIcon(
   if (!mimeType) return GenericFileIcon;
 
   if (mimeType.includes('pdf')) return PdfIcon;
-  if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('rtf')) return WordIcon;
   if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return ExcelIcon;
   if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return PowerPointIcon;
+  if (mimeType.includes('word') || mimeType.includes('document') || mimeType.includes('rtf')) return WordIcon;
   if (mimeType.startsWith('image/')) return ImageIcon;
   if (mimeType.startsWith('video/')) return VideoIcon;
   if (mimeType.startsWith('audio/')) return AudioIcon;

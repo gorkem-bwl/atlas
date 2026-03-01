@@ -20,7 +20,8 @@ export function getFileIcon(mimeType: string | null, type: 'file' | 'folder'): L
   if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return Presentation;
   if (mimeType.includes('json') || mimeType.includes('javascript') || mimeType.includes('typescript') || mimeType.includes('xml') || mimeType.includes('html')) return FileCode;
   if (mimeType.includes('zip') || mimeType.includes('tar') || mimeType.includes('gzip') || mimeType.includes('rar') || mimeType.includes('7z')) return FileArchive;
-  if (mimeType.includes('document') || mimeType.includes('word') || mimeType.includes('rtf')) return FileText;
+  if (mimeType.includes('word') || mimeType.includes('rtf')) return FileText;
+  if (mimeType.includes('document')) return FileText;
 
   return File;
 }
@@ -35,7 +36,8 @@ export function getFileIconColor(mimeType: string | null, type: 'file' | 'folder
   if (mimeType.includes('pdf')) return '#ef4444';
   if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return '#22c55e';
   if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '#f97316';
-  if (mimeType.includes('document') || mimeType.includes('word')) return '#3b82f6';
+  if (mimeType.includes('word') || mimeType.includes('rtf')) return '#3b82f6';
+  if (mimeType.includes('document')) return '#3b82f6';
   if (mimeType.includes('zip') || mimeType.includes('tar') || mimeType.includes('gzip')) return '#78716c';
 
   return 'var(--color-text-tertiary)';
