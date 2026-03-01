@@ -345,6 +345,17 @@ export const calendarEvents = sqliteTable('calendar_events', {
   timeRangeIdx: index('idx_cal_events_time_range').on(table.accountId, table.startTime, table.endTime),
 }));
 
+// ─── Password Reset Tokens ───────────────────────────────────────────
+
+export const passwordResetTokens = sqliteTable('password_reset_tokens', {
+  id: uuid().primaryKey(),
+  accountId: text('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: text('expires_at').notNull(),
+  usedAt: text('used_at'),
+  createdAt: timestampNow(),
+});
+
 // ─── Documents (Notion-style pages) ─────────────────────────────────
 
 export const documents = sqliteTable('documents', {

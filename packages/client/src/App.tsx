@@ -28,6 +28,8 @@ import { OrgOverviewPage } from './pages/org/org-overview';
 import { OrgMembersPage } from './pages/org/org-members';
 import { OrgAppsPage } from './pages/org/org-apps';
 import { OrgSettingsPage } from './pages/org/org-settings';
+import { ForgotPasswordPage } from './pages/forgot-password';
+import { ResetPasswordPage } from './pages/reset-password';
 import { AdminLoginPage } from './pages/admin/admin-login';
 import { AdminLayout, AdminProtectedRoute } from './pages/admin/admin-layout';
 import { AdminOverviewPage } from './pages/admin/admin-overview';
@@ -108,6 +110,8 @@ export function App() {
                 <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
                 <Route path={ROUTES.INVITATION} element={<InvitationPage />} />
                 <Route path={ROUTES.AUTH_CALLBACK} element={<OAuthCallback />} />
+                <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+                <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
                 <Route
                   path={ROUTES.HOME}
                   element={

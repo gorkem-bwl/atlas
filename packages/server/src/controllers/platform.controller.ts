@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { z } from 'zod';
 import * as tenantService from '../services/platform/tenant.service';
 import * as tenantUserService from '../services/platform/tenant-user.service';
 import * as catalogService from '../services/platform/catalog.service';
@@ -9,6 +10,43 @@ import { logger } from '../utils/logger';
 import { env } from '../config/env';
 import { validatePasswordStrength } from '../utils/password';
 import type { AppRole, TenantMemberRole } from '@atlasmail/shared';
+
+// ─── Zod Validation ──────────────────────────────────────────────────
+
+function validateBody<T>(schema: z.ZodSchema<T>, body: unknown, res: Response): T | null {
+  const result = schema.safeParse(body);
+  if (!result.success) {
+    res.status(400).json({ success: false, error: result.error.errors[0].message });
+    return null;
+  }
+  return result.data;
+}
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const subdomainPattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+
+const inviteUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['owner', 'admin', 'member']).default('member'),
+});
+
+const createTenantUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  name: z.string().min(1, 'Name is required').max(200, 'Name is too long'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  role: z.enum(['owner', 'admin', 'member']).optional(),
+});
+
+const installAppSchema = z.object({
+  catalogAppId: z.string().regex(uuidPattern, 'catalogAppId must be a valid UUID'),
+  subdomain: z.string().regex(subdomainPattern, 'subdomain must be lowercase alphanumeric with hyphens').max(63),
+  customEnv: z.record(z.string()).optional(),
+});
+
+const assignUserSchema = z.object({
+  userId: z.string().regex(uuidPattern, 'userId must be a valid UUID'),
+  appRole: z.enum(['admin', 'member', 'viewer']).default('member'),
+});
 
 /** Safely extract a route param (Express 5 returns string | string[]). */
 function param(req: Request, name: string): string {
@@ -212,19 +250,17 @@ export async function createTenantUser(req: Request, res: Response) {
       return;
     }
 
-    const { email, name, password, role } = req.body;
-    if (!email || !name || !password) {
-      res.status(400).json({ success: false, error: 'email, name, and password are required' });
-      return;
-    }
+    const data = validateBody(createTenantUserSchema, req.body, res);
+    if (!data) return;
 
-    const strength = validatePasswordStrength(password);
+    const strength = validatePasswordStrength(data.password);
     if (!strength.valid) {
       res.status(400).json({ success: false, error: strength.error });
       return;
     }
 
-    const user = await tenantUserService.createTenantUser(tenantId, { email, name, password, role });
+    const user = await tenantUserService.createTenantUser(tenantId, { email: data.email, name: data.name, password: data.password, role: data.role });
+    logger.info({ audit: true, action: 'user.create', tenantId, email: data.email, performedBy: req.auth!.userId }, 'User created');
     res.status(201).json({ success: true, data: user });
   } catch (err: any) {
     if (err?.message?.includes('UNIQUE constraint failed') || err?.code === '23505') {
@@ -256,6 +292,7 @@ export async function removeTenantUser(req: Request, res: Response) {
     }
 
     await tenantUserService.removeTenantUser(tenantId, userId);
+    logger.info({ audit: true, action: 'user.remove', tenantId, userId, performedBy: req.auth!.userId }, 'User removed');
     res.json({ success: true, data: { message: 'User removed' } });
   } catch (err) {
     logger.error({ err }, 'Failed to remove tenant user');
@@ -284,6 +321,7 @@ export async function updateTenantUserRole(req: Request, res: Response) {
     }
 
     await tenantUserService.updateTenantUserRole(tenantId, userId, role);
+    logger.info({ audit: true, action: 'user.role.update', tenantId, userId, newRole: role, performedBy: req.auth!.userId }, 'User role updated');
     res.json({ success: true, data: { message: 'Role updated' } });
   } catch (err) {
     logger.error({ err }, 'Failed to update tenant user role');
@@ -302,13 +340,12 @@ export async function inviteTenantUser(req: Request, res: Response) {
       return;
     }
 
-    const { email, role = 'member' } = req.body;
-    if (!email) {
-      res.status(400).json({ success: false, error: 'email is required' });
-      return;
-    }
+    const data = validateBody(inviteUserSchema, req.body, res);
+    if (!data) return;
 
-    const invitation = await tenantUserService.inviteUser(tenantId, email, role, req.auth!.userId);
+    const role = data.role ?? 'member';
+    const invitation = await tenantUserService.inviteUser(tenantId, data.email, role, req.auth!.userId);
+    logger.info({ audit: true, action: 'invitation.create', tenantId, email: data.email, role, performedBy: req.auth!.userId }, 'User invited');
     res.status(201).json({ success: true, data: invitation });
   } catch (err: any) {
     if (err?.code === '23505') {
@@ -355,20 +392,12 @@ export async function installApp(req: Request, res: Response) {
       return;
     }
 
-    const { catalogAppId, subdomain, customEnv } = req.body;
-    if (!catalogAppId || !subdomain) {
-      res.status(400).json({ success: false, error: 'catalogAppId and subdomain are required' });
-      return;
-    }
-
-    // Validate subdomain
-    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(subdomain)) {
-      res.status(400).json({ success: false, error: 'Invalid subdomain format' });
-      return;
-    }
+    const data = validateBody(installAppSchema, req.body, res);
+    if (!data) return;
 
     // Enqueue install job (async via BullMQ) — pass userId for auto-assignment
-    await addAppInstallJob(tenantId, { catalogAppId, subdomain, customEnv }, req.auth!.userId);
+    await addAppInstallJob(tenantId, { catalogAppId: data.catalogAppId, subdomain: data.subdomain, customEnv: data.customEnv }, req.auth!.userId);
+    logger.info({ audit: true, action: 'app.install', tenantId, catalogAppId: data.catalogAppId, subdomain: data.subdomain, performedBy: req.auth!.userId }, 'App installation started');
 
     res.status(202).json({
       success: true,
@@ -402,6 +431,7 @@ export async function startApp(req: Request, res: Response) {
     if (!inst) return;
 
     await installService.startApp(inst.id);
+    logger.info({ audit: true, action: 'app.start', installationId: inst.id, tenantId: inst.tenantId, performedBy: req.auth!.userId }, 'App started');
     res.json({ success: true, data: { status: 'running' } });
   } catch (err) {
     logger.error({ err }, 'Failed to start app');
@@ -417,6 +447,7 @@ export async function stopApp(req: Request, res: Response) {
     if (!inst) return;
 
     await installService.stopApp(inst.id);
+    logger.info({ audit: true, action: 'app.stop', installationId: inst.id, tenantId: inst.tenantId, performedBy: req.auth!.userId }, 'App stopped');
     res.json({ success: true, data: { status: 'stopped' } });
   } catch (err) {
     logger.error({ err }, 'Failed to stop app');
@@ -432,6 +463,7 @@ export async function restartApp(req: Request, res: Response) {
     if (!inst) return;
 
     await installService.restartApp(inst.id);
+    logger.info({ audit: true, action: 'app.restart', installationId: inst.id, tenantId: inst.tenantId, performedBy: req.auth!.userId }, 'App restarted');
     res.json({ success: true, data: { status: 'restarting' } });
   } catch (err) {
     logger.error({ err }, 'Failed to restart app');
@@ -477,6 +509,7 @@ export async function uninstallApp(req: Request, res: Response) {
     if (!inst) return;
 
     await installService.uninstallApp(inst.id);
+    logger.info({ audit: true, action: 'app.uninstall', installationId: inst.id, tenantId: inst.tenantId, performedBy: req.auth!.userId }, 'App uninstalled');
     res.json({ success: true, data: { message: 'App uninstalled' } });
   } catch (err) {
     logger.error({ err }, 'Failed to uninstall app');
@@ -510,25 +543,19 @@ export async function assignUser(req: Request, res: Response) {
     const inst = await getInstallationWithAuth(req, res, true);
     if (!inst) return;
 
-    const { userId, appRole = 'member' } = req.body;
-    if (!userId) {
-      res.status(400).json({ success: false, error: 'userId is required' });
-      return;
-    }
-
-    if (!VALID_APP_ROLES.includes(appRole)) {
-      res.status(400).json({ success: false, error: `appRole must be one of: ${VALID_APP_ROLES.join(', ')}` });
-      return;
-    }
+    const data = validateBody(assignUserSchema, req.body, res);
+    if (!data) return;
 
     // Verify the target user is a tenant member
-    const membership = await tenantService.getTenantMembership(inst.tenantId, userId);
+    const membership = await tenantService.getTenantMembership(inst.tenantId, data.userId);
     if (!membership) {
       res.status(400).json({ success: false, error: 'User is not a member of this tenant' });
       return;
     }
 
-    const assignment = await assignmentService.assignUserToApp(inst.id, userId, appRole, req.auth!.userId);
+    const appRole = data.appRole ?? 'member';
+    const assignment = await assignmentService.assignUserToApp(inst.id, data.userId, appRole, req.auth!.userId);
+    logger.info({ audit: true, action: 'app.assign', installationId: inst.id, userId: data.userId, appRole, performedBy: req.auth!.userId }, 'User assigned to app');
     res.status(201).json({ success: true, data: assignment });
   } catch (err) {
     logger.error({ err }, 'Failed to assign user');
@@ -557,6 +584,7 @@ export async function updateAssignment(req: Request, res: Response) {
       return;
     }
 
+    logger.info({ audit: true, action: 'app.assignment.update', installationId: inst.id, userId, newAppRole: appRole, performedBy: req.auth!.userId }, 'App assignment updated');
     res.json({ success: true, data: updated });
   } catch (err) {
     logger.error({ err }, 'Failed to update assignment');
@@ -578,6 +606,7 @@ export async function removeAssignment(req: Request, res: Response) {
       return;
     }
 
+    logger.info({ audit: true, action: 'app.assignment.remove', installationId: inst.id, userId, performedBy: req.auth!.userId }, 'App assignment removed');
     res.json({ success: true, data: { message: 'Assignment removed' } });
   } catch (err) {
     logger.error({ err }, 'Failed to remove assignment');

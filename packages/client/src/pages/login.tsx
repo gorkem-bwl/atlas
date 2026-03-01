@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api-client';
 import { useAuthStore } from '../stores/auth-store';
@@ -20,8 +20,7 @@ export function LoginPage() {
 
   // If already authenticated, redirect to home
   if (isAuthenticated) {
-    navigate(ROUTES.HOME, { replace: true });
-    return null;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -146,7 +145,7 @@ export function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 8 }}>
             <label
               style={{
                 display: 'block',
@@ -176,6 +175,15 @@ export function LoginPage() {
                 boxSizing: 'border-box',
               }}
             />
+          </div>
+
+          <div style={{ textAlign: 'right', marginBottom: 16, marginTop: 6 }}>
+            <Link
+              to={ROUTES.FORGOT_PASSWORD}
+              style={{ fontSize: 13, color: '#13715B', textDecoration: 'none' }}
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <button

@@ -26,6 +26,8 @@ export const ROUTES = {
   ORG_MEMBERS: '/org/members',
   ORG_APPS: '/org/apps',
   ORG_SETTINGS: '/org/settings',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password/:token',
   ADMIN_LOGIN: '/admin/login',
   ADMIN: '/admin',
   ADMIN_OVERVIEW: '/admin',

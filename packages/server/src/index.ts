@@ -4,13 +4,16 @@ import { logger } from './utils/logger';
 import { startSyncWorker, stopSyncWorker } from './jobs/sync-worker';
 import { startSyncScheduler, stopSyncScheduler } from './jobs/sync-scheduler';
 import { purgeOldArchivedDrawings } from './services/drawing.service';
+import { runScheduledBackup } from './services/backup.service';
 import { startAppInstallWorker, startAppHealthWorker, startAppBackupWorker, startHealthCheckScheduler, stopPlatformWorkers } from './jobs/app-install.worker';
 import { migratePlatformSchema, closePlatformDb } from './config/platform-database';
 import { seedCatalogFromManifests } from './services/platform/catalog.service';
 import { getTenantBySlug, createTenant } from './services/platform/tenant.service';
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 let purgeTimer: ReturnType<typeof setInterval> | null = null;
+let backupTimer: ReturnType<typeof setInterval> | null = null;
 
 const app = createApp();
 
@@ -66,6 +69,17 @@ app.listen(env.PORT, async () => {
 
   // Run once on startup after a short delay
   setTimeout(() => purgeOldArchivedDrawings().catch(() => {}), 5000);
+
+  // Automated database backups — daily (SQLite + PostgreSQL)
+  backupTimer = setInterval(() => {
+    runScheduledBackup().catch((err) => {
+      logger.error({ err }, 'Scheduled backup failed');
+    });
+  }, BACKUP_INTERVAL_MS);
+
+  // Run initial backup 30 seconds after startup
+  setTimeout(() => runScheduledBackup().catch(() => {}), 30000);
+  logger.info('Automated daily backups enabled');
 });
 
 // Graceful shutdown
@@ -73,6 +87,7 @@ function handleShutdown(signal: string) {
   logger.info({ signal }, 'Received shutdown signal, cleaning up');
 
   if (purgeTimer) { clearInterval(purgeTimer); purgeTimer = null; }
+  if (backupTimer) { clearInterval(backupTimer); backupTimer = null; }
   stopSyncScheduler();
 
   Promise.all([

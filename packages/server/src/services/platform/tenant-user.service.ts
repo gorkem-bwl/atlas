@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import crypto from 'node:crypto';
 import { getPlatformDb } from '../../config/platform-database';
 import { tenantMembers, tenantInvitations } from '../../db/schema-platform';
@@ -7,6 +7,8 @@ import { accounts } from '../../db/schema';
 import { hashPassword } from '../../utils/password';
 import * as authService from '../auth.service';
 import { logger } from '../../utils/logger';
+import { sendInvitationEmail } from '../email.service';
+import { getTenantById } from './tenant.service';
 import type { TenantMemberRole } from '@atlasmail/shared';
 
 export async function createTenantUser(
@@ -49,7 +51,7 @@ export async function listTenantUsers(tenantId: string) {
 
   if (members.length === 0) return [];
 
-  // Batch-query SQLite accounts for user details
+  // Batch-query SQLite accounts for user details using inArray
   const userIds = members.map((m) => m.userId);
   const userAccounts = await db
     .select({
@@ -58,18 +60,12 @@ export async function listTenantUsers(tenantId: string) {
       name: accounts.name,
     })
     .from(accounts)
-    .where(
-      // SQLite doesn't support IN with parameters well through drizzle,
-      // so we query all and filter in JS for the cross-DB join
-      eq(accounts.provider, accounts.provider), // always true — get all
-    );
+    .where(inArray(accounts.userId, userIds));
 
   // Build a lookup map
   const accountMap = new Map<string, { email: string; name: string | null }>();
   for (const acct of userAccounts) {
-    if (userIds.includes(acct.userId)) {
-      accountMap.set(acct.userId, { email: acct.email, name: acct.name });
-    }
+    accountMap.set(acct.userId, { email: acct.email, name: acct.name });
   }
 
   return members.map((m) => {
@@ -114,7 +110,20 @@ export async function inviteUser(tenantId: string, email: string, role: TenantMe
     expiresAt,
   }).returning();
 
-  logger.info({ tenantId, email, token }, 'User invited to tenant');
+  logger.info({ tenantId, email, invitationId: invitation.id }, 'User invited to tenant');
+
+  // Send invitation email
+  try {
+    const tenant = await getTenantById(tenantId);
+    await sendInvitationEmail(email, {
+      tenantName: tenant?.name ?? 'your organization',
+      role,
+      token,
+    });
+  } catch (err) {
+    logger.warn({ err, email, tenantId }, 'Failed to send invitation email — invitation created but email not sent');
+  }
+
   return invitation;
 }
 

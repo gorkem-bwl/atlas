@@ -10,17 +10,45 @@ import { errorHandler } from './middleware/error-handler';
 import { apiLimiter } from './middleware/rate-limit';
 import { authMiddleware } from './middleware/auth';
 import oidcRoutes from './routes/oidc.routes';
+import { env } from './config/env';
 
 export function createApp() {
   const app = express();
 
-  app.use(helmet({ frameguard: false }));
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(helmet({
+    frameguard: { action: 'sameorigin' },
+    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+    hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  }));
+
+  const allowedOrigins = env.CORS_ORIGINS.split(',').map(o => o.trim());
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, curl, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  }));
   app.use(express.json({ limit: '10mb' }));
 
   // Health check — lightweight, no auth
   app.get('/api/v1/health', (_req, res) => {
-    res.json({ status: 'ok' });
+    const uptime = process.uptime();
+    const memUsage = process.memoryUsage();
+    res.json({
+      status: 'ok',
+      uptime: Math.round(uptime),
+      memory: {
+        rss: Math.round(memUsage.rss / 1024 / 1024),
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
+      },
+      platform: !!env.DATABASE_PLATFORM_URL,
+      version: process.env.npm_package_version ?? '0.0.0',
+    });
   });
 
   // Public tracking endpoints — short /t prefix, no auth
@@ -41,6 +69,17 @@ export function createApp() {
   app.use('/api/v1', apiLimiter);
   app.use('/api/v1', routes);
   app.use(errorHandler);
+
+  // ─── Serve client SPA in production ────────────────────────────
+  // In production the Express server serves the Vite-built client assets.
+  // All non-API routes fall through to index.html for client-side routing.
+  if (env.NODE_ENV === 'production') {
+    const clientDist = path.join(__dirname, '../../client/dist');
+    app.use(express.static(clientDist));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(clientDist, 'index.html'));
+    });
+  }
 
   return app;
 }

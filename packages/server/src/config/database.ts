@@ -613,6 +613,19 @@ try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN home_bg_value TEXT`).
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN recent_items TEXT NOT NULL DEFAULT '[]'`).run(); } catch { /* column already exists */ }
 try { sqlite.prepare(`ALTER TABLE user_settings ADD COLUMN home_enabled_widgets TEXT`).run(); } catch { /* column already exists */ }
 
+// ---- Password reset tokens table ---------------------------------------------
+
+sqlite.prepare(`
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  )
+`).run();
+
 // Create FTS5 virtual table for full-text search across emails.
 // content='' means we manage the index manually (external content table).
 sqlite.prepare(`

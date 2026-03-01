@@ -25,6 +25,17 @@ const envSchema = z.object({
   OIDC_SIGNING_KEY: z.string().min(100, 'OIDC_SIGNING_KEY must be a PEM-encoded RSA private key').optional(),
   PLATFORM_PUBLIC_URL: z.string().url().optional(),  // e.g. https://atlas.so
 
+  // ─── Email (SMTP) ─────────────────────────────────────────────────────────
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('Atlas <noreply@atlas.so>'),
+  CLIENT_PUBLIC_URL: z.string().url().default('http://localhost:5180'),
+
+  // ─── CORS ─────────────────────────────────────────────────────────────────
+  CORS_ORIGINS: z.string().default('http://localhost:5180'),  // comma-separated origins
+
   // ─── System Admin ──────────────────────────────────────────────────────────
   ADMIN_USERNAME: z.string().optional(),
   ADMIN_PASSWORD_HASH: z.string().optional(),        // bcrypt hash

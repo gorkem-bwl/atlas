@@ -15,10 +15,11 @@ import driveRoutes from './drive.routes';
 import notificationRoutes from './notification.routes';
 import platformRoutes from './platform.routes';
 import adminRoutes from './admin.routes';
+import { adminLimiter } from '../middleware/rate-limit';
 
 const router = Router();
 
-router.use('/admin', adminRoutes);
+router.use('/admin', adminLimiter, adminRoutes);
 router.use('/auth', authRoutes);
 router.use('/threads', threadsRoutes);
 router.use('/search', searchRoutes);
@@ -33,6 +34,6 @@ router.use('/tables', tablesRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/drive', driveRoutes);
 router.use('/notifications', notificationRoutes);
-router.use('/platform', platformRoutes);
+router.use('/platform', adminLimiter, platformRoutes);
 
 export default router;
