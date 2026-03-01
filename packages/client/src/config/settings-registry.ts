@@ -114,9 +114,7 @@ export const settingsCategories: SettingsCategory[] = [
     color: '#6b7280',
     panels: [
       { id: 'general', label: 'General', icon: Settings, component: MailGeneralPanel },
-      { id: 'accounts', label: 'Accounts', icon: Users, component: MailAccountsPanel },
       { id: 'appearance', label: 'Appearance', icon: Palette, component: MailAppearancePanel },
-      { id: 'notifications', label: 'Notifications', icon: Bell, component: MailNotificationsPanel },
       { id: 'home-background', label: 'Home background', icon: Image, component: HomeBackgroundPanel },
       { id: 'home-widgets', label: 'Widgets', icon: LayoutGrid, component: HomeWidgetsPanel },
       { id: 'about', label: 'About', icon: Info, component: MailAboutPanel },
@@ -128,6 +126,8 @@ export const settingsCategories: SettingsCategory[] = [
     icon: Mail,
     color: '#4a9e8f',
     panels: [
+      { id: 'accounts', label: 'Accounts', icon: Users, component: MailAccountsPanel },
+      { id: 'notifications', label: 'Notifications', icon: Bell, component: MailNotificationsPanel },
       { id: 'composer', label: 'Composer', icon: PenLine, component: MailComposerPanel },
       { id: 'ai', label: 'AI assistant in Mail', icon: Sparkles, component: MailAIPanel },
       { id: 'inbox', label: 'Inbox', icon: Inbox, component: MailInboxPanel },

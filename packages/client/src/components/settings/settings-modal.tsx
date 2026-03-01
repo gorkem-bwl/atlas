@@ -868,8 +868,6 @@ export function MailAppearancePanel() {
     setColorTheme,
     setSendAnimation,
     setThemeTransition,
-    trackingEnabled,
-    setTrackingEnabled,
   } = useSettingsStore();
 
   const themeOptions: Array<{ value: typeof theme; label: string; icon: typeof Sun; desc: string }> = [
@@ -1131,18 +1129,6 @@ export function MailAppearancePanel() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection title={t('settings.emailTracking')} description={t('settings.emailTrackingDescription')}>
-        <SettingsRow
-          label={t('settings.readReceipts')}
-          description={t('settings.readReceiptsDesc')}
-        >
-          <SettingsToggle
-            checked={trackingEnabled}
-            onChange={setTrackingEnabled}
-            label={t('settings.readReceipts')}
-          />
-        </SettingsRow>
-      </SettingsSection>
     </div>
   );
 }
@@ -2003,7 +1989,8 @@ export function MailAIPanel() {
 // ---------------------------------------------------------------------------
 
 export function MailInboxPanel() {
-  const { autoAdvance, setAutoAdvance } = useSettingsStore();
+  const { t } = useTranslation();
+  const { autoAdvance, setAutoAdvance, trackingEnabled, setTrackingEnabled } = useSettingsStore();
 
   const options: Array<{
     value: typeof autoAdvance;
@@ -2048,6 +2035,19 @@ export function MailInboxPanel() {
             />
           ))}
         </div>
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.emailTracking')} description={t('settings.emailTrackingDescription')}>
+        <SettingsRow
+          label={t('settings.readReceipts')}
+          description={t('settings.readReceiptsDesc')}
+        >
+          <SettingsToggle
+            checked={trackingEnabled}
+            onChange={setTrackingEnabled}
+            label={t('settings.readReceipts')}
+          />
+        </SettingsRow>
       </SettingsSection>
     </div>
   );
