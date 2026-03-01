@@ -420,7 +420,7 @@
 /* ─── Preview panel ──────────────────────────────────────────────── */
 
 .drive-preview-panel {
-  width: 380px;
+  position: relative;
   flex-shrink: 0;
   border-left: 1px solid var(--color-border-secondary);
   background: var(--color-bg-primary);

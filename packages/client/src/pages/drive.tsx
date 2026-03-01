@@ -64,6 +64,10 @@ const SIDEBAR_WIDTH_KEY = 'atlasmail_drive_sidebar_width';
 const DEFAULT_SIDEBAR_WIDTH = 240;
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 400;
+const PREVIEW_WIDTH_KEY = 'atlasmail_drive_preview_width';
+const DEFAULT_PREVIEW_WIDTH = 380;
+const MIN_PREVIEW_WIDTH = 280;
+const MAX_PREVIEW_WIDTH = 600;
 const VIEW_MODE_KEY = 'atlasmail_drive_view_mode';
 
 type ViewMode = 'list' | 'grid';
@@ -194,6 +198,14 @@ function getSavedSidebarWidth(): number {
     if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
   } catch { /* ignore */ }
   return DEFAULT_SIDEBAR_WIDTH;
+}
+
+function getSavedPreviewWidth(): number {
+  try {
+    const w = parseInt(localStorage.getItem(PREVIEW_WIDTH_KEY) || '', 10);
+    if (w >= MIN_PREVIEW_WIDTH && w <= MAX_PREVIEW_WIDTH) return w;
+  } catch { /* ignore */ }
+  return DEFAULT_PREVIEW_WIDTH;
 }
 
 function getSavedViewMode(): ViewMode {
@@ -415,6 +427,7 @@ export function DrivePage() {
 
   // State
   const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
+  const [previewWidth, setPreviewWidth] = useState(getSavedPreviewWidth);
   const [viewMode, setViewMode] = useState<ViewMode>(() => driveSettings.defaultView as ViewMode || getSavedViewMode());
   const [sidebarView, setSidebarView] = useState<SidebarView>(() => driveSettings.sidebarDefault as SidebarView || 'files');
   const [searchQuery, setSearchQuery] = useState('');
@@ -615,24 +628,54 @@ export function DrivePage() {
     resizingRef.current = true;
     const startX = e.clientX;
     const startWidth = sidebarWidth;
+    let finalWidth = startWidth;
 
     const onMove = (ev: MouseEvent) => {
       if (!resizingRef.current) return;
       const delta = ev.clientX - startX;
-      const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta));
-      setSidebarWidth(newWidth);
+      finalWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta));
+      setSidebarWidth(finalWidth);
     };
 
     const onUp = () => {
       resizingRef.current = false;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
-      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
+      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(finalWidth));
     };
 
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   }, [sidebarWidth]);
+
+  // ─── Preview panel resize ─────────────────────────────────────────
+
+  const previewResizingRef = useRef(false);
+
+  const handlePreviewResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    previewResizingRef.current = true;
+    const startX = e.clientX;
+    const startWidth = previewWidth;
+    let finalWidth = startWidth;
+
+    const onMove = (ev: MouseEvent) => {
+      if (!previewResizingRef.current) return;
+      const delta = startX - ev.clientX;
+      finalWidth = Math.max(MIN_PREVIEW_WIDTH, Math.min(MAX_PREVIEW_WIDTH, startWidth + delta));
+      setPreviewWidth(finalWidth);
+    };
+
+    const onUp = () => {
+      previewResizingRef.current = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      localStorage.setItem(PREVIEW_WIDTH_KEY, String(finalWidth));
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [previewWidth]);
 
   // ─── Selection helpers ─────────────────────────────────────────────
 
@@ -1925,7 +1968,20 @@ export function DrivePage() {
 
       {/* ─── Preview panel ─────────────────────────────────────────── */}
       {previewItem && (
-        <div className="drive-preview-panel">
+        <div className="drive-preview-panel" style={{ width: previewWidth }}>
+          {/* Resize handle */}
+          <div
+            onMouseDown={handlePreviewResizeStart}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: -2,
+              bottom: 0,
+              width: 4,
+              cursor: 'col-resize',
+              zIndex: 10,
+            }}
+          />
           <div className="drive-preview-header">
             <span className="drive-preview-title">{previewItem.name}</span>
             <button
