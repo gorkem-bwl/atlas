@@ -25,6 +25,7 @@ export function MarketplacePage() {
   const [selectedApp, setSelectedApp] = useState<CatalogApp | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [installOpen, setInstallOpen] = useState(false);
+  const [uninstallDone, setUninstallDone] = useState(false);
 
   // Derive status sets from installations
   const installedAppIds = useMemo(
@@ -77,10 +78,10 @@ export function MarketplacePage() {
   const handleUninstall = (app: CatalogApp) => {
     const installation = installations?.find((i) => i.catalogAppId === app.id);
     if (!installation) return;
+    setUninstallDone(false);
     uninstallApp.mutate(installation.id, {
       onSuccess: () => {
-        setDetailOpen(false);
-        setSelectedApp(null);
+        setUninstallDone(true);
         queryClient.invalidateQueries({ queryKey: queryKeys.platform.all });
       },
     });
@@ -183,11 +184,17 @@ export function MarketplacePage() {
       <AppDetailModal
         app={selectedApp}
         open={detailOpen}
-        onOpenChange={setDetailOpen}
+        onOpenChange={(open) => {
+          setDetailOpen(open);
+          if (!open) {
+            setUninstallDone(false);
+          }
+        }}
         onInstall={handleInstallClick}
         onUninstall={handleUninstall}
         isInstalled={selectedApp ? installedAppIds.has(selectedApp.id) : false}
         isUninstalling={uninstallApp.isPending}
+        uninstallDone={uninstallDone}
       />
 
       <InstallConfirmModal

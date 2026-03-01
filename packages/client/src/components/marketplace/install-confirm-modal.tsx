@@ -118,7 +118,9 @@ export function InstallConfirmModal({
     setView('deploying');
   };
 
-  const previewUrl = `${subdomain || defaultSubdomain}.${tenantSlug || 'your-org'}.atlas.so`;
+  const isDev = window.location.hostname === 'localhost';
+  const domain = isDev ? 'localhost' : 'atlas.so';
+  const previewUrl = `${subdomain || defaultSubdomain}.${tenantSlug || 'your-org'}.${domain}`;
   const allDone = completedSteps.size === DEPLOY_STEPS.length;
 
   const handleClose = () => {
@@ -214,7 +216,7 @@ export function InstallConfirmModal({
                   Close
                 </button>
                 <a
-                  href={`https://${previewUrl}`}
+                  href={`${isDev ? 'http' : 'https'}://${previewUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
