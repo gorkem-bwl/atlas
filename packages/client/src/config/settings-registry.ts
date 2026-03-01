@@ -27,6 +27,8 @@ import {
   Languages,
   HardDrive,
   File,
+  Home,
+  Image,
 } from 'lucide-react';
 
 import {
@@ -74,6 +76,10 @@ import {
   DriveDisplayPanel,
   DriveFilesPanel,
 } from '../components/drive/drive-settings-modal';
+
+import {
+  HomeBackgroundPanel,
+} from '../components/home/home-settings-modal';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -177,6 +183,14 @@ export const settingsCategories: SettingsCategory[] = [
       { id: 'general', label: 'General', icon: Settings, component: DriveGeneralPanel },
       { id: 'display', label: 'Display', icon: Eye, component: DriveDisplayPanel },
       { id: 'files', label: 'Files', icon: File, component: DriveFilesPanel },
+    ],
+  },
+  {
+    id: 'home',
+    label: 'Home',
+    icon: Home,
+    panels: [
+      { id: 'background', label: 'Background', icon: Image, component: HomeBackgroundPanel },
     ],
   },
 ];

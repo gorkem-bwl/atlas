@@ -59,7 +59,7 @@ export const settingsSchema = z.object({
   tablesDefaultRowCount: z.number().int().min(0).max(100).optional(),
   tablesIncludeRowIdsInExport: z.boolean().optional(),
   // Calendar settings
-  calDefaultView: z.enum(['week', 'month-grid', 'day', 'agenda']).optional(),
+  calDefaultView: z.enum(['week', 'month-grid', 'day', 'agenda', 'year']).optional(),
   calWeekStartsOnMonday: z.boolean().optional(),
   calShowWeekNumbers: z.boolean().optional(),
   calDensity: z.enum(['compact', 'default', 'comfortable']).optional(),
@@ -121,6 +121,9 @@ export const settingsSchema = z.object({
   driveShowThumbnails: z.boolean().optional(),
   driveShowFileExtensions: z.boolean().optional(),
   driveSortOrder: z.enum(['asc', 'desc']).optional(),
+  // Home background settings
+  homeBgType: z.enum(['unsplash', 'solid', 'gradient', 'custom']).optional(),
+  homeBgValue: z.string().max(1000).nullable().optional(),
   // Search
   recentSearches: z.array(z.string()).optional(),
 });
