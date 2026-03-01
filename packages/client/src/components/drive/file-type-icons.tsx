@@ -174,10 +174,10 @@ export function GenericFileIcon({ size = 24, color = '#94a3b8' }: IconProps) {
   );
 }
 
-// AtlasMail Document icon - branded
+// Atlas Document icon - branded
 export function AtlasDocIcon({ size = 24, color = '#3b82f6' }: IconProps) {
   return (
-    <FileBase size={size} color={color} label="AtlasMail document">
+    <FileBase size={size} color={color} label="Atlas document">
       <rect x="5" y="13" width="14" height="7" rx="1" fill={color} />
       <text x="12" y="18.5" textAnchor="middle" fill="white" fontSize="3.8" fontWeight="700" fontFamily="system-ui, sans-serif">WRITE</text>
       <line x1="7" y1="8.5" x2="12" y2="8.5" stroke={color} strokeWidth={0.8} strokeLinecap="round" opacity={0.4} />
@@ -186,10 +186,10 @@ export function AtlasDocIcon({ size = 24, color = '#3b82f6' }: IconProps) {
   );
 }
 
-// AtlasMail Drawing icon - branded
+// Atlas Drawing icon - branded
 export function AtlasDrawIcon({ size = 24, color = '#8b5cf6' }: IconProps) {
   return (
-    <FileBase size={size} color={color} label="AtlasMail drawing">
+    <FileBase size={size} color={color} label="Atlas drawing">
       <rect x="5" y="13" width="14" height="7" rx="1" fill={color} />
       <text x="12" y="18.5" textAnchor="middle" fill="white" fontSize="3.8" fontWeight="700" fontFamily="system-ui, sans-serif">DRAW</text>
       {/* Pencil */}
@@ -198,10 +198,10 @@ export function AtlasDrawIcon({ size = 24, color = '#8b5cf6' }: IconProps) {
   );
 }
 
-// AtlasMail Spreadsheet icon - branded
+// Atlas Spreadsheet icon - branded
 export function AtlasTableIcon({ size = 24, color = '#22c55e' }: IconProps) {
   return (
-    <FileBase size={size} color={color} label="AtlasMail spreadsheet">
+    <FileBase size={size} color={color} label="Atlas spreadsheet">
       <rect x="5" y="13" width="14" height="7" rx="1" fill={color} />
       <text x="12" y="18.5" textAnchor="middle" fill="white" fontSize="3.2" fontWeight="700" fontFamily="system-ui, sans-serif">TABLE</text>
       {/* Mini grid */}
@@ -238,7 +238,7 @@ export function getFileTypeIcon(
   type: 'file' | 'folder',
   linkedResourceType?: 'document' | 'drawing' | 'spreadsheet' | null,
 ): React.FC<IconProps> {
-  // Linked AtlasMail resources
+  // Linked Atlas resources
   if (linkedResourceType === 'document') return AtlasDocIcon;
   if (linkedResourceType === 'drawing') return AtlasDrawIcon;
   if (linkedResourceType === 'spreadsheet') return AtlasTableIcon;

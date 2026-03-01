@@ -31,7 +31,7 @@
     "file_other": "{{count}} fichiers"
   },
   "auth": {
-    "appName": "AtlasMail",
+    "appName": "Atlas",
     "tagline": "Votre boîte de réception, réinventée",
     "signInToContinue": "Connectez-vous pour continuer",
     "signInWithGoogle": "Se connecter avec Google",
@@ -275,7 +275,7 @@
     "addAccountDescription": "Connectez un autre compte e-mail pour gérer toutes vos boîtes de réception en un seul endroit",
     "removeAccount": "Retirer le compte",
     "removeAccountConfirm": "Retirer {{email}} ?",
-    "removeAccountDescription": "Cela déconnectera le compte d'AtlasMail. Vos e-mails ne seront pas supprimés.",
+    "removeAccountDescription": "Cela déconnectera le compte d'Atlas. Vos e-mails ne seront pas supprimés.",
     "gmail": "Gmail",
     "gmailDesc": "Se connecter avec votre compte Google",
     "outlook": "Outlook",

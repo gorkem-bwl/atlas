@@ -61,13 +61,13 @@ const emailsWelcome: Email[] = [
     id: 'e1',
     threadId: 't1',
     fromAddress: 'team@atlasmail.com',
-    fromName: 'AtlasMail Team',
-    subject: 'Welcome to AtlasMail — your inbox, reimagined',
+    fromName: 'Atlas Team',
+    subject: 'Welcome to Atlas — your inbox, reimagined',
     internalDate: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
     isUnread: true,
     bodyText: `Hey there! 👋
 
-Welcome to AtlasMail. We've built this to be the fastest, most beautiful email client you'll ever use.
+Welcome to Atlas. We've built this to be the fastest, most beautiful email client you'll ever use.
 
 Here are a few things to try:
 
@@ -76,7 +76,7 @@ Here are a few things to try:
 • Press C to compose a new email
 • Press ⌘K to open the command palette
 
-AtlasMail splits your inbox into four categories:
+Atlas splits your inbox into four categories:
   - Important: emails from real people you know
   - Other: everything else that matters
   - Newsletters: subscriptions and mailing lists
@@ -84,10 +84,10 @@ AtlasMail splits your inbox into four categories:
 
 We're always improving. Hit reply and let us know what you think.
 
-— The AtlasMail Team`,
+— The Atlas Team`,
     bodyHtml: `<div style="font-family: sans-serif;">
 <p>Hey there! 👋</p>
-<p>Welcome to <strong>AtlasMail</strong>. We've built this to be the fastest, most beautiful email client you'll ever use.</p>
+<p>Welcome to <strong>Atlas</strong>. We've built this to be the fastest, most beautiful email client you'll ever use.</p>
 <p>Here are a few things to try:</p>
 <ul>
   <li>Press <code>J</code> and <code>K</code> to navigate up and down your inbox</li>
@@ -95,7 +95,7 @@ We're always improving. Hit reply and let us know what you think.
   <li>Press <code>C</code> to compose a new email</li>
   <li>Press <code>⌘K</code> to open the command palette</li>
 </ul>
-<p>AtlasMail splits your inbox into four categories:</p>
+<p>Atlas splits your inbox into four categories:</p>
 <ol>
   <li><strong>Important</strong> — emails from real people you know</li>
   <li><strong>Other</strong> — everything else that matters</li>
@@ -104,7 +104,7 @@ We're always improving. Hit reply and let us know what you think.
 </ol>
 <hr>
 <p>We're always improving. Hit reply and let us know what you think.</p>
-<p>— The <em>AtlasMail</em> Team</p>
+<p>— The <em>Atlas</em> Team</p>
 </div>`,
   }),
 ];
@@ -247,7 +247,7 @@ const emailsInvoice: Email[] = [
     threadId: 't4',
     fromAddress: 'billing@stripe.com',
     fromName: 'Stripe',
-    subject: 'Invoice #2847 for AtlasMail Pro',
+    subject: 'Invoice #2847 for Atlas Pro',
     internalDate: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
     isUnread: true,
     bodyText: `Your invoice for February 2026 is ready.
@@ -255,14 +255,14 @@ const emailsInvoice: Email[] = [
 Invoice #2847
 Amount: $79.00
 Period: Feb 1 – Feb 28, 2026
-Plan: AtlasMail Pro (Team)
+Plan: Atlas Pro (Team)
 
 This amount will be charged to the card ending in 4242.
 
 View your invoice: https://dashboard.stripe.com/invoices/2847
 
 Thanks for being a customer.
-— Stripe, on behalf of AtlasMail`,
+— Stripe, on behalf of Atlas`,
   }),
 ];
 
@@ -500,7 +500,7 @@ Liam`,
 
 Tuesday works great for me. How about Blue Bottle on Market Street at 10am?
 
-And yes — the email client is AtlasMail. We're going for a Superhuman-like experience with split inbox, keyboard shortcuts, and a dark-mode-first design. Early days but it's coming together nicely.
+And yes — the email client is Atlas. We're going for a Superhuman-like experience with split inbox, keyboard shortcuts, and a dark-mode-first design. Early days but it's coming together nicely.
 
 See you Tuesday!`,
   }),
@@ -521,7 +521,7 @@ const emailsSentLiamReply: Email[] = [
 
 Tuesday works great for me. How about Blue Bottle on Market Street at 10am?
 
-And yes — the email client is AtlasMail. We're going for a Superhuman-like experience with split inbox, keyboard shortcuts, and a dark-mode-first design. Early days but it's coming together nicely.
+And yes — the email client is Atlas. We're going for a Superhuman-like experience with split inbox, keyboard shortcuts, and a dark-mode-first design. Early days but it's coming together nicely.
 
 See you Tuesday!`,
     gmailLabels: ['SENT'],
@@ -670,7 +670,7 @@ const allThreads: Thread[] = [
   // Important
   makeThread({
     id: 't1',
-    subject: 'Welcome to AtlasMail — your inbox, reimagined',
+    subject: 'Welcome to Atlas — your inbox, reimagined',
     snippet: "We're thrilled to have you on board. Here's everything you need to get started...",
     messageCount: 1,
     unreadCount: 1,
@@ -716,7 +716,7 @@ const allThreads: Thread[] = [
   // Other
   makeThread({
     id: 't4',
-    subject: 'Invoice #2847 for AtlasMail Pro',
+    subject: 'Invoice #2847 for Atlas Pro',
     snippet: 'Your invoice for February 2026 is ready. Amount: $79.00...',
     messageCount: 1,
     unreadCount: 1,

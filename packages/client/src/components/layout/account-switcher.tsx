@@ -378,7 +378,7 @@ export function AccountSwitcher() {
           open={!!confirmRemoveId}
           onOpenChange={(open) => { if (!open) setConfirmRemoveId(null); }}
           title="Remove account?"
-          description={`This will disconnect "${accounts.find((a) => a.id === confirmRemoveId)?.email}" from AtlasMail. You can add it back later.`}
+          description={`This will disconnect "${accounts.find((a) => a.id === confirmRemoveId)?.email}" from Atlas. You can add it back later.`}
           confirmLabel="Remove account"
           onConfirm={() => executeRemove(confirmRemoveId)}
         />

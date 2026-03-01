@@ -552,7 +552,7 @@ function StepOAuth({ provider }: { provider: ProviderConfig }) {
             maxWidth: 360,
           }}
         >
-          You'll be redirected to {provider.name} to authorize AtlasMail to
+          You'll be redirected to {provider.name} to authorize Atlas to
           access your account. No password is stored.
         </p>
       </div>
@@ -612,7 +612,7 @@ function StepOAuth({ provider }: { provider: ProviderConfig }) {
           fontFamily: 'var(--font-family)',
         }}
       >
-        You'll be redirected back to AtlasMail after authorization.
+        You'll be redirected back to Atlas after authorization.
       </p>
     </div>
   );

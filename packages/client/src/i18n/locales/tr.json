@@ -31,7 +31,7 @@
     "file_other": "{{count}} dosya"
   },
   "auth": {
-    "appName": "AtlasMail",
+    "appName": "Atlas",
     "tagline": "Gelen kutunuzu yeniden keşfedin",
     "signInToContinue": "Devam etmek için giriş yapın",
     "signInWithGoogle": "Google ile giriş yap",
@@ -275,7 +275,7 @@
     "addAccountDescription": "Tüm gelen kutularınızı tek yerden yönetmek için başka bir e-posta hesabı bağlayın",
     "removeAccount": "Hesabı kaldır",
     "removeAccountConfirm": "{{email}} kaldırılsın mı?",
-    "removeAccountDescription": "Bu hesap AtlasMail ile bağlantısı kesilecektir. E-postalarınız silinmeyecektir.",
+    "removeAccountDescription": "Bu hesap Atlas ile bağlantısı kesilecektir. E-postalarınız silinmeyecektir.",
     "gmail": "Gmail",
     "gmailDesc": "Google hesabınızla bağlanın",
     "outlook": "Outlook",

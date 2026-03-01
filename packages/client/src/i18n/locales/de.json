@@ -31,7 +31,7 @@
     "file_other": "{{count}} Dateien"
   },
   "auth": {
-    "appName": "AtlasMail",
+    "appName": "Atlas",
     "tagline": "Ihr Posteingang, neu gedacht",
     "signInToContinue": "Melden Sie sich an, um fortzufahren",
     "signInWithGoogle": "Mit Google anmelden",
@@ -275,7 +275,7 @@
     "addAccountDescription": "Verbinden Sie ein weiteres E-Mail-Konto, um alle Postfächer an einem Ort zu verwalten",
     "removeAccount": "Konto entfernen",
     "removeAccountConfirm": "{{email}} entfernen?",
-    "removeAccountDescription": "Das Konto wird von AtlasMail getrennt. Ihre E-Mails werden nicht gelöscht.",
+    "removeAccountDescription": "Das Konto wird von Atlas getrennt. Ihre E-Mails werden nicht gelöscht.",
     "gmail": "Gmail",
     "gmailDesc": "Mit Ihrem Google-Konto verbinden",
     "outlook": "Outlook",

@@ -31,7 +31,7 @@
     "file_other": "{{count}} file"
   },
   "auth": {
-    "appName": "AtlasMail",
+    "appName": "Atlas",
     "tagline": "La tua casella di posta, reinventata",
     "signInToContinue": "Accedi per continuare",
     "signInWithGoogle": "Accedi con Google",
@@ -275,7 +275,7 @@
     "addAccountDescription": "Collega un altro account email per gestire tutte le tue caselle di posta in un unico posto",
     "removeAccount": "Rimuovi account",
     "removeAccountConfirm": "Rimuovere {{email}}?",
-    "removeAccountDescription": "Questo disconnetterà l'account da AtlasMail. Le tue email non verranno eliminate.",
+    "removeAccountDescription": "Questo disconnetterà l'account da Atlas. Le tue email non verranno eliminate.",
     "gmail": "Gmail",
     "gmailDesc": "Collegati con il tuo account Google",
     "outlook": "Outlook",

@@ -1660,7 +1660,7 @@ export function MailAIPanel() {
       >
         <SettingsRow
           label="Enable AI features"
-          description="Turn on AI-powered features across AtlasMail"
+          description="Turn on AI-powered features across Atlas"
         >
           <SettingsToggle
             checked={aiEnabled}
@@ -1675,7 +1675,7 @@ export function MailAIPanel() {
           {/* Provider & API keys */}
           <SettingsSection
             title="API configuration"
-            description="Enter your own API key to use AI features. Keys are stored locally and never sent to AtlasMail servers."
+            description="Enter your own API key to use AI features. Keys are stored locally and never sent to Atlas servers."
           >
             {/* Provider dropdown */}
             <div style={{ padding: 'var(--spacing-md) 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
@@ -1918,7 +1918,7 @@ export function MailAIPanel() {
                   lineHeight: 'var(--line-height-normal)',
                 }}
               >
-                Your API key is stored locally in your browser and sent directly to the provider. It is never transmitted to AtlasMail servers.
+                Your API key is stored locally in your browser and sent directly to the provider. It is never transmitted to Atlas servers.
               </div>
             </div>
           </SettingsSection>
@@ -2237,7 +2237,7 @@ export function MailShortcutsPanel() {
 export function MailAboutPanel() {
   return (
     <div>
-      <SettingsSection title="About AtlasMail">
+      <SettingsSection title="About Atlas">
         <div
           style={{
             display: 'flex',
@@ -2273,7 +2273,7 @@ export function MailAboutPanel() {
                 fontFamily: 'var(--font-family)',
               }}
             >
-              AtlasMail
+              Atlas
             </div>
             <div
               style={{
@@ -2430,7 +2430,7 @@ function usePanelDescriptions(): Record<NavItemId, string> {
   return {
     general: 'Manage your profile and account',
     accounts: 'Manage connected email accounts',
-    appearance: 'Customize how AtlasMail looks',
+    appearance: 'Customize how Atlas looks',
     notifications: 'Configure alerts and notification preferences',
     composer: 'Email composition and signature settings',
     ai: 'Configure AI-powered features and API keys',
