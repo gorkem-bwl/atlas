@@ -979,16 +979,31 @@ export function HomePage() {
         {/* Quick-create actions */}
         <div className="flex gap-2 justify-center" style={{ marginTop: 28, marginBottom: 16 }}>
           {[
-            { label: 'New email', icon: <Mail className="w-3.5 h-3.5" />, onClick: handleNewEmail },
-            { label: 'New document', icon: <FileText className="w-3.5 h-3.5" />, onClick: handleNewDocument },
-            { label: 'New task', icon: <CheckSquare className="w-3.5 h-3.5" />, onClick: handleNewTask },
-            { label: 'New drawing', icon: <Pencil className="w-3.5 h-3.5" />, onClick: handleNewDrawing },
+            { label: 'New email', icon: <Mail size={14} />, onClick: handleNewEmail },
+            { label: 'New document', icon: <FileText size={14} />, onClick: handleNewDocument },
+            { label: 'New task', icon: <CheckSquare size={14} />, onClick: handleNewTask },
+            { label: 'New drawing', icon: <Pencil size={14} />, onClick: handleNewDrawing },
           ].map((action) => (
             <button
               key={action.label}
               onClick={action.onClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium
-                text-white/90 bg-white/15 hover:bg-white/25 backdrop-blur-sm transition-colors cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 14px',
+                borderRadius: 9999,
+                fontSize: 12,
+                fontWeight: 500,
+                color: 'rgba(255,255,255,0.9)',
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(8px)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
             >
               {action.icon}
               {action.label}
@@ -999,29 +1014,43 @@ export function HomePage() {
         {/* Recent items */}
         {recentItems.length > 0 && (
           <div style={{ marginBottom: 16, maxWidth: 670, width: '100%', padding: '0 16px' }}>
-            <h3 className="text-xs font-medium text-white/60 uppercase tracking-wider" style={{ marginBottom: 8 }}>Recent</h3>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <h3 style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Recent</h3>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
               {recentItems.slice(0, 10).map((item) => {
                 const typeIconMap: Record<string, React.ReactNode> = {
-                  doc: <FileText className="w-4 h-4 text-white/70" />,
-                  drawing: <Pencil className="w-4 h-4 text-white/70" />,
-                  table: <Table2 className="w-4 h-4 text-white/70" />,
-                  task: <CheckSquare className="w-4 h-4 text-white/70" />,
+                  doc: <FileText size={16} color="rgba(255,255,255,0.7)" />,
+                  drawing: <Pencil size={16} color="rgba(255,255,255,0.7)" />,
+                  table: <Table2 size={16} color="rgba(255,255,255,0.7)" />,
+                  task: <CheckSquare size={16} color="rgba(255,255,255,0.7)" />,
                 };
                 const typePaths: Record<string, string> = { doc: '/docs/', drawing: '/draw/', table: '/tables/', task: '/tasks' };
                 return (
                   <button
                     key={`${item.type}-${item.id}`}
                     onClick={() => navigate(typePaths[item.type] + (item.type === 'task' ? '' : item.id))}
-                    className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg
-                      bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors cursor-pointer
-                      text-left"
-                    style={{ minWidth: 140, maxWidth: 200 }}
+                    style={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      background: 'rgba(255,255,255,0.1)',
+                      backdropFilter: 'blur(8px)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      minWidth: 140,
+                      maxWidth: 200,
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
                   >
-                    {typeIconMap[item.type] || <FileText className="w-4 h-4 text-white/70" />}
+                    {typeIconMap[item.type] || <FileText size={16} color="rgba(255,255,255,0.7)" />}
                     <div style={{ minWidth: 0 }}>
-                      <div className="text-xs text-white/90 font-medium truncate">{item.title}</div>
-                      <div className="text-white/50" style={{ fontSize: 10 }}>{item.type}</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>{item.type}</div>
                     </div>
                   </button>
                 );
