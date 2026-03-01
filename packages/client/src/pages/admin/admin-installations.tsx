@@ -1,112 +1,96 @@
 import { useState } from 'react';
+import { Play, Square, RotateCw, AppWindow } from 'lucide-react';
 import { useAdminInstallations, useInstallationAction } from '../../hooks/use-admin';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Chip } from '../../components/ui/chip';
+
+const STATUS_FILTERS = ['all', 'running', 'stopped', 'error', 'installing'] as const;
+type StatusFilter = typeof STATUS_FILTERS[number];
+
+function statusVariant(status: string): 'success' | 'error' | 'warning' | 'default' {
+  if (status === 'running') return 'success';
+  if (status === 'error') return 'error';
+  if (status === 'stopped') return 'warning';
+  return 'default';
+}
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
-  padding: '8px 12px',
+  padding: 'var(--spacing-sm) var(--spacing-md)',
   fontSize: 'var(--font-size-xs)',
   fontWeight: 'var(--font-weight-medium)',
   color: 'var(--color-text-tertiary)',
   borderBottom: '1px solid var(--color-border-primary)',
   whiteSpace: 'nowrap',
+  userSelect: 'none',
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: '10px 12px',
+  padding: 'var(--spacing-sm) var(--spacing-md)',
   fontSize: 'var(--font-size-sm)',
   borderBottom: '1px solid var(--color-border-secondary)',
   whiteSpace: 'nowrap',
+  color: 'var(--color-text-primary)',
 };
-
-const actionBtnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  border: '1px solid var(--color-border-primary)',
-  borderRadius: 'var(--radius-sm)',
-  background: 'var(--color-bg-primary)',
-  fontSize: 'var(--font-size-xs)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-family)',
-  marginRight: 4,
-  color: 'var(--color-text-secondary)',
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    running: 'var(--color-success)',
-    stopped: 'var(--color-warning)',
-    error: 'var(--color-error)',
-    installing: 'var(--color-info)',
-  };
-  const color = map[status] ?? 'var(--color-text-tertiary)';
-
-  return (
-    <span style={{
-      display: 'inline-block',
-      padding: '2px 8px',
-      borderRadius: 'var(--radius-full)',
-      fontSize: 'var(--font-size-xs)',
-      fontWeight: 'var(--font-weight-medium)',
-      background: `color-mix(in srgb, ${color} 15%, transparent)`,
-      color,
-    }}>
-      {status}
-    </span>
-  );
-}
-
-const STATUS_FILTERS = ['all', 'running', 'stopped', 'error', 'installing'] as const;
 
 export function AdminInstallationsPage() {
   const { data: installations, isLoading } = useAdminInstallations();
   const installAction = useInstallationAction();
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<StatusFilter>('all');
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   if (isLoading) {
-    return <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>Loading...</div>;
+    return (
+      <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-xl)' }}>
+        Loading...
+      </div>
+    );
   }
 
   const filtered = filter === 'all'
     ? installations
     : installations?.filter((i) => i.status === filter);
 
+  const total = installations?.length ?? 0;
+
   return (
     <div>
+      {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 'var(--spacing-xl)',
+        marginBottom: 'var(--spacing-lg)',
+        gap: 'var(--spacing-md)',
+        flexWrap: 'wrap',
       }}>
-        <h1 style={{
-          fontSize: 'var(--font-size-xl)',
-          fontWeight: 'var(--font-weight-semibold)',
-        }}>
-          Installations
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <span style={{
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-text-secondary)',
+          }}>
+            {total} {total === 1 ? 'installation' : 'installations'}
+          </span>
+        </div>
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+        {/* Status filter chips */}
+        <div style={{ display: 'flex', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
           {STATUS_FILTERS.map((s) => (
-            <button
+            <Chip
               key={s}
+              active={filter === s}
               onClick={() => setFilter(s)}
-              style={{
-                padding: '4px 12px',
-                borderRadius: 'var(--radius-full)',
-                border: '1px solid var(--color-border-primary)',
-                background: filter === s ? 'var(--color-accent-primary)' : 'var(--color-bg-primary)',
-                color: filter === s ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
-                fontSize: 'var(--font-size-xs)',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-family)',
-                textTransform: 'capitalize',
-              }}
+              aria-pressed={filter === s}
+              style={{ textTransform: 'capitalize' }}
             >
               {s}
-            </button>
+            </Chip>
           ))}
         </div>
       </div>
 
+      {/* Table card */}
       <div style={{
         background: 'var(--color-bg-primary)',
         borderRadius: 'var(--radius-md)',
@@ -126,31 +110,102 @@ export function AdminInstallationsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered?.map((inst) => (
-              <tr key={inst.id}>
-                <td style={{ ...tdStyle, fontWeight: 'var(--font-weight-medium)' }}>{inst.appName ?? inst.catalogAppId}</td>
-                <td style={tdStyle}>{inst.tenantName ?? inst.tenantId}</td>
-                <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{inst.subdomain}</td>
-                <td style={tdStyle}><StatusBadge status={inst.status} /></td>
-                <td style={tdStyle}>{inst.lastHealthStatus ? <StatusBadge status={inst.lastHealthStatus} /> : '—'}</td>
-                <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>{new Date(inst.createdAt).toLocaleDateString()}</td>
-                <td style={tdStyle}>
-                  {inst.status === 'stopped' && (
-                    <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'start' })}>Start</button>
-                  )}
-                  {inst.status === 'running' && (
-                    <>
-                      <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'stop' })}>Stop</button>
-                      <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'restart' })}>Restart</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {(!filtered || filtered.length === 0) && (
+            {filtered && filtered.length > 0 ? (
+              filtered.map((inst) => (
+                <tr
+                  key={inst.id}
+                  onMouseEnter={() => setHoveredRow(inst.id)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                  style={{
+                    background: hoveredRow === inst.id ? 'var(--color-surface-hover)' : 'transparent',
+                    transition: 'background var(--transition-normal)',
+                  }}
+                >
+                  <td style={{ ...tdStyle, fontWeight: 'var(--font-weight-medium)' }}>
+                    {inst.appName ?? inst.catalogAppId}
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>
+                    {inst.tenantName ?? inst.tenantId}
+                  </td>
+                  <td style={{
+                    ...tdStyle,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-tertiary)',
+                  }}>
+                    {inst.subdomain}
+                  </td>
+                  <td style={tdStyle}>
+                    <Badge variant={statusVariant(inst.status)}>
+                      {inst.status}
+                    </Badge>
+                  </td>
+                  <td style={tdStyle}>
+                    {inst.lastHealthStatus
+                      ? <Badge variant={statusVariant(inst.lastHealthStatus)}>{inst.lastHealthStatus}</Badge>
+                      : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>
+                    }
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>
+                    {new Date(inst.createdAt).toLocaleDateString()}
+                  </td>
+                  <td style={{ ...tdStyle, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-xs)', alignItems: 'center' }}>
+                      {inst.status === 'stopped' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon={<Play size={12} />}
+                          onClick={() => installAction.mutate({ id: inst.id, action: 'start' })}
+                          disabled={installAction.isPending}
+                          aria-label={`Start ${inst.appName ?? inst.catalogAppId}`}
+                        >
+                          Start
+                        </Button>
+                      )}
+                      {inst.status === 'running' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            icon={<Square size={12} />}
+                            onClick={() => installAction.mutate({ id: inst.id, action: 'stop' })}
+                            disabled={installAction.isPending}
+                            aria-label={`Stop ${inst.appName ?? inst.catalogAppId}`}
+                          >
+                            Stop
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            icon={<RotateCw size={12} />}
+                            onClick={() => installAction.mutate({ id: inst.id, action: 'restart' })}
+                            disabled={installAction.isPending}
+                            aria-label={`Restart ${inst.appName ?? inst.catalogAppId}`}
+                          >
+                            Restart
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
-                <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
-                  No installations found
+                <td colSpan={7}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 'var(--spacing-sm)',
+                    padding: 'var(--spacing-3xl) var(--spacing-xl)',
+                    color: 'var(--color-text-tertiary)',
+                  }}>
+                    <AppWindow size={32} strokeWidth={1.5} />
+                    <span style={{ fontSize: 'var(--font-size-sm)' }}>No installations found</span>
+                  </div>
                 </td>
               </tr>
             )}

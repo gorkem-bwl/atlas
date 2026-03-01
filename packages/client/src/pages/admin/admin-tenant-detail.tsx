@@ -1,7 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Users, AppWindow, Play, Square, RotateCw, Cpu, HardDrive, MemoryStick } from 'lucide-react';
 import { useAdminTenant, useUpdateTenantStatus, useUpdateTenantPlan, useInstallationAction } from '../../hooks/use-admin';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../config/query-keys';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Chip } from '../../components/ui/chip';
 
 const PLANS = ['starter', 'pro', 'enterprise'];
 
@@ -22,51 +26,20 @@ const tdStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-const sectionStyle: React.CSSProperties = {
-  marginBottom: 'var(--spacing-xl)',
-  background: 'var(--color-bg-primary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border-primary)',
-  overflow: 'auto',
-};
+type BadgeVariant = 'success' | 'error' | 'warning' | 'default';
 
-const actionBtnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  border: '1px solid var(--color-border-primary)',
-  borderRadius: 'var(--radius-sm)',
-  background: 'var(--color-bg-primary)',
-  fontSize: 'var(--font-size-xs)',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-family)',
-  marginRight: 4,
-  color: 'var(--color-text-secondary)',
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    running: 'var(--color-success)',
-    stopped: 'var(--color-warning)',
-    error: 'var(--color-error)',
-    installing: 'var(--color-info)',
-    healthy: 'var(--color-success)',
-    unhealthy: 'var(--color-error)',
-  };
-  const color = map[status] ?? 'var(--color-text-tertiary)';
-
-  return (
-    <span style={{
-      display: 'inline-block',
-      padding: '2px 8px',
-      borderRadius: 'var(--radius-full)',
-      fontSize: 'var(--font-size-xs)',
-      fontWeight: 'var(--font-weight-medium)',
-      background: `color-mix(in srgb, ${color} 15%, transparent)`,
-      color,
-    }}>
-      {status}
-    </span>
-  );
+function statusVariant(status: string): BadgeVariant {
+  if (['running', 'active', 'healthy'].includes(status)) return 'success';
+  if (['stopped', 'error', 'unhealthy', 'suspended'].includes(status)) return 'error';
+  if (status === 'installing') return 'warning';
+  return 'default';
 }
+
+const PLAN_COLORS: Record<string, string> = {
+  starter: 'var(--color-text-tertiary)',
+  pro: 'var(--color-accent-primary)',
+  enterprise: 'var(--color-warning)',
+};
 
 export function AdminTenantDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -82,73 +55,133 @@ export function AdminTenantDetailPage() {
   };
 
   if (isLoading) {
-    return <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>Loading...</div>;
+    return (
+      <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+        Loading...
+      </div>
+    );
   }
 
   if (!tenant) {
-    return <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>Tenant not found</div>;
+    return (
+      <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+        Tenant not found
+      </div>
+    );
   }
 
-  return (
-    <div>
-      <button
-        onClick={() => navigate('/admin/tenants')}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--color-text-tertiary)',
-          fontSize: 'var(--font-size-sm)',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-family)',
-          padding: 0,
-          marginBottom: 'var(--spacing-lg)',
-        }}
-      >
-        &larr; Back to tenants
-      </button>
+  const isSuspended = tenant.status === 'suspended';
 
-      {/* Header */}
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
+
+      {/* Back button */}
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<ArrowLeft size={14} />}
+          onClick={() => navigate('/admin/tenants')}
+        >
+          Back to tenants
+        </Button>
+      </div>
+
+      {/* Header info card */}
       <div style={{
-        ...sectionStyle,
+        background: 'var(--color-bg-primary)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--color-border-primary)',
         padding: 'var(--spacing-xl)',
         display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--spacing-xl)',
-        flexWrap: 'wrap',
+        flexDirection: 'column',
+        gap: 'var(--spacing-lg)',
       }}>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <h1 style={{
-            fontSize: 'var(--font-size-xl)',
-            fontWeight: 'var(--font-weight-semibold)',
-            marginBottom: 'var(--spacing-xs)',
-          }}>
-            {tenant.name}
-          </h1>
-          <div style={{
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-text-tertiary)',
-            fontFamily: 'var(--font-mono)',
-          }}>
-            {tenant.slug}
+        {/* Top row: name + status + actions */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 'var(--spacing-md)',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 'var(--font-size-xl)',
+                fontWeight: 'var(--font-weight-semibold)',
+                color: 'var(--color-text-primary)',
+              }}>
+                {tenant.name}
+              </span>
+              <Badge variant={statusVariant(tenant.status)}>{tenant.status}</Badge>
+              <Chip color={PLAN_COLORS[tenant.plan] ?? 'var(--color-accent-primary)'} height={20}>
+                {tenant.plan}
+              </Chip>
+            </div>
+            <span style={{
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-tertiary)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {tenant.slug}
+            </span>
+          </div>
+
+          {/* Status action */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexShrink: 0 }}>
+            <Button
+              variant={isSuspended ? 'secondary' : 'danger'}
+              size="sm"
+              disabled={statusMutation.isPending}
+              onClick={() => {
+                statusMutation.mutate(
+                  { id: tenant.id, status: isSuspended ? 'active' : 'suspended' },
+                  { onSuccess: invalidate },
+                );
+              }}
+            >
+              {isSuspended ? 'Activate' : 'Suspend'}
+            </Button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div>
-            <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', display: 'block', marginBottom: 2 }}>Plan</label>
+        {/* Quota + plan grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 'var(--spacing-md)',
+          paddingTop: 'var(--spacing-md)',
+          borderTop: '1px solid var(--color-border-secondary)',
+        }}>
+          {/* Plan selector */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <span style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+              fontWeight: 'var(--font-weight-medium)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}>
+              Plan
+            </span>
             <select
               value={tenant.plan}
               onChange={(e) => {
                 planMutation.mutate({ id: tenant.id, plan: e.target.value }, { onSuccess: invalidate });
               }}
               style={{
-                padding: '6px 10px',
+                padding: '5px 8px',
                 border: '1px solid var(--color-border-primary)',
                 borderRadius: 'var(--radius-sm)',
-                background: 'var(--color-bg-primary)',
+                background: 'var(--color-bg-elevated)',
                 color: 'var(--color-text-primary)',
                 fontSize: 'var(--font-size-sm)',
                 fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+                outline: 'none',
+                width: '100%',
+                maxWidth: 140,
               }}
             >
               {PLANS.map((p) => (
@@ -157,111 +190,234 @@ export function AdminTenantDetailPage() {
             </select>
           </div>
 
-          <div>
-            <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', display: 'block', marginBottom: 2 }}>Status</label>
-            <button
-              onClick={() => {
-                statusMutation.mutate(
-                  { id: tenant.id, status: tenant.status === 'active' ? 'suspended' : 'active' },
-                  { onSuccess: invalidate },
-                );
-              }}
-              style={{
-                ...actionBtnStyle,
-                color: tenant.status === 'active' ? 'var(--color-error)' : 'var(--color-success)',
-                marginRight: 0,
-              }}
-            >
-              {tenant.status === 'active' ? 'Suspend' : 'Activate'}
-            </button>
+          {/* CPU */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <span style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+              fontWeight: 'var(--font-weight-medium)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <Cpu size={11} />
+              CPU quota
+            </span>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>
+              {tenant.quotaCpu}m
+            </span>
           </div>
 
-          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-            <div>CPU: {tenant.quotaCpu}m</div>
-            <div>Memory: {tenant.quotaMemoryMb}MB</div>
-            <div>Storage: {tenant.quotaStorageMb}MB</div>
+          {/* Memory */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <span style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+              fontWeight: 'var(--font-weight-medium)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <MemoryStick size={11} />
+              Memory quota
+            </span>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>
+              {tenant.quotaMemoryMb} MB
+            </span>
+          </div>
+
+          {/* Storage */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <span style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+              fontWeight: 'var(--font-weight-medium)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <HardDrive size={11} />
+              Storage quota
+            </span>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>
+              {tenant.quotaStorageMb} MB
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Members */}
-      <h2 style={{
-        fontSize: 'var(--font-size-lg)',
-        fontWeight: 'var(--font-weight-semibold)',
-        marginBottom: 'var(--spacing-md)',
-      }}>
-        Members ({tenant.members.length})
-      </h2>
-      <div style={sectionStyle}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>User ID</th>
-              <th style={thStyle}>Role</th>
-              <th style={thStyle}>Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tenant.members.map((m) => (
-              <tr key={m.userId}>
-                <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)' }}>{m.userId}</td>
-                <td style={tdStyle}>{m.role}</td>
-                <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>{new Date(m.createdAt).toLocaleDateString()}</td>
+      {/* Members section */}
+      <div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+          marginBottom: 'var(--spacing-md)',
+        }}>
+          <Users size={15} style={{ color: 'var(--color-text-tertiary)' }} />
+          <span style={{
+            fontSize: 'var(--font-size-md)',
+            fontWeight: 'var(--font-weight-semibold)',
+            color: 'var(--color-text-primary)',
+          }}>
+            Members
+          </span>
+          <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
+            {tenant.members.length}
+          </Chip>
+        </div>
+
+        <div style={{
+          background: 'var(--color-bg-primary)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--color-border-primary)',
+          overflow: 'auto',
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>User ID</th>
+                <th style={thStyle}>Role</th>
+                <th style={thStyle}>Joined</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tenant.members.length === 0 && (
+                <tr>
+                  <td colSpan={3} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+                    No members
+                  </td>
+                </tr>
+              )}
+              {tenant.members.map((m) => (
+                <tr key={m.userId}>
+                  <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+                    {m.userId}
+                  </td>
+                  <td style={tdStyle}>
+                    <Badge variant={m.role === 'owner' ? 'primary' : 'default'}>{m.role}</Badge>
+                  </td>
+                  <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>
+                    {new Date(m.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Installations */}
-      <h2 style={{
-        fontSize: 'var(--font-size-lg)',
-        fontWeight: 'var(--font-weight-semibold)',
-        marginBottom: 'var(--spacing-md)',
-      }}>
-        Installations ({tenant.installations.length})
-      </h2>
-      <div style={sectionStyle}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>App</th>
-              <th style={thStyle}>Subdomain</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Health</th>
-              <th style={thStyle}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tenant.installations.map((inst) => (
-              <tr key={inst.id}>
-                <td style={{ ...tdStyle, fontWeight: 'var(--font-weight-medium)' }}>{inst.appName ?? inst.catalogAppId}</td>
-                <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{inst.subdomain}</td>
-                <td style={tdStyle}><StatusBadge status={inst.status} /></td>
-                <td style={tdStyle}>{inst.lastHealthStatus ? <StatusBadge status={inst.lastHealthStatus} /> : '—'}</td>
-                <td style={tdStyle}>
-                  {inst.status === 'stopped' && (
-                    <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'start' }, { onSuccess: invalidate })}>Start</button>
-                  )}
-                  {inst.status === 'running' && (
-                    <>
-                      <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'stop' }, { onSuccess: invalidate })}>Stop</button>
-                      <button style={actionBtnStyle} onClick={() => installAction.mutate({ id: inst.id, action: 'restart' }, { onSuccess: invalidate })}>Restart</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {tenant.installations.length === 0 && (
+      {/* Installations section */}
+      <div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+          marginBottom: 'var(--spacing-md)',
+        }}>
+          <AppWindow size={15} style={{ color: 'var(--color-text-tertiary)' }} />
+          <span style={{
+            fontSize: 'var(--font-size-md)',
+            fontWeight: 'var(--font-weight-semibold)',
+            color: 'var(--color-text-primary)',
+          }}>
+            Installations
+          </span>
+          <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
+            {tenant.installations.length}
+          </Chip>
+        </div>
+
+        <div style={{
+          background: 'var(--color-bg-primary)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--color-border-primary)',
+          overflow: 'auto',
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
               <tr>
-                <td colSpan={5} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
-                  No installations
-                </td>
+                <th style={thStyle}>App</th>
+                <th style={thStyle}>Subdomain</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Health</th>
+                <th style={thStyle}>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tenant.installations.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+                    No installations
+                  </td>
+                </tr>
+              )}
+              {tenant.installations.map((inst) => (
+                <tr key={inst.id}>
+                  <td style={{ ...tdStyle, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
+                    {inst.appName ?? inst.catalogAppId}
+                  </td>
+                  <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+                    {inst.subdomain}
+                  </td>
+                  <td style={tdStyle}>
+                    <Badge variant={statusVariant(inst.status)}>{inst.status}</Badge>
+                  </td>
+                  <td style={tdStyle}>
+                    {inst.lastHealthStatus
+                      ? <Badge variant={statusVariant(inst.lastHealthStatus)}>{inst.lastHealthStatus}</Badge>
+                      : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
+                  </td>
+                  <td style={{ ...tdStyle }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                      {inst.status === 'stopped' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon={<Play size={12} />}
+                          disabled={installAction.isPending}
+                          onClick={() => installAction.mutate({ id: inst.id, action: 'start' }, { onSuccess: invalidate })}
+                        >
+                          Start
+                        </Button>
+                      )}
+                      {inst.status === 'running' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            icon={<Square size={12} />}
+                            disabled={installAction.isPending}
+                            onClick={() => installAction.mutate({ id: inst.id, action: 'stop' }, { onSuccess: invalidate })}
+                          >
+                            Stop
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            icon={<RotateCw size={12} />}
+                            disabled={installAction.isPending}
+                            onClick={() => installAction.mutate({ id: inst.id, action: 'restart' }, { onSuccess: invalidate })}
+                          >
+                            Restart
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   );
 }
