@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
 
-export type CalendarView = 'week' | 'month-grid' | 'day' | 'agenda';
+export type CalendarView = 'week' | 'month-grid' | 'day' | 'agenda' | 'year';
 export type CalendarDensity = 'compact' | 'default' | 'comfortable';
 
 interface CalendarSettings {

@@ -19,10 +19,10 @@ interface EventModalState {
 
 interface CalendarStoreState {
   selectedDate: string; // YYYY-MM-DD
-  view: 'week' | 'month-grid' | 'day' | 'agenda';
+  view: 'week' | 'month-grid' | 'day' | 'agenda' | 'year';
   eventModal: EventModalState;
   setSelectedDate: (date: string) => void;
-  setView: (view: 'week' | 'month-grid' | 'day' | 'agenda') => void;
+  setView: (view: 'week' | 'month-grid' | 'day' | 'agenda' | 'year') => void;
   openCreateModal: (start?: string, end?: string, isAllDay?: boolean) => void;
   openCreateModalWithPrefill: (prefill: PrefillData, start?: string, end?: string) => void;
   openEditModal: (event: CalendarEvent) => void;

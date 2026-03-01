@@ -25,6 +25,7 @@ import { MiniMonth } from '../components/calendar/mini-month';
 import { WeekGrid } from '../components/calendar/week-grid';
 import { MonthGrid } from '../components/calendar/month-grid';
 import { AgendaView } from '../components/calendar/agenda-view';
+import { YearGrid } from '../components/calendar/year-grid';
 import type { CSSProperties } from 'react';
 
 function toYMD(date: Date): string {
@@ -460,6 +461,10 @@ export function CalendarPage() {
           e.preventDefault();
           setView('agenda');
           break;
+        case 'y':
+          e.preventDefault();
+          setView('year');
+          break;
         case 'g':
           e.preventDefault();
           setShowDatePicker(true);
@@ -738,7 +743,7 @@ export function CalendarPage() {
             overflow: 'hidden',
           }}
         >
-          {(['day', 'week', 'month-grid', 'agenda'] as const).map((v) => (
+          {(['day', 'week', 'month-grid', 'agenda', 'year'] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -755,7 +760,7 @@ export function CalendarPage() {
                 textTransform: 'capitalize',
               }}
             >
-              {v === 'month-grid' ? 'Month' : v === 'agenda' ? 'Agenda' : v}
+              {v === 'month-grid' ? 'Month' : v === 'agenda' ? 'Agenda' : v === 'year' ? 'Year' : v}
             </button>
           ))}
         </div>
@@ -1361,7 +1366,9 @@ export function CalendarPage() {
               )}
             </div>
           )}
-          {view === 'agenda' ? (
+          {view === 'year' ? (
+            <YearGrid weekStartsOnMonday={weekStartsOnMonday} />
+          ) : view === 'agenda' ? (
             <AgendaView
               events={filteredEvents}
               selectedCalendarIds={selectedCalendarIds}
