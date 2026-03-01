@@ -54,9 +54,9 @@ function param(req: Request, name: string): string {
   return Array.isArray(val) ? val[0] : val;
 }
 
-/** Guard: require platform DB to be configured. Returns true if NOT configured (caller should return). */
+/** Guard: require platform features to be configured. Returns true if NOT configured (caller should return). */
 function requirePlatformDb(res: Response): boolean {
-  if (!env.DATABASE_PLATFORM_URL) {
+  if (!env.OIDC_SIGNING_KEY) {
     res.status(501).json({ success: false, error: 'Platform features are not configured' });
     return true;
   }
@@ -99,8 +99,8 @@ export async function listCatalog(req: Request, res: Response) {
   try {
     const category = req.query.category as string | undefined;
 
-    // Fall back to disk manifests when platform DB is not configured
-    if (!env.DATABASE_PLATFORM_URL) {
+    // Fall back to disk manifests when platform features are not configured
+    if (!env.OIDC_SIGNING_KEY) {
       const apps = catalogService.listCatalogAppsFromDisk({ category });
       res.json({ success: true, data: { apps } });
       return;
@@ -118,8 +118,8 @@ export async function getCatalogApp(req: Request, res: Response) {
   try {
     const manifestId = param(req, 'manifestId');
 
-    // Fall back to disk manifests when platform DB is not configured
-    if (!env.DATABASE_PLATFORM_URL) {
+    // Fall back to disk manifests when platform features are not configured
+    if (!env.OIDC_SIGNING_KEY) {
       const app = catalogService.getCatalogAppFromDisk(manifestId);
       if (!app) {
         res.status(404).json({ success: false, error: 'App not found' });
@@ -173,7 +173,7 @@ export async function createTenant(req: Request, res: Response) {
 
 export async function listMyTenants(req: Request, res: Response) {
   try {
-    if (!env.DATABASE_PLATFORM_URL) {
+    if (!env.OIDC_SIGNING_KEY) {
       res.json({ success: true, data: { tenants: [] } });
       return;
     }

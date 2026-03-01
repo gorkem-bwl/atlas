@@ -22,10 +22,10 @@ async function getPeopleClient(accountId: string) {
   // Persist refreshed tokens (same pattern as gmail.service.ts)
   oauth2Client.on('tokens', async (tokens) => {
     if (tokens.access_token) {
-      const updates: Record<string, string> = {
+      const updates: Record<string, any> = {
         accessToken: encrypt(tokens.access_token),
-        tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000).toISOString(),
-        updatedAt: new Date().toISOString(),
+        tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000),
+        updatedAt: new Date(),
       };
       if (tokens.refresh_token) {
         updates.refreshToken = encrypt(tokens.refresh_token);
@@ -42,7 +42,7 @@ async function getPeopleClient(accountId: string) {
 export async function syncGoogleContacts(accountId: string) {
   const people = await getPeopleClient(accountId);
   let nextPageToken: string | undefined;
-  const now = new Date().toISOString();
+  const now = new Date();
   let synced = 0;
 
   do {
@@ -170,7 +170,7 @@ export async function getContactByEmail(accountId: string, email: string) {
       .where(
         and(
           eq(contacts.accountId, accountId),
-          sql`EXISTS (SELECT 1 FROM json_each(${contacts.emails}) WHERE LOWER(value) = ${normalizedEmail})`,
+          sql`${contacts.emails} @> ${JSON.stringify([normalizedEmail])}::jsonb`,
         ),
       )
       .limit(1);
@@ -328,16 +328,17 @@ export async function updateContactNotes(
   notes: string,
 ) {
   const normalizedEmail = contactEmail.toLowerCase();
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Try to update existing contact
   const result = await db
     .update(contacts)
     .set({ notes, updatedAt: now })
-    .where(and(eq(contacts.accountId, accountId), eq(contacts.email, normalizedEmail)));
+    .where(and(eq(contacts.accountId, accountId), eq(contacts.email, normalizedEmail)))
+    .returning({ id: contacts.id });
 
   // If no matching contact exists, create one with just the email and notes
-  if (result.changes === 0) {
+  if (result.length === 0) {
     await db.insert(contacts).values({
       accountId,
       email: normalizedEmail,

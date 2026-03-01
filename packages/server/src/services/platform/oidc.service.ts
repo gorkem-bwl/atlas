@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { eq, and } from 'drizzle-orm';
-import { getPlatformDb } from '../../config/platform-database';
-import { appInstallations } from '../../db/schema-platform';
+import { db } from '../../config/database';
+import { appInstallations } from '../../db/schema';
 import { getTenantBySlug, getTenantMembership } from './tenant.service';
 import { decrypt } from '../../utils/crypto';
 import { env } from '../../config/env';
@@ -64,7 +64,7 @@ export async function validateClient(tenantSlug: string, clientId: string): Prom
   const tenant = await getTenantBySlug(tenantSlug);
   if (!tenant) return null;
 
-  const db = getPlatformDb();
+
   const [inst] = await db
     .select()
     .from(appInstallations)
@@ -129,7 +129,7 @@ export async function exchangeCode(
   const tenant = await getTenantBySlug(tenantSlug);
   if (!tenant) return null;
 
-  const db = getPlatformDb();
+
   const [inst] = await db
     .select()
     .from(appInstallations)

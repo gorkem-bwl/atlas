@@ -1,5 +1,5 @@
 import { sql, eq, and } from 'drizzle-orm';
-import { db, rawDb } from '../config/database';
+import { db } from '../config/database';
 import { threads, emails } from '../db/schema';
 
 // ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ function durationToDate(value: string): string | null {
 // ---------------------------------------------------------------------------
 
 /**
- * Search emails using structured operators + FTS5 full-text search.
+ * Search emails using structured operators + PostgreSQL full-text search.
  * Supports: from:, to:, subject:, has:attachment, in:, is:, newer_than:, older_than:
  */
 export async function searchEmails(accountId: string, query: string, limit = 50, offset = 0) {
@@ -126,7 +126,7 @@ export async function searchEmails(accountId: string, query: string, limit = 50,
     return searchWithOperators(accountId, parsed, limit, offset);
   }
 
-  // Pure free-text search — use FTS5, fall back to LIKE
+  // Pure free-text search — use tsvector, fall back to ILIKE
   const ftsResults = await searchViaFTS(accountId, parsed.freeText, limit, offset);
   if (ftsResults.length > 0) return ftsResults;
   return searchViaLike(accountId, parsed.freeText, limit, offset);
@@ -137,120 +137,110 @@ export async function searchEmails(accountId: string, query: string, limit = 50,
 // ---------------------------------------------------------------------------
 
 async function searchWithOperators(accountId: string, parsed: ParsedQuery, limit: number, offset: number) {
-  // Step 1: Find matching thread IDs from the emails table using operator filters
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  const conditions: ReturnType<typeof sql>[] = [];
 
   // Always scope to the account
-  conditions.push('e.account_id = ?');
-  params.push(accountId);
+  conditions.push(sql`e.account_id = ${accountId}`);
 
-  // from: — match from_address or from_name (case-insensitive LIKE)
+  // from: — match from_address or from_name (case-insensitive ILIKE)
   if (parsed.from) {
     const likeTerm = `%${escapeLike(parsed.from)}%`;
-    conditions.push('(e.from_address LIKE ? ESCAPE \'\\\' OR e.from_name LIKE ? ESCAPE \'\\\')');
-    params.push(likeTerm, likeTerm);
+    conditions.push(sql`(e.from_address ILIKE ${likeTerm} OR e.from_name ILIKE ${likeTerm})`);
   }
 
-  // to: — match to_addresses JSON (case-insensitive LIKE on the serialized JSON)
+  // to: — match to_addresses JSONB (cast to text for ILIKE search)
   if (parsed.to) {
     const likeTerm = `%${escapeLike(parsed.to)}%`;
-    conditions.push('e.to_addresses LIKE ? ESCAPE \'\\\'');
-    params.push(likeTerm);
+    conditions.push(sql`e.to_addresses::text ILIKE ${likeTerm}`);
   }
 
   // subject: — match email subject
   if (parsed.subject) {
     const likeTerm = `%${escapeLike(parsed.subject)}%`;
-    conditions.push('e.subject LIKE ? ESCAPE \'\\\'');
-    params.push(likeTerm);
+    conditions.push(sql`e.subject ILIKE ${likeTerm}`);
   }
 
-  // is:unread — only unread emails
+  // is:unread
   if (parsed.isFilter === 'unread') {
-    conditions.push('e.is_unread = 1');
+    conditions.push(sql`e.is_unread = true`);
   }
   // is:read
   if (parsed.isFilter === 'read') {
-    conditions.push('e.is_unread = 0');
+    conditions.push(sql`e.is_unread = false`);
   }
 
-  // newer_than: — emails newer than the given duration
+  // newer_than:
   if (parsed.newerThan) {
     const cutoff = durationToDate(parsed.newerThan);
     if (cutoff) {
-      conditions.push('e."internalDate" >= ?');
-      params.push(cutoff);
+      conditions.push(sql`e.internal_date >= ${cutoff}::timestamptz`);
     }
   }
 
-  // older_than: — emails older than the given duration
+  // older_than:
   if (parsed.olderThan) {
     const cutoff = durationToDate(parsed.olderThan);
     if (cutoff) {
-      conditions.push('e."internalDate" <= ?');
-      params.push(cutoff);
+      conditions.push(sql`e.internal_date <= ${cutoff}::timestamptz`);
     }
   }
 
-  // in:sent — emails with SENT label
+  // in:sent — emails with SENT label (JSONB contains)
   if (parsed.inMailbox === 'sent') {
-    conditions.push("e.gmail_labels LIKE '%SENT%'");
+    conditions.push(sql`e.gmail_labels @> '["SENT"]'::jsonb`);
   }
 
-  // in:inbox — not archived, not trashed, not spam
-  // (We'll filter on the threads table after getting thread IDs)
-
-  // Free-text portion: use FTS5 to get a candidate set of thread IDs,
-  // then intersect with operator results
+  // Free-text portion: use tsvector to get candidate thread IDs
   let ftsThreadIds: Set<string> | null = null;
   if (parsed.freeText) {
-    const sanitized = sanitizeFTSQuery(parsed.freeText);
-    if (sanitized) {
-      try {
-        const ftsRows = rawDb.prepare(`
-          SELECT DISTINCT e.thread_id
-          FROM email_fts
-          JOIN email_fts_map m ON m.fts_rowid = email_fts.rowid
-          JOIN emails e ON e.id = m.email_id
-          WHERE email_fts MATCH ?
-            AND e.account_id = ?
-          ORDER BY email_fts.rank
-          LIMIT 1000
-        `).all(sanitized, accountId) as Array<{ thread_id: string }>;
-        ftsThreadIds = new Set(ftsRows.map((r) => r.thread_id));
-      } catch {
-        // FTS syntax error — fall through and use LIKE for free text
+    try {
+      const ftsRows = await db
+        .select({ threadId: emails.threadId })
+        .from(emails)
+        .where(
+          and(
+            eq(emails.accountId, accountId),
+            sql`${emails.searchVector} @@ websearch_to_tsquery('english', ${parsed.freeText})`,
+          ),
+        )
+        .limit(1000);
+
+      if (ftsRows.length > 0) {
+        ftsThreadIds = new Set(ftsRows.map((r) => r.threadId));
       }
+    } catch {
+      // FTS syntax error — fall through to ILIKE
     }
 
-    // If FTS didn't work, add LIKE conditions for free text
+    // If FTS didn't work, add ILIKE conditions for free text
     if (!ftsThreadIds) {
       const likeTerm = `%${escapeLike(parsed.freeText)}%`;
-      conditions.push(`(
-        e.subject LIKE ? ESCAPE '\\'
-        OR e.from_name LIKE ? ESCAPE '\\'
-        OR e.from_address LIKE ? ESCAPE '\\'
-        OR e.body_text LIKE ? ESCAPE '\\'
+      conditions.push(sql`(
+        e.subject ILIKE ${likeTerm}
+        OR e.from_name ILIKE ${likeTerm}
+        OR e.from_address ILIKE ${likeTerm}
+        OR e.body_text ILIKE ${likeTerm}
       )`);
-      params.push(likeTerm, likeTerm, likeTerm, likeTerm);
     }
   }
 
-  // Execute the email query to get candidate thread IDs
-  const whereClause = conditions.join(' AND ');
-  const candidateRows = rawDb.prepare(`
+  // Execute the email query to get candidate thread IDs using Drizzle
+  const whereClause = conditions.length > 0
+    ? sql.join(conditions, sql` AND `)
+    : sql`true`;
+
+  const candidateRows = await db.execute(sql`
     SELECT DISTINCT e.thread_id
     FROM emails e
     WHERE ${whereClause}
     LIMIT 500
-  `).all(...params) as Array<{ thread_id: string }>;
+  `) as { rows: Array<{ thread_id: string }> };
 
-  let threadIds = candidateRows.map((r) => r.thread_id);
+  let threadIds = (candidateRows.rows || []).map((r: any) => r.thread_id);
 
   // Intersect with FTS results if we had free text
   if (ftsThreadIds) {
-    threadIds = threadIds.filter((id) => ftsThreadIds!.has(id));
+    threadIds = threadIds.filter((id: string) => ftsThreadIds!.has(id));
   }
 
   if (threadIds.length === 0) return [];
@@ -270,79 +260,74 @@ async function fetchThreadsWithFilters(
   limit: number,
   offset: number,
 ) {
-  // Build thread-level WHERE conditions
-  const threadConditions: string[] = [];
-  const threadParams: unknown[] = [];
+  const conditions: ReturnType<typeof sql>[] = [];
 
-  threadConditions.push('t.account_id = ?');
-  threadParams.push(accountId);
+  conditions.push(sql`t.account_id = ${accountId}`);
+  conditions.push(sql`t.id = ANY(${threadIds}::uuid[])`);
 
-  // Scope to the candidate thread IDs
-  const placeholders = threadIds.map(() => '?').join(', ');
-  threadConditions.push(`t.id IN (${placeholders})`);
-  threadParams.push(...threadIds);
-
-  // has:attachment — filter at thread level
+  // has:attachment
   if (parsed.hasAttachment) {
-    threadConditions.push('t.has_attachments = 1');
+    conditions.push(sql`t.has_attachments = true`);
   }
 
-  // is:starred — filter at thread level
+  // is:starred
   if (parsed.isFilter === 'starred') {
-    threadConditions.push('t.is_starred = 1');
+    conditions.push(sql`t.is_starred = true`);
   }
 
-  // in:inbox — not archived, not trashed, not spam
+  // in:inbox
   if (parsed.inMailbox === 'inbox') {
-    threadConditions.push('t.is_archived = 0 AND t.is_trashed = 0 AND t.is_spam = 0');
+    conditions.push(sql`t.is_archived = false AND t.is_trashed = false AND t.is_spam = false`);
   }
 
   // in:archive
   if (parsed.inMailbox === 'archive') {
-    threadConditions.push('t.is_archived = 1');
+    conditions.push(sql`t.is_archived = true`);
   }
 
   // in:trash
   if (parsed.inMailbox === 'trash') {
-    threadConditions.push('t.is_trashed = 1');
+    conditions.push(sql`t.is_trashed = true`);
   }
 
   // in:spam
   if (parsed.inMailbox === 'spam') {
-    threadConditions.push('t.is_spam = 1');
+    conditions.push(sql`t.is_spam = true`);
   }
 
   // in:starred
   if (parsed.inMailbox === 'starred') {
-    threadConditions.push('t.is_starred = 1');
+    conditions.push(sql`t.is_starred = true`);
   }
 
-  const threadWhere = threadConditions.join(' AND ');
-  const threadRows = rawDb.prepare(`
-    SELECT *
-    FROM threads t
-    WHERE ${threadWhere}
-    ORDER BY t."lastMessageAt" DESC
-    LIMIT ? OFFSET ?
-  `).all(...threadParams, limit, offset) as any[];
+  const whereClause = sql.join(conditions, sql` AND `);
 
+  const threadResult = await db.execute(sql`
+    SELECT t.*
+    FROM threads t
+    WHERE ${whereClause}
+    ORDER BY t.last_message_at DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `) as { rows: any[] };
+
+  const threadRows = threadResult.rows || [];
   if (threadRows.length === 0) return [];
 
-  // Attach sender info (from the first email in each thread)
+  // Attach sender info
   const resultThreadIds = threadRows.map((t: any) => t.id);
-  const senderPlaceholders = resultThreadIds.map(() => '?').join(', ');
-  const firstEmailRows = rawDb.prepare(`
+
+  const senderResult = await db.execute(sql`
     SELECT e.thread_id, e.from_address, e.from_name
     FROM emails e
-    WHERE e.account_id = ?
-      AND e.thread_id IN (${senderPlaceholders})
-      AND e."internalDate" = (
-        SELECT MIN(e2."internalDate") FROM emails e2 WHERE e2.thread_id = e.thread_id
+    WHERE e.account_id = ${accountId}
+      AND e.thread_id = ANY(${resultThreadIds}::uuid[])
+      AND e.internal_date = (
+        SELECT MIN(e2.internal_date) FROM emails e2 WHERE e2.thread_id = e.thread_id
       )
-  `).all(accountId, ...resultThreadIds) as Array<{ thread_id: string; from_address: string; from_name: string | null }>;
+  `) as { rows: Array<{ thread_id: string; from_address: string; from_name: string | null }> };
 
   const senderByThread = new Map(
-    firstEmailRows.map((e) => [e.thread_id, { fromAddress: e.from_address, fromName: e.from_name }]),
+    (senderResult.rows || []).map((e: any) => [e.thread_id, { fromAddress: e.from_address, fromName: e.from_name }]),
   );
 
   return threadRows.map((t: any) => {
@@ -355,7 +340,7 @@ async function fetchThreadsWithFilters(
   });
 }
 
-/** Map raw SQLite row to the shape expected by the client */
+/** Map raw PG row to the shape expected by the client */
 function mapRawThread(row: any) {
   return {
     id: row.id,
@@ -365,62 +350,49 @@ function mapRawThread(row: any) {
     snippet: row.snippet,
     messageCount: row.message_count,
     unreadCount: row.unread_count,
-    hasAttachments: !!row.has_attachments,
-    lastMessageAt: row.lastMessageAt,
+    hasAttachments: row.has_attachments,
+    lastMessageAt: row.last_message_at,
     category: row.category,
-    labels: typeof row.labels === 'string' ? JSON.parse(row.labels) : row.labels,
-    isStarred: !!row.is_starred,
-    isArchived: !!row.is_archived,
-    isTrashed: !!row.is_trashed,
-    isSpam: !!row.is_spam,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    labels: row.labels,
+    isStarred: row.is_starred,
+    isArchived: row.is_archived,
+    isTrashed: row.is_trashed,
+    isSpam: row.is_spam,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
 // ---------------------------------------------------------------------------
-// FTS5-powered search (pure free-text only)
+// tsvector-powered search (pure free-text only)
 // ---------------------------------------------------------------------------
 
 async function searchViaFTS(accountId: string, query: string, limit: number, offset: number) {
-  const sanitized = sanitizeFTSQuery(query);
-  if (!sanitized) return [];
+  if (!query.trim()) return [];
 
   try {
-    const matchedEmails = rawDb.prepare(`
-      SELECT DISTINCT e.thread_id
-      FROM email_fts
-      JOIN email_fts_map m ON m.fts_rowid = email_fts.rowid
-      JOIN emails e ON e.id = m.email_id
-      WHERE email_fts MATCH ?
-        AND e.account_id = ?
-      ORDER BY email_fts.rank
-      LIMIT 500
-    `).all(sanitized, accountId) as Array<{ thread_id: string }>;
+    const matchedEmails = await db
+      .selectDistinct({ threadId: emails.threadId })
+      .from(emails)
+      .where(
+        and(
+          eq(emails.accountId, accountId),
+          sql`${emails.searchVector} @@ websearch_to_tsquery('english', ${query})`,
+        ),
+      )
+      .limit(500);
 
     if (matchedEmails.length === 0) return [];
 
-    const threadIds = matchedEmails.map((r) => r.thread_id);
+    const threadIds = matchedEmails.map((r) => r.threadId);
     return fetchThreadsWithSenders(accountId, threadIds, limit, offset);
   } catch {
     return [];
   }
 }
 
-function sanitizeFTSQuery(query: string): string {
-  const cleaned = query
-    .replace(/[*"():^{}<>]/g, ' ')
-    .replace(/\b(AND|OR|NOT|NEAR)\b/gi, ' ')
-    .trim();
-
-  if (!cleaned) return '';
-
-  const terms = cleaned.split(/\s+/).filter(Boolean);
-  return terms.map((t) => `"${t}"`).join(' ');
-}
-
 // ---------------------------------------------------------------------------
-// LIKE fallback (for emails not yet indexed in FTS5)
+// ILIKE fallback (for emails not yet indexed or FTS parse error)
 // ---------------------------------------------------------------------------
 
 async function searchViaLike(accountId: string, query: string, limit: number, offset: number) {
@@ -433,10 +405,10 @@ async function searchViaLike(accountId: string, query: string, limit: number, of
       and(
         eq(emails.accountId, accountId),
         sql`(
-          ${emails.subject} LIKE ${likeTerm} ESCAPE '\\'
-          OR ${emails.fromName} LIKE ${likeTerm} ESCAPE '\\'
-          OR ${emails.fromAddress} LIKE ${likeTerm} ESCAPE '\\'
-          OR ${emails.bodyText} LIKE ${likeTerm} ESCAPE '\\'
+          ${emails.subject} ILIKE ${likeTerm}
+          OR ${emails.fromName} ILIKE ${likeTerm}
+          OR ${emails.fromAddress} ILIKE ${likeTerm}
+          OR ${emails.bodyText} ILIKE ${likeTerm}
         )`,
       ),
     )
@@ -463,7 +435,7 @@ async function fetchThreadsWithSenders(accountId: string, threadIds: string[], l
     .where(
       and(
         eq(threads.accountId, accountId),
-        sql`${threads.id} IN (${sql.join(threadIds.map((id) => sql`${id}`), sql`, `)})`,
+        sql`${threads.id} = ANY(${threadIds}::uuid[])`,
       ),
     )
     .orderBy(sql`${threads.lastMessageAt} DESC`)
@@ -484,9 +456,9 @@ async function fetchThreadsWithSenders(accountId: string, threadIds: string[], l
     .where(
       and(
         eq(emails.accountId, accountId),
-        sql`${emails.threadId} IN (${sql.join(resultThreadIds.map((id) => sql`${id}`), sql`, `)})`,
+        sql`${emails.threadId} = ANY(${resultThreadIds}::uuid[])`,
         sql`${emails.internalDate} = (
-          SELECT MIN(e2."internalDate") FROM emails e2 WHERE e2.thread_id = ${emails.threadId}
+          SELECT MIN(e2.internal_date) FROM emails e2 WHERE e2.thread_id = ${emails.threadId}
         )`,
       ),
     );

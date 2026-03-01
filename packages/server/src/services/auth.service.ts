@@ -30,12 +30,12 @@ export async function findOrCreateAccount(
   const existing = await db.select().from(accounts).where(eq(accounts.email, userInfo.email)).limit(1);
 
   if (existing.length > 0) {
-    const updates: Record<string, string> = {
+    const updates: Record<string, any> = {
       name: userInfo.name,
       pictureUrl: userInfo.picture,
       accessToken: encrypt(tokens.access_token),
-      tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000).toISOString(),
-      updatedAt: new Date().toISOString(),
+      tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000),
+      updatedAt: new Date(),
     };
     // Only overwrite refresh token if Google returned a new one — re-auth
     // flows with prompt=consent always do, but silent re-auth may not.
@@ -61,7 +61,7 @@ export async function findOrCreateAccount(
   let userId = existingUserId;
   if (!userId) {
     // Create a new user for this account
-    const now = new Date().toISOString();
+    const now = new Date();
     const [user] = await db.insert(users).values({
       createdAt: now,
       updatedAt: now,
@@ -78,7 +78,7 @@ export async function findOrCreateAccount(
     providerId: userInfo.id,
     accessToken: encrypt(tokens.access_token),
     refreshToken: encrypt(tokens.refresh_token),
-    tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000).toISOString(),
+    tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000),
   }).returning();
 
   await db.insert(userSettings).values({ accountId: account.id });
@@ -109,7 +109,7 @@ export async function createPasswordAccount(opts: {
   passwordHash: string;
   userId?: string;
 }): Promise<{ user: typeof users.$inferSelect; account: typeof accounts.$inferSelect }> {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   let userId = opts.userId;
   let user: typeof users.$inferSelect;
@@ -140,7 +140,7 @@ export async function createPasswordAccount(opts: {
     passwordHash: opts.passwordHash,
     accessToken: encrypt('password-placeholder'),
     refreshToken: encrypt('password-placeholder'),
-    tokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    tokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
   }).returning();
 
   await db.insert(userSettings).values({ accountId: account.id });

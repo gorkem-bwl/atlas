@@ -1,11 +1,10 @@
 import { eq, and } from 'drizzle-orm';
-import { getPlatformDb } from '../../config/platform-database';
-import { tenants, tenantMembers } from '../../db/schema-platform';
+import { db } from '../../config/database';
+import { tenants, tenantMembers } from '../../db/schema';
 import { logger } from '../../utils/logger';
 import type { CreateTenantInput, TenantPlan } from '@atlasmail/shared';
 
 export async function createTenant(input: CreateTenantInput, ownerId: string) {
-  const db = getPlatformDb();
   const k8sNamespace = `tenant-${input.slug}`;
 
   const [tenant] = await db.insert(tenants).values({
@@ -28,19 +27,16 @@ export async function createTenant(input: CreateTenantInput, ownerId: string) {
 }
 
 export async function getTenantById(id: string) {
-  const db = getPlatformDb();
   const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
   return tenant ?? null;
 }
 
 export async function getTenantBySlug(slug: string) {
-  const db = getPlatformDb();
   const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, slug)).limit(1);
   return tenant ?? null;
 }
 
 export async function listTenantsForUser(userId: string) {
-  const db = getPlatformDb();
   const memberships = await db
     .select({
       tenant: tenants,
@@ -54,7 +50,6 @@ export async function listTenantsForUser(userId: string) {
 }
 
 export async function getTenantMembership(tenantId: string, userId: string) {
-  const db = getPlatformDb();
   const [membership] = await db
     .select()
     .from(tenantMembers)
@@ -64,12 +59,10 @@ export async function getTenantMembership(tenantId: string, userId: string) {
 }
 
 export async function addTenantMember(tenantId: string, userId: string, role: string) {
-  const db = getPlatformDb();
   await db.insert(tenantMembers).values({ tenantId, userId, role }).onConflictDoNothing();
 }
 
 export async function updateTenantPlan(tenantId: string, plan: TenantPlan) {
-  const db = getPlatformDb();
   const [updated] = await db
     .update(tenants)
     .set({ plan, updatedAt: new Date() })

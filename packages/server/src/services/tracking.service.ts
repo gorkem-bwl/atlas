@@ -101,8 +101,8 @@ export async function recordOpenEvent(
     await db.update(emailTracking)
       .set({
         openCount: sql`${emailTracking.openCount} + 1`,
-        firstOpenedAt: sql`COALESCE(${emailTracking.firstOpenedAt}, ${new Date().toISOString()})`,
-        lastOpenedAt: new Date().toISOString(),
+        firstOpenedAt: sql`COALESCE(${emailTracking.firstOpenedAt}, ${new Date()})`,
+        lastOpenedAt: new Date(),
       })
       .where(eq(emailTracking.trackingId, trackingId));
   } catch (error) {
@@ -176,16 +176,16 @@ export async function getThreadTrackingStats(
       recipientAddress: r.recipientAddress,
       openCount: r.openCount,
       clickCount: r.clickCount,
-      firstOpenedAt: r.firstOpenedAt ?? null,
-      lastOpenedAt: r.lastOpenedAt ?? null,
-      createdAt: r.createdAt,
+      firstOpenedAt: r.firstOpenedAt?.toISOString() ?? null,
+      lastOpenedAt: r.lastOpenedAt?.toISOString() ?? null,
+      createdAt: r.createdAt.toISOString(),
     })),
     events: events.map((e) => ({
       id: e.id,
       trackingId: e.trackingId,
       eventType: e.eventType as 'open' | 'click',
       linkUrl: e.linkUrl,
-      createdAt: e.createdAt,
+      createdAt: e.createdAt.toISOString(),
     })),
   };
 }

@@ -47,10 +47,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 
 # Install production dependencies only
-# better-sqlite3 requires native compilation, so build tools are needed
-RUN apk add --no-cache python3 make g++ && \
-    npm ci --legacy-peer-deps --omit=dev && \
-    apk del python3 make g++
+RUN npm ci --legacy-peer-deps --omit=dev
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/shared/dist packages/shared/dist

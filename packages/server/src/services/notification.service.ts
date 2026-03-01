@@ -31,7 +31,7 @@ export async function createNotification(userId: string, accountId: string, data
     userId, accountId,
     type: data.type, title: data.title, body: data.body ?? null,
     sourceType: data.sourceType ?? null, sourceId: data.sourceId ?? null,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   }).returning();
   return created;
 }
@@ -40,7 +40,7 @@ export async function subscribePush(userId: string, endpoint: string, p256dh: st
   // Remove existing subscription for this endpoint
   await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.userId, userId), eq(pushSubscriptions.endpoint, endpoint)));
   const [sub] = await db.insert(pushSubscriptions).values({
-    userId, endpoint, p256dh, auth, createdAt: new Date().toISOString(),
+    userId, endpoint, p256dh, auth, createdAt: new Date(),
   }).returning();
   return sub;
 }

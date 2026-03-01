@@ -95,7 +95,7 @@ export async function seedSampleDocuments(userId: string, accountId: string) {
   // Delete any leftover empty "Untitled" docs so we can start fresh
   await db.delete(documents).where(eq(documents.userId, userId));
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const c = (html: string) => ({ _html: html });
 
   // Cover image URLs (Unsplash, landscape-oriented)
@@ -565,7 +565,7 @@ export async function getDocument(userId: string, documentId: string) {
 // ─── Create a new document ───────────────────────────────────────────
 
 export async function createDocument(userId: string, accountId: string, input: CreateDocumentInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Determine the next sort order within the target parent
   const [maxSort] = await db
@@ -608,7 +608,7 @@ export async function updateDocument(
   documentId: string,
   input: UpdateDocumentInput,
 ) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -653,7 +653,7 @@ async function archiveDescendants(userId: string, parentId: string, isArchived: 
   for (const child of children) {
     await db
       .update(documents)
-      .set({ isArchived, updatedAt: new Date().toISOString() })
+      .set({ isArchived, updatedAt: new Date() })
       .where(eq(documents.id, child.id));
     await archiveDescendants(userId, child.id, isArchived);
   }
@@ -666,7 +666,7 @@ export async function moveDocument(
   documentId: string,
   input: MoveDocumentInput,
 ) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Prevent a document from being moved under itself (circular reference)
   if (input.parentId) {
@@ -731,7 +731,7 @@ export async function deleteDocument(userId: string, documentId: string) {
 // ─── Restore an archived document ────────────────────────────────────
 
 export async function restoreDocument(userId: string, documentId: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   await db
     .update(documents)
@@ -791,7 +791,7 @@ export async function createVersion(userId: string, documentId: string) {
       userId,
       title: doc.title,
       content: doc.content,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     })
     .returning();
 
@@ -865,7 +865,7 @@ export async function listComments(userId: string, documentId: string) {
 export async function createComment(userId: string, accountId: string, documentId: string, input: {
   content: string; selectionFrom?: number; selectionTo?: number; selectionText?: string; parentId?: string;
 }) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const [created] = await db.insert(documentComments).values({
     documentId, userId, accountId,
     content: input.content,
@@ -878,7 +878,7 @@ export async function createComment(userId: string, accountId: string, documentI
 }
 
 export async function updateComment(userId: string, commentId: string, data: { content?: string; isResolved?: boolean }) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
   if (data.content !== undefined) updates.content = data.content;
   if (data.isResolved !== undefined) updates.isResolved = data.isResolved;
@@ -921,7 +921,7 @@ export async function syncDocumentLinks(userId: string, docId: string, content: 
   walk(content);
 
   // Insert links
-  const now = new Date().toISOString();
+  const now = new Date();
   for (const targetId of mentionedIds) {
     if (targetId === docId) continue; // Skip self-references
     try {

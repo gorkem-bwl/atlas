@@ -133,7 +133,7 @@ export async function register(req: Request, res: Response) {
     }
 
     // Check slug uniqueness BEFORE creating user to avoid orphan rows
-    if (env.DATABASE_PLATFORM_URL) {
+    if (env.OIDC_SIGNING_KEY) {
       const existingTenant = await tenantService.getTenantBySlug(companySlug);
       if (existingTenant) {
         res.status(409).json({ success: false, error: 'Company slug already taken' });
@@ -149,7 +149,7 @@ export async function register(req: Request, res: Response) {
     let tenant = null;
     let tenantId: string | undefined;
     try {
-      if (env.DATABASE_PLATFORM_URL) {
+      if (env.OIDC_SIGNING_KEY) {
         tenant = await tenantService.createTenant({ slug: companySlug, name: companyName }, user.id);
         tenantId = tenant.id;
       }
@@ -222,14 +222,14 @@ export async function loginWithPassword(req: Request, res: Response) {
     // Look up tenant membership
     let tenantId: string | undefined;
     try {
-      if (env.DATABASE_PLATFORM_URL) {
+      if (env.OIDC_SIGNING_KEY) {
         const tenants = await tenantService.listTenantsForUser(account.userId);
         if (tenants.length > 0) {
           tenantId = tenants[0].id;
         }
       }
     } catch {
-      // Platform DB may not be configured — proceed without tenantId
+      // Platform features may not be configured — proceed without tenantId
     }
 
     const jwtTokens = authService.generateTokens(account, tenantId);
@@ -290,14 +290,14 @@ export async function refreshToken(req: Request, res: Response) {
     // Include tenantId in refreshed tokens
     let tenantId: string | undefined;
     try {
-      if (env.DATABASE_PLATFORM_URL) {
+      if (env.OIDC_SIGNING_KEY) {
         const tenants = await tenantService.listTenantsForUser(userId);
         if (tenants.length > 0) {
           tenantId = tenants[0].id;
         }
       }
     } catch {
-      // Platform DB may not be configured
+      // Platform features may not be configured
     }
 
     const newTokens = authService.generateTokens({
@@ -517,7 +517,7 @@ export async function createLocalUser(req: Request, res: Response) {
       }
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Create user
     const [user] = await db.insert(users).values({
@@ -539,7 +539,7 @@ export async function createLocalUser(req: Request, res: Response) {
       providerId: stableId,
       accessToken: encrypt('local-placeholder'),
       refreshToken: encrypt('local-placeholder'),
-      tokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      tokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     }).returning();
 
     // Create default user settings (same as Google flow)
@@ -595,7 +595,7 @@ export async function forgotPassword(req: Request, res: Response) {
 
     // Generate reset token
     const token = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await db.insert(passwordResetTokens).values({
       accountId: account.id,
@@ -654,7 +654,7 @@ export async function resetPassword(req: Request, res: Response) {
     await db.update(accounts).set({ passwordHash: newHash }).where(eq(accounts.id, resetRecord.accountId));
 
     // Mark token as used
-    await db.update(passwordResetTokens).set({ usedAt: new Date().toISOString() }).where(eq(passwordResetTokens.id, resetRecord.id));
+    await db.update(passwordResetTokens).set({ usedAt: new Date() }).where(eq(passwordResetTokens.id, resetRecord.id));
 
     res.json({ success: true, message: 'Password has been reset successfully' });
   } catch (error) {

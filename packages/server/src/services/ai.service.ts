@@ -93,7 +93,7 @@ interface EmailForSummary {
   fromName: string | null;
   fromAddress: string;
   bodyText: string | null;
-  receivedAt: string | null;
+  receivedAt: string | Date | null;
 }
 
 export async function summarizeThread(

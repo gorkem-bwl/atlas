@@ -1,9 +1,7 @@
 import { eq, and, inArray } from 'drizzle-orm';
 import crypto from 'node:crypto';
-import { getPlatformDb } from '../../config/platform-database';
-import { tenantMembers, tenantInvitations } from '../../db/schema-platform';
 import { db } from '../../config/database';
-import { accounts } from '../../db/schema';
+import { tenantMembers, tenantInvitations, accounts } from '../../db/schema';
 import { hashPassword } from '../../utils/password';
 import * as authService from '../auth.service';
 import { logger } from '../../utils/logger';
@@ -22,8 +20,7 @@ export async function createTenantUser(
     passwordHash,
   });
 
-  const platformDb = getPlatformDb();
-  await platformDb.insert(tenantMembers).values({
+  await db.insert(tenantMembers).values({
     tenantId,
     userId: user.id,
     role: input.role ?? 'member',
@@ -41,17 +38,15 @@ export async function createTenantUser(
 }
 
 export async function listTenantUsers(tenantId: string) {
-  const platformDb = getPlatformDb();
-
-  // Get all members from PostgreSQL
-  const members = await platformDb
+  // Get all members
+  const members = await db
     .select()
     .from(tenantMembers)
     .where(eq(tenantMembers.tenantId, tenantId));
 
   if (members.length === 0) return [];
 
-  // Batch-query SQLite accounts for user details using inArray
+  // Batch-query accounts for user details using inArray
   const userIds = members.map((m) => m.userId);
   const userAccounts = await db
     .select({
@@ -81,27 +76,24 @@ export async function listTenantUsers(tenantId: string) {
 }
 
 export async function removeTenantUser(tenantId: string, userId: string) {
-  const platformDb = getPlatformDb();
-  const result = await platformDb
+  const result = await db
     .delete(tenantMembers)
     .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)));
   return result;
 }
 
 export async function updateTenantUserRole(tenantId: string, userId: string, role: TenantMemberRole) {
-  const platformDb = getPlatformDb();
-  await platformDb
+  await db
     .update(tenantMembers)
     .set({ role })
     .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)));
 }
 
 export async function inviteUser(tenantId: string, email: string, role: TenantMemberRole, invitedBy: string) {
-  const platformDb = getPlatformDb();
   const token = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-  const [invitation] = await platformDb.insert(tenantInvitations).values({
+  const [invitation] = await db.insert(tenantInvitations).values({
     tenantId,
     email,
     role,
@@ -128,8 +120,7 @@ export async function inviteUser(tenantId: string, email: string, role: TenantMe
 }
 
 export async function getInvitation(token: string) {
-  const platformDb = getPlatformDb();
-  const [invitation] = await platformDb
+  const [invitation] = await db
     .select()
     .from(tenantInvitations)
     .where(eq(tenantInvitations.token, token))
@@ -138,9 +129,7 @@ export async function getInvitation(token: string) {
 }
 
 export async function acceptInvitation(token: string, input: { name: string; password: string }) {
-  const platformDb = getPlatformDb();
-
-  const [invitation] = await platformDb
+  const [invitation] = await db
     .select()
     .from(tenantInvitations)
     .where(eq(tenantInvitations.token, token))
@@ -159,14 +148,14 @@ export async function acceptInvitation(token: string, input: { name: string; pas
   });
 
   // Add to tenant
-  await platformDb.insert(tenantMembers).values({
+  await db.insert(tenantMembers).values({
     tenantId: invitation.tenantId,
     userId: user.id,
     role: invitation.role,
   });
 
   // Mark invitation as accepted
-  await platformDb
+  await db
     .update(tenantInvitations)
     .set({ acceptedAt: new Date() })
     .where(eq(tenantInvitations.id, invitation.id));

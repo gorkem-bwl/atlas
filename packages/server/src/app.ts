@@ -46,7 +46,7 @@ export function createApp() {
         rss: Math.round(memUsage.rss / 1024 / 1024),
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
       },
-      platform: !!env.DATABASE_PLATFORM_URL,
+      platform: !!env.OIDC_SIGNING_KEY,
       version: process.env.npm_package_version ?? '0.0.0',
     });
   });

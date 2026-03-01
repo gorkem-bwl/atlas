@@ -6,7 +6,8 @@ import { startSyncScheduler, stopSyncScheduler } from './jobs/sync-scheduler';
 import { purgeOldArchivedDrawings } from './services/drawing.service';
 import { runScheduledBackup } from './services/backup.service';
 import { startAppInstallWorker, startAppHealthWorker, startAppBackupWorker, startHealthCheckScheduler, stopPlatformWorkers } from './jobs/app-install.worker';
-import { migratePlatformSchema, closePlatformDb } from './config/platform-database';
+import { runMigrations } from './db/migrate';
+import { closeDb } from './config/database';
 import { seedCatalogFromManifests } from './services/platform/catalog.service';
 import { getTenantBySlug, createTenant } from './services/platform/tenant.service';
 
@@ -27,14 +28,17 @@ app.listen(env.PORT, async () => {
     logger.info('Email sync worker and scheduler started');
   }
 
-  // Platform: run PostgreSQL migrations + start platform workers
-  if (env.DATABASE_PLATFORM_URL) {
-    if (!env.OIDC_SIGNING_KEY) {
-      logger.error('OIDC_SIGNING_KEY is required when platform features are enabled (DATABASE_PLATFORM_URL is set)');
-      process.exit(1);
-    }
+  // Run database migrations (unified PostgreSQL)
+  try {
+    await runMigrations();
+  } catch (err) {
+    logger.error({ err }, 'Database migration failed');
+    process.exit(1);
+  }
+
+  // Platform workers (require OIDC_SIGNING_KEY)
+  if (env.OIDC_SIGNING_KEY) {
     try {
-      await migratePlatformSchema();
       await seedCatalogFromManifests();
       startAppInstallWorker();
       startAppHealthWorker();
@@ -45,7 +49,6 @@ app.listen(env.PORT, async () => {
       if (env.PLATFORM_RUNTIME === 'docker') {
         const existing = await getTenantBySlug('dev');
         if (!existing) {
-          // Use a placeholder owner ID — the first user to log in can be mapped
           const devOwnerId = '00000000-0000-0000-0000-000000000000';
           await createTenant({ slug: 'dev', name: 'Dev Tenant', plan: 'enterprise' }, devOwnerId);
           logger.info('Auto-created dev tenant for Docker runtime');
@@ -57,7 +60,7 @@ app.listen(env.PORT, async () => {
       logger.error({ err }, 'Platform initialization failed — platform features will be unavailable');
     }
   } else {
-    logger.info('DATABASE_PLATFORM_URL not set — platform marketplace features disabled');
+    logger.info('OIDC_SIGNING_KEY not set — platform marketplace features disabled');
   }
 
   // Auto-purge archived drawings older than 30 days (runs every hour)
@@ -70,7 +73,7 @@ app.listen(env.PORT, async () => {
   // Run once on startup after a short delay
   setTimeout(() => purgeOldArchivedDrawings().catch(() => {}), 5000);
 
-  // Automated database backups — daily (SQLite + PostgreSQL)
+  // Automated database backups — daily (PostgreSQL)
   backupTimer = setInterval(() => {
     runScheduledBackup().catch((err) => {
       logger.error({ err }, 'Scheduled backup failed');
@@ -93,7 +96,7 @@ function handleShutdown(signal: string) {
   Promise.all([
     stopSyncWorker(),
     stopPlatformWorkers(),
-    closePlatformDb(),
+    closeDb(),
   ])
     .then(() => {
       logger.info('All workers stopped');

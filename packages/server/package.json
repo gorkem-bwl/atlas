@@ -30,7 +30,7 @@
     "ai": "^6.0.99",
     "archiver": "^7.0.1",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.0.0",
+
     "bullmq": "^5.25.0",
     "cors": "^2.8.0",
     "date-fns": "^4.1.0",
@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^7.6.0",
+
     "@types/cors": "^2.8.0",
     "@types/dockerode": "^4.0.1",
     "@types/express": "^5.0.0",

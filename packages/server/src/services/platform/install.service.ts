@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import crypto from 'node:crypto';
-import { getPlatformDb } from '../../config/platform-database';
-import { appInstallations, appBackups } from '../../db/schema-platform';
+import { db } from '../../config/database';
+import { appInstallations, appBackups } from '../../db/schema';
 import { getCatalogAppById } from './catalog.service';
 import { getTenantById } from './tenant.service';
 import { provisionAddons, deprovisionAddons } from './addon.service';
@@ -17,7 +17,7 @@ import type { AtlasManifest, InstallAppInput } from '@atlasmail/shared';
  * Steps: provision DB → create K8s resources → register OIDC → poll health.
  */
 export async function installApp(tenantId: string, input: InstallAppInput) {
-  const db = getPlatformDb();
+
   const catalogApp = await getCatalogAppById(input.catalogAppId);
   if (!catalogApp) throw new Error(`Catalog app ${input.catalogAppId} not found`);
 
@@ -184,19 +184,19 @@ export async function installApp(tenantId: string, input: InstallAppInput) {
 }
 
 export async function getInstallation(installationId: string) {
-  const db = getPlatformDb();
+
   const [inst] = await db.select().from(appInstallations).where(eq(appInstallations.id, installationId)).limit(1);
   return inst ?? null;
 }
 
 export async function listRunningInstallationIds(): Promise<string[]> {
-  const db = getPlatformDb();
+
   const rows = await db.select({ id: appInstallations.id }).from(appInstallations).where(eq(appInstallations.status, 'running'));
   return rows.map((r) => r.id);
 }
 
 export async function listInstallations(tenantId: string) {
-  const db = getPlatformDb();
+
   return db.select().from(appInstallations).where(eq(appInstallations.tenantId, tenantId));
 }
 
@@ -212,7 +212,7 @@ export async function startApp(installationId: string) {
     await scaleDeployment(tenant.k8sNamespace, inst.k8sDeploymentName, 1);
   }
 
-  const db = getPlatformDb();
+
   await db.update(appInstallations).set({ status: 'running', updatedAt: new Date() }).where(eq(appInstallations.id, installationId));
 }
 
@@ -228,7 +228,7 @@ export async function stopApp(installationId: string) {
     await scaleDeployment(tenant.k8sNamespace, inst.k8sDeploymentName, 0);
   }
 
-  const db = getPlatformDb();
+
   await db.update(appInstallations).set({ status: 'stopped', updatedAt: new Date() }).where(eq(appInstallations.id, installationId));
 }
 
@@ -246,7 +246,7 @@ export async function restartApp(installationId: string) {
 }
 
 export async function uninstallApp(installationId: string) {
-  const db = getPlatformDb();
+
   const inst = await getInstallation(installationId);
   if (!inst) throw new Error('Installation not found');
 
@@ -308,7 +308,7 @@ export async function uninstallApp(installationId: string) {
 }
 
 export async function updateHealthStatus(installationId: string) {
-  const db = getPlatformDb();
+
   const inst = await getInstallation(installationId);
   if (!inst || !inst.k8sDeploymentName || inst.status !== 'running') return;
 
@@ -329,7 +329,7 @@ export async function updateHealthStatus(installationId: string) {
 }
 
 export async function createBackupRecord(installationId: string, triggeredBy: string) {
-  const db = getPlatformDb();
+
   const [backup] = await db.insert(appBackups).values({
     installationId,
     triggeredBy,
@@ -339,7 +339,7 @@ export async function createBackupRecord(installationId: string, triggeredBy: st
 }
 
 export async function listBackups(installationId: string) {
-  const db = getPlatformDb();
+
   return db.select().from(appBackups).where(eq(appBackups.installationId, installationId));
 }
 

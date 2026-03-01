@@ -78,7 +78,7 @@ async function scheduleIncrementalSyncs() {
   // Also recover accounts stuck in 'error' state (transient failures) after
   // a cooldown period.  'auth_error' accounts are NOT retried — they need
   // the user to re-authenticate.
-  const cooldownThreshold = new Date(Date.now() - ERROR_RETRY_COOLDOWN_MS).toISOString();
+  const cooldownThreshold = new Date(Date.now() - ERROR_RETRY_COOLDOWN_MS);
   const erroredAccounts = await db
     .select({ id: accounts.id, email: accounts.email })
     .from(accounts)
@@ -97,7 +97,7 @@ async function scheduleIncrementalSyncs() {
     );
     await db
       .update(accounts)
-      .set({ syncStatus: 'idle', syncError: null, updatedAt: new Date().toISOString() })
+      .set({ syncStatus: 'idle', syncError: null, updatedAt: new Date() })
       .where(
         inArray(accounts.id, erroredAccounts.map((a) => a.id)),
       );
@@ -165,7 +165,7 @@ async function renewExpiringWatches() {
 
       await db
         .update(accounts)
-        .set({ watchExpiration: newExpiration, updatedAt: new Date().toISOString() })
+        .set({ watchExpiration: newExpiration, updatedAt: new Date() })
         .where(eq(accounts.id, account.id));
 
       logger.info({ accountId: account.id, newExpiration }, 'Renewed Gmail push watch');

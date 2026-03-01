@@ -1,6 +1,6 @@
 import { eq, and, inArray } from 'drizzle-orm';
-import { getPlatformDb } from '../../config/platform-database';
-import { appUserAssignments, appInstallations } from '../../db/schema-platform';
+import { db } from '../../config/database';
+import { appUserAssignments, appInstallations } from '../../db/schema';
 import { logger } from '../../utils/logger';
 import type { AppRole } from '@atlasmail/shared';
 
@@ -13,7 +13,7 @@ export async function assignUserToApp(
   appRole: AppRole,
   assignedBy: string,
 ) {
-  const db = getPlatformDb();
+
 
   const [existing] = await db
     .select()
@@ -47,7 +47,7 @@ export async function assignUserToApp(
  * Remove a user's assignment from an app installation.
  */
 export async function removeUserFromApp(installationId: string, userId: string) {
-  const db = getPlatformDb();
+
   const result = await db
     .delete(appUserAssignments)
     .where(and(
@@ -66,7 +66,7 @@ export async function removeUserFromApp(installationId: string, userId: string) 
  * Update a user's role for an app installation.
  */
 export async function updateAppRole(installationId: string, userId: string, newRole: AppRole) {
-  const db = getPlatformDb();
+
   const [updated] = await db
     .update(appUserAssignments)
     .set({ appRole: newRole, updatedAt: new Date() })
@@ -86,7 +86,7 @@ export async function updateAppRole(installationId: string, userId: string, newR
  * Get a single assignment (or null if user is not assigned).
  */
 export async function getAppAssignment(installationId: string, userId: string) {
-  const db = getPlatformDb();
+
   const [assignment] = await db
     .select()
     .from(appUserAssignments)
@@ -103,7 +103,7 @@ export async function getAppAssignment(installationId: string, userId: string) {
  * List all users assigned to an app installation.
  */
 export async function listAppAssignments(installationId: string) {
-  const db = getPlatformDb();
+
   return db
     .select()
     .from(appUserAssignments)
@@ -114,7 +114,7 @@ export async function listAppAssignments(installationId: string) {
  * List all app assignments for a user within a tenant.
  */
 export async function listUserAssignments(tenantId: string, userId: string) {
-  const db = getPlatformDb();
+
 
   // First get all installations for this tenant
   const installations = await db
@@ -156,7 +156,7 @@ export async function bulkAssignUsers(
  * Count assignments for an installation.
  */
 export async function countAppAssignments(installationId: string): Promise<number> {
-  const db = getPlatformDb();
+
   const rows = await db
     .select({ id: appUserAssignments.id })
     .from(appUserAssignments)

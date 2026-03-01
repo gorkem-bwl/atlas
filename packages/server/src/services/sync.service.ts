@@ -1,6 +1,6 @@
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { gzipSync, gunzipSync } from 'node:zlib';
-import { db, rawDb } from '../config/database';
+import { db } from '../config/database';
 import {
   accounts,
   threads,
@@ -52,8 +52,6 @@ function collectAddresses(
 function deriveThreadFlags(gmailLabels: string[]) {
   return {
     isStarred: gmailLabels.includes('STARRED'),
-    // isArchived is only set by user-initiated archive actions, not by sync.
-    // Gmail's lack of INBOX label doesn't mean the user archived it in Atlas.
     isArchived: false,
     isTrashed: gmailLabels.includes('TRASH'),
     isSpam: gmailLabels.includes('SPAM'),
@@ -80,62 +78,9 @@ export function decompressHtml(compressed: string | null): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// #3 — FTS5 index helpers (with mapping table for reliable rowid resolution)
+// FTS: PostgreSQL tsvector trigger handles indexing automatically.
+// No manual FTS index management needed.
 // ---------------------------------------------------------------------------
-
-// Create a mapping table: email UUID → integer FTS rowid
-rawDb.prepare(`
-  CREATE TABLE IF NOT EXISTS email_fts_map (
-    fts_rowid INTEGER PRIMARY KEY AUTOINCREMENT,
-    email_id TEXT NOT NULL UNIQUE
-  )
-`).run();
-
-const ftsMapInsert = rawDb.prepare(
-  `INSERT OR IGNORE INTO email_fts_map(email_id) VALUES (?)`,
-);
-const ftsMapLookup = rawDb.prepare(
-  `SELECT fts_rowid FROM email_fts_map WHERE email_id = ?`,
-);
-const ftsMapLookupByRowids = (rowids: number[]) => {
-  const placeholders = rowids.map(() => '?').join(',');
-  return rawDb.prepare(
-    `SELECT fts_rowid, email_id FROM email_fts_map WHERE fts_rowid IN (${placeholders})`,
-  ).all(...rowids) as Array<{ fts_rowid: number; email_id: string }>;
-};
-
-const ftsInsertStmt = rawDb.prepare(
-  `INSERT INTO email_fts(rowid, subject, body_text, from_address, from_name)
-   VALUES (?, ?, ?, ?, ?)`,
-);
-
-const ftsDeleteStmt = rawDb.prepare(
-  `INSERT INTO email_fts(email_fts, rowid, subject, body_text, from_address, from_name)
-   VALUES ('delete', ?, ?, ?, ?, ?)`,
-);
-
-function ftsIndexEmail(emailId: string, subject: string | null, bodyText: string | null, fromAddress: string, fromName: string | null) {
-  try {
-    // Ensure a mapping row exists and get the integer rowid
-    ftsMapInsert.run(emailId);
-    const row = ftsMapLookup.get(emailId) as { fts_rowid: number } | undefined;
-    if (!row) return;
-
-    // Delete old entry then re-insert (handles re-indexing with updated body)
-    try { ftsDeleteStmt.run(row.fts_rowid, subject || '', bodyText || '', fromAddress, fromName || ''); } catch { /* no prior entry */ }
-    ftsInsertStmt.run(row.fts_rowid, subject || '', bodyText || '', fromAddress, fromName || '');
-  } catch {
-    // FTS index error — non-fatal
-  }
-}
-
-function ftsDeleteEmail(emailId: string, subject: string | null, bodyText: string | null, fromAddress: string, fromName: string | null) {
-  try {
-    const row = ftsMapLookup.get(emailId) as { fts_rowid: number } | undefined;
-    if (!row) return;
-    ftsDeleteStmt.run(row.fts_rowid, subject || '', bodyText || '', fromAddress, fromName || '');
-  } catch { /* ignore */ }
-}
 
 /**
  * Fetch category rules and high-frequency contact emails for an account.
@@ -224,8 +169,8 @@ async function processMessages(
 
     const category = categorizeEmail(emailForCategorizer as any, rules, contactEmails);
     const flags = deriveThreadFlags(parsed.gmailLabels);
-    const now = new Date().toISOString();
-    const internalDateISO = new Date(parsed.internalDate).toISOString();
+    const now = new Date();
+    const internalDateISO = new Date(parsed.internalDate);
 
     // #9 — Compress HTML body before storing
     const compressedHtml = compressHtml(parsed.bodyHtml);
@@ -258,11 +203,10 @@ async function processMessages(
           hasAttachments: attachmentsList.length > 0
             ? true
             : sql`${threads.hasAttachments}`,
-          lastMessageAt: sql`MAX(${threads.lastMessageAt}, ${internalDateISO})`,
+          lastMessageAt: sql`GREATEST(${threads.lastMessageAt}, ${internalDateISO}::timestamptz)`,
           category,
           labels: parsed.gmailLabels,
           isStarred: flags.isStarred,
-          // Preserve isArchived — only user-initiated archive actions change it
           isTrashed: flags.isTrashed,
           isSpam: flags.isSpam,
           updatedAt: now,
@@ -274,6 +218,7 @@ async function processMessages(
     touchedThreadIds.add(threadId);
 
     // --- Upsert email (with compressed HTML) ---
+    // The PG trigger auto-populates search_vector on insert/update
     const [upsertedEmail] = await db
       .insert(emails)
       .values({
@@ -319,9 +264,6 @@ async function processMessages(
 
     const emailId = upsertedEmail.id;
 
-    // #3 — Index in FTS5
-    ftsIndexEmail(emailId, parsed.subject, parsed.bodyText, parsed.fromAddress, parsed.fromName);
-
     // --- Attachments ---
     if (attachmentsList.length > 0) {
       for (const att of attachmentsList) {
@@ -357,7 +299,7 @@ async function processMessages(
           set: {
             name: sql`COALESCE(${addr.name}, ${contacts.name})`,
             frequency: sql`${contacts.frequency} + 1`,
-            lastContacted: sql`MAX(${contacts.lastContacted}, ${internalDateISO})`,
+            lastContacted: sql`GREATEST(${contacts.lastContacted}, ${internalDateISO}::timestamptz)`,
           },
         });
     }
@@ -410,8 +352,8 @@ async function processMetadataMessages(
 
     const category = categorizeEmail(emailForCategorizer as any, rules, contactEmails);
     const flags = deriveThreadFlags(parsed.gmailLabels);
-    const now = new Date().toISOString();
-    const internalDateISO = new Date(parsed.internalDate).toISOString();
+    const now = new Date();
+    const internalDateISO = new Date(parsed.internalDate);
 
     const [upsertedThread] = await db
       .insert(threads)
@@ -437,11 +379,10 @@ async function processMetadataMessages(
         target: [threads.accountId, threads.gmailThreadId],
         set: {
           snippet: parsed.snippet,
-          lastMessageAt: sql`MAX(${threads.lastMessageAt}, ${internalDateISO})`,
+          lastMessageAt: sql`GREATEST(${threads.lastMessageAt}, ${internalDateISO}::timestamptz)`,
           category,
           labels: parsed.gmailLabels,
           isStarred: flags.isStarred,
-          // Preserve isArchived — only user-initiated archive actions change it
           isTrashed: flags.isTrashed,
           isSpam: flags.isSpam,
           updatedAt: now,
@@ -453,7 +394,8 @@ async function processMetadataMessages(
     touchedThreadIds.add(threadId);
 
     // Upsert email with NULL body — body fetched on-demand when thread is opened
-    const [upsertedEmail] = await db
+    // The PG trigger will index the available fields (subject, from) in search_vector
+    await db
       .insert(emails)
       .values({
         accountId,
@@ -491,14 +433,7 @@ async function processMetadataMessages(
           isDraft: parsed.isDraft,
           updatedAt: now,
         },
-      })
-      .returning({ id: emails.id });
-
-    // FTS index with just headers (body will be indexed when fetched on-demand)
-    const emailRow = upsertedEmail;
-    if (emailRow) {
-      ftsIndexEmail(emailRow.id, parsed.subject, null, parsed.fromAddress, parsed.fromName);
-    }
+      });
 
     // Contacts
     const addrs = collectAddresses(parsed);
@@ -517,7 +452,7 @@ async function processMetadataMessages(
           set: {
             name: sql`COALESCE(${addr.name}, ${contacts.name})`,
             frequency: sql`${contacts.frequency} + 1`,
-            lastContacted: sql`MAX(${contacts.lastContacted}, ${internalDateISO})`,
+            lastContacted: sql`GREATEST(${contacts.lastContacted}, ${internalDateISO}::timestamptz)`,
           },
         });
     }
@@ -537,7 +472,7 @@ export async function fullSync(accountId: string) {
   try {
     await db
       .update(accounts)
-      .set({ syncStatus: 'syncing', syncError: null, updatedAt: new Date().toISOString() })
+      .set({ syncStatus: 'syncing', syncError: null, updatedAt: new Date() })
       .where(eq(accounts.id, accountId));
 
     const { rules, contactEmails } = await loadCategorizationContext(accountId);
@@ -556,7 +491,6 @@ export async function fullSync(accountId: string) {
     log.info({ messageCount: allMessageIds.length }, 'Fetched all message IDs');
 
     // #2 — Metadata-first: fetch headers only during full sync (5-10x faster)
-    // Bodies are fetched on-demand when the user opens a thread.
     const BATCH_SIZE = 50;
     const allTouchedThreadIds = new Set<string>();
 
@@ -582,7 +516,7 @@ export async function fullSync(accountId: string) {
     const profile = await getProfile(accountId);
     const historyId = profile.historyId ? parseInt(profile.historyId, 10) : null;
 
-    const syncNow = new Date().toISOString();
+    const syncNow = new Date();
 
     // #1 — Register Gmail push notifications if Pub/Sub topic is configured
     let watchExpiration: number | null = null;
@@ -630,7 +564,7 @@ export async function fullSync(accountId: string) {
       .set({
         syncStatus: isAuthError ? 'auth_error' : 'error',
         syncError: err.message || 'Unknown error during full sync',
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(eq(accounts.id, accountId));
 
@@ -665,7 +599,7 @@ export async function incrementalSync(accountId: string) {
 
     await db
       .update(accounts)
-      .set({ syncStatus: 'syncing', syncError: null, updatedAt: new Date().toISOString() })
+      .set({ syncStatus: 'syncing', syncError: null, updatedAt: new Date() })
       .where(eq(accounts.id, accountId));
 
     const historyData = await getHistory(accountId, String(account.historyId));
@@ -679,9 +613,9 @@ export async function incrementalSync(accountId: string) {
         .update(accounts)
         .set({
           historyId: newHistoryId,
-          lastSync: new Date().toISOString(),
+          lastSync: new Date(),
           syncStatus: 'idle',
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(accounts.id, accountId));
 
@@ -750,7 +684,7 @@ export async function incrementalSync(accountId: string) {
     // --- #4 — Process label changes in batches (not one-by-one) ---
     if (labelChangedMessageIds.size > 0) {
       const ids = Array.from(labelChangedMessageIds);
-      const LABEL_BATCH_SIZE = 5; // 5 concurrent getMessage calls
+      const LABEL_BATCH_SIZE = 5;
 
       for (let i = 0; i < ids.length; i += LABEL_BATCH_SIZE) {
         const batch = ids.slice(i, i + LABEL_BATCH_SIZE);
@@ -766,7 +700,6 @@ export async function incrementalSync(accountId: string) {
           if (result.status === 'rejected') {
             const err = result.reason;
             if (err?.code === 404 || err?.response?.status === 404) {
-              // Message was permanently deleted
               const msgId = batch[results.indexOf(result)];
               deletedMessageIds.add(msgId);
             }
@@ -784,7 +717,7 @@ export async function incrementalSync(accountId: string) {
               isUnread: labels.includes('UNREAD'),
               isStarred: labels.includes('STARRED'),
               isDraft: labels.includes('DRAFT'),
-              updatedAt: new Date().toISOString(),
+              updatedAt: new Date(),
             })
             .where(
               and(eq(emails.accountId, accountId), eq(emails.gmailMessageId, msgId)),
@@ -798,22 +731,19 @@ export async function incrementalSync(accountId: string) {
 
           if (emailRecord) {
             touchedThreadIds.add(emailRecord.threadId);
-            // Only clear isArchived (don't set true — reconciliation handles that)
             await db
               .update(threads)
               .set({
                 isStarred: flags.isStarred,
-                // isArchived is not touched by sync — only user actions change it
                 isTrashed: flags.isTrashed,
                 isSpam: flags.isSpam,
                 labels,
-                updatedAt: new Date().toISOString(),
+                updatedAt: new Date(),
               })
               .where(eq(threads.id, emailRecord.threadId));
           }
         }
 
-        // Small delay between batches to respect rate limits
         if (i + LABEL_BATCH_SIZE < ids.length) await delay(200);
       }
     }
@@ -826,10 +756,6 @@ export async function incrementalSync(accountId: string) {
         .select({
           id: emails.id,
           threadId: emails.threadId,
-          subject: emails.subject,
-          bodyText: emails.bodyText,
-          fromAddress: emails.fromAddress,
-          fromName: emails.fromName,
         })
         .from(emails)
         .where(
@@ -840,11 +766,6 @@ export async function incrementalSync(accountId: string) {
       for (const id of affectedThreadIds) touchedThreadIds.add(id);
 
       if (emailRecords.length > 0) {
-        // Remove from FTS index before deleting from DB
-        for (const e of emailRecords) {
-          ftsDeleteEmail(e.id, e.subject, e.bodyText, e.fromAddress, e.fromName);
-        }
-
         await db
           .delete(emails)
           .where(inArray(emails.id, emailRecords.map((e) => e.id)));
@@ -877,10 +798,10 @@ export async function incrementalSync(accountId: string) {
       .update(accounts)
       .set({
         historyId: newHistoryId,
-        lastSync: new Date().toISOString(),
+        lastSync: new Date(),
         syncStatus: 'idle',
         syncError: null,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(eq(accounts.id, accountId));
 
@@ -904,7 +825,7 @@ export async function incrementalSync(accountId: string) {
       .set({
         syncStatus: isAuthError ? 'auth_error' : 'error',
         syncError: err.message || 'Unknown error during incremental sync',
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       })
       .where(eq(accounts.id, accountId));
 
@@ -913,49 +834,44 @@ export async function incrementalSync(accountId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// #7 — Selective thread count reconciliation
+// #7 — Selective thread count reconciliation (Drizzle)
 // ---------------------------------------------------------------------------
 
-/**
- * Recompute stats for only the specified thread IDs.
- * Much faster than reconciling the entire account.
- */
 async function reconcileThreadCountsSelective(threadIds: Set<string>) {
   if (threadIds.size === 0) return;
 
   const ids = Array.from(threadIds);
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  // Process in chunks of 100 to avoid overly long IN clauses
+  // Process in chunks of 100
   const CHUNK = 100;
   for (let i = 0; i < ids.length; i += CHUNK) {
     const chunk = ids.slice(i, i + CHUNK);
-    const placeholders = chunk.map(() => '?').join(',');
 
-    rawDb.prepare(`
+    await db.execute(sql`
       UPDATE threads SET
         message_count = (
           SELECT count(*) FROM emails e WHERE e.thread_id = threads.id
         ),
         unread_count = COALESCE((
-          SELECT SUM(CASE WHEN e.is_unread = 1 THEN 1 ELSE 0 END) FROM emails e WHERE e.thread_id = threads.id
+          SELECT SUM(CASE WHEN e.is_unread = true THEN 1 ELSE 0 END) FROM emails e WHERE e.thread_id = threads.id
         ), 0),
-        has_attachments = (
-          SELECT MAX(CASE WHEN EXISTS (
+        has_attachments = COALESCE((
+          SELECT bool_or(EXISTS (
             SELECT 1 FROM attachments a WHERE a.email_id = e.id
-          ) THEN 1 ELSE 0 END) FROM emails e WHERE e.thread_id = threads.id
-        ),
-        "lastMessageAt" = (
-          SELECT max(e."internalDate") FROM emails e WHERE e.thread_id = threads.id
+          )) FROM emails e WHERE e.thread_id = threads.id
+        ), false),
+        last_message_at = (
+          SELECT max(e.internal_date) FROM emails e WHERE e.thread_id = threads.id
         ),
         snippet = (
           SELECT e2.snippet FROM emails e2
           WHERE e2.thread_id = threads.id
-          ORDER BY e2."internalDate" DESC LIMIT 1
+          ORDER BY e2.internal_date DESC LIMIT 1
         ),
-        "updatedAt" = ?
-      WHERE threads.id IN (${placeholders})
-    `).run(now, ...chunk);
+        updated_at = ${now}::timestamptz
+      WHERE threads.id = ANY(${chunk}::uuid[])
+    `);
   }
 }
 
@@ -964,7 +880,6 @@ async function reconcileThreadCountsSelective(threadIds: Set<string>) {
 // ---------------------------------------------------------------------------
 
 export async function fetchEmailBodiesOnDemand(accountId: string, threadId: string) {
-  // Find emails in this thread that have no body yet
   const emailsWithoutBody = await db
     .select({
       id: emails.id,
@@ -984,7 +899,6 @@ export async function fetchEmailBodiesOnDemand(accountId: string, threadId: stri
   const log = logger.child({ accountId, threadId });
   log.debug({ count: emailsWithoutBody.length }, 'Fetching email bodies on demand');
 
-  // Batch fetch full messages (5 concurrent)
   const CONCURRENCY = 5;
   for (let i = 0; i < emailsWithoutBody.length; i += CONCURRENCY) {
     const batch = emailsWithoutBody.slice(i, i + CONCURRENCY);
@@ -1003,18 +917,16 @@ export async function fetchEmailBodiesOnDemand(accountId: string, threadId: stri
       const atts = extractAttachments(rawMsg);
       const compressedHtml = compressHtml(parsed.bodyHtml);
 
+      // Updating bodyText triggers the PG trigger to re-index search_vector
       await db
         .update(emails)
         .set({
           bodyText: parsed.bodyText,
           bodyHtml: parsed.bodyHtml,
           bodyHtmlCompressed: compressedHtml,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(emails.id, emailId));
-
-      // Index body text in FTS
-      ftsIndexEmail(emailId, parsed.subject, parsed.bodyText, parsed.fromAddress, parsed.fromName);
 
       // Store any attachments discovered
       if (atts.length > 0) {
@@ -1033,10 +945,9 @@ export async function fetchEmailBodiesOnDemand(accountId: string, threadId: stri
             .onConflictDoNothing();
         }
 
-        // Update thread hasAttachments flag
         await db
           .update(threads)
-          .set({ hasAttachments: true, updatedAt: new Date().toISOString() })
+          .set({ hasAttachments: true, updatedAt: new Date() })
           .where(eq(threads.id, threadId));
       }
     }
@@ -1050,7 +961,6 @@ export async function fetchEmailBodiesOnDemand(accountId: string, threadId: stri
 export async function handlePushNotification(emailAddress: string, historyId: number) {
   const log = logger.child({ emailAddress, historyId, sync: 'push' });
 
-  // Find the account matching this email
   const [account] = await db
     .select({ id: accounts.id, syncStatus: accounts.syncStatus })
     .from(accounts)
@@ -1062,7 +972,6 @@ export async function handlePushNotification(emailAddress: string, historyId: nu
     return;
   }
 
-  // Skip if already syncing
   if (account.syncStatus === 'syncing') {
     log.debug('Account already syncing, skipping push-triggered sync');
     return;
@@ -1070,7 +979,6 @@ export async function handlePushNotification(emailAddress: string, historyId: nu
 
   log.info('Push notification received, triggering incremental sync');
 
-  // Run sync directly (not via queue) for lowest latency
   try {
     await incrementalSync(account.id);
   } catch (err: any) {

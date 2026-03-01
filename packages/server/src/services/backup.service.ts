@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, statSync, unlinkSync, copyFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -17,65 +17,38 @@ function ensureBackupDir() {
 /** Generate a timestamped backup filename. */
 function backupFilename(prefix: string) {
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  return `${prefix}-${ts}.db`;
+  return `${prefix}-${ts}`;
 }
 
 /**
- * Back up the SQLite database by copying the file.
- * SQLite WAL mode allows safe copying while the DB is in use.
- * We issue a CHECKPOINT first to flush WAL pages into the main file.
- */
-export async function backupSqlite(): Promise<string> {
-  ensureBackupDir();
-
-  // Checkpoint WAL to flush all pending writes to the main DB file
-  const { rawDb } = await import('../config/database');
-  rawDb.pragma('wal_checkpoint(TRUNCATE)');
-
-  const srcPath = env.DATABASE_URL;
-  const destFile = backupFilename('atlas');
-  const destPath = join(BACKUP_DIR, destFile);
-
-  copyFileSync(srcPath, destPath);
-  logger.info({ dest: destPath }, 'SQLite backup created');
-
-  // Clean up old backups
-  pruneBackups('atlas');
-
-  return destPath;
-}
-
-/**
- * Back up the PostgreSQL platform database using pg_dump.
+ * Back up the PostgreSQL database using pg_dump.
  * Uses execFile (not exec) to prevent command injection.
  */
 export async function backupPostgres(): Promise<string | null> {
-  if (!env.DATABASE_PLATFORM_URL) return null;
-
   ensureBackupDir();
 
-  const destFile = backupFilename('platform');
+  const destFile = backupFilename('atlas');
   const destPath = join(BACKUP_DIR, destFile);
 
   try {
     await execFileAsync('pg_dump', [
-      env.DATABASE_PLATFORM_URL,
+      env.DATABASE_URL,
       '--format=custom',
-      `-f`, destPath,
-    ], { timeout: 60000 });
-    logger.info({ dest: destPath }, 'PostgreSQL backup created');
-    pruneBackups('platform');
-    return destPath;
+      `-f`, `${destPath}.dump`,
+    ], { timeout: 120000 });
+    logger.info({ dest: `${destPath}.dump` }, 'PostgreSQL backup created');
+    pruneBackups('atlas');
+    return `${destPath}.dump`;
   } catch (err) {
     // pg_dump might not be installed — try SQL format
     try {
       const sqlPath = `${destPath}.sql`;
       await execFileAsync('pg_dump', [
-        env.DATABASE_PLATFORM_URL,
+        env.DATABASE_URL,
         '-f', sqlPath,
-      ], { timeout: 60000 });
+      ], { timeout: 120000 });
       logger.info({ dest: sqlPath }, 'PostgreSQL backup created (SQL format)');
-      pruneBackups('platform');
+      pruneBackups('atlas');
       return sqlPath;
     } catch {
       logger.warn({ err }, 'pg_dump not available — skipping PostgreSQL backup');
@@ -112,7 +85,6 @@ function pruneBackups(prefix: string) {
 export async function runScheduledBackup() {
   logger.info('Starting scheduled backup');
   try {
-    await backupSqlite();
     await backupPostgres();
     logger.info('Scheduled backup completed');
   } catch (err) {
@@ -124,7 +96,7 @@ export async function runScheduledBackup() {
 export function listBackups() {
   ensureBackupDir();
   return readdirSync(BACKUP_DIR)
-    .filter((f) => f.endsWith('.db') || f.endsWith('.sql'))
+    .filter((f) => f.endsWith('.dump') || f.endsWith('.sql'))
     .map((f) => {
       const stat = statSync(join(BACKUP_DIR, f));
       return {

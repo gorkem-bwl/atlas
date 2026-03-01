@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import pg from 'pg';
-import { getPlatformDb } from '../../config/platform-database';
-import { appAddons } from '../../db/schema-platform';
+import { db } from '../../config/database';
+import { appAddons } from '../../db/schema';
 import { env } from '../../config/env';
 import { encrypt } from '../../utils/crypto';
 import { logger } from '../../utils/logger';
@@ -86,7 +86,6 @@ async function provisionPostgresql(installationId: string, tenantSlug: string): 
   const port = parseInt(url.port || '5432', 10);
 
   // Store addon record
-  const db = getPlatformDb();
   await db.insert(appAddons).values({
     installationId,
     addonType: 'postgresql',
@@ -113,7 +112,6 @@ async function provisionRedis(installationId: string, tenantSlug: string): Promi
   const port = parseInt(url.port || '6379', 10);
   const prefix = `app:${tenantSlug}:${installationId.slice(0, 8)}:`;
 
-  const db = getPlatformDb();
   await db.insert(appAddons).values({
     installationId,
     addonType: 'redis',
@@ -137,7 +135,6 @@ async function provisionRedis(installationId: string, tenantSlug: string): Promi
 }
 
 export async function getAddonsForInstallation(installationId: string) {
-  const db = getPlatformDb();
   return db.select().from(appAddons).where(eq(appAddons.installationId, installationId));
 }
 
@@ -146,7 +143,6 @@ export async function getAddonsForInstallation(installationId: string) {
  * Drops the database and user for PostgreSQL addons.
  */
 export async function deprovisionAddons(installationId: string) {
-  const db = getPlatformDb();
   const addons = await getAddonsForInstallation(installationId);
   const errors: Error[] = [];
 

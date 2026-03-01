@@ -497,7 +497,7 @@ export async function replaceFile(req: Request, res: Response) {
     await driveService.createVersion(userId, accountId, itemId);
 
     // Update main record with new file data
-    const now = new Date().toISOString();
+    const now = new Date();
     await driveService.updateItem(userId, itemId, { name: file.originalname });
 
     // Also update mimeType, size, storagePath via raw update

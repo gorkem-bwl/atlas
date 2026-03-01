@@ -53,7 +53,7 @@ export async function seedSampleDrawings(userId: string, accountId: string) {
 
   if (existing.length > 0) return; // User already has drawings
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   await db.insert(drawings).values({
     accountId,
@@ -75,7 +75,7 @@ export async function seedSampleDrawings(userId: string, accountId: string) {
 // ─── Create a new drawing ────────────────────────────────────────────
 
 export async function createDrawing(userId: string, accountId: string, input: CreateDrawingInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Determine the next sort order
   const [maxSort] = await db
@@ -109,7 +109,7 @@ export async function updateDrawing(
   drawingId: string,
   input: UpdateDrawingInput,
 ) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -141,7 +141,7 @@ export async function deleteDrawing(userId: string, drawingId: string) {
 // ─── Restore an archived drawing ─────────────────────────────────────
 
 export async function restoreDrawing(userId: string, drawingId: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   await db
     .update(drawings)
@@ -190,7 +190,7 @@ export async function searchDrawings(userId: string, query: string) {
 const PURGE_DAYS = 30;
 
 export async function purgeOldArchivedDrawings() {
-  const cutoff = new Date(Date.now() - PURGE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - PURGE_DAYS * 24 * 60 * 60 * 1000);
 
   const deleted = await db
     .delete(drawings)

@@ -81,7 +81,7 @@ export async function getItem(userId: string, itemId: string) {
 // ─── Create a folder ─────────────────────────────────────────────────
 
 export async function createFolder(userId: string, accountId: string, input: { name: string; parentId?: string | null }) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
@@ -111,7 +111,7 @@ export async function createFolder(userId: string, accountId: string, input: { n
 // ─── Upload file (create record after multer has saved the file) ─────
 
 export async function uploadFile(userId: string, accountId: string, input: CreateDriveItemInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
@@ -144,7 +144,7 @@ export async function uploadFile(userId: string, accountId: string, input: Creat
 // ─── Update an item (rename, move, favourite, archive) ───────────────
 
 export async function updateItem(userId: string, itemId: string, input: UpdateDriveItemInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.name !== undefined) updates.name = input.name;
@@ -177,7 +177,7 @@ export async function deleteItem(userId: string, itemId: string) {
 // ─── Restore from trash ──────────────────────────────────────────────
 
 export async function restoreItem(userId: string, itemId: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   await db
     .update(driveItems)
@@ -333,7 +333,7 @@ export async function duplicateItem(userId: string, itemId: string) {
   const item = await getItem(userId, itemId);
   if (!item) return null;
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
     .from(driveItems)
@@ -391,7 +391,7 @@ export async function duplicateItem(userId: string, itemId: string) {
 
 export async function batchDelete(userId: string, itemIds: string[]) {
   if (itemIds.length === 0) return;
-  const now = new Date().toISOString();
+  const now = new Date();
   await db
     .update(driveItems)
     .set({ isArchived: true, updatedAt: now })
@@ -402,7 +402,7 @@ export async function batchDelete(userId: string, itemIds: string[]) {
 
 export async function batchMove(userId: string, itemIds: string[], parentId: string | null) {
   if (itemIds.length === 0) return;
-  const now = new Date().toISOString();
+  const now = new Date();
   await db
     .update(driveItems)
     .set({ parentId, updatedAt: now })
@@ -413,7 +413,7 @@ export async function batchMove(userId: string, itemIds: string[], parentId: str
 
 export async function batchFavourite(userId: string, itemIds: string[], isFavourite: boolean) {
   if (itemIds.length === 0) return;
-  const now = new Date().toISOString();
+  const now = new Date();
   await db
     .update(driveItems)
     .set({ isFavourite, updatedAt: now })
@@ -436,7 +436,7 @@ export async function createVersion(userId: string, accountId: string, itemId: s
       mimeType: item.mimeType,
       size: item.size,
       storagePath: item.storagePath,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     })
     .returning();
 
@@ -469,7 +469,7 @@ export async function restoreVersion(userId: string, accountId: string, itemId: 
   await createVersion(userId, accountId, itemId);
 
   // Overwrite main record with version data
-  const now = new Date().toISOString();
+  const now = new Date();
   await db
     .update(driveItems)
     .set({
@@ -513,8 +513,8 @@ export async function createShareLink(userId: string, itemId: string, expiresAt?
       driveItemId: itemId,
       userId,
       shareToken,
-      expiresAt: expiresAt || null,
-      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      createdAt: new Date(),
     })
     .returning();
 
@@ -599,7 +599,7 @@ export async function createLinkedDocument(userId: string, accountId: string, pa
   const { createDocument } = await import('./document.service');
   const doc = await createDocument(userId, accountId, { title: 'Untitled document' });
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
     .from(driveItems)
@@ -631,7 +631,7 @@ export async function createLinkedDrawing(userId: string, accountId: string, par
   const { createDrawing } = await import('./drawing.service');
   const drawing = await createDrawing(userId, accountId, { title: 'Untitled drawing' });
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
     .from(driveItems)
@@ -663,7 +663,7 @@ export async function createLinkedSpreadsheet(userId: string, accountId: string,
   const { createSpreadsheet } = await import('./table.service');
   const spreadsheet = await createSpreadsheet(userId, accountId, { title: 'Untitled spreadsheet' });
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${driveItems.sortOrder}), -1)` })
     .from(driveItems)

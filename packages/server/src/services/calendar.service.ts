@@ -22,10 +22,10 @@ async function getCalendarClient(accountId: string) {
 
   oauth2Client.on('tokens', async (tokens) => {
     if (tokens.access_token) {
-      const updates: Record<string, string> = {
+      const updates: Record<string, any> = {
         accessToken: encrypt(tokens.access_token),
-        tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000).toISOString(),
-        updatedAt: new Date().toISOString(),
+        tokenExpiresAt: new Date(tokens.expiry_date || Date.now() + 3600000),
+        updatedAt: new Date(),
       };
       if (tokens.refresh_token) {
         updates.refreshToken = encrypt(tokens.refresh_token);
@@ -41,7 +41,7 @@ async function getCalendarClient(accountId: string) {
 
 export async function syncCalendarList(accountId: string) {
   const cal = await getCalendarClient(accountId);
-  const now = new Date().toISOString();
+  const now = new Date();
   let nextPageToken: string | undefined;
   let synced = 0;
 
@@ -107,7 +107,7 @@ export async function syncCalendarEvents(
   if (!calRow) throw new Error('Calendar not found');
 
   const cal = await getCalendarClient(accountId);
-  const now = new Date().toISOString();
+  const now = new Date();
   let nextPageToken: string | undefined;
   let upserted = 0;
 
@@ -166,7 +166,7 @@ async function syncWithToken(
   calendarDbId: string,
   googleCalendarId: string,
   syncToken: string,
-  now: string,
+  now: Date,
 ) {
   let nextPageToken: string | undefined;
   let processed = 0;
@@ -215,7 +215,7 @@ async function upsertEvent(
   accountId: string,
   calendarDbId: string,
   item: any,
-  now: string,
+  now: Date,
 ) {
   if (!item.id) return;
 
@@ -309,8 +309,8 @@ export async function listEvents(
 
   const conditions = [
     eq(calendarEvents.accountId, accountId),
-    lte(calendarEvents.startTime, timeMax),
-    gte(calendarEvents.endTime, timeMin),
+    lte(calendarEvents.startTime, new Date(timeMax)),
+    gte(calendarEvents.endTime, new Date(timeMin)),
   ];
 
   if (calendarIds && calendarIds.length > 0) {
@@ -345,7 +345,7 @@ export async function createEvent(accountId: string, input: CalendarEventCreateI
   if (!calRow) throw new Error('Calendar not found');
 
   const cal = await getCalendarClient(accountId);
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const eventResource: any = {
     summary: input.summary,
@@ -426,7 +426,7 @@ export async function updateEvent(
   if (!calRow) throw new Error('Calendar not found');
 
   const cal = await getCalendarClient(accountId);
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Handle calendar move
   if (input.calendarId && input.calendarId !== existing.calendarId) {
@@ -619,7 +619,7 @@ export async function toggleCalendarSelected(
 ) {
   await db
     .update(calendars)
-    .set({ isSelected, updatedAt: new Date().toISOString() })
+    .set({ isSelected, updatedAt: new Date() })
     .where(and(eq(calendars.id, calendarDbId), eq(calendars.accountId, accountId)));
 }
 
@@ -722,7 +722,7 @@ export async function createCalendar(
     });
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const [inserted] = await db
     .insert(calendars)
     .values({

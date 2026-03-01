@@ -104,12 +104,12 @@ export async function getThreads(
     const conditions = [
       eq(threads.accountId, accountId),
       eq(threads.isTrashed, false),
-      // At least one email in the thread carries the SENT label
+      // At least one email in the thread carries the SENT label (JSONB contains)
       sql`EXISTS (
-        SELECT 1 FROM emails e, json_each(e.gmail_labels) AS lbl
+        SELECT 1 FROM emails e
         WHERE e.thread_id = ${threads.id}
           AND e.account_id = ${accountId}
-          AND lbl.value = 'SENT'
+          AND e.gmail_labels @> '["SENT"]'::jsonb
       )`,
     ];
     if (options.category) {
@@ -117,7 +117,7 @@ export async function getThreads(
     }
     if (options.gmailLabel) {
       conditions.push(
-        sql`EXISTS (SELECT 1 FROM json_each(${threads.labels}) AS lbl WHERE lbl.value = ${options.gmailLabel})`,
+        sql`${threads.labels} @> ${JSON.stringify([options.gmailLabel])}::jsonb`,
       );
     }
 
@@ -174,7 +174,7 @@ export async function getThreads(
 
   if (options.gmailLabel) {
     conditions.push(
-      sql`EXISTS (SELECT 1 FROM json_each(${threads.labels}) AS lbl WHERE lbl.value = ${options.gmailLabel})`,
+      sql`${threads.labels} @> ${JSON.stringify([options.gmailLabel])}::jsonb`,
     );
   }
 
@@ -253,13 +253,13 @@ export async function getThreadById(accountId: string, threadId: string) {
 
 export async function archiveThread(accountId: string, threadId: string) {
   await db.update(threads)
-    .set({ isArchived: true, updatedAt: new Date().toISOString() })
+    .set({ isArchived: true, updatedAt: new Date() })
     .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
 }
 
 export async function trashThread(accountId: string, threadId: string) {
   await db.update(threads)
-    .set({ isTrashed: true, updatedAt: new Date().toISOString() })
+    .set({ isTrashed: true, updatedAt: new Date() })
     .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
 }
 
@@ -271,7 +271,7 @@ export async function toggleStar(accountId: string, threadId: string) {
 
   if (thread) {
     await db.update(threads)
-      .set({ isStarred: !thread.isStarred, updatedAt: new Date().toISOString() })
+      .set({ isStarred: !thread.isStarred, updatedAt: new Date() })
       .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
   }
 }
@@ -420,7 +420,7 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
     try {
       const fullMessage = await gmailService.getMessage(accountId, result.id);
       const parsed = parseGmailMessage(fullMessage);
-      const now = new Date().toISOString();
+      const now = new Date();
 
       // Determine the local threadId — either the existing one or create from Gmail's threadId
       let localThreadId = payload.threadId;
@@ -445,7 +445,7 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
               messageCount: 1,
               unreadCount: 0,
               hasAttachments: false,
-              lastMessageAt: parsed.internalDate,
+              lastMessageAt: new Date(parsed.internalDate),
               category: 'other',
               labels: parsed.gmailLabels,
               isStarred: false,
@@ -484,7 +484,7 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
             isUnread: false,
             isStarred: false,
             isDraft: false,
-            internalDate: parsed.internalDate,
+            internalDate: new Date(parsed.internalDate),
             sizeEstimate: parsed.sizeEstimate,
             createdAt: now,
             updatedAt: now,
@@ -502,7 +502,7 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
           .set({
             snippet: parsed.snippet,
             messageCount: emailCount.count,
-            lastMessageAt: parsed.internalDate,
+            lastMessageAt: new Date(parsed.internalDate),
             updatedAt: now,
           })
           .where(eq(threads.id, localThreadId));
@@ -522,7 +522,7 @@ export async function sendEmail(accountId: string, payload: SendEmailPayload) {
 export async function markSpam(accountId: string, threadId: string) {
   // Update local DB
   await db.update(threads)
-    .set({ isSpam: true, updatedAt: new Date().toISOString() })
+    .set({ isSpam: true, updatedAt: new Date() })
     .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
 
   // Sync with Gmail for all messages in this thread
@@ -554,13 +554,13 @@ export async function markReadUnread(accountId: string, threadId: string, isUnre
 
   // Update local DB: set isUnread on all emails in the thread
   await db.update(emails)
-    .set({ isUnread, updatedAt: new Date().toISOString() })
+    .set({ isUnread, updatedAt: new Date() })
     .where(and(eq(emails.threadId, threadId), eq(emails.accountId, accountId)));
 
   // Update unreadCount on the thread
   const newUnreadCount = isUnread ? threadEmails.length : 0;
   await db.update(threads)
-    .set({ unreadCount: newUnreadCount, updatedAt: new Date().toISOString() })
+    .set({ unreadCount: newUnreadCount, updatedAt: new Date() })
     .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
 
   // Sync with Gmail
@@ -582,7 +582,7 @@ export async function snoozeThread(accountId: string, threadId: string, _snoozeU
   // For now, snoozed threads are archived (removed from inbox).
   // A full implementation would schedule a job to un-snooze at the given time.
   await db.update(threads)
-    .set({ isArchived: true, updatedAt: new Date().toISOString() })
+    .set({ isArchived: true, updatedAt: new Date() })
     .where(and(eq(threads.id, threadId), eq(threads.accountId, accountId)));
 
   // Also remove INBOX label in Gmail

@@ -6,7 +6,7 @@ dotenvConfig();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3001),
-  DATABASE_URL: z.string().min(1).default('./data/atlasmail.db'),
+  DATABASE_URL: z.string().min(1).default('postgresql://postgres:postgres@localhost:5432/atlas'),
   REDIS_URL: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().default(''),
   GOOGLE_CLIENT_SECRET: z.string().default(''),
@@ -18,7 +18,6 @@ const envSchema = z.object({
 
   // ─── Platform (optional — only needed when marketplace features are enabled) ──
   PLATFORM_RUNTIME: z.enum(['docker', 'k8s']).default('k8s'), // docker for local dev, k8s for production
-  DATABASE_PLATFORM_URL: z.string().optional(),     // PostgreSQL connection string for control plane
   ADDON_PG_ADMIN_URL: z.string().optional(),         // PostgreSQL admin URL for provisioning app DBs
   ADDON_REDIS_URL: z.string().optional(),            // Redis URL for addon provisioning
   S3_BACKUP_BUCKET: z.string().optional(),           // S3 bucket for app backups

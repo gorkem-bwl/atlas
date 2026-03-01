@@ -56,7 +56,7 @@ export async function seedSampleSpreadsheets(userId: string, accountId: string) 
 
   if (existing.length > 0) return; // User already has tables
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const columns = [
     { id: 'col_task', name: 'Task', type: 'text' as const, width: 280 },
@@ -67,11 +67,11 @@ export async function seedSampleSpreadsheets(userId: string, accountId: string) 
   ];
 
   const rows = [
-    { _id: 'row_1', _createdAt: now, col_task: 'Set up project repository', col_status: 'Done', col_priority: 'High', col_due: '', col_notes: 'Initialize repo and configure CI' },
-    { _id: 'row_2', _createdAt: now, col_task: 'Design database schema', col_status: 'In progress', col_priority: 'High', col_due: '', col_notes: 'Define tables for users, projects, and tasks' },
-    { _id: 'row_3', _createdAt: now, col_task: 'Build API endpoints', col_status: 'To do', col_priority: 'Medium', col_due: '', col_notes: 'REST endpoints for CRUD operations' },
-    { _id: 'row_4', _createdAt: now, col_task: 'Create UI components', col_status: 'To do', col_priority: 'Medium', col_due: '', col_notes: 'Reusable components for the dashboard' },
-    { _id: 'row_5', _createdAt: now, col_task: 'Write documentation', col_status: 'To do', col_priority: 'Low', col_due: '', col_notes: 'API docs and user guide' },
+    { _id: 'row_1', _createdAt: now.toISOString(), col_task: 'Set up project repository', col_status: 'Done', col_priority: 'High', col_due: '', col_notes: 'Initialize repo and configure CI' },
+    { _id: 'row_2', _createdAt: now.toISOString(), col_task: 'Design database schema', col_status: 'In progress', col_priority: 'High', col_due: '', col_notes: 'Define tables for users, projects, and tasks' },
+    { _id: 'row_3', _createdAt: now.toISOString(), col_task: 'Build API endpoints', col_status: 'To do', col_priority: 'Medium', col_due: '', col_notes: 'REST endpoints for CRUD operations' },
+    { _id: 'row_4', _createdAt: now.toISOString(), col_task: 'Create UI components', col_status: 'To do', col_priority: 'Medium', col_due: '', col_notes: 'Reusable components for the dashboard' },
+    { _id: 'row_5', _createdAt: now.toISOString(), col_task: 'Write documentation', col_status: 'To do', col_priority: 'Low', col_due: '', col_notes: 'API docs and user guide' },
   ];
 
   await db.insert(spreadsheets).values({
@@ -92,7 +92,7 @@ export async function seedSampleSpreadsheets(userId: string, accountId: string) 
 // ─── Create a new spreadsheet ────────────────────────────────────────
 
 export async function createSpreadsheet(userId: string, accountId: string, input: CreateSpreadsheetInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [created] = await db
     .insert(spreadsheets)
@@ -122,7 +122,7 @@ export async function updateSpreadsheet(
   spreadsheetId: string,
   input: UpdateSpreadsheetInput,
 ) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -153,7 +153,7 @@ export async function deleteSpreadsheet(userId: string, spreadsheetId: string) {
 // ─── Restore an archived spreadsheet ─────────────────────────────────
 
 export async function restoreSpreadsheet(userId: string, spreadsheetId: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [restored] = await db
     .update(spreadsheets)

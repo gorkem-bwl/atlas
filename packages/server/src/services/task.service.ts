@@ -104,7 +104,7 @@ export async function getTask(userId: string, taskId: string) {
 }
 
 export async function createTask(userId: string, accountId: string, input: CreateTaskInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${tasks.sortOrder}), -1)` })
@@ -143,7 +143,7 @@ export async function createTask(userId: string, accountId: string, input: Creat
 }
 
 export async function updateTask(userId: string, taskId: string, input: UpdateTaskInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.title !== undefined) updates.title = input.title;
@@ -235,7 +235,7 @@ export async function deleteTask(userId: string, taskId: string) {
 }
 
 export async function restoreTask(userId: string, taskId: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
   await db
     .update(tasks)
     .set({ isArchived: false, updatedAt: now })
@@ -267,7 +267,7 @@ export async function searchTasks(userId: string, query: string) {
 }
 
 export async function reorderTasks(userId: string, taskIds: string[]) {
-  const now = new Date().toISOString();
+  const now = new Date();
   for (let i = 0; i < taskIds.length; i++) {
     await db
       .update(tasks)
@@ -302,7 +302,7 @@ export async function getProject(userId: string, projectId: string) {
 }
 
 export async function createProject(userId: string, accountId: string, input: CreateProjectInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${taskProjects.sortOrder}), -1)` })
@@ -331,7 +331,7 @@ export async function createProject(userId: string, accountId: string, input: Cr
 }
 
 export async function updateProject(userId: string, projectId: string, input: UpdateProjectInput) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.title !== undefined) updates.title = input.title;
@@ -417,7 +417,7 @@ export async function listSubtasks(taskId: string) {
 }
 
 export async function createSubtask(userId: string, taskId: string, title: string) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db.select({ max: sql<number>`COALESCE(MAX(${subtasks.sortOrder}), -1)` })
     .from(subtasks).where(eq(subtasks.taskId, taskId));
   const sortOrder = (maxSort?.max ?? -1) + 1;
@@ -454,7 +454,7 @@ export async function reorderSubtasks(taskId: string, subtaskIds: string[]) {
 
 export async function logActivity(userId: string, taskId: string, action: string, field: string | null, oldValue: string | null, newValue: string | null) {
   await db.insert(taskActivities).values({
-    taskId, userId, action, field, oldValue, newValue, createdAt: new Date().toISOString(),
+    taskId, userId, action, field, oldValue, newValue, createdAt: new Date(),
   });
 }
 
@@ -474,7 +474,7 @@ export async function createTemplate(userId: string, accountId: string, input: {
   title: string; description?: string | null; icon?: string | null;
   defaultWhen?: string; defaultPriority?: string; defaultTags?: string[]; subtaskTitles?: string[];
 }) {
-  const now = new Date().toISOString();
+  const now = new Date();
   const [maxSort] = await db.select({ max: sql<number>`COALESCE(MAX(${taskTemplates.sortOrder}), -1)` })
     .from(taskTemplates).where(eq(taskTemplates.userId, userId));
   const [created] = await db.insert(taskTemplates).values({

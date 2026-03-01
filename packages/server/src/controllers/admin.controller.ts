@@ -2,8 +2,8 @@ import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
-import { getPlatformDb } from '../config/platform-database';
-import { tenants, tenantMembers, appInstallations, appCatalog, appUserAssignments } from '../db/schema-platform';
+import { db } from '../config/database';
+import { tenants, tenantMembers, appInstallations, appCatalog, appUserAssignments } from '../db/schema';
 import { eq, count } from 'drizzle-orm';
 import { listAtlasContainers } from '../services/platform/docker.service';
 import { startApp, stopApp, restartApp } from '../services/platform/install.service';
@@ -44,7 +44,7 @@ export async function login(req: Request, res: Response) {
 
 export async function getOverview(_req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
 
     const [tenantCount] = await db.select({ count: count() }).from(tenants);
     const statusCounts = await db
@@ -94,7 +94,7 @@ export async function getOverview(_req: Request, res: Response) {
 
 export async function listTenants(_req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
 
     const allTenants = await db.select().from(tenants).orderBy(tenants.createdAt);
 
@@ -127,7 +127,7 @@ export async function listTenants(_req: Request, res: Response) {
 
 export async function getTenant(req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
     const id = req.params.id as string;
 
     const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
@@ -175,7 +175,7 @@ export async function getTenant(req: Request, res: Response) {
 
 export async function updateTenantStatus(req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
     const id = req.params.id as string;
     const { status } = req.body;
 
@@ -206,7 +206,7 @@ const VALID_PLANS = ['starter', 'pro', 'enterprise'];
 
 export async function updateTenantPlanHandler(req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
     const id = req.params.id as string;
     const { plan } = req.body;
 
@@ -237,7 +237,7 @@ export async function updateTenantPlanHandler(req: Request, res: Response) {
 
 export async function listAllInstallations(_req: Request, res: Response) {
   try {
-    const db = getPlatformDb();
+
 
     const rows = await db
       .select({

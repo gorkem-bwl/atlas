@@ -25,7 +25,7 @@ router.put('/', async (req: Request, res: Response) => {
   const existing = await db.select().from(userSettings)
     .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
   if (existing.length > 0) {
-    const [updated] = await db.update(userSettings).set({ ...parsed.data, updatedAt: new Date().toISOString() })
+    const [updated] = await db.update(userSettings).set({ ...parsed.data, updatedAt: new Date() })
       .where(eq(userSettings.accountId, req.auth!.accountId)).returning();
     res.json({ success: true, data: updated });
   } else {
