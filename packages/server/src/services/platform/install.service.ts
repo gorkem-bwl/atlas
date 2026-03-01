@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import crypto from 'node:crypto';
 import { getPlatformDb } from '../../config/platform-database';
 import { appInstallations, appBackups } from '../../db/schema-platform';
@@ -27,6 +27,22 @@ export async function installApp(tenantId: string, input: InstallAppInput) {
   const manifest = catalogApp.manifest as unknown as AtlasManifest;
   const installationId = crypto.randomUUID();
   const deploymentName = `${manifest.id.replace(/\./g, '-')}-${installationId.slice(0, 8)}`;
+
+  // Clean up any previous failed installation with the same subdomain (from retries)
+  const [existing] = await db.select().from(appInstallations)
+    .where(and(eq(appInstallations.tenantId, tenantId), eq(appInstallations.subdomain, input.subdomain)))
+    .limit(1);
+
+  if (existing) {
+    if (existing.status === 'running' || existing.status === 'stopped') {
+      throw new Error(`App already installed at subdomain "${input.subdomain}"`);
+    }
+    // Remove errored/installing installation from a previous attempt
+    logger.info({ existingId: existing.id, status: existing.status }, 'Cleaning up previous failed installation');
+    try { await removeAppContainer(existing.id, tenant.slug); } catch { /* no container to remove */ }
+    await deprovisionAddons(existing.id);
+    await db.delete(appInstallations).where(eq(appInstallations.id, existing.id));
+  }
 
   // Create installation record (status: installing)
   const [installation] = await db.insert(appInstallations).values({
@@ -215,7 +231,7 @@ export async function uninstallApp(installationId: string) {
 
   // 1. Delete runtime resources
   if (env.PLATFORM_RUNTIME === 'docker') {
-    await removeAppContainer(installationId);
+    await removeAppContainer(installationId, tenant.slug);
   } else if (inst.k8sDeploymentName) {
     await deleteAppResources(tenant.k8sNamespace, inst.k8sDeploymentName, installationId);
   }
@@ -299,6 +315,26 @@ function applyAppSpecificEnv(
     case 'com.atlas.gitea': {
       envVars.GITEA__server__ROOT_URL = appUrl;
       envVars.GITEA__server__DOMAIN = hostname;
+      // Gitea uses its own env var format (GITEA__section__key), not DATABASE_URL
+      if (envVars.DATABASE_URL) {
+        const dbUrl = new URL(envVars.DATABASE_URL);
+        envVars.GITEA__database__DB_TYPE = 'postgres';
+        envVars.GITEA__database__HOST = `${dbUrl.hostname}:${dbUrl.port || '5432'}`;
+        envVars.GITEA__database__NAME = dbUrl.pathname.slice(1);
+        envVars.GITEA__database__USER = decodeURIComponent(dbUrl.username);
+        envVars.GITEA__database__PASSWD = decodeURIComponent(dbUrl.password);
+        envVars.GITEA__database__SSL_MODE = 'disable';
+      }
+      // Gitea Redis cache/session/queue configuration
+      if (envVars.REDIS_URL) {
+        const redisUrl = envVars.REDIS_URL;
+        envVars.GITEA__cache__ADAPTER = 'redis';
+        envVars.GITEA__cache__HOST = redisUrl;
+        envVars.GITEA__session__PROVIDER = 'redis';
+        envVars.GITEA__session__PROVIDER_CONFIG = redisUrl;
+        envVars.GITEA__queue__TYPE = 'redis';
+        envVars.GITEA__queue__CONN_STR = redisUrl;
+      }
       break;
     }
     default:

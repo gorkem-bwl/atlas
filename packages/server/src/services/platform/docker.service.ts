@@ -4,11 +4,13 @@ import type { AtlasManifest } from '@atlasmail/shared';
 
 const docker = new Docker();
 
-const NETWORK_NAME = 'atlas-net';
+const TENANT_NETWORK_PREFIX = 'atlas-net-';
 const CONTAINER_PREFIX = 'atlas-app-';
 
 /**
  * Map private registry images to public Docker Hub images for local dev.
+ * In production, the images are pre-loaded into the host's Docker daemon
+ * via the platform's image provisioning pipeline.
  */
 const DEV_IMAGE_MAP: Record<string, string> = {
   'registry.atlas.so/apps/calcom:5.6.19': 'calcom/cal.com:latest',
@@ -22,6 +24,100 @@ function resolveImage(manifestImage: string): string {
 
 function containerName(installationId: string): string {
   return `${CONTAINER_PREFIX}${installationId.slice(0, 12)}`;
+}
+
+function tenantNetworkName(tenantSlug: string): string {
+  return `${TENANT_NETWORK_PREFIX}${tenantSlug}`;
+}
+
+// ---------------------------------------------------------------------------
+// Tenant network management
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a per-tenant Docker network exists. Creates it if missing.
+ * Also connects shared infrastructure containers (postgres, redis) so
+ * tenant app containers can reach them.
+ */
+async function ensureTenantNetwork(tenantSlug: string): Promise<string> {
+  const networkName = tenantNetworkName(tenantSlug);
+
+  // Check if network already exists
+  const networks = await docker.listNetworks({
+    filters: { name: [networkName] },
+  });
+
+  const existing = networks.find((n) => n.Name === networkName);
+  if (existing) {
+    return networkName;
+  }
+
+  // Create isolated bridge network for this tenant
+  await docker.createNetwork({
+    Name: networkName,
+    Driver: 'bridge',
+    Labels: {
+      'atlas-managed': 'true',
+      'atlas-tenant': tenantSlug,
+    },
+  });
+
+  logger.info({ networkName, tenantSlug }, 'Tenant Docker network created');
+
+  // Connect shared infrastructure containers so tenant apps can reach them
+  await connectInfraContainers(networkName);
+
+  return networkName;
+}
+
+/**
+ * Connect shared infrastructure containers (postgres, redis, traefik) to the
+ * tenant network so app containers can reach DB/cache/proxy services.
+ */
+async function connectInfraContainers(networkName: string) {
+  const infraNames = ['postgres', 'redis', 'traefik'];
+  const network = docker.getNetwork(networkName);
+
+  for (const name of infraNames) {
+    try {
+      const container = docker.getContainer(name);
+      const info = await container.inspect();
+      // Skip if already connected
+      if (info.NetworkSettings.Networks[networkName]) continue;
+      await network.connect({ Container: container.id });
+      logger.info({ container: name, networkName }, 'Infrastructure container connected to tenant network');
+    } catch {
+      // Container may not exist (e.g. no redis in some setups) — skip silently
+    }
+  }
+}
+
+/**
+ * Remove a tenant's Docker network if no app containers are using it.
+ */
+async function removeTenantNetworkIfEmpty(tenantSlug: string) {
+  const networkName = tenantNetworkName(tenantSlug);
+  try {
+    const network = docker.getNetwork(networkName);
+    const info = await network.inspect();
+    const containers = info.Containers ?? {};
+
+    // Only remove if no atlas-app containers remain (infra containers don't count)
+    const appContainers = Object.values(containers).filter(
+      (c: any) => c.Name?.startsWith(CONTAINER_PREFIX),
+    );
+
+    if (appContainers.length === 0) {
+      // Disconnect infra containers before removing the network
+      for (const [id] of Object.entries(containers)) {
+        try { await network.disconnect({ Container: id, Force: true }); } catch { /* ignore */ }
+      }
+      await network.remove();
+      logger.info({ networkName, tenantSlug }, 'Empty tenant network removed');
+    }
+  } catch {
+    // Network doesn't exist — nothing to do
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -42,23 +138,18 @@ export async function deployAppContainer(opts: DeployContainerOpts) {
   const name = containerName(installationId);
   const hostname = `${subdomain}.${tenantSlug}.localhost`;
 
-  // Pull image first (no-op if already present)
-  // Use linux/amd64 platform to ensure compatibility on ARM Macs (runs via Rosetta)
-  logger.info({ image }, 'Pulling Docker image');
+  // Verify the image exists locally — images must be pre-loaded on the host
   try {
-    await new Promise<void>((resolve, reject) => {
-      docker.pull(image, { platform: 'linux/amd64' }, (err: Error | null, stream?: NodeJS.ReadableStream) => {
-        if (err) return reject(err);
-        if (!stream) return reject(new Error('No stream returned from pull'));
-        docker.modem.followProgress(stream, (pullErr: Error | null) => {
-          if (pullErr) return reject(pullErr);
-          resolve();
-        });
-      });
-    });
-  } catch (err) {
-    logger.warn({ err, image }, 'Image pull failed — attempting to use local image');
+    const img = docker.getImage(image);
+    await img.inspect();
+  } catch {
+    throw new Error(
+      `Docker image "${image}" not found locally. Images must be pre-loaded on the host before deploying apps.`,
+    );
   }
+
+  // Ensure tenant-isolated network exists
+  const networkName = await ensureTenantNetwork(tenantSlug);
 
   // Build env array
   const envArray = Object.entries(envVars).map(([k, v]) => `${k}=${v}`);
@@ -73,6 +164,7 @@ export async function deployAppContainer(opts: DeployContainerOpts) {
     'atlas-managed': 'true',
     'atlas-installation-id': installationId,
     'atlas-app-id': manifest.id,
+    'atlas-tenant': tenantSlug,
   };
 
   // Remove existing container if any
@@ -93,24 +185,22 @@ export async function deployAppContainer(opts: DeployContainerOpts) {
       [`${manifest.runtime.httpPort}/tcp`]: {},
     },
     HostConfig: {
-      NetworkMode: NETWORK_NAME,
+      NetworkMode: networkName,
       RestartPolicy: { Name: 'unless-stopped' },
       // Allow container to reach the host (for OIDC issuer)
       ExtraHosts: ['host.docker.internal:host-gateway'],
     },
-    // Force amd64 platform for images without ARM builds (runs via Rosetta on Apple Silicon)
-    platform: 'linux/amd64',
-  } as any);
+  });
 
   await container.start();
-  logger.info({ name, image, hostname }, 'Docker container started');
+  logger.info({ name, image, hostname, networkName }, 'Docker container started');
 }
 
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-export async function removeAppContainer(installationId: string) {
+export async function removeAppContainer(installationId: string, tenantSlug?: string) {
   const name = containerName(installationId);
   try {
     const container = docker.getContainer(name);
@@ -119,6 +209,11 @@ export async function removeAppContainer(installationId: string) {
     logger.info({ name }, 'Docker container removed');
   } catch (err) {
     logger.warn({ err, name }, 'Failed to remove Docker container');
+  }
+
+  // Clean up empty tenant network
+  if (tenantSlug) {
+    await removeTenantNetworkIfEmpty(tenantSlug);
   }
 }
 
@@ -176,6 +271,7 @@ export async function listAtlasContainers() {
     state: c.State,
     installationId: c.Labels['atlas-installation-id'],
     appId: c.Labels['atlas-app-id'],
+    tenant: c.Labels['atlas-tenant'],
     image: c.Image,
   }));
 }
