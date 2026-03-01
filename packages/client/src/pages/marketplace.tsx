@@ -1,27 +1,54 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Store } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { CatalogGrid } from '../components/marketplace/catalog-grid';
 import { AppDetailModal } from '../components/marketplace/app-detail-modal';
 import { InstallConfirmModal } from '../components/marketplace/install-confirm-modal';
 import { useCatalog, useMyTenants, useInstallApp, useInstallations } from '../hooks/use-platform';
 import { ROUTES } from '../config/routes';
+import { queryKeys } from '../config/query-keys';
 import type { CatalogApp } from '@atlasmail/shared';
 
 export function MarketplacePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: apps = [], isLoading } = useCatalog();
   const { data: tenants } = useMyTenants();
   const activeTenant = tenants?.[0];
 
-  const { data: installations } = useInstallations(activeTenant?.id);
+  const [isInstalling, setIsInstalling] = useState(false);
+  const { data: installations } = useInstallations(activeTenant?.id, isInstalling ? 3_000 : 15_000);
   const installApp = useInstallApp(activeTenant?.id ?? '');
 
   const [selectedApp, setSelectedApp] = useState<CatalogApp | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [installOpen, setInstallOpen] = useState(false);
 
-  const installedAppIds = new Set(installations?.map((i) => i.catalogAppId) ?? []);
+  // Derive status sets from installations
+  const installedAppIds = useMemo(
+    () => new Set(
+      installations
+        ?.filter((i) => i.status === 'running' || i.status === 'stopped')
+        .map((i) => i.catalogAppId) ?? [],
+    ),
+    [installations],
+  );
+
+  const installingAppIds = useMemo(
+    () => new Set(
+      installations
+        ?.filter((i) => i.status === 'installing')
+        .map((i) => i.catalogAppId) ?? [],
+    ),
+    [installations],
+  );
+
+  // Find the installation status for the currently selected app
+  const currentInstallation = useMemo(
+    () => selectedApp ? installations?.find((i) => i.catalogAppId === selectedApp.id) : undefined,
+    [installations, selectedApp],
+  );
 
   const handleSelect = (app: CatalogApp) => {
     setSelectedApp(app);
@@ -40,11 +67,24 @@ export function MarketplacePage() {
       { catalogAppId: selectedApp.id, subdomain },
       {
         onSuccess: () => {
-          setInstallOpen(false);
-          setSelectedApp(null);
+          setIsInstalling(true);
         },
       },
     );
+  };
+
+  const handleInstallDone = useCallback(() => {
+    setIsInstalling(false);
+    setInstallOpen(false);
+    setSelectedApp(null);
+    // Invalidate installed apps query so dashboard shows the new app immediately
+    queryClient.invalidateQueries({ queryKey: queryKeys.platform.all });
+  }, [queryClient]);
+
+  const handleBack = () => {
+    // Invalidate so the home page picks up any new installations
+    queryClient.invalidateQueries({ queryKey: queryKeys.platform.all });
+    navigate(ROUTES.HOME);
   };
 
   return (
@@ -64,7 +104,7 @@ export function MarketplacePage() {
         borderBottom: '1px solid var(--color-border-primary)',
       }}>
         <button
-          onClick={() => navigate(ROUTES.HOME)}
+          onClick={handleBack}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -117,7 +157,12 @@ export function MarketplacePage() {
             Loading catalog...
           </div>
         ) : (
-          <CatalogGrid apps={apps} onSelect={handleSelect} />
+          <CatalogGrid
+            apps={apps}
+            onSelect={handleSelect}
+            installedAppIds={installedAppIds}
+            installingAppIds={installingAppIds}
+          />
         )}
       </div>
 
@@ -133,10 +178,17 @@ export function MarketplacePage() {
       <InstallConfirmModal
         app={selectedApp}
         open={installOpen}
-        onOpenChange={setInstallOpen}
+        onOpenChange={(open) => {
+          setInstallOpen(open);
+          if (!open) {
+            setIsInstalling(false);
+          }
+        }}
         onConfirm={handleConfirmInstall}
         isLoading={installApp.isPending}
         tenantSlug={activeTenant?.slug}
+        installationStatus={currentInstallation?.status}
+        onDone={handleInstallDone}
       />
     </div>
   );

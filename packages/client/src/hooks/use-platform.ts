@@ -57,7 +57,7 @@ export function useCreateTenant() {
 
 // ─── Installations ──────────────────────────────────────────────────
 
-export function useInstallations(tenantId: string | undefined) {
+export function useInstallations(tenantId: string | undefined, refetchInterval = 15_000) {
   return useQuery({
     queryKey: queryKeys.platform.installations(tenantId!),
     queryFn: async () => {
@@ -66,7 +66,7 @@ export function useInstallations(tenantId: string | undefined) {
     },
     enabled: !!tenantId,
     staleTime: 10_000,
-    refetchInterval: 15_000, // poll for status updates
+    refetchInterval,
   });
 }
 

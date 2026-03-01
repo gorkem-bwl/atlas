@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { Download, ExternalLink } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Download, ExternalLink, Check, Loader2 } from 'lucide-react';
 import type { CatalogApp } from '@atlasmail/shared';
+import { AppIcon } from './app-icons';
 
 interface CatalogGridProps {
   apps: CatalogApp[];
   onSelect: (app: CatalogApp) => void;
+  installedAppIds?: Set<string>;
+  installingAppIds?: Set<string>;
 }
 
 const CATEGORIES = [
@@ -16,11 +19,11 @@ const CATEGORIES = [
   { value: 'finance', label: 'Finance' },
 ];
 
-export function CatalogGrid({ apps, onSelect }: CatalogGridProps) {
+export function CatalogGrid({ apps, onSelect, installedAppIds, installingAppIds }: CatalogGridProps) {
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
 
-  const filtered = apps.filter((app) => {
+  const filtered = useMemo(() => apps.filter((app) => {
     if (category && app.category !== category) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -31,7 +34,7 @@ export function CatalogGrid({ apps, onSelect }: CatalogGridProps) {
       );
     }
     return true;
-  });
+  }), [apps, category, search]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -81,11 +84,17 @@ export function CatalogGrid({ apps, onSelect }: CatalogGridProps) {
       {/* Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
         gap: 16,
       }}>
         {filtered.map((app) => (
-          <CatalogCard key={app.id} app={app} onClick={() => onSelect(app)} />
+          <CatalogCard
+            key={app.id}
+            app={app}
+            onClick={() => onSelect(app)}
+            isInstalled={installedAppIds?.has(app.id)}
+            isInstalling={installingAppIds?.has(app.id)}
+          />
         ))}
       </div>
 
@@ -103,7 +112,17 @@ export function CatalogGrid({ apps, onSelect }: CatalogGridProps) {
   );
 }
 
-function CatalogCard({ app, onClick }: { app: CatalogApp; onClick: () => void }) {
+function CatalogCard({
+  app,
+  onClick,
+  isInstalled,
+  isInstalling,
+}: {
+  app: CatalogApp;
+  onClick: () => void;
+  isInstalled?: boolean;
+  isInstalling?: boolean;
+}) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -112,6 +131,7 @@ function CatalogCard({ app, onClick }: { app: CatalogApp; onClick: () => void })
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        position: 'relative',
         display: 'flex',
         gap: 14,
         padding: 16,
@@ -127,6 +147,39 @@ function CatalogCard({ app, onClick }: { app: CatalogApp; onClick: () => void })
         fontFamily: 'var(--font-family)',
       }}
     >
+      {/* Status badge */}
+      {(isInstalled || isInstalling) && (
+        <span
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '2px 8px',
+            borderRadius: 4,
+            fontSize: 11,
+            fontWeight: 600,
+            lineHeight: '18px',
+            background: isInstalling ? '#FFF8E1' : '#E8F5E9',
+            color: isInstalling ? '#F57F17' : '#2E7D32',
+          }}
+        >
+          {isInstalling ? (
+            <>
+              <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />
+              Installing...
+            </>
+          ) : (
+            <>
+              <Check size={10} strokeWidth={3} />
+              Installed
+            </>
+          )}
+        </span>
+      )}
+
       {/* Icon */}
       <div
         style={{
@@ -140,11 +193,8 @@ function CatalogCard({ app, onClick }: { app: CatalogApp; onClick: () => void })
           flexShrink: 0,
         }}
       >
-        {app.iconUrl ? (
-          <img src={app.iconUrl} alt="" style={{ width: 28, height: 28 }} />
-        ) : (
-          <ExternalLink size={22} color="#fff" />
-        )}
+        {app.manifestId ? <AppIcon manifestId={app.manifestId} size={28} color="#fff" /> : null}
+        {!app.manifestId && <ExternalLink size={22} color="#fff" />}
       </div>
 
       {/* Info */}
@@ -189,7 +239,13 @@ function CatalogCard({ app, onClick }: { app: CatalogApp; onClick: () => void })
 
       {/* Install indicator */}
       <div style={{ flexShrink: 0, alignSelf: 'center' }}>
-        <Download size={18} color="var(--color-text-tertiary)" />
+        {isInstalled ? (
+          <Check size={18} color="#2E7D32" />
+        ) : isInstalling ? (
+          <Loader2 size={18} color="#F57F17" style={{ animation: 'spin 1s linear infinite' }} />
+        ) : (
+          <Download size={18} color="var(--color-text-tertiary)" />
+        )}
       </div>
     </button>
   );

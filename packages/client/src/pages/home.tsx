@@ -7,7 +7,7 @@ import { queryKeys } from '../config/query-keys';
 import {
   Mail, Calendar, FileText, Pencil, CheckSquare, Table2,
   Clock, ArrowRight, Settings,
-  Receipt, Users, Handshake, HardDrive,
+  HardDrive,
   ExternalLink, Store,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
@@ -19,6 +19,7 @@ import { useDrawingList } from '../hooks/use-drawings';
 import { useTableList } from '../hooks/use-tables';
 import { useDriveStorage } from '../hooks/use-drive';
 import { useInstalledApps } from '../hooks/use-installed-apps';
+import { AppIcon } from '../components/marketplace/app-icons';
 import { ROUTES } from '../config/routes';
 import { useUIStore } from '../stores/ui-store';
 import { buildGoogleOAuthUrl } from '../components/auth/login-page';
@@ -371,20 +372,66 @@ function formatDate(date: Date): string {
 // App card
 // ---------------------------------------------------------------------------
 
+function SparkleOverlay() {
+  // Generate random sparkle particles
+  const particles = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 3,
+      duration: 1.2 + Math.random() * 1,
+      size: 4 + Math.random() * 6,
+    })),
+  []);
+
+  return (
+    <div style={{
+      position: 'absolute',
+      inset: 0,
+      pointerEvents: 'none',
+      overflow: 'hidden',
+      borderRadius: 14,
+      zIndex: 10,
+    }}>
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: `${p.left}%`,
+            width: p.size,
+            height: p.size,
+            borderRadius: '50%',
+            background: '#FFD700',
+            boxShadow: '0 0 4px #FFD700, 0 0 8px rgba(255,215,0,0.5)',
+            animation: `sparkle-float ${p.duration}s ease-out ${p.delay}s infinite`,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function AppCard({
   icon: Icon,
+  iconNode,
   label,
   color,
   badge,
   onClick,
   upcoming,
+  sparkle,
 }: {
-  icon: typeof Mail;
+  icon?: typeof Mail;
+  iconNode?: React.ReactNode;
   label: string;
   color: string;
   badge?: string;
   onClick?: () => void;
   upcoming?: boolean;
+  sparkle?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -410,13 +457,14 @@ function AppCard({
         boxShadow: hovered && !upcoming
           ? '0 12px 28px rgba(0,0,0,0.3)'
           : '0 4px 16px rgba(0,0,0,0.15)',
-        width: 80,
+        width: 120,
         outline: 'none',
         fontFamily: 'var(--font-family)',
         position: 'relative',
         opacity: upcoming ? 0.65 : 1,
       }}
     >
+      {sparkle && <SparkleOverlay />}
       {upcoming && (
         <span
           style={{
@@ -441,9 +489,9 @@ function AppCard({
       )}
       <div
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: 11,
+          width: 48,
+          height: 48,
+          borderRadius: 12,
           background: color,
           display: 'flex',
           alignItems: 'center',
@@ -453,9 +501,9 @@ function AppCard({
           transform: hovered && !upcoming ? 'scale(1.08)' : 'scale(1)',
         }}
       >
-        <Icon size={18} color="#fff" strokeWidth={1.7} />
+        {iconNode ?? (Icon ? <Icon size={22} color="#fff" strokeWidth={1.7} /> : null)}
       </div>
-      <span style={{ color: '#fff', fontSize: 11, fontWeight: 500 }}>
+      <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
         {label}
       </span>
       {badge && (
@@ -479,21 +527,59 @@ function AppCard({
 
 function InstalledAppCards() {
   const { installations, tenant } = useInstalledApps();
-  const runningApps = installations.filter((a) => a.status === 'running');
+  const [sparkleIds, setSparkleIds] = useState<Set<string>>(new Set());
+  const prevIdsRef = useRef<Set<string>>(new Set());
 
-  if (runningApps.length === 0) return null;
+  // Detect newly appeared installations and sparkle them for 5 seconds
+  useEffect(() => {
+    const currentIds = new Set(installations.map((i) => i.id));
+    const prevIds = prevIdsRef.current;
+
+    // Only detect new ones after the initial load
+    if (prevIds.size > 0) {
+      const newIds = [...currentIds].filter((id) => !prevIds.has(id));
+      if (newIds.length > 0) {
+        setSparkleIds((prev) => {
+          const next = new Set(prev);
+          newIds.forEach((id) => next.add(id));
+          return next;
+        });
+
+        // Remove sparkles after 5 seconds
+        const timer = setTimeout(() => {
+          setSparkleIds((prev) => {
+            const next = new Set(prev);
+            newIds.forEach((id) => next.delete(id));
+            return next;
+          });
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+
+    prevIdsRef.current = currentIds;
+  }, [installations]);
+
+  if (installations.length === 0) return null;
 
   return (
     <>
-      {runningApps.map((app) => (
+      {installations.map((app) => (
         <AppCard
           key={app.id}
-          icon={ExternalLink}
+          iconNode={app.manifestId ? <AppIcon manifestId={app.manifestId} size={22} color="#fff" /> : undefined}
+          icon={app.manifestId ? undefined : ExternalLink}
           label={app.name ?? app.subdomain}
           color={app.color ?? '#4A90E2'}
-          onClick={() =>
-            window.open(`https://${app.subdomain}.${tenant?.slug ?? ''}.atlas.so`, '_blank')
-          }
+          badge={app.status !== 'running' ? app.status : undefined}
+          sparkle={sparkleIds.has(app.id)}
+          onClick={() => {
+            const isDev = window.location.hostname === 'localhost';
+            const host = isDev
+              ? `http://${app.subdomain}.${tenant?.slug ?? ''}.localhost`
+              : `https://${app.subdomain}.${tenant?.slug ?? ''}.atlas.so`;
+            window.open(host, '_blank');
+          }}
         />
       ))}
     </>
@@ -659,32 +745,6 @@ export function HomePage() {
     }
   }, [userSettings]);
 
-  // Quick create handlers
-  const handleNewEmail = () => {
-    navigate('/');
-  };
-
-  const handleNewDocument = async () => {
-    try {
-      const { data } = await api.post('/docs', { title: 'Untitled' });
-      navigate(`/docs/${data.data.id}`);
-    } catch {}
-  };
-
-  const handleNewTask = async () => {
-    try {
-      const { data } = await api.post('/tasks', { title: 'New task', when: 'inbox' });
-      navigate('/tasks');
-    } catch {}
-  };
-
-  const handleNewDrawing = async () => {
-    try {
-      const { data } = await api.post('/drawings', { title: 'Untitled' });
-      navigate(`/draw/${data.data.id}`);
-    } catch {}
-  };
-
   return (
     <div
       style={{
@@ -715,10 +775,8 @@ export function HomePage() {
         />
       )}
 
-      {/* Settings gear — top-right */}
-      <button
-        onClick={() => openSettings()}
-        aria-label="Settings"
+      {/* Top-right — Marketplace + Settings */}
+      <div
         style={{
           position: 'absolute',
           top: isDesktop ? 46 : 16,
@@ -726,29 +784,76 @@ export function HomePage() {
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 36,
-          height: 36,
-          background: 'rgba(255,255,255,0.12)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          borderRadius: '50%',
-          color: 'rgba(255,255,255,0.75)',
-          cursor: 'pointer',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          transition: 'background 0.2s, color 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
-          e.currentTarget.style.color = '#fff';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
-          e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+          gap: 10,
         }}
       >
-        <Settings size={18} />
-      </button>
+        {/* Marketplace button */}
+        <button
+          onClick={() => navigate(ROUTES.MARKETPLACE)}
+          aria-label="Marketplace"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            height: 36,
+            padding: '0 14px',
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: 18,
+            color: 'rgba(255,255,255,0.75)',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            transition: 'background 0.2s, color 0.2s',
+            fontFamily: 'var(--font-family)',
+            fontSize: 13,
+            fontWeight: 500,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
+            e.currentTarget.style.color = '#fff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+          }}
+        >
+          <Store size={16} />
+          Marketplace
+        </button>
+
+        {/* Settings gear */}
+        <button
+          onClick={() => openSettings()}
+          aria-label="Settings"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: '50%',
+            color: 'rgba(255,255,255,0.75)',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            transition: 'background 0.2s, color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
+            e.currentTarget.style.color = '#fff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+          }}
+        >
+          <Settings size={18} />
+        </button>
+      </div>
 
       {/* Background images with ken burns + parallax + crossfade */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
@@ -832,19 +937,18 @@ export function HomePage() {
           gap: 40,
         }}
       >
-        {/* Left sidebar — App icons */}
+        {/* Left sidebar — App icons (column-first flow, 2 columns max) */}
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridAutoFlow: 'column',
+            gridTemplateRows: 'repeat(auto-fill, 120px)',
             gap: 10,
-            alignItems: 'center',
+            justifyItems: 'center',
             flexShrink: 0,
-            overflowY: 'auto',
             maxHeight: 'calc(100vh - 48px)',
             paddingTop: isDesktop ? 48 : 16,
             paddingBottom: 16,
-            width: 96,
           }}
         >
           <AppCard
@@ -902,33 +1006,8 @@ export function HomePage() {
             badge={driveFileCount > 0 ? t('home.files', { count: driveFileCount }) : undefined}
             onClick={() => navigate(ROUTES.DRIVE)}
           />
-          <AppCard
-            icon={Receipt}
-            label="Invoice"
-            color="#e67e22"
-            upcoming
-          />
-          <AppCard
-            icon={Users}
-            label="People"
-            color="#3b82f6"
-            upcoming
-          />
-          <AppCard
-            icon={Handshake}
-            label="CRM"
-            color="#8b5cf6"
-            upcoming
-          />
           {/* Installed marketplace apps */}
           <InstalledAppCards />
-          {/* Marketplace link */}
-          <AppCard
-            icon={Store}
-            label="Marketplace"
-            color="#374151"
-            onClick={() => navigate(ROUTES.MARKETPLACE)}
-          />
         </div>
 
         {/* Center content — Clock, greeting, widgets */}
@@ -1108,41 +1187,6 @@ export function HomePage() {
               )}
             </div>
           )}
-
-          {/* Quick-create actions */}
-          <div style={{ display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28, marginBottom: 16 }}>
-            {[
-              { label: 'New email', icon: <Mail size={14} />, onClick: handleNewEmail },
-              { label: 'New document', icon: <FileText size={14} />, onClick: handleNewDocument },
-              { label: 'New task', icon: <CheckSquare size={14} />, onClick: handleNewTask },
-              { label: 'New drawing', icon: <Pencil size={14} />, onClick: handleNewDrawing },
-            ].map((action) => (
-              <button
-                key={action.label}
-                onClick={action.onClick}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 14px',
-                  borderRadius: 9999,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: 'rgba(255,255,255,0.9)',
-                  background: 'rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(8px)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.25)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
-              >
-                {action.icon}
-                {action.label}
-              </button>
-            ))}
-          </div>
 
           {/* Recent items */}
           {recentItems.length > 0 && (
