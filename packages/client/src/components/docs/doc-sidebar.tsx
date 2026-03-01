@@ -13,6 +13,7 @@ import {
   RotateCcw,
   StarOff,
   LayoutTemplate,
+  Upload,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -95,6 +96,7 @@ interface DocSidebarProps {
   selectedId: string | undefined;
   onSelect: (id: string) => void;
   onNewFromTemplate?: () => void;
+  onImport?: () => void;
 }
 
 const SIDEBAR_WIDTH_KEY = 'atlasmail_doc_sidebar_width';
@@ -110,7 +112,7 @@ function getSavedSidebarWidth(): number {
   return DEFAULT_SIDEBAR_WIDTH;
 }
 
-export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSidebarProps) {
+export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }: DocSidebarProps) {
   const navigate = useNavigate();
   const isDesktop = !!('atlasDesktop' in window);
   const { data, isLoading } = useDocumentList();
@@ -568,6 +570,37 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate }: DocSideb
             >
               <LayoutTemplate size={14} />
               From template
+            </button>
+          )}
+          {onImport && (
+            <button
+              onClick={onImport}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '6px 8px',
+                background: 'transparent',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-text-tertiary)',
+                fontSize: 12,
+                fontFamily: 'var(--font-family)',
+                cursor: 'pointer',
+                transition: 'background 0.1s ease, color 0.1s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-surface-hover)';
+                e.currentTarget.style.color = 'var(--color-text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
+            >
+              <Upload size={14} />
+              Import document
             </button>
           )}
         </div>

@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Search,
   Settings,
+  MessageSquare,
+  Upload,
 } from 'lucide-react';
 import { DocSidebar } from '../components/docs/doc-sidebar';
 import { DocEditor } from '../components/docs/doc-editor';
@@ -26,6 +28,8 @@ import {
   useRestoreVersion,
 } from '../hooks/use-documents';
 import { DocSettingsModal } from '../components/docs/doc-settings-modal';
+import { CommentSidebar } from '../components/docs/comment-sidebar';
+import { BacklinksSection } from '../components/docs/backlinks-section';
 import { useUIStore } from '../stores/ui-store';
 import { useDocSettingsStore, useDocSettingsSync } from '../stores/docs-settings-store';
 import { useQuery } from '@tanstack/react-query';
@@ -934,6 +938,8 @@ export function DocsPage() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showDocSettings, setShowDocSettings] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const { openSettings } = useUIStore();
 
   // Auto-select a document when none is selected.
@@ -1043,6 +1049,44 @@ export function DocsPage() {
     [selectedId, handleSelect, restoreVersionMutation],
   );
 
+  const handleImportFile = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      let html = '';
+      const title = file.name.replace(/\.(md|docx?|html?)$/i, '');
+
+      if (ext === 'md') {
+        const text = await file.text();
+        html = text
+          .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+          .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+          .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/\n/g, '<br>');
+      } else if (ext === 'html' || ext === 'htm') {
+        html = await file.text();
+      } else {
+        html = `<p>Imported from ${file.name}</p>`;
+      }
+
+      createDoc.mutate(
+        { title, content: html ? { _html: html } : null },
+        {
+          onSuccess: (newDoc) => {
+            handleSelect(newDoc.id);
+          },
+        },
+      );
+
+      e.target.value = '';
+    },
+    [createDoc, handleSelect],
+  );
+
   // Build breadcrumb path
   const breadcrumbs = useMemo(() => {
     if (!doc || !listData?.documents) return [];
@@ -1075,6 +1119,7 @@ export function DocsPage() {
         selectedId={selectedId}
         onSelect={handleSelect}
         onNewFromTemplate={() => setShowTemplates(true)}
+        onImport={() => importInputRef.current?.click()}
       />
 
       <div
@@ -1094,38 +1139,45 @@ export function DocsPage() {
             onNavigate={handleSelect}
             onShowVersionHistory={() => setShowVersionHistory(true)}
             onOpenSettings={() => openSettings('documents')}
+            showComments={showComments}
+            onToggleComments={() => setShowComments(!showComments)}
           />
         )}
 
         {/* Editor area or template gallery */}
-        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          {showTemplates ? (
-            <TemplateGallery
-              onSelect={handleCreateFromTemplate}
-              onClose={() => setShowTemplates(false)}
-            />
-          ) : !selectedId ? (
-            <div style={{ flex: 1, overflow: 'auto' }}><EmptyState /></div>
-          ) : isLoading ? (
-            <div style={{ flex: 1, overflow: 'auto' }}><CenterText>Loading...</CenterText></div>
-          ) : doc ? (
-            <div style={{ flex: 1, overflow: 'auto' }}>
-              <DocumentView
-                key={doc.id}
-                doc={doc}
-                isSaving={isSaving}
-                onContentChange={handleContentChange}
-                onTitleChange={handleTitleChange}
-                onIconChange={handleIconChange}
-                onCoverChange={handleCoverChange}
-                allDocuments={listData?.documents}
-                onNavigate={handleSelect}
-                allDrawings={drawingListData?.drawings?.map((d) => ({ id: d.id, title: d.title }))}
-                allTables={tableListData?.spreadsheets?.map((s) => ({ id: s.id, title: s.title }))}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {showTemplates ? (
+              <TemplateGallery
+                onSelect={handleCreateFromTemplate}
+                onClose={() => setShowTemplates(false)}
               />
-            </div>
-          ) : (
-            <div style={{ flex: 1, overflow: 'auto' }}><CenterText>Document not found</CenterText></div>
+            ) : !selectedId ? (
+              <div style={{ flex: 1, overflow: 'auto' }}><EmptyState /></div>
+            ) : isLoading ? (
+              <div style={{ flex: 1, overflow: 'auto' }}><CenterText>Loading...</CenterText></div>
+            ) : doc ? (
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                <DocumentView
+                  key={doc.id}
+                  doc={doc}
+                  isSaving={isSaving}
+                  onContentChange={handleContentChange}
+                  onTitleChange={handleTitleChange}
+                  onIconChange={handleIconChange}
+                  onCoverChange={handleCoverChange}
+                  allDocuments={listData?.documents}
+                  onNavigate={handleSelect}
+                  allDrawings={drawingListData?.drawings?.map((d) => ({ id: d.id, title: d.title }))}
+                  allTables={tableListData?.spreadsheets?.map((s) => ({ id: s.id, title: s.title }))}
+                />
+              </div>
+            ) : (
+              <div style={{ flex: 1, overflow: 'auto' }}><CenterText>Document not found</CenterText></div>
+            )}
+          </div>
+          {selectedId && (
+            <CommentSidebar docId={selectedId} isOpen={showComments} onClose={() => setShowComments(false)} />
           )}
         </div>
       </div>
@@ -1139,6 +1191,14 @@ export function DocsPage() {
         />
       )}
       <DocSettingsModal open={showDocSettings} onClose={() => setShowDocSettings(false)} />
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".md,.html,.htm,.docx"
+        className="hidden"
+        style={{ display: 'none' }}
+        onChange={handleImportFile}
+      />
     </div>
   );
 }
@@ -1152,6 +1212,8 @@ function TopBar({
   onNavigate,
   onShowVersionHistory,
   onOpenSettings,
+  showComments,
+  onToggleComments,
 }: {
   doc: { id: string; title: string; icon: string | null; content: Record<string, unknown> | null };
   breadcrumbs: { id: string; title: string; icon: string | null }[];
@@ -1159,6 +1221,8 @@ function TopBar({
   onNavigate: (id: string) => void;
   onShowVersionHistory: () => void;
   onOpenSettings: () => void;
+  showComments: boolean;
+  onToggleComments: () => void;
 }) {
   const [showExport, setShowExport] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -1341,6 +1405,29 @@ function TopBar({
           Saving...
         </span>
       )}
+
+      {/* Comments toggle button */}
+      <button
+        onClick={onToggleComments}
+        title="Comments"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 26,
+          height: 26,
+          background: showComments ? 'var(--color-surface-hover)' : 'transparent',
+          border: 'none',
+          borderRadius: 4,
+          color: showComments ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
+          cursor: 'pointer',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => { if (!showComments) e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+        onMouseLeave={(e) => { if (!showComments) e.currentTarget.style.background = 'transparent'; }}
+      >
+        <MessageSquare size={14} />
+      </button>
 
       {/* Version history button */}
       <button
@@ -1667,6 +1754,8 @@ function DocumentView({
         drawings={allDrawings}
         tables={allTables}
       />
+
+      <BacklinksSection docId={doc.id} />
 
       {showCoverPicker && (
         <CoverPicker
