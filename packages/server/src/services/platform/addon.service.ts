@@ -56,7 +56,11 @@ async function provisionPostgresql(installationId: string, tenantSlug: string): 
   try {
     await adminClient.connect();
   } catch (err) {
-    throw new Error(`Cannot reach addon PostgreSQL at ${env.ADDON_PG_ADMIN_URL} — check ADDON_PG_ADMIN_URL: ${(err as Error).message}`);
+    // Redact credentials from the URL before logging
+    const redactedUrl = new URL(env.ADDON_PG_ADMIN_URL);
+    redactedUrl.password = '***';
+    await adminClient.end().catch(() => {});
+    throw new Error(`Cannot reach addon PostgreSQL at ${redactedUrl.toString()} — check ADDON_PG_ADMIN_URL: ${(err as Error).message}`);
   }
 
   try {
