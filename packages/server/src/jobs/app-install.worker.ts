@@ -95,6 +95,16 @@ export function startAppInstallWorker() {
         log.info({ userId, installationId: installation.id }, 'Auto-assigned installer as admin');
       }
 
+      // Set up provisioning API token for the newly installed app
+      if (installation) {
+        try {
+          const { setupProvisioningToken } = await import('../services/platform/provisioning.service');
+          await setupProvisioningToken(installation.id);
+        } catch (err) {
+          log.warn({ err, installationId: installation.id }, 'Provisioning token setup failed — provisioning will be unavailable');
+        }
+      }
+
       log.info('App install job completed');
     },
     { connection: conn, concurrency: 2 },
@@ -181,6 +191,16 @@ export async function addAppInstallJob(tenantId: string, input: InstallAppInput,
       const { assignUserToApp } = await import('../services/platform/assignment.service');
       await assignUserToApp(installation.id, userId, 'admin', userId);
       logger.info({ userId, installationId: installation.id }, 'Auto-assigned installer as admin (inline)');
+    }
+
+    // Set up provisioning API token
+    if (installation) {
+      try {
+        const { setupProvisioningToken } = await import('../services/platform/provisioning.service');
+        await setupProvisioningToken(installation.id);
+      } catch (err) {
+        logger.warn({ err, installationId: installation.id }, 'Provisioning token setup failed (inline)');
+      }
     }
     return;
   }

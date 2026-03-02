@@ -648,6 +648,29 @@ export async function runMigrations() {
       );
     `);
 
+    // ─── Provisioning log table ──────────────────────────────────────
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS provisioning_log (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        installation_id UUID NOT NULL REFERENCES app_installations(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        app_role VARCHAR(50),
+        error_message TEXT,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        completed_at TIMESTAMPTZ
+      );
+    `);
+
+    // Add provisioning columns to app_installations (idempotent)
+    await client.query(`
+      ALTER TABLE app_installations ADD COLUMN IF NOT EXISTS provisioning_api_token TEXT;
+      ALTER TABLE app_installations ADD COLUMN IF NOT EXISTS provisioning_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+    `);
+
     // ─── Indexes ────────────────────────────────────────────────────
 
     const indexes = [
@@ -737,6 +760,10 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_app_assignments_installation ON app_user_assignments(installation_id)',
       'CREATE INDEX IF NOT EXISTS idx_app_assignments_user ON app_user_assignments(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_backups_installation ON app_backups(installation_id)',
+      // Provisioning log
+      'CREATE INDEX IF NOT EXISTS idx_provisioning_log_installation ON provisioning_log(installation_id)',
+      'CREATE INDEX IF NOT EXISTS idx_provisioning_log_user ON provisioning_log(user_id)',
+      'CREATE INDEX IF NOT EXISTS idx_provisioning_log_status ON provisioning_log(status)',
     ];
 
     for (const idx of indexes) {

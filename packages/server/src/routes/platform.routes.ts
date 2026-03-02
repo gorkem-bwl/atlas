@@ -38,4 +38,10 @@ router.post('/tenants/:id/installations/:iid/assignments', ctrl.assignUser);
 router.put('/tenants/:id/installations/:iid/assignments/:userId', ctrl.updateAssignment);
 router.delete('/tenants/:id/installations/:iid/assignments/:userId', ctrl.removeAssignment);
 
+// ─── Provisioning ──────────────────────────────────────────────────
+router.get('/tenants/:id/installations/:iid/provisioning/log', ctrl.listProvisioningLog);
+router.post('/tenants/:id/installations/:iid/provisioning/retry/:logId', ctrl.retryProvisioning);
+router.post('/tenants/:id/installations/:iid/provisioning/reconcile', ctrl.reconcileProvisioning);
+router.post('/tenants/:id/installations/:iid/provisioning/setup-token', ctrl.setupProvisioningTokenEndpoint);
+
 export default router;

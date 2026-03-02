@@ -122,7 +122,31 @@ export interface AtlasManifest {
     backupCommand: string;
     restoreCommand: string;
   };
+  provisioning?: {
+    adapter: string;
+    adminApiBasePath: string;
+    supportsDeprovisioning: boolean;
+    roleMapping: Record<string, string>;
+  };
   minPlan: TenantPlan;
+}
+
+// ─── Provisioning ────────────────────────────────────────────────────
+
+export type ProvisioningAction = 'provision' | 'update_role' | 'deprovision';
+export type ProvisioningStatus = 'pending' | 'success' | 'failed';
+
+export interface ProvisioningLogEntry {
+  id: string;
+  installationId: string;
+  userId: string;
+  action: ProvisioningAction;
+  status: ProvisioningStatus;
+  appRole: string | null;
+  errorMessage: string | null;
+  attempts: number;
+  createdAt: string;
+  completedAt: string | null;
 }
 
 export interface CatalogApp {

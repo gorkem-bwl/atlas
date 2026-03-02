@@ -7,7 +7,7 @@
   "category": "development",
   "tags": ["git", "devops", "ci-cd", "code-hosting"],
   "ui": {
-    "icon": "https://cdn.atlas.so/icons/gitea.svg",
+    "icon": "",
     "color": "#609926",
     "screenshots": [
       "https://cdn.atlas.so/screenshots/gitea-1.png",
@@ -39,6 +39,16 @@
   "lifecycle": {
     "backupCommand": "/app/scripts/backup.sh",
     "restoreCommand": "/app/scripts/restore.sh"
+  },
+  "provisioning": {
+    "adapter": "gitea",
+    "adminApiBasePath": "/api/v1",
+    "supportsDeprovisioning": true,
+    "roleMapping": {
+      "admin": "admin",
+      "member": "user",
+      "viewer": "restricted"
+    }
   },
   "minPlan": "starter"
 }

@@ -7,7 +7,7 @@
   "category": "productivity",
   "tags": ["database", "no-code", "spreadsheet", "api"],
   "ui": {
-    "icon": "https://cdn.atlas.so/icons/nocodb.svg",
+    "icon": "",
     "color": "#4A90E2",
     "screenshots": [
       "https://cdn.atlas.so/screenshots/nocodb-1.png",
@@ -39,6 +39,16 @@
   "lifecycle": {
     "backupCommand": "/app/scripts/backup.sh",
     "restoreCommand": "/app/scripts/restore.sh"
+  },
+  "provisioning": {
+    "adapter": "nocodb",
+    "adminApiBasePath": "/api/v1",
+    "supportsDeprovisioning": true,
+    "roleMapping": {
+      "admin": "org-level-creator",
+      "member": "org-level-viewer",
+      "viewer": "org-level-viewer"
+    }
   },
   "minPlan": "starter"
 }

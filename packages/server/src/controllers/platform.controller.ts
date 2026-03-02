@@ -6,6 +6,7 @@ import * as catalogService from '../services/platform/catalog.service';
 import * as installService from '../services/platform/install.service';
 import * as assignmentService from '../services/platform/assignment.service';
 import { addAppInstallJob, addAppBackupJob } from '../jobs/app-install.worker';
+import * as provisioningService from '../services/platform/provisioning.service';
 import { logger } from '../utils/logger';
 import { env } from '../config/env';
 import { validatePasswordStrength } from '../utils/password';
@@ -291,6 +292,9 @@ export async function removeTenantUser(req: Request, res: Response) {
       return;
     }
 
+    // Deprovision user from all apps before removing from tenant
+    await provisioningService.enqueueDeprovisionFromAllApps(tenantId, userId);
+
     await tenantUserService.removeTenantUser(tenantId, userId);
     logger.info({ audit: true, action: 'user.remove', tenantId, userId, performedBy: req.auth!.userId }, 'User removed');
     res.json({ success: true, data: { message: 'User removed' } });
@@ -555,6 +559,10 @@ export async function assignUser(req: Request, res: Response) {
 
     const appRole = data.appRole ?? 'member';
     const assignment = await assignmentService.assignUserToApp(inst.id, data.userId, appRole, req.auth!.userId);
+
+    // Provision user in the app
+    await provisioningService.enqueueProvision(inst.id, data.userId, appRole);
+
     logger.info({ audit: true, action: 'app.assign', installationId: inst.id, userId: data.userId, appRole, performedBy: req.auth!.userId }, 'User assigned to app');
     res.status(201).json({ success: true, data: assignment });
   } catch (err) {
@@ -584,6 +592,9 @@ export async function updateAssignment(req: Request, res: Response) {
       return;
     }
 
+    // Update role in the app
+    await provisioningService.enqueueRoleUpdate(inst.id, userId, appRole);
+
     logger.info({ audit: true, action: 'app.assignment.update', installationId: inst.id, userId, newAppRole: appRole, performedBy: req.auth!.userId }, 'App assignment updated');
     res.json({ success: true, data: updated });
   } catch (err) {
@@ -606,10 +617,79 @@ export async function removeAssignment(req: Request, res: Response) {
       return;
     }
 
+    // Deprovision user from the app
+    await provisioningService.enqueueDeprovision(inst.id, userId);
+
     logger.info({ audit: true, action: 'app.assignment.remove', installationId: inst.id, userId, performedBy: req.auth!.userId }, 'App assignment removed');
     res.json({ success: true, data: { message: 'Assignment removed' } });
   } catch (err) {
     logger.error({ err }, 'Failed to remove assignment');
     res.status(500).json({ success: false, error: 'Failed to remove assignment' });
+  }
+}
+
+// ─── Provisioning ────────────────────────────────────────────────────
+
+export async function listProvisioningLog(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const limit = Math.min(Number(req.query.limit) || 50, 200);
+    const offset = Number(req.query.offset) || 0;
+
+    const log = await provisioningService.getProvisioningLog(inst.id, limit, offset);
+    res.json({ success: true, data: { log } });
+  } catch (err) {
+    logger.error({ err }, 'Failed to list provisioning log');
+    res.status(500).json({ success: false, error: 'Failed to list provisioning log' });
+  }
+}
+
+export async function retryProvisioning(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const logId = param(req, 'logId');
+    await provisioningService.retryFailedProvisioning(logId);
+    res.json({ success: true, data: { message: 'Retry enqueued' } });
+  } catch (err: any) {
+    logger.error({ err }, 'Failed to retry provisioning');
+    res.status(400).json({ success: false, error: err?.message || 'Failed to retry provisioning' });
+  }
+}
+
+export async function reconcileProvisioning(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    const result = await provisioningService.reconcileInstallation(inst.id);
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    logger.error({ err }, 'Failed to reconcile provisioning');
+    res.status(400).json({ success: false, error: err?.message || 'Failed to reconcile provisioning' });
+  }
+}
+
+export async function setupProvisioningTokenEndpoint(req: Request, res: Response) {
+  try {
+    if (requirePlatformDb(res)) return;
+
+    const inst = await getInstallationWithAuth(req, res, true);
+    if (!inst) return;
+
+    await provisioningService.setupProvisioningToken(inst.id);
+    res.json({ success: true, data: { message: 'Provisioning token configured' } });
+  } catch (err: any) {
+    logger.error({ err }, 'Failed to setup provisioning token');
+    res.status(500).json({ success: false, error: err?.message || 'Failed to setup provisioning token' });
   }
 }

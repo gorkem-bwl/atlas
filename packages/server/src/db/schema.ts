@@ -741,6 +741,8 @@ export const appInstallations = pgTable('app_installations', {
   addonRefs: jsonb('addon_refs').$type<Record<string, string>>().notNull().default({}),
   lastHealthStatus: varchar('last_health_status', { length: 50 }),
   customEnv: jsonb('custom_env').$type<Record<string, string>>().notNull().default({}),
+  provisioningApiToken: text('provisioning_api_token'),
+  provisioningEnabled: boolean('provisioning_enabled').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
@@ -778,6 +780,25 @@ export const appUserAssignments = pgTable('app_user_assignments', {
   uniqueAssignment: uniqueIndex('idx_app_assignments_unique').on(table.installationId, table.userId),
   installationIdx: index('idx_app_assignments_installation').on(table.installationId),
   userIdx: index('idx_app_assignments_user').on(table.userId),
+}));
+
+// ─── Platform: Provisioning Log ─────────────────────────────────────
+
+export const provisioningLog = pgTable('provisioning_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  installationId: uuid('installation_id').notNull().references(() => appInstallations.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  action: varchar('action', { length: 50 }).notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  appRole: varchar('app_role', { length: 50 }),
+  errorMessage: text('error_message'),
+  attempts: integer('attempts').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (table) => ({
+  installationIdx: index('idx_provisioning_log_installation').on(table.installationId),
+  userIdx: index('idx_provisioning_log_user').on(table.userId),
+  statusIdx: index('idx_provisioning_log_status').on(table.status),
 }));
 
 // ─── Platform: App Backups ──────────────────────────────────────────

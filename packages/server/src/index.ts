@@ -6,6 +6,7 @@ import { startSyncScheduler, stopSyncScheduler } from './jobs/sync-scheduler';
 import { purgeOldArchivedDrawings } from './services/drawing.service';
 import { runScheduledBackup } from './services/backup.service';
 import { startAppInstallWorker, startAppHealthWorker, startAppBackupWorker, startHealthCheckScheduler, stopPlatformWorkers } from './jobs/app-install.worker';
+import { startProvisioningWorker, stopProvisioningWorker } from './jobs/provisioning.worker';
 import { runMigrations } from './db/migrate';
 import { closeDb } from './config/database';
 import { seedCatalogFromManifests } from './services/platform/catalog.service';
@@ -44,6 +45,7 @@ app.listen(env.PORT, async () => {
       startAppHealthWorker();
       startHealthCheckScheduler();
       startAppBackupWorker();
+      startProvisioningWorker();
 
       // Auto-create a dev tenant for local Docker runtime
       if (env.PLATFORM_RUNTIME === 'docker') {
@@ -96,6 +98,7 @@ function handleShutdown(signal: string) {
   Promise.all([
     stopSyncWorker(),
     stopPlatformWorkers(),
+    stopProvisioningWorker(),
     closeDb(),
   ])
     .then(() => {

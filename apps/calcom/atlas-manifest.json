@@ -1,0 +1,54 @@
+{
+  "manifestVersion": 1,
+  "id": "com.atlas.calcom",
+  "name": "Cal.com",
+  "version": "5.6.19",
+  "description": "Open-source scheduling infrastructure. Calendly alternative with powerful integrations, team scheduling, round-robin routing, and full API access.",
+  "category": "productivity",
+  "tags": ["scheduling", "calendar", "booking", "meetings"],
+  "ui": {
+    "icon": "",
+    "color": "#292929",
+    "screenshots": [
+      "https://cdn.atlas.so/screenshots/calcom-1.png",
+      "https://cdn.atlas.so/screenshots/calcom-2.png"
+    ]
+  },
+  "runtime": {
+    "image": "registry.atlas.so/apps/calcom:5.6.19",
+    "httpPort": 3000,
+    "healthCheckPath": "/api/health",
+    "healthCheckTimeoutSeconds": 120
+  },
+  "resources": {
+    "memoryMb": 1024,
+    "cpuMillicores": 500,
+    "storageMb": 2048
+  },
+  "addons": {
+    "postgresql": true,
+    "redis": true,
+    "smtp": true,
+    "s3": false
+  },
+  "persistentDirs": [],
+  "sso": {
+    "method": "oidc",
+    "oidcCallbackPath": "/api/auth/oidc"
+  },
+  "lifecycle": {
+    "backupCommand": "/app/scripts/backup.sh",
+    "restoreCommand": "/app/scripts/restore.sh"
+  },
+  "provisioning": {
+    "adapter": "calcom",
+    "adminApiBasePath": "/api/v1",
+    "supportsDeprovisioning": true,
+    "roleMapping": {
+      "admin": "ADMIN",
+      "member": "MEMBER",
+      "viewer": "MEMBER"
+    }
+  },
+  "minPlan": "starter"
+}
