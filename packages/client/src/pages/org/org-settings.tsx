@@ -4,11 +4,7 @@ import {
   Building2,
   Globe,
   CreditCard,
-  Cpu,
-  HardDrive,
-  MemoryStick,
   Calendar,
-  Shield,
   Copy,
   Check,
 } from 'lucide-react';
@@ -77,11 +73,6 @@ function formatDate(iso: string): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-function formatBytes(mb: number): string {
-  if (mb >= 1024) return `${(mb / 1024).toFixed(1)} GB`;
-  return `${mb} MB`;
 }
 
 const PLAN_COLORS: Record<string, string> = {
@@ -159,38 +150,6 @@ function CopyableValue({ value }: { value: string }) {
         activeColor="var(--color-success, #16a34a)"
         onClick={handleCopy}
       />
-    </div>
-  );
-}
-
-function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {
-  const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
-  return (
-    <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{label}</span>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-          {used} / {total}
-        </span>
-      </div>
-      <div
-        style={{
-          height: 6,
-          borderRadius: 3,
-          background: 'var(--color-bg-secondary)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            height: '100%',
-            width: `${pct}%`,
-            borderRadius: 3,
-            background: color,
-            transition: 'width 0.3s ease',
-          }}
-        />
-      </div>
     </div>
   );
 }
@@ -300,85 +259,6 @@ export function OrgSettingsPage() {
         <div style={rowStyle}>
           <span style={labelStyle}>Team members</span>
           <span style={valueStyle}>{memberCount}</span>
-        </div>
-      </div>
-
-      {/* Resource quotas */}
-      <div style={sectionStyle}>
-        <div style={sectionHeaderStyle}>
-          <Shield size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-          <span style={sectionTitleStyle}>Resource quotas</span>
-        </div>
-        <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-sm)',
-                background: 'color-mix(in srgb, #3b82f6 10%, transparent)',
-                color: '#3b82f6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Cpu size={15} />
-            </div>
-            <UsageBar
-              used={0}
-              total={tenant.quotaCpu}
-              label="CPU cores"
-              color="#3b82f6"
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-sm)',
-                background: 'color-mix(in srgb, #8b5cf6 10%, transparent)',
-                color: '#8b5cf6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <MemoryStick size={15} />
-            </div>
-            <UsageBar
-              used={0}
-              total={tenant.quotaMemoryMb}
-              label={`Memory (${formatBytes(tenant.quotaMemoryMb)} allocated)`}
-              color="#8b5cf6"
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-sm)',
-                background: 'color-mix(in srgb, var(--color-accent-primary) 10%, transparent)',
-                color: 'var(--color-accent-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <HardDrive size={15} />
-            </div>
-            <UsageBar
-              used={0}
-              total={tenant.quotaStorageMb}
-              label={`Storage (${formatBytes(tenant.quotaStorageMb)} allocated)`}
-              color="var(--color-accent-primary)"
-            />
-          </div>
         </div>
       </div>
 

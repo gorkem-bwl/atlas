@@ -42,9 +42,9 @@ app.listen(env.PORT, async () => {
       await createTenant({ slug: 'dev', name: 'Dev Tenant', plan: 'enterprise' }, devOwnerId);
       logger.info('Auto-created dev tenant');
     }
-    logger.info('Platform services initialized');
+    logger.info('Tenant services initialized');
   } catch (err) {
-    logger.error({ err }, 'Platform initialization failed');
+    logger.error({ err }, 'Tenant initialization failed');
   }
 
   // Auto-purge archived drawings older than 30 days (runs every hour)
