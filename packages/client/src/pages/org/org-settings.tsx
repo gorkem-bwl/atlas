@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants, useTenantUsers } from '../../hooks/use-platform';
-import { useInstalledApps } from '../../hooks/use-installed-apps';
 import { Chip } from '../../components/ui/chip';
 import { Skeleton } from '../../components/ui/skeleton';
 import { IconButton } from '../../components/ui/icon-button';
@@ -223,9 +222,8 @@ export function OrgSettingsPage() {
   const effectiveTenantId = storeTenantId ?? tenant?.id;
 
   const { data: users, isLoading: usersLoading } = useTenantUsers(effectiveTenantId ?? undefined);
-  const { installations, isLoading: appsLoading } = useInstalledApps();
 
-  const isLoading = tenantsLoading || usersLoading || appsLoading;
+  const isLoading = tenantsLoading || usersLoading;
 
   if (isLoading) {
     return (
@@ -245,8 +243,6 @@ export function OrgSettingsPage() {
   }
 
   const memberCount = users?.length ?? 0;
-  const appCount = installations?.length ?? 0;
-  const runningApps = installations?.filter((a) => a.status === 'running').length ?? 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 720 }}>
@@ -305,12 +301,6 @@ export function OrgSettingsPage() {
           <span style={labelStyle}>Team members</span>
           <span style={valueStyle}>{memberCount}</span>
         </div>
-        <div style={{ ...rowStyle, borderBottom: 'none' }}>
-          <span style={labelStyle}>Installed apps</span>
-          <span style={valueStyle}>
-            {appCount} total, {runningApps} running
-          </span>
-        </div>
       </div>
 
       {/* Resource quotas */}
@@ -337,7 +327,7 @@ export function OrgSettingsPage() {
               <Cpu size={15} />
             </div>
             <UsageBar
-              used={appCount}
+              used={0}
               total={tenant.quotaCpu}
               label="CPU cores"
               color="#3b82f6"

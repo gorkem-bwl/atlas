@@ -21,10 +21,8 @@ export const ROUTES = {
   TABLE_DETAIL: '/tables/:id',
   DRIVE: '/drive',
   DRIVE_FOLDER: '/drive/folder/:id',
-  MARKETPLACE: '/marketplace',
   ORG: '/org',
   ORG_MEMBERS: '/org/members',
-  ORG_APPS: '/org/apps',
   ORG_SETTINGS: '/org/settings',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password/:token',
@@ -33,6 +31,4 @@ export const ROUTES = {
   ADMIN_OVERVIEW: '/admin',
   ADMIN_TENANTS: '/admin/tenants',
   ADMIN_TENANT_DETAIL: '/admin/tenants/:id',
-  ADMIN_INSTALLATIONS: '/admin/installations',
-  ADMIN_CONTAINERS: '/admin/containers',
 } as const;

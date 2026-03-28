@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, AppWindow, Play, Square, RotateCw, Cpu, HardDrive, MemoryStick } from 'lucide-react';
-import { useAdminTenant, useUpdateTenantStatus, useUpdateTenantPlan, useInstallationAction } from '../../hooks/use-admin';
+import { ArrowLeft, Users, Cpu, HardDrive, MemoryStick } from 'lucide-react';
+import { useAdminTenant, useUpdateTenantStatus, useUpdateTenantPlan } from '../../hooks/use-admin';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../config/query-keys';
 import { Button } from '../../components/ui/button';
@@ -33,9 +33,8 @@ const tdStyle: React.CSSProperties = {
 type BadgeVariant = 'success' | 'error' | 'warning' | 'default';
 
 function statusVariant(status: string): BadgeVariant {
-  if (['running', 'active', 'healthy'].includes(status)) return 'success';
-  if (['stopped', 'error', 'unhealthy', 'suspended'].includes(status)) return 'error';
-  if (status === 'installing') return 'warning';
+  if (['active', 'healthy'].includes(status)) return 'success';
+  if (['suspended'].includes(status)) return 'error';
   return 'default';
 }
 
@@ -51,11 +50,9 @@ export function AdminTenantDetailPage() {
   const { data: tenant, isLoading } = useAdminTenant(id!);
   const statusMutation = useUpdateTenantStatus();
   const planMutation = useUpdateTenantPlan();
-  const installAction = useInstallationAction();
   const qc = useQueryClient();
 
   const [confirmSuspend, setConfirmSuspend] = useState(false);
-  const [confirmStopId, setConfirmStopId] = useState<string | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: queryKeys.admin.tenant(id!) });
@@ -64,9 +61,7 @@ export function AdminTenantDetailPage() {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
-        {/* Back button placeholder */}
         <Skeleton width={140} height={28} borderRadius="var(--radius-md)" />
-        {/* Header card */}
         <div style={{
           background: 'var(--color-bg-primary)',
           borderRadius: 'var(--radius-md)',
@@ -90,17 +85,14 @@ export function AdminTenantDetailPage() {
             ))}
           </div>
         </div>
-        {/* Table placeholders */}
-        {[0, 1].map((section) => (
-          <div key={section} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-            <Skeleton width={120} height={20} borderRadius="var(--radius-sm)" />
-            <div style={{ background: 'var(--color-bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-primary)', padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} width="100%" height={36} borderRadius="var(--radius-sm)" />
-              ))}
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+          <Skeleton width={120} height={20} borderRadius="var(--radius-sm)" />
+          <div style={{ background: 'var(--color-bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-primary)', padding: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} width="100%" height={36} borderRadius="var(--radius-sm)" />
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     );
   }
@@ -118,7 +110,6 @@ export function AdminTenantDetailPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
 
-      {/* Back button */}
       <div>
         <Button
           variant="ghost"
@@ -140,7 +131,6 @@ export function AdminTenantDetailPage() {
         flexDirection: 'column',
         gap: 'var(--spacing-lg)',
       }}>
-        {/* Top row: name + status + actions */}
         <div style={{
           display: 'flex',
           alignItems: 'flex-start',
@@ -171,7 +161,6 @@ export function AdminTenantDetailPage() {
             </span>
           </div>
 
-          {/* Status action */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexShrink: 0 }}>
             <Button
               variant={isSuspended ? 'secondary' : 'danger'}
@@ -190,7 +179,6 @@ export function AdminTenantDetailPage() {
           </div>
         </div>
 
-        {/* Quota + plan grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
@@ -198,7 +186,6 @@ export function AdminTenantDetailPage() {
           paddingTop: 'var(--spacing-md)',
           borderTop: '1px solid var(--color-border-secondary)',
         }}>
-          {/* Plan selector */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <span style={{
               fontSize: 'var(--font-size-xs)',
@@ -224,7 +211,6 @@ export function AdminTenantDetailPage() {
             />
           </div>
 
-          {/* CPU */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <span style={{
               fontSize: 'var(--font-size-xs)',
@@ -244,7 +230,6 @@ export function AdminTenantDetailPage() {
             </span>
           </div>
 
-          {/* Memory */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <span style={{
               fontSize: 'var(--font-size-xs)',
@@ -264,7 +249,6 @@ export function AdminTenantDetailPage() {
             </span>
           </div>
 
-          {/* Storage */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <span style={{
               fontSize: 'var(--font-size-xs)',
@@ -329,7 +313,7 @@ export function AdminTenantDetailPage() {
                   </td>
                 </tr>
               )}
-              {tenant.members.map((m) => (
+              {tenant.members.map((m: any) => (
                 <tr key={m.userId}>
                   <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
                     {m.userId}
@@ -347,141 +331,16 @@ export function AdminTenantDetailPage() {
         </div>
       </div>
 
-      {/* Installations section */}
-      <div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-xs)',
-          marginBottom: 'var(--spacing-md)',
-        }}>
-          <AppWindow size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-          <span style={{
-            fontSize: 'var(--font-size-md)',
-            fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--color-text-primary)',
-          }}>
-            Installations
-          </span>
-          <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
-            {tenant.installations.length}
-          </Chip>
-        </div>
-
-        <div style={{
-          background: 'var(--color-bg-primary)',
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--color-border-primary)',
-          overflow: 'auto',
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>App</th>
-                <th style={thStyle}>Subdomain</th>
-                <th style={thStyle}>Status</th>
-                <th style={thStyle}>Health</th>
-                <th style={thStyle}>Assigned</th>
-                <th style={thStyle}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tenant.installations.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
-                    No installations
-                  </td>
-                </tr>
-              )}
-              {tenant.installations.map((inst) => (
-                <tr key={inst.id}>
-                  <td style={{ ...tdStyle, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
-                    {inst.appName ?? inst.catalogAppId}
-                  </td>
-                  <td style={{ ...tdStyle, fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-                    {inst.subdomain}
-                  </td>
-                  <td style={tdStyle}>
-                    <Badge variant={statusVariant(inst.status)}>{inst.status}</Badge>
-                  </td>
-                  <td style={tdStyle}>
-                    {inst.lastHealthStatus
-                      ? <Badge variant={statusVariant(inst.lastHealthStatus)}>{inst.lastHealthStatus}</Badge>
-                      : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
-                  </td>
-                  <td style={{ ...tdStyle, color: 'var(--color-text-tertiary)' }}>
-                    {inst.assignedCount ?? '—'}
-                  </td>
-                  <td style={{ ...tdStyle }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                      {inst.status === 'stopped' && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          icon={<Play size={12} />}
-                          disabled={installAction.isPending}
-                          onClick={() => installAction.mutate({ id: inst.id, action: 'start' }, { onSuccess: invalidate })}
-                        >
-                          Start
-                        </Button>
-                      )}
-                      {inst.status === 'running' && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            icon={<Square size={12} />}
-                            disabled={installAction.isPending}
-                            onClick={() => setConfirmStopId(inst.id)}
-                          >
-                            Stop
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            icon={<RotateCw size={12} />}
-                            disabled={installAction.isPending}
-                            onClick={() => installAction.mutate({ id: inst.id, action: 'restart' }, { onSuccess: invalidate })}
-                          >
-                            Restart
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {/* Confirm suspend */}
       <ConfirmDialog
         open={confirmSuspend}
         onOpenChange={setConfirmSuspend}
         title="Suspend tenant"
-        description={`This will suspend "${tenant.name}" and stop all running installations. Users will lose access until reactivated.`}
+        description={`This will suspend "${tenant.name}". Users will lose access until reactivated.`}
         confirmLabel="Suspend"
         destructive
         onConfirm={() => {
           statusMutation.mutate({ id: tenant.id, status: 'suspended' }, { onSuccess: invalidate });
-        }}
-      />
-
-      {/* Confirm stop installation */}
-      <ConfirmDialog
-        open={!!confirmStopId}
-        onOpenChange={(open) => { if (!open) setConfirmStopId(null); }}
-        title="Stop installation"
-        description="This will stop the running application. Users will not be able to access it until it is started again."
-        confirmLabel="Stop"
-        destructive
-        onConfirm={() => {
-          if (confirmStopId) {
-            installAction.mutate({ id: confirmStopId, action: 'stop' }, { onSuccess: invalidate });
-            setConfirmStopId(null);
-          }
         }}
       />
     </div>

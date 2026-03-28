@@ -17,6 +17,7 @@ import platformRoutes from './platform.routes';
 import adminRoutes from './admin.routes';
 import { adminLimiter } from '../middleware/rate-limit';
 
+
 const router = Router();
 
 router.use('/admin', adminLimiter, adminRoutes);

@@ -5,11 +5,8 @@ import { startSyncWorker, stopSyncWorker } from './jobs/sync-worker';
 import { startSyncScheduler, stopSyncScheduler } from './jobs/sync-scheduler';
 import { purgeOldArchivedDrawings } from './services/drawing.service';
 import { runScheduledBackup } from './services/backup.service';
-import { startAppInstallWorker, startAppHealthWorker, startAppBackupWorker, startHealthCheckScheduler, stopPlatformWorkers } from './jobs/app-install.worker';
-import { startProvisioningWorker, stopProvisioningWorker } from './jobs/provisioning.worker';
 import { runMigrations } from './db/migrate';
 import { closeDb } from './config/database';
-import { seedCatalogFromManifests } from './services/platform/catalog.service';
 import { getTenantBySlug, createTenant } from './services/platform/tenant.service';
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
@@ -37,32 +34,17 @@ app.listen(env.PORT, async () => {
     process.exit(1);
   }
 
-  // Platform workers (require OIDC_SIGNING_KEY)
-  if (env.OIDC_SIGNING_KEY) {
-    try {
-      await seedCatalogFromManifests();
-      startAppInstallWorker();
-      startAppHealthWorker();
-      startHealthCheckScheduler();
-      startAppBackupWorker();
-      startProvisioningWorker();
-
-      // Auto-create a dev tenant for local Docker runtime
-      if (env.PLATFORM_RUNTIME === 'docker') {
-        const existing = await getTenantBySlug('dev');
-        if (!existing) {
-          const devOwnerId = '00000000-0000-0000-0000-000000000000';
-          await createTenant({ slug: 'dev', name: 'Dev Tenant', plan: 'enterprise' }, devOwnerId);
-          logger.info('Auto-created dev tenant for Docker runtime');
-        }
-      }
-
-      logger.info('Platform services initialized');
-    } catch (err) {
-      logger.error({ err }, 'Platform initialization failed — platform features will be unavailable');
+  // Auto-create a dev tenant for local development
+  try {
+    const existing = await getTenantBySlug('dev');
+    if (!existing) {
+      const devOwnerId = '00000000-0000-0000-0000-000000000000';
+      await createTenant({ slug: 'dev', name: 'Dev Tenant', plan: 'enterprise' }, devOwnerId);
+      logger.info('Auto-created dev tenant');
     }
-  } else {
-    logger.info('OIDC_SIGNING_KEY not set — platform marketplace features disabled');
+    logger.info('Platform services initialized');
+  } catch (err) {
+    logger.error({ err }, 'Platform initialization failed');
   }
 
   // Auto-purge archived drawings older than 30 days (runs every hour)
@@ -97,8 +79,6 @@ function handleShutdown(signal: string) {
 
   Promise.all([
     stopSyncWorker(),
-    stopPlatformWorkers(),
-    stopProvisioningWorker(),
     closeDb(),
   ])
     .then(() => {

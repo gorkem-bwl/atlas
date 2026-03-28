@@ -1,10 +1,8 @@
 import { type CSSProperties, type ReactNode } from 'react';
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  AppWindow,
   ArrowLeft,
   Building2,
-  Container,
   LayoutDashboard,
   LogOut,
   Shield,
@@ -33,8 +31,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: ROUTES.ADMIN_OVERVIEW, label: 'Overview', icon: <LayoutDashboard size={16} />, end: true },
   { to: ROUTES.ADMIN_TENANTS, label: 'Tenants', icon: <Building2 size={16} /> },
-  { to: ROUTES.ADMIN_INSTALLATIONS, label: 'Installations', icon: <AppWindow size={16} /> },
-  { to: ROUTES.ADMIN_CONTAINERS, label: 'Containers', icon: <Container size={16} /> },
 ];
 
 // ---------------------------------------------------------------------------
@@ -44,8 +40,6 @@ const NAV_ITEMS: NavItem[] = [
 function getPageTitle(pathname: string): string {
   if (pathname === ROUTES.ADMIN_OVERVIEW) return 'Overview';
   if (pathname.startsWith(ROUTES.ADMIN_TENANTS)) return 'Tenants';
-  if (pathname.startsWith(ROUTES.ADMIN_INSTALLATIONS)) return 'Installations';
-  if (pathname.startsWith(ROUTES.ADMIN_CONTAINERS)) return 'Containers';
   return 'Admin';
 }
 

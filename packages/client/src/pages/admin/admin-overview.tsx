@@ -1,10 +1,6 @@
 import React from 'react';
 import {
   Building2,
-  Play,
-  Square,
-  AlertTriangle,
-  Container,
   RefreshCw,
 } from 'lucide-react';
 import { useAdminOverview } from '../../hooks/use-admin';
@@ -43,7 +39,6 @@ function StatCard({ label, value, color, icon }: StatCardProps) {
         (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-sm)';
       }}
     >
-      {/* Icon badge */}
       <div
         style={{
           width: 40,
@@ -60,7 +55,6 @@ function StatCard({ label, value, color, icon }: StatCardProps) {
         {icon}
       </div>
 
-      {/* Value */}
       <div
         style={{
           fontSize: 'var(--font-size-3xl)',
@@ -73,7 +67,6 @@ function StatCard({ label, value, color, icon }: StatCardProps) {
         {value.toLocaleString()}
       </div>
 
-      {/* Label */}
       <div
         style={{
           fontSize: 'var(--font-size-sm)',
@@ -123,30 +116,6 @@ export function AdminOverviewPage() {
           color: 'var(--color-accent-primary)',
           icon: <Building2 size={18} strokeWidth={2} />,
         },
-        {
-          label: 'Running apps',
-          value: data.installations.running,
-          color: 'var(--color-success)',
-          icon: <Play size={18} strokeWidth={2} />,
-        },
-        {
-          label: 'Stopped apps',
-          value: data.installations.stopped,
-          color: 'var(--color-warning)',
-          icon: <Square size={18} strokeWidth={2} />,
-        },
-        {
-          label: 'Errored apps',
-          value: data.installations.error,
-          color: 'var(--color-error)',
-          icon: <AlertTriangle size={18} strokeWidth={2} />,
-        },
-        {
-          label: 'Docker containers',
-          value: data.containers,
-          color: 'var(--color-info)',
-          icon: <Container size={18} strokeWidth={2} />,
-        },
       ]
     : [];
 
@@ -166,7 +135,6 @@ export function AdminOverviewPage() {
         gap: 'var(--spacing-2xl)',
       }}
     >
-      {/* Stat cards */}
       <div
         style={{
           display: 'grid',
@@ -175,11 +143,10 @@ export function AdminOverviewPage() {
         }}
       >
         {isLoading
-          ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
+          ? Array.from({ length: 1 }).map((_, i) => <SkeletonCard key={i} />)
           : stats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
 
-      {/* Footer: last updated */}
       {updatedAt && (
         <div
           style={{

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Building2, Users, LayoutGrid, CalendarDays } from 'lucide-react';
+import { Building2, Users, CalendarDays } from 'lucide-react';
 import { useAdminTenants, useUpdateTenantStatus } from '../../hooks/use-admin';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -241,7 +241,6 @@ export function AdminTenantsPage() {
                   <th style={thStyle}>Plan</th>
                   <th style={thStyle}>Status</th>
                   <th style={{ ...thStyle, textAlign: 'center' }}>Members</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>Apps</th>
                   <th style={thStyle}>Created</th>
                   <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
                 </tr>
@@ -313,22 +312,6 @@ export function AdminTenantsPage() {
                       >
                         <Users size={13} style={{ opacity: 0.6 }} />
                         {t.memberCount}
-                      </div>
-                    </td>
-
-                    {/* Apps */}
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 'var(--spacing-xs)',
-                          color: 'var(--color-text-secondary)',
-                          fontSize: 'var(--font-size-sm)',
-                        }}
-                      >
-                        <LayoutGrid size={13} style={{ opacity: 0.6 }} />
-                        {t.installationCount}
                       </div>
                     </td>
 

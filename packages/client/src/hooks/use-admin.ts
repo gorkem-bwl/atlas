@@ -11,8 +11,6 @@ export function useAdminOverview() {
       const { data } = await api.get('/admin/overview');
       return data.data as {
         tenants: number;
-        installations: { running: number; stopped: number; error: number; installing: number; total: number };
-        containers: number;
       };
     },
     refetchInterval: 30_000,
@@ -35,7 +33,6 @@ export interface AdminTenant {
   createdAt: string;
   updatedAt: string;
   memberCount: number;
-  installationCount: number;
 }
 
 export function useAdminTenants() {
@@ -48,21 +45,8 @@ export function useAdminTenants() {
   });
 }
 
-export interface AdminTenantDetail extends Omit<AdminTenant, 'memberCount' | 'installationCount'> {
+export interface AdminTenantDetail extends Omit<AdminTenant, 'memberCount'> {
   members: Array<{ tenantId: string; userId: string; role: string; createdAt: string }>;
-  installations: Array<{
-    id: string;
-    tenantId: string;
-    catalogAppId: string;
-    installedVersion: string;
-    status: string;
-    subdomain: string;
-    lastHealthStatus: string | null;
-    createdAt: string;
-    appName: string | null;
-    manifestId: string | null;
-    assignedCount: number;
-  }>;
 }
 
 export function useAdminTenant(id: string) {
@@ -113,69 +97,5 @@ export function useCreateTenant() {
       qc.invalidateQueries({ queryKey: queryKeys.admin.tenants });
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview });
     },
-  });
-}
-
-// ─── Installations ──────────────────────────────────────────────────────────
-
-export interface AdminInstallation {
-  id: string;
-  tenantId: string;
-  catalogAppId: string;
-  installedVersion: string;
-  status: string;
-  subdomain: string;
-  lastHealthStatus: string | null;
-  createdAt: string;
-  tenantName: string | null;
-  tenantSlug: string | null;
-  appName: string | null;
-  manifestId: string | null;
-}
-
-export function useAdminInstallations() {
-  return useQuery({
-    queryKey: queryKeys.admin.installations,
-    queryFn: async () => {
-      const { data } = await api.get('/admin/installations');
-      return data.data as AdminInstallation[];
-    },
-  });
-}
-
-export function useInstallationAction() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'start' | 'stop' | 'restart' }) => {
-      const { data } = await api.post(`/admin/installations/${id}/${action}`);
-      return data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.admin.installations });
-      qc.invalidateQueries({ queryKey: queryKeys.admin.overview });
-    },
-  });
-}
-
-// ─── Containers ─────────────────────────────────────────────────────────────
-
-export interface AdminContainer {
-  id: string;
-  name: string;
-  state: string;
-  installationId: string;
-  appId: string;
-  tenant: string;
-  image: string;
-}
-
-export function useAdminContainers() {
-  return useQuery({
-    queryKey: queryKeys.admin.containers,
-    queryFn: async () => {
-      const { data } = await api.get('/admin/containers');
-      return data.data as AdminContainer[];
-    },
-    refetchInterval: 10_000,
   });
 }

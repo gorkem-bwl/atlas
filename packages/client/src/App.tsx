@@ -18,7 +18,6 @@ import { DrawPage } from './pages/draw';
 import { TasksPage } from './pages/tasks';
 import { TablesPage } from './pages/tables';
 import { DrivePage } from './pages/drive';
-import { MarketplacePage } from './pages/marketplace';
 import { HomePage } from './pages/home';
 import { CommandPalette } from './components/ui/command-palette';
 import { ErrorBoundary } from './components/ui/error-boundary';
@@ -26,7 +25,6 @@ import { useEffect, type ReactNode } from 'react';
 import { OrgLayout } from './pages/org/org-layout';
 import { OrgOverviewPage } from './pages/org/org-overview';
 import { OrgMembersPage } from './pages/org/org-members';
-import { OrgAppsPage } from './pages/org/org-apps';
 import { OrgSettingsPage } from './pages/org/org-settings';
 import { ForgotPasswordPage } from './pages/forgot-password';
 import { ResetPasswordPage } from './pages/reset-password';
@@ -34,8 +32,6 @@ import { AdminLayout, AdminProtectedRoute } from './pages/admin/admin-layout';
 import { AdminOverviewPage } from './pages/admin/admin-overview';
 import { AdminTenantsPage } from './pages/admin/admin-tenants';
 import { AdminTenantDetailPage } from './pages/admin/admin-tenant-detail';
-import { AdminInstallationsPage } from './pages/admin/admin-installations';
-import { AdminContainersPage } from './pages/admin/admin-containers';
 
 const DEV_MODE = import.meta.env.DEV && !import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -180,10 +176,6 @@ export function App() {
                   element={<ProtectedRoute><DrivePage /></ProtectedRoute>}
                 />
                 <Route
-                  path={ROUTES.MARKETPLACE}
-                  element={<ProtectedRoute><MarketplacePage /></ProtectedRoute>}
-                />
-                <Route
                   path={ROUTES.TENANT_USERS}
                   element={<Navigate to={ROUTES.ORG_MEMBERS} replace />}
                 />
@@ -194,7 +186,6 @@ export function App() {
                 >
                   <Route index element={<OrgOverviewPage />} />
                   <Route path="members" element={<OrgMembersPage />} />
-                  <Route path="apps" element={<OrgAppsPage />} />
                   <Route path="settings" element={<OrgSettingsPage />} />
                 </Route>
                 {/* Admin routes */}
@@ -210,8 +201,6 @@ export function App() {
                   <Route index element={<AdminOverviewPage />} />
                   <Route path="tenants" element={<AdminTenantsPage />} />
                   <Route path="tenants/:id" element={<AdminTenantDetailPage />} />
-                  <Route path="installations" element={<AdminInstallationsPage />} />
-                  <Route path="containers" element={<AdminContainersPage />} />
                 </Route>
 
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

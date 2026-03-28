@@ -9,7 +9,6 @@ import shareRoutes from './routes/share.routes';
 import { errorHandler } from './middleware/error-handler';
 import { apiLimiter } from './middleware/rate-limit';
 import { authMiddleware } from './middleware/auth';
-import oidcRoutes from './routes/oidc.routes';
 import { env } from './config/env';
 
 export function createApp() {
@@ -46,7 +45,7 @@ export function createApp() {
         rss: Math.round(memUsage.rss / 1024 / 1024),
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
       },
-      platform: !!env.OIDC_SIGNING_KEY,
+      platform: true,
       version: process.env.npm_package_version ?? '0.0.0',
     });
   });
@@ -59,9 +58,6 @@ export function createApp() {
 
   // Public share routes — no auth required
   app.use('/api/v1/share', shareRoutes);
-
-  // OIDC discovery + auth endpoints — public (apps need to access without Atlas JWT)
-  app.use('/oidc', oidcRoutes);
 
   // Serve uploaded files (auth via query token)
   app.use('/api/v1/uploads', authMiddleware, express.static(path.join(__dirname, '../uploads')));

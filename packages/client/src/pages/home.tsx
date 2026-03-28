@@ -6,9 +6,9 @@ import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
 import {
   Mail, Calendar, FileText, Pencil, CheckSquare, Table2,
-  Clock, ArrowRight, Settings,
+  Clock, ArrowRight, Settings, LogOut,
   HardDrive,
-  ExternalLink, Store, Building2, Shield,
+  Building2, Shield,
 } from 'lucide-react';
 import { useAuthStore } from '../stores/auth-store';
 import { useThreadCounts } from '../hooks/use-threads';
@@ -18,8 +18,6 @@ import { useDocumentList } from '../hooks/use-documents';
 import { useDrawingList } from '../hooks/use-drawings';
 import { useTableList } from '../hooks/use-tables';
 import { useDriveStorage } from '../hooks/use-drive';
-import { useInstalledApps } from '../hooks/use-installed-apps';
-import { AppIcon } from '../components/marketplace/app-icons';
 import { ROUTES } from '../config/routes';
 import { useUIStore } from '../stores/ui-store';
 import { buildGoogleOAuthUrl } from '../components/auth/login-page';
@@ -522,71 +520,6 @@ function AppCard({
 }
 
 // ---------------------------------------------------------------------------
-// Installed marketplace apps
-// ---------------------------------------------------------------------------
-
-function InstalledAppCards() {
-  const { installations, tenant } = useInstalledApps();
-  const [sparkleIds, setSparkleIds] = useState<Set<string>>(new Set());
-  const prevIdsRef = useRef<Set<string>>(new Set());
-
-  // Detect newly appeared installations and sparkle them for 5 seconds
-  useEffect(() => {
-    const currentIds = new Set(installations.map((i) => i.id));
-    const prevIds = prevIdsRef.current;
-
-    // Only detect new ones after the initial load
-    if (prevIds.size > 0) {
-      const newIds = [...currentIds].filter((id) => !prevIds.has(id));
-      if (newIds.length > 0) {
-        setSparkleIds((prev) => {
-          const next = new Set(prev);
-          newIds.forEach((id) => next.add(id));
-          return next;
-        });
-
-        // Remove sparkles after 4 seconds
-        const timer = setTimeout(() => {
-          setSparkleIds((prev) => {
-            const next = new Set(prev);
-            newIds.forEach((id) => next.delete(id));
-            return next;
-          });
-        }, 4000);
-        return () => clearTimeout(timer);
-      }
-    }
-
-    prevIdsRef.current = currentIds;
-  }, [installations]);
-
-  if (installations.length === 0) return null;
-
-  return (
-    <>
-      {installations.map((app) => (
-        <AppCard
-          key={app.id}
-          iconNode={app.manifestId ? <AppIcon manifestId={app.manifestId} size={22} color="#fff" /> : undefined}
-          icon={app.manifestId ? undefined : ExternalLink}
-          label={app.name ?? app.subdomain}
-          color={app.color ?? '#4A90E2'}
-          badge={app.status !== 'running' ? app.status : undefined}
-          sparkle={sparkleIds.has(app.id)}
-          onClick={() => {
-            const isDev = window.location.hostname === 'localhost';
-            const host = isDev
-              ? `http://${app.subdomain}.${tenant?.slug ?? ''}.localhost`
-              : `https://${app.subdomain}.${tenant?.slug ?? ''}.atlas.so`;
-            window.open(host, '_blank');
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Background layer with crossfade
 // ---------------------------------------------------------------------------
 
@@ -623,6 +556,7 @@ export function HomePage() {
   const isDesktop = !!('atlasDesktop' in window);
   const { openSettings } = useUIStore();
   const isSuperAdmin = useAuthStore((s) => s.isSuperAdmin);
+  const logout = useAuthStore((s) => s.logout);
   const isGoogleUser = account?.provider === 'google';
   const { data: counts } = useThreadCounts({ enabled: isGoogleUser });
   const { data: taskCounts } = useTaskCounts({ enabled: isAuthenticated });
@@ -824,42 +758,6 @@ export function HomePage() {
           Organization
         </button>
 
-        {/* Marketplace button */}
-        <button
-          onClick={() => navigate(ROUTES.MARKETPLACE)}
-          aria-label="Marketplace"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            height: 36,
-            padding: '0 14px',
-            background: 'rgba(255,255,255,0.12)',
-            border: '1px solid rgba(255,255,255,0.18)',
-            borderRadius: 18,
-            color: 'rgba(255,255,255,0.75)',
-            cursor: 'pointer',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            transition: 'background 0.2s, color 0.2s',
-            fontFamily: 'var(--font-family)',
-            fontSize: 13,
-            fontWeight: 500,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
-            e.currentTarget.style.color = '#fff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
-            e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
-          }}
-        >
-          <Store size={16} />
-          Marketplace
-        </button>
-
         {/* Admin button — only visible to super admins */}
         {isSuperAdmin && (
           <button
@@ -927,6 +825,40 @@ export function HomePage() {
           }}
         >
           <Settings size={18} />
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={() => {
+            logout();
+            navigate(ROUTES.LOGIN);
+          }}
+          aria-label="Log out"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: '50%',
+            color: 'rgba(255,255,255,0.75)',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            transition: 'background 0.2s, color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
+            e.currentTarget.style.color = '#fff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+          }}
+        >
+          <LogOut size={18} />
         </button>
       </div>
 
@@ -1081,8 +1013,6 @@ export function HomePage() {
             badge={driveFileCount > 0 ? t('home.files', { count: driveFileCount }) : undefined}
             onClick={() => navigate(ROUTES.DRIVE)}
           />
-          {/* Installed marketplace apps */}
-          <InstalledAppCards />
         </div>
 
         {/* Center content — Clock, greeting, widgets */}

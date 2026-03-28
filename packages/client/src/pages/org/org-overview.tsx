@@ -1,14 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, AppWindow, UserPlus, ArrowRight, Download } from 'lucide-react';
+import { Users, UserPlus, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { useTenantUsers, useMyTenants } from '../../hooks/use-platform';
-import { useInstalledApps } from '../../hooks/use-installed-apps';
 import { ROUTES } from '../../config/routes';
-import { AppIcon } from '../../components/marketplace/app-icons';
 import { Skeleton } from '../../components/ui/skeleton';
-import { Chip } from '../../components/ui/chip';
-import { Button } from '../../components/ui/button';
 
 // ---------------------------------------------------------------------------
 // StatCard
@@ -192,9 +188,8 @@ export function OrgOverviewPage() {
   const navigate = useNavigate();
 
   const { data: users, isLoading: usersLoading } = useTenantUsers(effectiveTenantId ?? undefined);
-  const { installations: activeInstallations, isLoading: appsLoading } = useInstalledApps();
 
-  const isLoading = tenantsLoading || usersLoading || appsLoading;
+  const isLoading = tenantsLoading || usersLoading;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xl)' }}>
@@ -219,13 +214,6 @@ export function OrgOverviewPage() {
               color="var(--color-accent-primary)"
               icon={<Users size={18} strokeWidth={2} />}
               onClick={() => navigate(ROUTES.ORG_MEMBERS)}
-            />
-            <StatCard
-              label="Installed apps"
-              value={activeInstallations?.length ?? 0}
-              color="var(--color-info, #2563eb)"
-              icon={<AppWindow size={18} strokeWidth={2} />}
-              onClick={() => navigate(ROUTES.ORG_APPS)}
             />
           </>
         )}
@@ -256,109 +244,9 @@ export function OrgOverviewPage() {
             description="Create or invite users to your organization"
             onClick={() => navigate(ROUTES.ORG_MEMBERS)}
           />
-          <QuickActionCard
-            icon={<Download size={16} />}
-            label="Install an app"
-            description="Browse and install apps from the catalog"
-            onClick={() => navigate(ROUTES.ORG_APPS)}
-          />
         </div>
       </div>
 
-      {/* Installed apps list */}
-      {activeInstallations && activeInstallations.length > 0 && (
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 'var(--spacing-md)',
-          }}>
-            <h3
-              style={{
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 'var(--font-weight-semibold)',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              Installed apps
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<ArrowRight size={12} />}
-              onClick={() => navigate(ROUTES.ORG_APPS)}
-              style={{ color: 'var(--color-accent-primary)', flexDirection: 'row-reverse' }}
-            >
-              View all
-            </Button>
-          </div>
-          <div
-            style={{
-              background: 'var(--color-bg-primary)',
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
-            }}
-          >
-            {activeInstallations.map((inst, i) => (
-              <div
-                key={inst.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-md)',
-                  padding: 'var(--spacing-md) var(--spacing-lg)',
-                  borderBottom: i < activeInstallations.length - 1 ? '1px solid var(--color-border-primary)' : 'none',
-                }}
-              >
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 'var(--radius-sm)',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: inst.color || '#666',
-                  }}
-                >
-                  {inst.manifestId && <AppIcon manifestId={inst.manifestId} size={20} color="#fff" />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
-                    {inst.name ?? inst.catalogAppId}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-                    {inst.subdomain}
-                  </div>
-                </div>
-                <StatusDot status={inst.status} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// StatusDot
-// ---------------------------------------------------------------------------
-
-function StatusDot({ status }: { status: string }) {
-  const isRunning = status === 'running';
-  const color = isRunning ? 'var(--color-success, #16a34a)' : '#6b7280';
-  return (
-    <Chip color={color} height={24}>
-      <span
-        aria-hidden="true"
-        style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }}
-      />
-      {status}
-    </Chip>
   );
 }

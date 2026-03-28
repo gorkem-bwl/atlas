@@ -2,7 +2,6 @@ import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  AppWindow,
   ArrowLeft,
   Building2,
   LayoutDashboard,
@@ -34,7 +33,6 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: ROUTES.ORG, label: 'Overview', icon: <LayoutDashboard size={16} />, end: true },
   { to: ROUTES.ORG_MEMBERS, label: 'Members', icon: <Users size={16} /> },
-  { to: ROUTES.ORG_APPS, label: 'Apps', icon: <AppWindow size={16} /> },
   { to: ROUTES.ORG_SETTINGS, label: 'Settings', icon: <Settings size={16} /> },
 ];
 
@@ -45,7 +43,6 @@ const NAV_ITEMS: NavItem[] = [
 function getPageTitle(pathname: string): string {
   if (pathname === ROUTES.ORG) return 'Overview';
   if (pathname.startsWith(ROUTES.ORG_MEMBERS)) return 'Members';
-  if (pathname.startsWith(ROUTES.ORG_APPS)) return 'Apps';
   if (pathname.startsWith(ROUTES.ORG_SETTINGS)) return 'Settings';
   return 'Organization';
 }
@@ -389,7 +386,7 @@ function CreateOrgPrompt() {
           Create your organization
         </h2>
         <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 24, lineHeight: 1.5 }}>
-          Organizations let you manage team members and install apps. Create one to get started.
+          Organizations let you manage team members. Create one to get started.
         </p>
 
         {error && (

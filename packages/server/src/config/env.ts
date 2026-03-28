@@ -16,12 +16,7 @@ const envSchema = z.object({
   SERVER_PUBLIC_URL: z.string().url().default('http://localhost:3001'),
   GOOGLE_PUBSUB_TOPIC: z.string().optional(), // e.g. projects/my-proj/topics/gmail-push
 
-  // ─── Platform (optional — only needed when marketplace features are enabled) ──
-  PLATFORM_RUNTIME: z.enum(['docker', 'k8s']).default('k8s'), // docker for local dev, k8s for production
-  ADDON_PG_ADMIN_URL: z.string().optional(),         // PostgreSQL admin URL for provisioning app DBs
-  ADDON_REDIS_URL: z.string().optional(),            // Redis URL for addon provisioning
-  S3_BACKUP_BUCKET: z.string().optional(),           // S3 bucket for app backups
-  OIDC_SIGNING_KEY: z.string().min(100, 'OIDC_SIGNING_KEY must be a PEM-encoded RSA private key').optional(),
+  // ─── Platform ──────────────────────────────────────────────────────────────
   PLATFORM_PUBLIC_URL: z.string().url().optional(),  // e.g. https://atlas.so
 
   // ─── Email (SMTP) ─────────────────────────────────────────────────────────
