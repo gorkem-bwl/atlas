@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from '../stores/auth-store';
 import { useTaskCounts } from '../apps/tasks/hooks';
 import { ROUTES } from '../config/routes';
+import { appRegistry } from '../apps';
 import { useUIStore } from '../stores/ui-store';
 import { WidgetGrid } from '../components/home/widgets/widget-grid';
 import '../styles/home.css';
@@ -523,13 +524,14 @@ export function HomePage() {
   }, []);
 
   // Dock app definitions
-  const dockApps = useMemo(() => [
-    { icon: CheckSquare, label: t('nav.tasks'), color: '#6366f1', route: ROUTES.TASKS },
-    { icon: FileText, label: t('nav.write'), color: '#c4856c', route: ROUTES.DOCS },
-    { icon: Pencil, label: t('nav.draw'), color: '#e06c9f', route: ROUTES.DRAW },
-    { icon: Table2, label: t('nav.tables'), color: '#2d8a6e', route: ROUTES.TABLES },
-    { icon: HardDrive, label: 'Drive', color: '#64748b', route: ROUTES.DRIVE },
-  ], [t]);
+  const dockApps = useMemo(() =>
+    appRegistry.getAll().map(app => ({
+      icon: app.icon,
+      label: app.name,
+      color: app.color,
+      route: app.routes[0]?.path ?? `/${app.id}`,
+    })),
+  []);
 
   return (
     <div
