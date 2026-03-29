@@ -93,7 +93,12 @@ export async function setup(req: Request, res: Response) {
         tenant,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
+    // Race condition: another request completed setup first
+    if (error?.code === '23505') {
+      res.status(409).json({ success: false, error: 'Atlas has already been set up' });
+      return;
+    }
     const message = error instanceof Error ? error.message : String(error);
     logger.error({ error, message }, 'Setup failed');
     res.status(500).json({ success: false, error: message });

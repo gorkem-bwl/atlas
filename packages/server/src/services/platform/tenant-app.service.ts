@@ -68,21 +68,26 @@ export async function disableApp(tenantId: string, appId: string) {
 export async function seedDefaultApps(tenantId: string, userId: string) {
   const allApps = serverAppRegistry.getAll();
   const defaultApps = allApps.filter(app => app.defaultEnabled);
+  if (defaultApps.length === 0) return;
 
-  for (const app of defaultApps) {
-    const [existing] = await db.select().from(tenantApps)
-      .where(and(eq(tenantApps.tenantId, tenantId), eq(tenantApps.appId, app.id)))
-      .limit(1);
+  // Single query to find which apps already exist for this tenant
+  const existingRows = await db.select({ appId: tenantApps.appId })
+    .from(tenantApps)
+    .where(eq(tenantApps.tenantId, tenantId));
+  const existingIds = new Set(existingRows.map(r => r.appId));
 
-    if (!existing) {
-      await db.insert(tenantApps).values({
-        tenantId,
-        appId: app.id,
-        isEnabled: true,
-        enabledBy: userId,
-      });
-    }
+  const toInsert = defaultApps
+    .filter(app => !existingIds.has(app.id))
+    .map(app => ({
+      tenantId,
+      appId: app.id,
+      isEnabled: true,
+      enabledBy: userId,
+    }));
+
+  if (toInsert.length > 0) {
+    await db.insert(tenantApps).values(toInsert);
   }
 
-  logger.info({ tenantId, count: defaultApps.length }, 'Default apps seeded for tenant');
+  logger.info({ tenantId, count: toInsert.length }, 'Default apps seeded for tenant');
 }

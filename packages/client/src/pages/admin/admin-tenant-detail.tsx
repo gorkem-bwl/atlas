@@ -435,6 +435,9 @@ function TenantAppsSection({ tenantId }: { tenantId: string }) {
                 <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
+                    role="switch"
+                    aria-label={`${isEnabled ? 'Disable' : 'Enable'} ${app.name}`}
+                    aria-checked={isEnabled}
                     checked={isEnabled}
                     disabled={toggleMutation.isPending}
                     onChange={() => toggleMutation.mutate({ appId: app.id, enable: !isEnabled })}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Sun,
@@ -179,6 +179,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const navItems = useMemo(() => getNavItems(), []);
 
   // Detect Electron desktop shell (set by preload script)
   const isDesktop = !!('atlasDesktop' in window);
@@ -248,7 +249,7 @@ export function Sidebar() {
         aria-label="Application navigation"
         style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}
       >
-        {getNavItems().map(({ id, labelKey, icon, color, route }) => (
+        {navItems.map(({ id, labelKey, icon, color, route }) => (
           <NavButton
             key={id}
             label={t(labelKey, id.charAt(0).toUpperCase() + id.slice(1))}
