@@ -1,5 +1,6 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Button } from '../ui/button';
 
 // ---------------------------------------------------------------------------
 // SettingsSection
@@ -316,34 +317,23 @@ export function SettingsSelect<T extends string | number>({
 
   return (
     <div style={{ position: 'relative' }}>
-      <button
+      <Button
+        variant="secondary"
+        size="md"
         onClick={() => setOpen(!open)}
+        onBlur={() => {
+          setTimeout(() => setOpen(false), 150);
+        }}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-sm)',
-          height: 34,
-          padding: '0 var(--spacing-sm) 0 var(--spacing-md)',
-          background: 'var(--color-bg-tertiary)',
-          border: '1px solid var(--color-border-primary)',
-          borderRadius: 'var(--radius-md)',
-          color: 'var(--color-text-primary)',
-          fontSize: 'var(--font-size-md)',
-          fontFamily: 'var(--font-family)',
-          cursor: 'pointer',
           minWidth: 140,
           justifyContent: 'space-between',
-          transition: 'border-color var(--transition-normal)',
-        }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-border-focus)')}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-          setTimeout(() => setOpen(false), 150);
+          padding: '0 var(--spacing-sm) 0 var(--spacing-md)',
+          background: 'var(--color-bg-tertiary)',
         }}
       >
         {current?.label ?? ''}
         <ChevronDown size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-      </button>
+      </Button>
 
       {open && (
         <div
@@ -363,39 +353,29 @@ export function SettingsSelect<T extends string | number>({
           }}
         >
           {options.map((opt) => (
-            <button
+            <Button
               key={String(opt.value)}
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 onChange(opt.value);
                 setOpen(false);
               }}
               style={{
-                display: 'flex',
-                alignItems: 'center',
                 width: '100%',
+                justifyContent: 'flex-start',
                 padding: 'var(--spacing-xs) var(--spacing-sm)',
-                background: opt.value === value ? 'var(--color-surface-selected)' : 'transparent',
-                border: 'none',
                 borderRadius: 'var(--radius-sm)',
+                background: opt.value === value ? 'var(--color-surface-selected)' : 'transparent',
                 color: opt.value === value ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
-                fontSize: 'var(--font-size-md)',
-                fontFamily: 'var(--font-family)',
                 fontWeight: opt.value === value
                   ? ('var(--font-weight-medium)' as CSSProperties['fontWeight'])
                   : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
-                cursor: 'pointer',
-                transition: 'background var(--transition-normal)',
                 whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={(e) => {
-                if (opt.value !== value) e.currentTarget.style.background = 'var(--color-surface-hover)';
-              }}
-              onMouseLeave={(e) => {
-                if (opt.value !== value) e.currentTarget.style.background = 'transparent';
               }}
             >
               {opt.label}
-            </button>
+            </Button>
           ))}
         </div>
       )}

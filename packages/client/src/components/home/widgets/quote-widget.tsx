@@ -207,19 +207,19 @@ function QuoteWidgetComponent({ width, height }: WidgetProps) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        padding: '8px 10px',
+        padding: '16px 20px',
         overflow: 'hidden',
       }}
     >
       <p
         style={{
-          color: '#fff',
-          fontSize: 9,
-          lineHeight: 1.3,
+          color: 'var(--color-text-inverse)',
+          fontSize: 'var(--font-size-lg)',
+          lineHeight: 1.4,
           margin: 0,
           overflow: 'hidden',
           display: '-webkit-box',
-          WebkitLineClamp: 3,
+          WebkitLineClamp: 4,
           WebkitBoxOrient: 'vertical',
           fontStyle: 'italic',
           opacity: 0.9,
@@ -230,8 +230,8 @@ function QuoteWidgetComponent({ width, height }: WidgetProps) {
       <span
         style={{
           color: 'rgba(255,255,255,0.6)',
-          fontSize: 8,
-          marginTop: 4,
+          fontSize: 'var(--font-size-md)',
+          marginTop: 8,
           fontWeight: 500,
         }}
       >

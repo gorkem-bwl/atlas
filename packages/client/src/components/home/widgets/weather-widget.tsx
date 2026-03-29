@@ -50,7 +50,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
         try {
           const { latitude, longitude } = pos.coords;
           const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=5`
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=4`
           );
           const json = await res.json();
           const days: ForecastDay[] = json.daily.time.map((date: string, i: number) => ({
@@ -79,7 +79,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
           alignItems: 'center',
           justifyContent: 'center',
           color: 'rgba(255,255,255,0.5)',
-          fontSize: 9,
+          fontSize: 'var(--font-size-lg)',
         }}
       >
         {error ? 'Location needed' : 'Loading...'}
@@ -94,7 +94,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
-        padding: '6px 4px',
+        padding: '12px 8px',
       }}
     >
       {forecast.map((d) => (
@@ -104,15 +104,15 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 2,
+            gap: 4,
           }}
         >
-          <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+          <span style={{ fontSize: 'var(--font-size-md)', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
             {d.day}
           </span>
-          <span style={{ fontSize: 14, lineHeight: 1 }}>{getWeatherEmoji(d.code)}</span>
-          <div style={{ display: 'flex', gap: 3, fontSize: 8, fontWeight: 500 }}>
-            <span style={{ color: '#fff' }}>{d.high}°</span>
+          <span style={{ fontSize: 'var(--font-size-2xl)', lineHeight: 1 }}>{getWeatherEmoji(d.code)}</span>
+          <div style={{ display: 'flex', gap: 4, fontSize: 'var(--font-size-md)', fontWeight: 500 }}>
+            <span style={{ color: 'var(--color-text-inverse)' }}>{d.high}°</span>
             <span style={{ color: 'rgba(255,255,255,0.45)' }}>{d.low}°</span>
           </div>
         </div>
@@ -123,8 +123,8 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
 
 export const weatherWidget: WidgetDefinition = {
   id: 'weather',
-  name: '5-day forecast',
-  description: 'Weather forecast for the next 5 days based on your location',
+  name: '4-day forecast',
+  description: 'Weather forecast for the next 4 days based on your location',
   icon: CloudSun,
   defaultEnabled: true,
   component: WeatherWidgetComponent,

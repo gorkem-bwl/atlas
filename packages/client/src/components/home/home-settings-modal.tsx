@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
 import { SettingsSection, SettingsRow, SettingsToggle } from '../settings/settings-primitives';
+import { Input } from '../ui/input';
 import { widgetRegistry } from './widgets/registry';
 
 type BgType = 'unsplash' | 'solid' | 'gradient' | 'custom';
@@ -102,7 +103,7 @@ export function HomeBackgroundPanel() {
                   padding: '10px 14px',
                   background: isActive ? 'var(--color-bg-tertiary)' : 'transparent',
                   border: isActive ? '1px solid var(--color-accent-primary)' : '1px solid var(--color-border-secondary)',
-                  borderRadius: 8,
+                  borderRadius: 'var(--radius-lg)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   fontFamily: 'var(--font-family)',
@@ -181,7 +182,7 @@ export function HomeBackgroundPanel() {
                   flexShrink: 0,
                 }}
               />
-              <input
+              <Input
                 type="text"
                 value={customHex || bgValue || ''}
                 onChange={(e) => setCustomHex(e.target.value)}
@@ -205,14 +206,8 @@ export function HomeBackgroundPanel() {
                 style={{
                   width: 120,
                   height: 32,
-                  padding: '0 10px',
-                  border: '1px solid var(--color-border-secondary)',
-                  borderRadius: 6,
-                  fontSize: 'var(--font-size-sm)',
                   fontFamily: 'var(--font-mono)',
-                  color: 'var(--color-text-primary)',
-                  background: 'var(--color-bg-primary)',
-                  outline: 'none',
+                  fontSize: 'var(--font-size-sm)',
                 }}
               />
             </div>
@@ -289,7 +284,7 @@ export function HomeWidgetsPanel() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '10px 14px',
-                  borderRadius: 8,
+                  borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--color-border-secondary)',
                   background: isEnabled(widget.id) ? 'var(--color-bg-tertiary)' : 'transparent',
                   transition: 'background 0.15s',

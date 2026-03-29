@@ -53,46 +53,46 @@ function GameWidgetComponent({ width, height }: WidgetProps) {
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        padding: '6px 8px',
+        padding: '12px 16px',
         background: bgColor,
-        borderRadius: 12,
+        borderRadius: 'var(--radius-xl)',
         transition: 'background 0.15s',
         userSelect: 'none',
       }}
     >
       {state === 'idle' && (
         <>
-          <span style={{ fontSize: 10, color: '#fff', fontWeight: 600 }}>Reaction test</span>
-          <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Click to start</span>
+          <span style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-text-inverse)', fontWeight: 600 }}>Reaction test</span>
+          <span style={{ fontSize: 'var(--font-size-md)', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Click to start</span>
         </>
       )}
       {state === 'waiting' && (
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
+        <span style={{ fontSize: 'var(--font-size-lg)', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
           Wait for green...
         </span>
       )}
       {state === 'ready' && (
-        <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 700 }}>
+        <span style={{ fontSize: 'var(--font-size-xl)', color: '#22c55e', fontWeight: 700 }}>
           CLICK NOW!
         </span>
       )}
       {state === 'too-early' && (
         <>
-          <span style={{ fontSize: 10, color: 'rgba(239,68,68,0.9)', fontWeight: 600 }}>Too early!</span>
-          <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Click to retry</span>
+          <span style={{ fontSize: 'var(--font-size-lg)', color: 'rgba(239,68,68,0.9)', fontWeight: 600 }}>Too early!</span>
+          <span style={{ fontSize: 'var(--font-size-md)', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Click to retry</span>
         </>
       )}
       {state === 'result' && (
         <>
-          <span style={{ fontSize: 16, color: '#fff', fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--color-text-inverse)', fontWeight: 700, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
             {reactionTime}ms
           </span>
           {bestTime !== null && (
-            <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+            <span style={{ fontSize: 'var(--font-size-md)', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
               Best: {bestTime}ms
             </span>
           )}
-          <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>Click to retry</span>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Click to retry</span>
         </>
       )}
     </div>

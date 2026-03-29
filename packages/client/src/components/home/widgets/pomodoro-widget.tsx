@@ -64,14 +64,14 @@ function PomodoroWidgetComponent({ width, height }: WidgetProps) {
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        padding: '6px 8px',
-        gap: 4,
+        padding: '12px 16px',
+        gap: 8,
         position: 'relative',
       }}
     >
       <span
         style={{
-          fontSize: 8,
+          fontSize: 'var(--font-size-md)',
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
@@ -80,22 +80,22 @@ function PomodoroWidgetComponent({ width, height }: WidgetProps) {
       >
         {phase === 'work' ? 'Focus' : 'Break'}
       </span>
-      <span style={{ fontSize: 18, fontWeight: 600, color: '#fff', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-text-inverse)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
         {formatTimer(remaining)}
       </span>
       {/* Progress bar */}
-      <div style={{ width: '80%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
+      <div style={{ width: '80%', height: 6, borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
         <div
           style={{
             width: `${progress * 100}%`,
             height: '100%',
-            borderRadius: 2,
+            borderRadius: 'var(--radius-sm)',
             background: phase === 'work' ? 'rgba(251,146,60,0.8)' : 'rgba(134,239,172,0.8)',
             transition: 'width 1s linear',
           }}
         />
       </div>
-      <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>
+      <span style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.4)' }}>
         {running ? 'click to pause' : 'click to start'}
       </span>
       {(running || remaining !== WORK_SECONDS || phase !== 'work') && (
@@ -103,12 +103,12 @@ function PomodoroWidgetComponent({ width, height }: WidgetProps) {
           onClick={handleReset}
           style={{
             position: 'absolute',
-            top: 4,
-            right: 6,
+            top: 8,
+            right: 10,
             background: 'none',
             border: 'none',
             color: 'rgba(255,255,255,0.4)',
-            fontSize: 9,
+            fontSize: 'var(--font-size-lg)',
             cursor: 'pointer',
             padding: 0,
             lineHeight: 1,
