@@ -4,7 +4,7 @@ import {
   ChevronRight, Trash2, Phone as PhoneIcon, Mail,
   Trophy, XCircle, LayoutGrid, List, ArrowUp, ArrowDown,
   PhoneCall, CalendarDays, StickyNote,
-  Download, Upload, BarChart3, Zap,
+  Download, Upload, BarChart3, Zap, Shield,
 } from 'lucide-react';
 import {
   useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany,
@@ -14,6 +14,7 @@ import {
   useMarkDealWon, useMarkDealLost,
   useActivities, useCreateActivity, useDeleteActivity,
   useSeedCrmData,
+  useMyCrmPermission, canAccess,
   type CrmCompany, type CrmContact, type CrmDealStage, type CrmDeal, type CrmActivity,
 } from './hooks';
 import { DealKanban } from './components/deal-kanban';
@@ -22,6 +23,7 @@ import { SavedViews, type SavedView } from './components/saved-views';
 import { CsvImportModal, exportToCsv } from './components/csv-import-modal';
 import { CrmDashboard } from './components/dashboard';
 import { AutomationsView } from './components/automations-view';
+import { PermissionsView } from './components/permissions-view';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -145,7 +147,7 @@ function InlineSelectCell({
 
 // ─── Types ─────────────────────────────────────────────────────────
 
-type ActiveView = 'dashboard' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations';
+type ActiveView = 'dashboard' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions';
 
 // ─── Column definitions for filtering ─────────────────────────────
 
@@ -1719,6 +1721,10 @@ function ActivitiesListView({
 export function CrmPage() {
   const { openSettings } = useUIStore();
 
+  // Permissions
+  const { data: myPermission } = useMyCrmPermission();
+  const myRole = myPermission?.role ?? 'admin'; // Default admin for backward compat
+
   // Navigation
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
@@ -1899,6 +1905,7 @@ export function CrmPage() {
       case 'companies': return 'Companies';
       case 'activities': return 'Activities';
       case 'automations': return 'Automations';
+      case 'permissions': return 'Permissions';
     }
   }, [activeView]);
 
@@ -1934,6 +1941,9 @@ export function CrmPage() {
         return 'New company';
       case 'activities':
         return 'Log activity';
+      case 'permissions':
+      case 'automations':
+        return '';
     }
   }, [activeView]);
 
@@ -2035,18 +2045,30 @@ export function CrmPage() {
         </SidebarSection>
 
         <SidebarSection>
-          <SidebarItem
-            label="Activities"
-            icon={<Clock size={14} />}
-            isActive={activeView === 'activities'}
-            onClick={() => setActiveView('activities')}
-          />
-          <SidebarItem
-            label="Automations"
-            icon={<Zap size={14} />}
-            isActive={activeView === 'automations'}
-            onClick={() => setActiveView('automations')}
-          />
+          {canAccess(myRole, 'activities', 'view') && (
+            <SidebarItem
+              label="Activities"
+              icon={<Clock size={14} />}
+              isActive={activeView === 'activities'}
+              onClick={() => setActiveView('activities')}
+            />
+          )}
+          {canAccess(myRole, 'workflows', 'view') && (
+            <SidebarItem
+              label="Automations"
+              icon={<Zap size={14} />}
+              isActive={activeView === 'automations'}
+              onClick={() => setActiveView('automations')}
+            />
+          )}
+          {myRole === 'admin' && (
+            <SidebarItem
+              label="Permissions"
+              icon={<Shield size={14} />}
+              isActive={activeView === 'permissions'}
+              onClick={() => setActiveView('permissions')}
+            />
+          )}
         </SidebarSection>
       </AppSidebar>
 
@@ -2055,7 +2077,7 @@ export function CrmPage() {
         {/* Content header */}
         <div className="crm-content-header">
           <span className="crm-content-header-title">{sectionTitle}</span>
-          {activeView !== 'dashboard' && activeView !== 'automations' && (
+          {activeView !== 'dashboard' && activeView !== 'automations' && activeView !== 'permissions' && (
             <div className="crm-content-header-actions">
               <IconButton
                 icon={<Search size={14} />}
@@ -2067,9 +2089,15 @@ export function CrmPage() {
                   if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
                 }}
               />
-              <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
-                {addButtonLabel}
-              </Button>
+              {((activeView === 'pipeline' || activeView === 'deals') && canAccess(myRole, 'deals', 'create')) ||
+               (activeView === 'contacts' && canAccess(myRole, 'contacts', 'create')) ||
+               (activeView === 'companies' && canAccess(myRole, 'companies', 'create')) ||
+               (activeView === 'activities' && canAccess(myRole, 'activities', 'create'))
+                ? (
+                  <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
+                    {addButtonLabel}
+                  </Button>
+                ) : null}
             </div>
           )}
         </div>
@@ -2198,6 +2226,10 @@ export function CrmPage() {
             {activeView === 'automations' && (
               <AutomationsView stages={stages} />
             )}
+
+            {activeView === 'permissions' && (
+              <PermissionsView />
+            )}
           </div>
 
           {/* Detail panel */}
@@ -2251,9 +2283,13 @@ export function CrmPage() {
               width={150}
             />
           )}
-          <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowBulkDeleteConfirm(true)}>
-            Delete
-          </Button>
+          {((activeView === 'deals' && canAccess(myRole, 'deals', 'delete')) ||
+            (activeView === 'contacts' && canAccess(myRole, 'contacts', 'delete')) ||
+            (activeView === 'companies' && canAccess(myRole, 'companies', 'delete'))) && (
+            <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowBulkDeleteConfirm(true)}>
+              Delete
+            </Button>
+          )}
           <IconButton icon={<X size={14} />} label="Clear selection" size={24} onClick={() => setSelectedIds(new Set())} />
         </div>
       )}

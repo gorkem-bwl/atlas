@@ -598,6 +598,111 @@ export function useToggleWorkflow() {
   });
 }
 
+// ─── Permission Types ────────────────────────────────────────────
+
+export type CrmRole = 'admin' | 'manager' | 'sales' | 'viewer';
+export type CrmRecordAccess = 'all' | 'own';
+export type CrmEntity = 'deals' | 'contacts' | 'companies' | 'activities' | 'workflows' | 'dashboard';
+export type CrmOperation = 'view' | 'create' | 'update' | 'delete';
+
+export interface CrmPermissionWithUser {
+  id: string | null;
+  accountId: string;
+  userId: string;
+  role: CrmRole;
+  recordAccess: CrmRecordAccess;
+  userName: string | null;
+  userEmail: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface MyCrmPermission {
+  id: string | null;
+  accountId: string;
+  userId: string;
+  role: CrmRole;
+  recordAccess: CrmRecordAccess;
+}
+
+// Client-side permission matrix (mirrors the server)
+const ROLE_MATRIX: Record<CrmRole, Record<CrmEntity, Set<CrmOperation>>> = {
+  admin: {
+    deals: new Set(['view', 'create', 'update', 'delete']),
+    contacts: new Set(['view', 'create', 'update', 'delete']),
+    companies: new Set(['view', 'create', 'update', 'delete']),
+    activities: new Set(['view', 'create', 'update', 'delete']),
+    workflows: new Set(['view', 'create', 'update', 'delete']),
+    dashboard: new Set(['view']),
+  },
+  manager: {
+    deals: new Set(['view', 'create', 'update', 'delete']),
+    contacts: new Set(['view', 'create', 'update', 'delete']),
+    companies: new Set(['view', 'create', 'update', 'delete']),
+    activities: new Set(['view', 'create', 'update', 'delete']),
+    workflows: new Set(['view']),
+    dashboard: new Set(['view']),
+  },
+  sales: {
+    deals: new Set(['view', 'create', 'update', 'delete']),
+    contacts: new Set(['view', 'create', 'update', 'delete']),
+    companies: new Set(['view']),
+    activities: new Set(['view', 'create', 'update', 'delete']),
+    workflows: new Set<CrmOperation>(),
+    dashboard: new Set(['view']),
+  },
+  viewer: {
+    deals: new Set(['view']),
+    contacts: new Set(['view']),
+    companies: new Set(['view']),
+    activities: new Set(['view']),
+    workflows: new Set<CrmOperation>(),
+    dashboard: new Set(['view']),
+  },
+};
+
+export function canAccess(role: CrmRole, entity: CrmEntity, operation: CrmOperation): boolean {
+  return ROLE_MATRIX[role]?.[entity]?.has(operation) ?? false;
+}
+
+// ─── Permission Queries ─────────────────────────────────────────
+
+export function useCrmPermissions() {
+  return useQuery({
+    queryKey: queryKeys.crm.permissions.all,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/permissions');
+      return data.data as { permissions: CrmPermissionWithUser[] };
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useMyCrmPermission() {
+  return useQuery({
+    queryKey: queryKeys.crm.permissions.me,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/permissions/me');
+      return data.data as MyCrmPermission;
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useUpdateCrmPermission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role, recordAccess }: { userId: string; role: CrmRole; recordAccess: CrmRecordAccess }) => {
+      const { data } = await api.put(`/crm/permissions/${userId}`, { role, recordAccess });
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.permissions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.permissions.me });
+    },
+  });
+}
+
 // ─── Seed ──────────────────────────────────────────────────────────
 
 export function useSeedCrmData() {

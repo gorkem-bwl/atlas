@@ -930,6 +930,16 @@ export async function runMigrations() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS crm_permissions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        role VARCHAR(50) NOT NULL DEFAULT 'sales',
+        record_access VARCHAR(50) NOT NULL DEFAULT 'own',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
 
     // ─── Indexes ────────────────────────────────────────────────────
@@ -1063,6 +1073,8 @@ export async function runMigrations() {
       // CRM Workflows
       'CREATE INDEX IF NOT EXISTS idx_crm_workflows_account ON crm_workflows(account_id)',
       'CREATE INDEX IF NOT EXISTS idx_crm_workflows_trigger ON crm_workflows(trigger)',
+      // CRM Permissions
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_permissions_user ON crm_permissions(account_id, user_id)',
     ];
 
     for (const idx of indexes) {

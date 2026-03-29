@@ -57,6 +57,11 @@ router.put('/workflows/:id', crmController.updateWorkflow);
 router.delete('/workflows/:id', crmController.deleteWorkflow);
 router.post('/workflows/:id/toggle', crmController.toggleWorkflow);
 
+// Permissions
+router.get('/permissions', crmController.listPermissions);
+router.get('/permissions/me', crmController.getMyPermission);
+router.put('/permissions/:userId', crmController.updatePermission);
+
 // Seed sample data
 router.post('/seed', crmController.seedSampleData);
 

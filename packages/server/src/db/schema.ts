@@ -1019,3 +1019,16 @@ export const crmWorkflows = pgTable('crm_workflows', {
   triggerIdx: index('idx_crm_workflows_trigger').on(table.trigger),
 }));
 
+// ─── CRM: Permissions ─────────────────────────────────────────────
+export const crmPermissions = pgTable('crm_permissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('sales'),
+  recordAccess: varchar('record_access', { length: 50 }).notNull().default('own'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  userIdx: uniqueIndex('idx_crm_permissions_user').on(table.accountId, table.userId),
+}));
+

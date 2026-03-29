@@ -115,5 +115,9 @@ export const queryKeys = {
       all: ['crm', 'workflows'] as const,
     },
     dashboard: ['crm', 'dashboard'] as const,
+    permissions: {
+      all: ['crm', 'permissions'] as const,
+      me: ['crm', 'permissions', 'me'] as const,
+    },
   },
 };

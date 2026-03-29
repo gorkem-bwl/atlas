@@ -84,3 +84,26 @@ export interface CreateCrmWorkflowInput {
   action: CrmWorkflowAction;
   actionConfig: Record<string, unknown>;
 }
+
+// ─── CRM Permissions ─────────────────────────────────────────────
+
+export type CrmRole = 'admin' | 'manager' | 'sales' | 'viewer';
+export type CrmRecordAccess = 'all' | 'own';
+
+export type CrmEntity = 'deals' | 'contacts' | 'companies' | 'activities' | 'workflows' | 'dashboard';
+export type CrmOperation = 'view' | 'create' | 'update' | 'delete';
+
+export interface CrmPermission {
+  id: string;
+  accountId: string;
+  userId: string;
+  role: CrmRole;
+  recordAccess: CrmRecordAccess;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrmPermissionWithUser extends CrmPermission {
+  userName: string | null;
+  userEmail: string;
+}

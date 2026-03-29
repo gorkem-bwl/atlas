@@ -3,6 +3,7 @@ import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities, crmW
 import { tasks as tasksTable } from '../../db/schema';
 import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
+import type { CrmRecordAccess } from '@atlasmail/shared';
 
 // ─── Input types ────────────────────────────────────────────────────
 
@@ -83,8 +84,12 @@ export async function listCompanies(userId: string, accountId: string, filters?:
   search?: string;
   industry?: string;
   includeArchived?: boolean;
+  recordAccess?: CrmRecordAccess;
 }) {
-  const conditions = [eq(crmCompanies.userId, userId), eq(crmCompanies.accountId, accountId)];
+  const conditions = [eq(crmCompanies.accountId, accountId)];
+  if (!filters?.recordAccess || filters.recordAccess === 'own') {
+    conditions.push(eq(crmCompanies.userId, userId));
+  }
 
   if (!filters?.includeArchived) {
     conditions.push(eq(crmCompanies.isArchived, false));
@@ -148,7 +153,12 @@ export async function listCompanies(userId: string, accountId: string, filters?:
   return query;
 }
 
-export async function getCompany(userId: string, accountId: string, id: string) {
+export async function getCompany(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [eq(crmCompanies.id, id), eq(crmCompanies.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmCompanies.userId, userId));
+  }
+
   const [company] = await db
     .select({
       id: crmCompanies.id,
@@ -169,7 +179,7 @@ export async function getCompany(userId: string, accountId: string, id: string) 
       dealCount: sql<number>`(SELECT COUNT(*) FROM crm_deals WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('deal_count'),
     })
     .from(crmCompanies)
-    .where(and(eq(crmCompanies.id, id), eq(crmCompanies.userId, userId), eq(crmCompanies.accountId, accountId)))
+    .where(and(...conditions))
     .limit(1);
 
   return company || null;
@@ -207,7 +217,7 @@ export async function createCompany(userId: string, accountId: string, input: Cr
   return created;
 }
 
-export async function updateCompany(userId: string, accountId: string, id: string, input: UpdateCompanyInput) {
+export async function updateCompany(userId: string, accountId: string, id: string, input: UpdateCompanyInput, recordAccess?: CrmRecordAccess) {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -221,22 +231,27 @@ export async function updateCompany(userId: string, accountId: string, id: strin
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
 
+  const updateConditions = [eq(crmCompanies.id, id), eq(crmCompanies.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    updateConditions.push(eq(crmCompanies.userId, userId));
+  }
+
   await db
     .update(crmCompanies)
     .set(updates)
-    .where(and(eq(crmCompanies.id, id), eq(crmCompanies.userId, userId), eq(crmCompanies.accountId, accountId)));
+    .where(and(...updateConditions));
 
   const [updated] = await db
     .select()
     .from(crmCompanies)
-    .where(and(eq(crmCompanies.id, id), eq(crmCompanies.userId, userId), eq(crmCompanies.accountId, accountId)))
+    .where(and(...updateConditions))
     .limit(1);
 
   return updated || null;
 }
 
-export async function deleteCompany(userId: string, accountId: string, id: string) {
-  await updateCompany(userId, accountId, id, { isArchived: true });
+export async function deleteCompany(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  await updateCompany(userId, accountId, id, { isArchived: true }, recordAccess);
 }
 
 // ─── Contacts ───────────────────────────────────────────────────────
@@ -245,8 +260,12 @@ export async function listContacts(userId: string, accountId: string, filters?: 
   search?: string;
   companyId?: string;
   includeArchived?: boolean;
+  recordAccess?: CrmRecordAccess;
 }) {
-  const conditions = [eq(crmContacts.userId, userId), eq(crmContacts.accountId, accountId)];
+  const conditions = [eq(crmContacts.accountId, accountId)];
+  if (!filters?.recordAccess || filters.recordAccess === 'own') {
+    conditions.push(eq(crmContacts.userId, userId));
+  }
 
   if (!filters?.includeArchived) {
     conditions.push(eq(crmContacts.isArchived, false));
@@ -283,7 +302,12 @@ export async function listContacts(userId: string, accountId: string, filters?: 
     .orderBy(asc(crmContacts.sortOrder), asc(crmContacts.createdAt));
 }
 
-export async function getContact(userId: string, accountId: string, id: string) {
+export async function getContact(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [eq(crmContacts.id, id), eq(crmContacts.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmContacts.userId, userId));
+  }
+
   const [contact] = await db
     .select({
       id: crmContacts.id,
@@ -304,7 +328,7 @@ export async function getContact(userId: string, accountId: string, id: string) 
     })
     .from(crmContacts)
     .leftJoin(crmCompanies, eq(crmContacts.companyId, crmCompanies.id))
-    .where(and(eq(crmContacts.id, id), eq(crmContacts.userId, userId), eq(crmContacts.accountId, accountId)))
+    .where(and(...conditions))
     .limit(1);
 
   return contact || null;
@@ -346,7 +370,7 @@ export async function createContact(userId: string, accountId: string, input: Cr
   return created;
 }
 
-export async function updateContact(userId: string, accountId: string, id: string, input: UpdateContactInput) {
+export async function updateContact(userId: string, accountId: string, id: string, input: UpdateContactInput, recordAccess?: CrmRecordAccess) {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -360,22 +384,27 @@ export async function updateContact(userId: string, accountId: string, id: strin
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
 
+  const updateConditions = [eq(crmContacts.id, id), eq(crmContacts.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    updateConditions.push(eq(crmContacts.userId, userId));
+  }
+
   await db
     .update(crmContacts)
     .set(updates)
-    .where(and(eq(crmContacts.id, id), eq(crmContacts.userId, userId), eq(crmContacts.accountId, accountId)));
+    .where(and(...updateConditions));
 
   const [updated] = await db
     .select()
     .from(crmContacts)
-    .where(and(eq(crmContacts.id, id), eq(crmContacts.userId, userId), eq(crmContacts.accountId, accountId)))
+    .where(and(...updateConditions))
     .limit(1);
 
   return updated || null;
 }
 
-export async function deleteContact(userId: string, accountId: string, id: string) {
-  await updateContact(userId, accountId, id, { isArchived: true });
+export async function deleteContact(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  await updateContact(userId, accountId, id, { isArchived: true }, recordAccess);
 }
 
 // ─── Deal Stages ────────────────────────────────────────────────────
@@ -492,8 +521,12 @@ export async function listDeals(userId: string, accountId: string, filters?: {
   contactId?: string;
   companyId?: string;
   includeArchived?: boolean;
+  recordAccess?: CrmRecordAccess;
 }) {
-  const conditions = [eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId)];
+  const conditions = [eq(crmDeals.accountId, accountId)];
+  if (!filters?.recordAccess || filters.recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
 
   if (!filters?.includeArchived) {
     conditions.push(eq(crmDeals.isArchived, false));
@@ -542,7 +575,12 @@ export async function listDeals(userId: string, accountId: string, filters?: {
     .orderBy(asc(crmDeals.sortOrder), asc(crmDeals.createdAt));
 }
 
-export async function getDeal(userId: string, accountId: string, id: string) {
+export async function getDeal(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [eq(crmDeals.id, id), eq(crmDeals.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
+
   const [deal] = await db
     .select({
       id: crmDeals.id,
@@ -573,7 +611,7 @@ export async function getDeal(userId: string, accountId: string, id: string) {
     .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
     .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
     .leftJoin(crmCompanies, eq(crmDeals.companyId, crmCompanies.id))
-    .where(and(eq(crmDeals.id, id), eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId)))
+    .where(and(...conditions))
     .limit(1);
 
   return deal || null;
@@ -617,15 +655,20 @@ export async function createDeal(userId: string, accountId: string, input: Creat
   return created;
 }
 
-export async function updateDeal(userId: string, accountId: string, id: string, input: UpdateDealInput) {
+export async function updateDeal(userId: string, accountId: string, id: string, input: UpdateDealInput, recordAccess?: CrmRecordAccess) {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
+
+  const updateConditions = [eq(crmDeals.id, id), eq(crmDeals.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    updateConditions.push(eq(crmDeals.userId, userId));
+  }
 
   // Capture old stage for workflow trigger
   let oldStageId: string | null = null;
   if (input.stageId !== undefined) {
     const [existing] = await db.select({ stageId: crmDeals.stageId }).from(crmDeals)
-      .where(and(eq(crmDeals.id, id), eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId))).limit(1);
+      .where(and(...updateConditions)).limit(1);
     if (existing) oldStageId = existing.stageId;
   }
 
@@ -644,7 +687,7 @@ export async function updateDeal(userId: string, accountId: string, id: string, 
   await db
     .update(crmDeals)
     .set(updates)
-    .where(and(eq(crmDeals.id, id), eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId)));
+    .where(and(...updateConditions));
 
   // Fire workflow trigger if stage changed
   if (input.stageId !== undefined && oldStageId && oldStageId !== input.stageId) {
@@ -653,40 +696,52 @@ export async function updateDeal(userId: string, accountId: string, id: string, 
     }).catch(() => {});
   }
 
-  return getDeal(userId, accountId, id);
+  return getDeal(userId, accountId, id, recordAccess);
 }
 
-export async function deleteDeal(userId: string, accountId: string, id: string) {
-  await updateDeal(userId, accountId, id, { isArchived: true });
+export async function deleteDeal(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  await updateDeal(userId, accountId, id, { isArchived: true }, recordAccess);
 }
 
-export async function markDealWon(userId: string, accountId: string, id: string) {
+export async function markDealWon(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
   const now = new Date();
+  const conditions = [eq(crmDeals.id, id), eq(crmDeals.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
   await db
     .update(crmDeals)
     .set({ wonAt: now, lostAt: null, lostReason: null, probability: 100, updatedAt: now })
-    .where(and(eq(crmDeals.id, id), eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId)));
+    .where(and(...conditions));
 
   // Fire workflow trigger
   executeWorkflows(accountId, userId, 'deal_won', { dealId: id }).catch(() => {});
 
-  return getDeal(userId, accountId, id);
+  return getDeal(userId, accountId, id, recordAccess);
 }
 
-export async function markDealLost(userId: string, accountId: string, id: string, reason?: string) {
+export async function markDealLost(userId: string, accountId: string, id: string, reason?: string, recordAccess?: CrmRecordAccess) {
   const now = new Date();
+  const conditions = [eq(crmDeals.id, id), eq(crmDeals.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
   await db
     .update(crmDeals)
     .set({ lostAt: now, wonAt: null, lostReason: reason ?? null, probability: 0, updatedAt: now })
-    .where(and(eq(crmDeals.id, id), eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId)));
+    .where(and(...conditions));
 
   // Fire workflow trigger
   executeWorkflows(accountId, userId, 'deal_lost', { dealId: id }).catch(() => {});
 
-  return getDeal(userId, accountId, id);
+  return getDeal(userId, accountId, id, recordAccess);
 }
 
-export async function countsByStage(userId: string, accountId: string) {
+export async function countsByStage(userId: string, accountId: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
   return db
     .select({
       stageId: crmDeals.stageId,
@@ -697,11 +752,19 @@ export async function countsByStage(userId: string, accountId: string) {
     })
     .from(crmDeals)
     .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
-    .where(and(eq(crmDeals.userId, userId), eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false)))
+    .where(and(...conditions))
     .groupBy(crmDeals.stageId, crmDealStages.name, crmDealStages.color);
 }
 
-export async function pipelineValue(userId: string, accountId: string) {
+export async function pipelineValue(userId: string, accountId: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [
+    eq(crmDeals.accountId, accountId),
+    eq(crmDeals.isArchived, false),
+    sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
+  ];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmDeals.userId, userId));
+  }
   const [result] = await db
     .select({
       totalValue: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('total_value'),
@@ -709,12 +772,7 @@ export async function pipelineValue(userId: string, accountId: string) {
       weightedValue: sql<number>`COALESCE(SUM(${crmDeals.value} * ${crmDeals.probability} / 100.0), 0)`.as('weighted_value'),
     })
     .from(crmDeals)
-    .where(and(
-      eq(crmDeals.userId, userId),
-      eq(crmDeals.accountId, accountId),
-      eq(crmDeals.isArchived, false),
-      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
-    ));
+    .where(and(...conditions));
 
   return result || { totalValue: 0, dealCount: 0, weightedValue: 0 };
 }
@@ -726,8 +784,12 @@ export async function listActivities(userId: string, accountId: string, filters?
   contactId?: string;
   companyId?: string;
   includeArchived?: boolean;
+  recordAccess?: CrmRecordAccess;
 }) {
-  const conditions = [eq(crmActivities.userId, userId), eq(crmActivities.accountId, accountId)];
+  const conditions = [eq(crmActivities.accountId, accountId)];
+  if (!filters?.recordAccess || filters.recordAccess === 'own') {
+    conditions.push(eq(crmActivities.userId, userId));
+  }
 
   if (!filters?.includeArchived) {
     conditions.push(eq(crmActivities.isArchived, false));
@@ -781,7 +843,7 @@ export async function createActivity(userId: string, accountId: string, input: C
   return created;
 }
 
-export async function updateActivity(userId: string, accountId: string, id: string, input: UpdateActivityInput) {
+export async function updateActivity(userId: string, accountId: string, id: string, input: UpdateActivityInput, recordAccess?: CrmRecordAccess) {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -794,27 +856,37 @@ export async function updateActivity(userId: string, accountId: string, id: stri
   if (input.completedAt !== undefined) updates.completedAt = input.completedAt ? new Date(input.completedAt) : null;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
 
+  const updateConditions = [eq(crmActivities.id, id), eq(crmActivities.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    updateConditions.push(eq(crmActivities.userId, userId));
+  }
+
   await db
     .update(crmActivities)
     .set(updates)
-    .where(and(eq(crmActivities.id, id), eq(crmActivities.userId, userId), eq(crmActivities.accountId, accountId)));
+    .where(and(...updateConditions));
 
   const [updated] = await db
     .select()
     .from(crmActivities)
-    .where(and(eq(crmActivities.id, id), eq(crmActivities.userId, userId), eq(crmActivities.accountId, accountId)))
+    .where(and(...updateConditions))
     .limit(1);
 
   return updated || null;
 }
 
-export async function deleteActivity(userId: string, accountId: string, id: string) {
-  await updateActivity(userId, accountId, id, { isArchived: true });
+export async function deleteActivity(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  await updateActivity(userId, accountId, id, { isArchived: true }, recordAccess);
 }
 
 // ─── Dashboard ─────────────────────────────────────────────────────
 
-export async function getDashboard(userId: string, accountId: string) {
+export async function getDashboard(userId: string, accountId: string, recordAccess?: CrmRecordAccess) {
+  // Build base ownership condition
+  const ownerFilter = (!recordAccess || recordAccess === 'own')
+    ? eq(crmDeals.userId, userId)
+    : sql`TRUE`;
+
   // 1. Total pipeline value (active deals: not won, not lost, not archived)
   const [pipelineAgg] = await db
     .select({
@@ -823,7 +895,7 @@ export async function getDashboard(userId: string, accountId: string) {
     })
     .from(crmDeals)
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
@@ -844,7 +916,7 @@ export async function getDashboard(userId: string, accountId: string) {
     })
     .from(crmDeals)
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.wonAt} IS NOT NULL`,
@@ -861,7 +933,7 @@ export async function getDashboard(userId: string, accountId: string) {
     })
     .from(crmDeals)
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.lostAt} IS NOT NULL`,
@@ -886,7 +958,7 @@ export async function getDashboard(userId: string, accountId: string) {
     .from(crmDeals)
     .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
@@ -895,11 +967,14 @@ export async function getDashboard(userId: string, accountId: string) {
     .orderBy(asc(crmDealStages.sequence));
 
   // 5. Recent activities (last 10)
+  const activityOwnerFilter = (!recordAccess || recordAccess === 'own')
+    ? eq(crmActivities.userId, userId)
+    : sql`TRUE`;
   const recentActivities = await db
     .select()
     .from(crmActivities)
     .where(and(
-      eq(crmActivities.userId, userId),
+      activityOwnerFilter,
       eq(crmActivities.accountId, accountId),
       eq(crmActivities.isArchived, false),
     ))
@@ -939,7 +1014,7 @@ export async function getDashboard(userId: string, accountId: string) {
     .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
     .leftJoin(crmCompanies, eq(crmDeals.companyId, crmCompanies.id))
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
@@ -981,7 +1056,7 @@ export async function getDashboard(userId: string, accountId: string) {
     .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
     .leftJoin(crmCompanies, eq(crmDeals.companyId, crmCompanies.id))
     .where(and(
-      eq(crmDeals.userId, userId),
+      ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
       sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
