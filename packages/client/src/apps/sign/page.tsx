@@ -20,6 +20,10 @@ import {
   Plus,
   X,
   Users,
+  CheckSquare,
+  ChevronDown,
+  Pencil,
+  Tag,
 } from 'lucide-react';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
@@ -49,6 +53,7 @@ import { config } from '../../config/env';
 import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atlasmail/shared';
 import { format } from 'date-fns';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import { Chip } from '../../components/ui/chip';
 import '../../styles/sign.css';
 
 // ─── Status helpers ─────────────────────────────────────────────────
@@ -88,6 +93,19 @@ export function SignPage() {
   const [generatedLinks, setGeneratedLinks] = useState<{ email: string; link: string }[]>([]);
   const [activeSigner, setActiveSigner] = useState<string | undefined>();
   const [signersModalOpen, setSignersModalOpen] = useState(false);
+  // Expiration date
+  const getDefaultExpiry = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  };
+  const [expiryDate, setExpiryDate] = useState(getDefaultExpiry);
+  // Inline title editing
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+  // Tags
+  const [addingTag, setAddingTag] = useState(false);
+  const [tagDraft, setTagDraft] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -253,12 +271,18 @@ export function SignPage() {
   const handleSendForSigning = useCallback(async () => {
     const validSigners = signers.filter((s) => s.email.trim());
     if (validSigners.length === 0) return;
+    // Calculate days from now to expiry
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry.getTime() - now.getTime();
+    const expiresInDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
     try {
       const links: { email: string; link: string }[] = [];
       for (const signer of validSigners) {
         const tokenResult = await createSigningLink.mutateAsync({
           email: signer.email.trim(),
           name: signer.name.trim() || undefined,
+          expiresInDays,
         });
         links.push({
           email: signer.email.trim(),
@@ -296,6 +320,7 @@ export function SignPage() {
       setGeneratedLinks([]);
       setLinkCopied(false);
       setSigners([{ email: '', name: '' }]);
+      setExpiryDate(getDefaultExpiry());
     }
   }, []);
 
@@ -420,7 +445,16 @@ export function SignPage() {
                   <tbody>
                     {filteredDocs.map((doc) => (
                       <tr key={doc.id} onClick={() => handleOpenDoc(doc)}>
-                        <td style={{ fontWeight: 500 }}>{doc.title}</td>
+                        <td style={{ fontWeight: 500 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <span>{doc.title}</span>
+                            {(doc.tags ?? []).map((tag) => (
+                              <Chip key={tag} color="#8b5cf6" height={18} style={{ fontSize: 10 }}>
+                                {tag}
+                              </Chip>
+                            ))}
+                          </div>
+                        </td>
                         <td>
                           <Badge variant={STATUS_BADGE_MAP[doc.status] ?? 'default'}>
                             {doc.status}
@@ -466,18 +500,61 @@ export function SignPage() {
                 <Button variant="ghost" size="sm" icon={<ArrowLeft size={14} />} onClick={handleBackToList}>
                   Back
                 </Button>
-                <span
-                  style={{
-                    fontSize: 'var(--font-size-sm)',
-                    fontWeight: 600,
-                    color: 'var(--color-text-primary)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {selectedDoc.title}
-                </span>
+                {editingTitle ? (
+                  <input
+                    autoFocus
+                    value={titleDraft}
+                    onChange={(e) => setTitleDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (titleDraft.trim() && titleDraft.trim() !== selectedDoc.title) {
+                          updateDoc.mutate({ title: titleDraft.trim() });
+                        }
+                        setEditingTitle(false);
+                      }
+                      if (e.key === 'Escape') {
+                        setEditingTitle(false);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (titleDraft.trim() && titleDraft.trim() !== selectedDoc.title) {
+                        updateDoc.mutate({ title: titleDraft.trim() });
+                      }
+                      setEditingTitle(false);
+                    }}
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-text-primary)',
+                      fontFamily: 'var(--font-family)',
+                      border: '1px solid var(--color-border-primary)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '2px 6px',
+                      outline: 'none',
+                      background: 'var(--color-bg-primary)',
+                      maxWidth: 240,
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-text-primary)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => { setTitleDraft(selectedDoc.title); setEditingTitle(true); }}
+                  >
+                    {selectedDoc.title}
+                    <Pencil size={12} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+                  </span>
+                )}
                 <Badge variant={STATUS_BADGE_MAP[selectedDoc.status] ?? 'default'}>
                   {selectedDoc.status}
                 </Badge>
@@ -514,6 +591,22 @@ export function SignPage() {
                   onClick={() => handleAddField('text')}
                 >
                   Text
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<CheckSquare size={14} />}
+                  onClick={() => handleAddField('checkbox')}
+                >
+                  Checkbox
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<ChevronDown size={14} />}
+                  onClick={() => handleAddField('dropdown')}
+                >
+                  Dropdown
                 </Button>
                 <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
                 <IconButton
@@ -570,6 +663,70 @@ export function SignPage() {
                   Sign now
                 </Button>
               </div>
+            </div>
+
+            {/* Tags */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderBottom: '1px solid var(--color-border-secondary)', flexWrap: 'wrap' }}>
+              <Tag size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+              {(selectedDoc.tags ?? []).map((tag) => (
+                <Chip
+                  key={tag}
+                  color="#8b5cf6"
+                  onRemove={() => {
+                    const next = (selectedDoc.tags ?? []).filter((t) => t !== tag);
+                    updateDoc.mutate({ tags: next });
+                  }}
+                >
+                  {tag}
+                </Chip>
+              ))}
+              {addingTag ? (
+                <input
+                  autoFocus
+                  value={tagDraft}
+                  onChange={(e) => setTagDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && tagDraft.trim()) {
+                      const current = selectedDoc.tags ?? [];
+                      if (!current.includes(tagDraft.trim())) {
+                        updateDoc.mutate({ tags: [...current, tagDraft.trim()] });
+                      }
+                      setTagDraft('');
+                      setAddingTag(false);
+                    }
+                    if (e.key === 'Escape') {
+                      setTagDraft('');
+                      setAddingTag(false);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (tagDraft.trim()) {
+                      const current = selectedDoc.tags ?? [];
+                      if (!current.includes(tagDraft.trim())) {
+                        updateDoc.mutate({ tags: [...current, tagDraft.trim()] });
+                      }
+                    }
+                    setTagDraft('');
+                    setAddingTag(false);
+                  }}
+                  placeholder="Tag name..."
+                  style={{
+                    fontSize: 'var(--font-size-xs)',
+                    fontFamily: 'var(--font-family)',
+                    border: '1px solid var(--color-border-primary)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '2px 6px',
+                    outline: 'none',
+                    background: 'var(--color-bg-primary)',
+                    width: 100,
+                    height: 22,
+                  }}
+                />
+              ) : (
+                <Chip onClick={() => setAddingTag(true)} color="#6b7280">
+                  + Add tag
+                </Chip>
+              )}
             </div>
 
             <SmartButtonBar appId="sign" recordId={selectedDoc.id} />
@@ -680,6 +837,14 @@ export function SignPage() {
               >
                 Add signer
               </Button>
+              <Input
+                label="Expires on"
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                size="md"
+                min={new Date().toISOString().split('T')[0]}
+              />
               {/* Existing links */}
               {signingLinks && signingLinks.length > 0 && (
                 <div style={{ marginTop: 8 }}>

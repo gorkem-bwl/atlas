@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, CheckSquare, ChevronDown } from 'lucide-react';
 import type { SignatureField, SignatureFieldType } from '@atlasmail/shared';
 
 // ─── Color map ──────────────────────────────────────────────────────
@@ -9,6 +9,8 @@ const FIELD_COLORS: Record<SignatureFieldType, { border: string; bg: string; lab
   initials: { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.08)', label: 'Initials' },
   date: { border: '#22c55e', bg: 'rgba(34, 197, 94, 0.08)', label: 'Date' },
   text: { border: '#6b7280', bg: 'rgba(107, 114, 128, 0.08)', label: 'Text' },
+  checkbox: { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.08)', label: 'Checkbox' },
+  dropdown: { border: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)', label: 'Dropdown' },
 };
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -213,8 +215,48 @@ function FieldBox({
         animation: isHighlighted ? 'sign-field-pulse 1.5s ease-in-out infinite' : 'none',
       }}
     >
-      {/* Field content: signature image or label */}
-      {field.signatureData ? (
+      {/* Field content: signature image, checkbox, dropdown, or label */}
+      {field.type === 'checkbox' ? (
+        <CheckSquare
+          size={Math.min(width, height) * 0.6}
+          style={{
+            color: field.signatureData === 'checked' ? colors.border : `${colors.border}40`,
+            pointerEvents: 'none',
+          }}
+        />
+      ) : field.type === 'dropdown' ? (
+        field.signatureData ? (
+          <span
+            style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-primary)',
+              fontFamily: 'var(--font-family)',
+              fontWeight: 500,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            {field.signatureData}
+          </span>
+        ) : (
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 'var(--font-size-xs)',
+              color: colors.border,
+              fontFamily: 'var(--font-family)',
+              fontWeight: 500,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+          >
+            {colors.label}
+            <ChevronDown size={12} />
+          </span>
+        )
+      ) : field.signatureData ? (
         <img
           src={field.signatureData}
           alt="Signature"

@@ -44,6 +44,8 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
     initials: 'Add initials',
     date: 'Add date',
     text: 'Add text',
+    checkbox: 'Toggle checkbox',
+    dropdown: 'Select option',
   };
 
   const handleApplyDraw = useCallback(() => {

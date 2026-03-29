@@ -1,7 +1,7 @@
 // ─── Digital Signature Types ────────────────────────────────────────
 
 export type SignatureDocStatus = 'draft' | 'pending' | 'signed' | 'expired' | 'voided';
-export type SignatureFieldType = 'signature' | 'initials' | 'date' | 'text';
+export type SignatureFieldType = 'signature' | 'initials' | 'date' | 'text' | 'checkbox' | 'dropdown';
 export type SigningTokenStatus = 'pending' | 'signed' | 'expired' | 'declined';
 
 export interface SignatureDocument {

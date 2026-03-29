@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckCircle, AlertTriangle, PenTool, ChevronRight, Download, XCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, PenTool, ChevronRight, Download, XCircle, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Modal } from '../components/ui/modal';
 import { Input } from '../components/ui/input';
@@ -28,6 +28,11 @@ export function SignPublicPage() {
   const [isGuided, setIsGuided] = useState(false);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Dropdown popover state
+  const [dropdownFieldId, setDropdownFieldId] = useState<string | null>(null);
+  const [dropdownOptions, setDropdownOptions] = useState<string[]>([]);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Decline state
   const [declineModalOpen, setDeclineModalOpen] = useState(false);
@@ -76,6 +81,31 @@ export function SignPublicPage() {
       if (!data) return;
       const field = data.fields.find((f) => f.id === fieldId);
       if (!field) return;
+
+      // Checkbox: toggle directly
+      if (field.type === 'checkbox') {
+        const current = localSignatures[fieldId] || field.signatureData;
+        const next = current === 'checked' ? '' : 'checked';
+        setLocalSignatures((prev) => ({ ...prev, [fieldId]: next }));
+        return;
+      }
+
+      // Dropdown: show options popover
+      if (field.type === 'dropdown') {
+        if (field.signatureData || localSignatures[fieldId]) return;
+        const options = (field.label || '').split(',').map((o) => o.trim()).filter(Boolean);
+        if (options.length === 0) return;
+        // Position the dropdown near the field
+        const el = contentRef.current?.querySelector(`[data-field-id="${fieldId}"]`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+        }
+        setDropdownOptions(options);
+        setDropdownFieldId(fieldId);
+        return;
+      }
+
       // Don't allow re-signing already signed fields
       if (field.signatureData || localSignatures[fieldId]) return;
       setSigFieldType(field.type);
@@ -83,6 +113,16 @@ export function SignPublicPage() {
       setSigModalOpen(true);
     },
     [data, localSignatures],
+  );
+
+  const handleDropdownSelect = useCallback(
+    (option: string) => {
+      if (!dropdownFieldId) return;
+      setLocalSignatures((prev) => ({ ...prev, [dropdownFieldId]: option }));
+      setDropdownFieldId(null);
+      setDropdownOptions([]);
+    },
+    [dropdownFieldId],
   );
 
   const handleSignatureApply = useCallback(
@@ -274,6 +314,15 @@ export function SignPublicPage() {
             <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
               This document has already been signed with this link.
             </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Download size={14} />}
+              onClick={handleDownloadPublic}
+              style={{ marginTop: 16 }}
+            >
+              Download PDF
+            </Button>
           </div>
         </div>
       </div>
@@ -498,6 +547,53 @@ export function SignPublicPage() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Dropdown popover */}
+      {dropdownFieldId && (
+        <>
+          <div
+            onClick={() => { setDropdownFieldId(null); setDropdownOptions([]); }}
+            style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: dropdownPos.top,
+              left: dropdownPos.left,
+              zIndex: 1000,
+              background: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-primary)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+              minWidth: 160,
+              overflow: 'hidden',
+            }}
+          >
+            {dropdownOptions.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => handleDropdownSelect(opt)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: 'var(--font-size-sm)',
+                  fontFamily: 'var(--font-family)',
+                  color: 'var(--color-text-primary)',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'var(--color-bg-tertiary)'; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'none'; }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
