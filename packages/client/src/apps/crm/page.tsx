@@ -4,7 +4,7 @@ import {
   ChevronRight, Trash2, Phone as PhoneIcon, Mail,
   Trophy, XCircle, LayoutGrid, List, ArrowUp, ArrowDown,
   PhoneCall, CalendarDays, StickyNote,
-  Download, Upload,
+  Download, Upload, BarChart3,
 } from 'lucide-react';
 import {
   useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany,
@@ -20,6 +20,7 @@ import { DealKanban } from './components/deal-kanban';
 import { FilterBar, applyFilters, type CrmFilter, type FilterColumn } from './components/filter-bar';
 import { SavedViews, type SavedView } from './components/saved-views';
 import { CsvImportModal, exportToCsv } from './components/csv-import-modal';
+import { CrmDashboard } from './components/dashboard';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -143,7 +144,7 @@ function InlineSelectCell({
 
 // ─── Types ─────────────────────────────────────────────────────────
 
-type ActiveView = 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities';
+type ActiveView = 'dashboard' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities';
 
 // ─── Column definitions for filtering ─────────────────────────────
 
@@ -1718,7 +1719,7 @@ export function CrmPage() {
   const { openSettings } = useUIStore();
 
   // Navigation
-  const [activeView, setActiveView] = useState<ActiveView>('pipeline');
+  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -1890,6 +1891,7 @@ export function CrmPage() {
   // Section title
   const sectionTitle = useMemo(() => {
     switch (activeView) {
+      case 'dashboard': return 'Dashboard';
       case 'pipeline': return 'Pipeline';
       case 'deals': return 'All deals';
       case 'contacts': return 'Contacts';
@@ -1919,6 +1921,8 @@ export function CrmPage() {
 
   const addButtonLabel = useMemo(() => {
     switch (activeView) {
+      case 'dashboard':
+        return 'New deal';
       case 'pipeline':
       case 'deals':
         return 'New deal';
@@ -1991,6 +1995,12 @@ export function CrmPage() {
       >
         <SidebarSection>
           <SidebarItem
+            label="Dashboard"
+            icon={<BarChart3 size={14} />}
+            isActive={activeView === 'dashboard'}
+            onClick={() => setActiveView('dashboard')}
+          />
+          <SidebarItem
             label="Pipeline"
             icon={<LayoutGrid size={14} />}
             isActive={activeView === 'pipeline'}
@@ -2037,21 +2047,23 @@ export function CrmPage() {
         {/* Content header */}
         <div className="crm-content-header">
           <span className="crm-content-header-title">{sectionTitle}</span>
-          <div className="crm-content-header-actions">
-            <IconButton
-              icon={<Search size={14} />}
-              label="Search"
-              size={28}
-              active={showSearch}
-              onClick={() => {
-                setShowSearch(!showSearch);
-                if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
-              }}
-            />
-            <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
-              {addButtonLabel}
-            </Button>
-          </div>
+          {activeView !== 'dashboard' && (
+            <div className="crm-content-header-actions">
+              <IconButton
+                icon={<Search size={14} />}
+                label="Search"
+                size={28}
+                active={showSearch}
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
+                }}
+              />
+              <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
+                {addButtonLabel}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Search bar */}
@@ -2103,6 +2115,10 @@ export function CrmPage() {
         {/* Content area */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {activeView === 'dashboard' && (
+              <CrmDashboard />
+            )}
+
             {activeView === 'pipeline' && (
               <DealKanban
                 deals={deals}

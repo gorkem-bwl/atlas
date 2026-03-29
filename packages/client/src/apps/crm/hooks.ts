@@ -85,6 +85,20 @@ export interface CrmActivity {
   updatedAt: string;
 }
 
+export interface CrmDashboard {
+  totalPipelineValue: number;
+  dealsWonCount: number;
+  dealsWonValue: number;
+  dealsLostCount: number;
+  winRate: number;
+  averageDealSize: number;
+  dealCount: number;
+  valueByStage: { stageId: string; stageName: string | null; stageColor: string | null; value: number; count: number }[];
+  recentActivities: CrmActivity[];
+  dealsClosingSoon: CrmDeal[];
+  topDeals: CrmDeal[];
+}
+
 export interface CrmDealCounts {
   stageId: string;
   stageName: string | null;
@@ -486,6 +500,19 @@ export function useDeleteActivity() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
     },
+  });
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────
+
+export function useDashboard() {
+  return useQuery({
+    queryKey: queryKeys.crm.dashboard,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/dashboard');
+      return data.data as CrmDashboard;
+    },
+    staleTime: 15_000,
   });
 }
 

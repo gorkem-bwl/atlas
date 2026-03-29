@@ -5,6 +5,9 @@ import { authMiddleware } from '../../middleware/auth';
 const router = Router();
 router.use(authMiddleware);
 
+// Dashboard
+router.get('/dashboard', crmController.getDashboard);
+
 // Companies (before /:id to avoid route conflicts)
 router.get('/companies/list', crmController.listCompanies);
 router.post('/companies/import', crmController.importCompanies);

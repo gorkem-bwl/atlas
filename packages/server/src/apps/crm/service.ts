@@ -1,6 +1,6 @@
 import { db } from '../../config/database';
 import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities } from '../../db/schema';
-import { eq, and, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 
 // ─── Input types ────────────────────────────────────────────────────
@@ -771,6 +771,204 @@ export async function updateActivity(userId: string, accountId: string, id: stri
 
 export async function deleteActivity(userId: string, accountId: string, id: string) {
   await updateActivity(userId, accountId, id, { isArchived: true });
+}
+
+// ─── Dashboard ─────────────────────────────────────────────────────
+
+export async function getDashboard(userId: string, accountId: string) {
+  // 1. Total pipeline value (active deals: not won, not lost, not archived)
+  const [pipelineAgg] = await db
+    .select({
+      totalValue: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('total_value'),
+      dealCount: sql<number>`COUNT(*)`.as('deal_count'),
+    })
+    .from(crmDeals)
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
+    ));
+
+  const totalPipelineValue = Number(pipelineAgg?.totalValue ?? 0);
+  const dealCount = Number(pipelineAgg?.dealCount ?? 0);
+  const averageDealSize = dealCount > 0 ? totalPipelineValue / dealCount : 0;
+
+  // 2. Deals won this month
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [wonAgg] = await db
+    .select({
+      count: sql<number>`COUNT(*)`.as('count'),
+      value: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('value'),
+    })
+    .from(crmDeals)
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NOT NULL`,
+      gte(crmDeals.wonAt, monthStart),
+    ));
+
+  const dealsWonCount = Number(wonAgg?.count ?? 0);
+  const dealsWonValue = Number(wonAgg?.value ?? 0);
+
+  // 3. Deals lost this month
+  const [lostAgg] = await db
+    .select({
+      count: sql<number>`COUNT(*)`.as('count'),
+    })
+    .from(crmDeals)
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.lostAt} IS NOT NULL`,
+      gte(crmDeals.lostAt, monthStart),
+    ));
+
+  const dealsLostCount = Number(lostAgg?.count ?? 0);
+  const winRate = (dealsWonCount + dealsLostCount) > 0
+    ? Math.round((dealsWonCount / (dealsWonCount + dealsLostCount)) * 100)
+    : 0;
+
+  // 4. Value by stage (active deals only)
+  const valueByStage = await db
+    .select({
+      stageId: crmDeals.stageId,
+      stageName: crmDealStages.name,
+      stageColor: crmDealStages.color,
+      value: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('value'),
+      count: sql<number>`COUNT(*)`.as('count'),
+      sequence: crmDealStages.sequence,
+    })
+    .from(crmDeals)
+    .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
+    ))
+    .groupBy(crmDeals.stageId, crmDealStages.name, crmDealStages.color, crmDealStages.sequence)
+    .orderBy(asc(crmDealStages.sequence));
+
+  // 5. Recent activities (last 10)
+  const recentActivities = await db
+    .select()
+    .from(crmActivities)
+    .where(and(
+      eq(crmActivities.userId, userId),
+      eq(crmActivities.accountId, accountId),
+      eq(crmActivities.isArchived, false),
+    ))
+    .orderBy(desc(crmActivities.createdAt))
+    .limit(10);
+
+  // 6. Deals closing soon (next 30 days)
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 86400000);
+  const dealsClosingSoon = await db
+    .select({
+      id: crmDeals.id,
+      accountId: crmDeals.accountId,
+      userId: crmDeals.userId,
+      title: crmDeals.title,
+      value: crmDeals.value,
+      stageId: crmDeals.stageId,
+      contactId: crmDeals.contactId,
+      companyId: crmDeals.companyId,
+      assignedUserId: crmDeals.assignedUserId,
+      probability: crmDeals.probability,
+      expectedCloseDate: crmDeals.expectedCloseDate,
+      wonAt: crmDeals.wonAt,
+      lostAt: crmDeals.lostAt,
+      lostReason: crmDeals.lostReason,
+      tags: crmDeals.tags,
+      isArchived: crmDeals.isArchived,
+      sortOrder: crmDeals.sortOrder,
+      createdAt: crmDeals.createdAt,
+      updatedAt: crmDeals.updatedAt,
+      stageName: crmDealStages.name,
+      stageColor: crmDealStages.color,
+      contactName: crmContacts.name,
+      companyName: crmCompanies.name,
+    })
+    .from(crmDeals)
+    .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
+    .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
+    .leftJoin(crmCompanies, eq(crmDeals.companyId, crmCompanies.id))
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
+      sql`${crmDeals.expectedCloseDate} IS NOT NULL`,
+      lte(crmDeals.expectedCloseDate, thirtyDaysFromNow),
+      gte(crmDeals.expectedCloseDate, now),
+    ))
+    .orderBy(asc(crmDeals.expectedCloseDate));
+
+  // 7. Top deals by value (top 5)
+  const topDeals = await db
+    .select({
+      id: crmDeals.id,
+      accountId: crmDeals.accountId,
+      userId: crmDeals.userId,
+      title: crmDeals.title,
+      value: crmDeals.value,
+      stageId: crmDeals.stageId,
+      contactId: crmDeals.contactId,
+      companyId: crmDeals.companyId,
+      assignedUserId: crmDeals.assignedUserId,
+      probability: crmDeals.probability,
+      expectedCloseDate: crmDeals.expectedCloseDate,
+      wonAt: crmDeals.wonAt,
+      lostAt: crmDeals.lostAt,
+      lostReason: crmDeals.lostReason,
+      tags: crmDeals.tags,
+      isArchived: crmDeals.isArchived,
+      sortOrder: crmDeals.sortOrder,
+      createdAt: crmDeals.createdAt,
+      updatedAt: crmDeals.updatedAt,
+      stageName: crmDealStages.name,
+      stageColor: crmDealStages.color,
+      contactName: crmContacts.name,
+      companyName: crmCompanies.name,
+    })
+    .from(crmDeals)
+    .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
+    .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
+    .leftJoin(crmCompanies, eq(crmDeals.companyId, crmCompanies.id))
+    .where(and(
+      eq(crmDeals.userId, userId),
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
+    ))
+    .orderBy(desc(crmDeals.value))
+    .limit(5);
+
+  return {
+    totalPipelineValue,
+    dealsWonCount,
+    dealsWonValue,
+    dealsLostCount,
+    winRate,
+    averageDealSize,
+    dealCount,
+    valueByStage: valueByStage.map((s) => ({
+      stageId: s.stageId,
+      stageName: s.stageName,
+      stageColor: s.stageColor,
+      value: Number(s.value),
+      count: Number(s.count),
+    })),
+    recentActivities,
+    dealsClosingSoon,
+    topDeals,
+  };
 }
 
 // ─── Seed Sample Data ───────────────────────────────────────────────

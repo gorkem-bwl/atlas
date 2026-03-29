@@ -557,6 +557,21 @@ export async function deleteActivity(req: Request, res: Response) {
   }
 }
 
+// ─── Dashboard ─────────────────────────────────────────────────────
+
+export async function getDashboard(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+
+    const dashboard = await crmService.getDashboard(userId, accountId);
+    res.json({ success: true, data: dashboard });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get CRM dashboard');
+    res.status(500).json({ success: false, error: 'Failed to get dashboard' });
+  }
+}
+
 // ─── Bulk Import ────────────────────────────────────────────────────
 
 export async function importContacts(req: Request, res: Response) {
