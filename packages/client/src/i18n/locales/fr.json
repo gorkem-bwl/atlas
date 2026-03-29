@@ -849,6 +849,71 @@
     "bulk": {
       "deleteTitle": "Supprimer {{count}} éléments ?",
       "deleteDescription": "Cette action est irréversible. Les éléments sélectionnés seront définitivement supprimés."
+    },
+    "leads": {
+      "title": "Prospects",
+      "newLead": "Nouveau prospect",
+      "name": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "companyName": "Nom de l'entreprise",
+      "source": "Source",
+      "status": "Statut",
+      "notes": "Notes",
+      "convert": "Convertir en affaire",
+      "convertTitle": "Convertir le prospect",
+      "convertDescription": "Cela créera un contact, une entreprise et une affaire à partir de ce prospect",
+      "dealTitle": "Titre de l'affaire",
+      "selectStage": "Sélectionner une étape",
+      "new": "Nouveau",
+      "contacted": "Contacté",
+      "qualified": "Qualifié",
+      "converted": "Converti",
+      "lost": "Perdu",
+      "website": "Site web",
+      "referral": "Recommandation",
+      "coldCall": "Appel à froid",
+      "socialMedia": "Réseaux sociaux",
+      "event": "Événement",
+      "other": "Autre",
+      "noLeads": "Aucun prospect pour le moment"
+    },
+    "notes": {
+      "title": "Notes",
+      "newNote": "Nouvelle note",
+      "pinned": "Épinglée",
+      "pin": "Épingler la note",
+      "unpin": "Détacher la note",
+      "delete": "Supprimer la note",
+      "placeholder": "Écrire une note...",
+      "noNotes": "Aucune note pour le moment"
+    },
+    "forecast": {
+      "title": "Prévisions",
+      "weightedForecast": "Prévision pondérée",
+      "bestCase": "Meilleur scénario",
+      "committed": "Confirmé",
+      "monthlyForecast": "Prévision mensuelle",
+      "noData": "Aucune donnée de prévision"
+    },
+    "merge": {
+      "title": "Fusionner les enregistrements",
+      "selectPrimary": "Sélectionner l'enregistrement principal",
+      "primaryDescription": "L'enregistrement principal sera conservé. Les données de l'enregistrement secondaire seront fusionnées.",
+      "merge": "Fusionner",
+      "mergeContacts": "Fusionner les contacts",
+      "mergeCompanies": "Fusionner les entreprises"
+    },
+    "charts": {
+      "winLoss": "Gains/Pertes par mois",
+      "revenueTrend": "Tendance du chiffre d'affaires",
+      "salesCycle": "Durée du cycle de vente",
+      "conversionFunnel": "Entonnoir de conversion",
+      "dealsBySource": "Affaires par source",
+      "won": "Gagné",
+      "lost": "Perdu",
+      "days": "jours",
+      "deals": "affaires"
     }
   },
   "sign": {

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDashboardCharts, type CrmDashboardCharts } from '../hooks';
 import { Skeleton } from '../../../components/ui/skeleton';
 
@@ -11,13 +12,14 @@ function formatCurrency(value: number): string {
 // ─── Win/Loss by month ──────────────────────────────────────────
 
 function WinLossChart({ data }: { data: CrmDashboardCharts['winLossByMonth'] }) {
+  const { t } = useTranslation();
   const maxVal = useMemo(() => Math.max(...data.map((d) => Math.max(d.won, d.lost)), 1), [data]);
 
   return (
     <div className="crm-dashboard-card">
-      <h3 className="crm-dashboard-card-title">Win/loss over time</h3>
+      <h3 className="crm-dashboard-card-title">{t('crm.charts.winLoss')}</h3>
       {data.every((d) => d.won === 0 && d.lost === 0) ? (
-        <div className="crm-dashboard-empty">No win/loss data yet</div>
+        <div className="crm-dashboard-empty">{t('crm.dashboard.noData')}</div>
       ) : (
         <div className="crm-bar-chart">
           {data.map((d) => (
@@ -41,10 +43,10 @@ function WinLossChart({ data }: { data: CrmDashboardCharts['winLossByMonth'] }) 
       )}
       <div style={{ display: 'flex', gap: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)', paddingLeft: 70 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-success)', display: 'inline-block' }} /> Won
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-success)', display: 'inline-block' }} /> {t('crm.charts.won')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-          <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-error)', display: 'inline-block' }} /> Lost
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-error)', display: 'inline-block' }} /> {t('crm.charts.lost')}
         </div>
       </div>
     </div>
@@ -54,13 +56,14 @@ function WinLossChart({ data }: { data: CrmDashboardCharts['winLossByMonth'] }) 
 // ─── Revenue trend ──────────────────────────────────────────────
 
 function RevenueTrendChart({ data }: { data: CrmDashboardCharts['revenueTrend'] }) {
+  const { t } = useTranslation();
   const maxVal = useMemo(() => Math.max(...data.map((d) => d.revenue), 1), [data]);
 
   return (
     <div className="crm-dashboard-card">
-      <h3 className="crm-dashboard-card-title">Revenue trend</h3>
+      <h3 className="crm-dashboard-card-title">{t('crm.charts.revenueTrend')}</h3>
       {data.every((d) => d.revenue === 0) ? (
-        <div className="crm-dashboard-empty">No revenue data yet</div>
+        <div className="crm-dashboard-empty">{t('crm.dashboard.noData')}</div>
       ) : (
         <div className="crm-bar-chart">
           {data.map((d) => (
@@ -81,13 +84,14 @@ function RevenueTrendChart({ data }: { data: CrmDashboardCharts['revenueTrend'] 
 // ─── Conversion funnel ──────────────────────────────────────────
 
 function ConversionFunnelChart({ data }: { data: CrmDashboardCharts['conversionFunnel'] }) {
+  const { t } = useTranslation();
   const maxVal = useMemo(() => Math.max(...data.map((d) => d.count), 1), [data]);
 
   return (
     <div className="crm-dashboard-card">
-      <h3 className="crm-dashboard-card-title">Conversion funnel</h3>
+      <h3 className="crm-dashboard-card-title">{t('crm.charts.conversionFunnel')}</h3>
       {data.length === 0 ? (
-        <div className="crm-dashboard-empty">No funnel data yet</div>
+        <div className="crm-dashboard-empty">{t('crm.dashboard.noData')}</div>
       ) : (
         <div className="crm-bar-chart">
           {data.map((d) => (
@@ -96,7 +100,7 @@ function ConversionFunnelChart({ data }: { data: CrmDashboardCharts['conversionF
               <div className="crm-bar-track">
                 <div className="crm-bar" style={{ width: `${Math.max((d.count / maxVal) * 100, 2)}%`, backgroundColor: d.stageColor }} />
               </div>
-              <span className="crm-bar-value">{d.count} deal{d.count !== 1 ? 's' : ''}</span>
+              <span className="crm-bar-value">{d.count} {t('crm.charts.deals')}</span>
             </div>
           ))}
         </div>
@@ -108,14 +112,15 @@ function ConversionFunnelChart({ data }: { data: CrmDashboardCharts['conversionF
 // ─── Deals by source ────────────────────────────────────────────
 
 function DealsBySourceChart({ data }: { data: CrmDashboardCharts['dealsBySource'] }) {
+  const { t } = useTranslation();
   const maxVal = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
 
   return (
     <div className="crm-dashboard-card">
-      <h3 className="crm-dashboard-card-title">Deals by source</h3>
+      <h3 className="crm-dashboard-card-title">{t('crm.charts.dealsBySource')}</h3>
       {data.length === 0 ? (
-        <div className="crm-dashboard-empty">No source data yet</div>
+        <div className="crm-dashboard-empty">{t('crm.dashboard.noData')}</div>
       ) : (
         <div className="crm-bar-chart">
           {data.map((d, i) => (
@@ -139,13 +144,14 @@ function DealsBySourceChart({ data }: { data: CrmDashboardCharts['dealsBySource'
 // ─── Sales cycle length ─────────────────────────────────────────
 
 function SalesCycleChart({ data }: { data: CrmDashboardCharts['salesCycleLength'] }) {
+  const { t } = useTranslation();
   const maxVal = useMemo(() => Math.max(...data.map((d) => d.avgDays), 1), [data]);
 
   return (
     <div className="crm-dashboard-card">
-      <h3 className="crm-dashboard-card-title">Average sales cycle</h3>
+      <h3 className="crm-dashboard-card-title">{t('crm.charts.salesCycle')}</h3>
       {data.every((d) => d.avgDays === 0) ? (
-        <div className="crm-dashboard-empty">No cycle data yet</div>
+        <div className="crm-dashboard-empty">{t('crm.dashboard.noData')}</div>
       ) : (
         <div className="crm-bar-chart">
           {data.map((d) => (
@@ -154,7 +160,7 @@ function SalesCycleChart({ data }: { data: CrmDashboardCharts['salesCycleLength'
               <div className="crm-bar-track">
                 <div className="crm-bar" style={{ width: `${Math.max((d.avgDays / maxVal) * 100, d.avgDays > 0 ? 2 : 0)}%`, backgroundColor: '#8b5cf6' }} />
               </div>
-              <span className="crm-bar-value">{d.avgDays} day{d.avgDays !== 1 ? 's' : ''}</span>
+              <span className="crm-bar-value">{d.avgDays} {t('crm.charts.days')}</span>
             </div>
           ))}
         </div>

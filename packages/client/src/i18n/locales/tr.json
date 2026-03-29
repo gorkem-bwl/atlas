@@ -849,6 +849,71 @@
     "bulk": {
       "deleteTitle": "{{count}} öğe silinsin mi?",
       "deleteDescription": "Bu işlem geri alınamaz. Seçilen öğeler kalıcı olarak silinecektir."
+    },
+    "leads": {
+      "title": "Müşteri Adayları",
+      "newLead": "Yeni müşteri adayı",
+      "name": "İsim",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "companyName": "Şirket adı",
+      "source": "Kaynak",
+      "status": "Durum",
+      "notes": "Notlar",
+      "convert": "Anlaşmaya dönüştür",
+      "convertTitle": "Müşteri adayını dönüştür",
+      "convertDescription": "Bu işlem müşteri adayından bir kişi, şirket ve anlaşma oluşturacaktır",
+      "dealTitle": "Anlaşma başlığı",
+      "selectStage": "Aşama seçin",
+      "new": "Yeni",
+      "contacted": "İletişime geçildi",
+      "qualified": "Nitelikli",
+      "converted": "Dönüştürüldü",
+      "lost": "Kaybedildi",
+      "website": "Web sitesi",
+      "referral": "Referans",
+      "coldCall": "Soğuk arama",
+      "socialMedia": "Sosyal medya",
+      "event": "Etkinlik",
+      "other": "Diğer",
+      "noLeads": "Henüz müşteri adayı yok"
+    },
+    "notes": {
+      "title": "Notlar",
+      "newNote": "Yeni not",
+      "pinned": "Sabitlenmiş",
+      "pin": "Notu sabitle",
+      "unpin": "Sabitlemeyi kaldır",
+      "delete": "Notu sil",
+      "placeholder": "Bir not yazın...",
+      "noNotes": "Henüz not yok"
+    },
+    "forecast": {
+      "title": "Tahmin",
+      "weightedForecast": "Ağırlıklı tahmin",
+      "bestCase": "En iyi senaryo",
+      "committed": "Kesinleşmiş",
+      "monthlyForecast": "Aylık tahmin",
+      "noData": "Tahmin verisi yok"
+    },
+    "merge": {
+      "title": "Kayıtları birleştir",
+      "selectPrimary": "Birincil kaydı seçin",
+      "primaryDescription": "Birincil kayıt korunacaktır. İkincil kaydın verileri birleştirilecektir.",
+      "merge": "Birleştir",
+      "mergeContacts": "Kişileri birleştir",
+      "mergeCompanies": "Şirketleri birleştir"
+    },
+    "charts": {
+      "winLoss": "Aya göre kazanma/kaybetme",
+      "revenueTrend": "Gelir trendi",
+      "salesCycle": "Satış döngüsü süresi",
+      "conversionFunnel": "Dönüşüm hunisi",
+      "dealsBySource": "Kaynağa göre anlaşmalar",
+      "won": "Kazanılan",
+      "lost": "Kaybedilen",
+      "days": "gün",
+      "deals": "anlaşma"
     }
   },
   "sign": {

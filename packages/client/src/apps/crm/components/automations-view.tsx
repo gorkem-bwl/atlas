@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Zap, Sparkles } from 'lucide-react';
 import {
   useWorkflows, useCreateWorkflow, useDeleteWorkflow, useToggleWorkflow,
@@ -113,6 +114,7 @@ function CreateWorkflowModal({
   onClose: () => void;
   stages: CrmDealStage[];
 }) {
+  const { t } = useTranslation();
   const createWorkflow = useCreateWorkflow();
 
   const [name, setName] = useState('');
@@ -210,7 +212,7 @@ function CreateWorkflowModal({
 
   return (
     <Modal open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <Modal.Header title="Create automation" />
+      <Modal.Header title={t('crm.automations.newAutomation')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
           <Input
@@ -369,7 +371,7 @@ function CreateWorkflowModal({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" size="sm" onClick={onClose}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           variant="primary"
@@ -377,7 +379,7 @@ function CreateWorkflowModal({
           onClick={handleSubmit}
           disabled={!name.trim() || createWorkflow.isPending}
         >
-          {createWorkflow.isPending ? 'Creating...' : 'Create automation'}
+          {createWorkflow.isPending ? t('common.loading') : t('crm.automations.newAutomation')}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -387,6 +389,7 @@ function CreateWorkflowModal({
 // ─── Main View ────────────────────────────────────────────────────
 
 export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
+  const { t } = useTranslation();
   const { data: workflowsData, isLoading } = useWorkflows();
   const workflows = workflowsData?.workflows ?? [];
   const toggleWorkflow = useToggleWorkflow();
@@ -408,7 +411,7 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
   if (isLoading) {
     return (
       <div style={{ padding: 'var(--spacing-2xl)', color: 'var(--color-text-tertiary)' }}>
-        Loading automations...
+        {t('common.loading')}
       </div>
     );
   }
@@ -428,18 +431,18 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
             fontWeight: 'var(--font-weight-medium)',
             color: 'var(--color-text-primary)',
           }}>
-            Workflow automations
+            {t('crm.automations.title')}
           </div>
           <div style={{
             fontSize: 'var(--font-size-sm)',
             color: 'var(--color-text-tertiary)',
             marginTop: 2,
           }}>
-            Automate repetitive tasks with trigger-action rules
+            {t('crm.automations.title')}
           </div>
         </div>
         <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)}>
-          New automation
+          {t('crm.automations.newAutomation')}
         </Button>
       </div>
 
@@ -452,10 +455,10 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
         }}>
           <Zap size={40} style={{ opacity: 0.3, marginBottom: 'var(--spacing-sm)' }} />
           <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
-            No automations yet
+            {t('crm.automations.noAutomations')}
           </div>
           <div style={{ fontSize: 'var(--font-size-sm)', marginTop: 4 }}>
-            Create your first automation to streamline your workflow
+            {t('crm.automations.noAutomations')}
           </div>
           <div style={{ marginTop: 'var(--spacing-md)' }}>
             <Button
@@ -465,7 +468,7 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
               onClick={() => seedWorkflows.mutate()}
               disabled={seedWorkflows.isPending}
             >
-              {seedWorkflows.isPending ? 'Seeding...' : 'Seed example automations'}
+              {seedWorkflows.isPending ? t('common.loading') : t('crm.automations.seedExamples')}
             </Button>
           </div>
         </div>
@@ -591,9 +594,9 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => { if (!open) setDeleteId(null); }}
-        title="Delete automation"
-        description="Are you sure you want to delete this automation? This cannot be undone."
-        confirmLabel="Delete"
+        title={t('crm.actions.delete')}
+        description={t('crm.bulk.deleteDescription')}
+        confirmLabel={t('crm.actions.delete')}
         destructive
         onConfirm={() => {
           if (deleteId) deleteWorkflow.mutate(deleteId);

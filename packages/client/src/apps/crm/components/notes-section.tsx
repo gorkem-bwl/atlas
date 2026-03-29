@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Pin, PinOff, Trash2, Save } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -38,6 +39,7 @@ function NoteEditor({
   onCancel: () => void;
   isSaving: boolean;
 }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(note?.title ?? '');
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +48,7 @@ function NoteEditor({
       StarterKit,
       Underline,
       TiptapLink.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder: 'Write a note...' }),
+      Placeholder.configure({ placeholder: t('crm.notes.placeholder') }),
     ],
     content: note?.content && Object.keys(note.content).length > 0 ? note.content : '',
     editorProps: {
@@ -87,10 +89,10 @@ function NoteEditor({
         display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)',
         padding: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border-secondary)',
       }}>
-        <Button variant="secondary" size="sm" onClick={onCancel}>Cancel</Button>
+        <Button variant="secondary" size="sm" onClick={onCancel}>{t('common.cancel')}</Button>
         <Button variant="primary" size="sm" onClick={handleSave} disabled={isSaving}>
           <Save size={13} style={{ marginRight: 4 }} />
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? t('common.loading') : t('common.save')}
         </Button>
       </div>
     </div>
@@ -100,6 +102,7 @@ function NoteEditor({
 // ─── Single note card ───────────────────────────────────────────
 
 function NoteCard({ note }: { note: CrmNote }) {
+  const { t } = useTranslation();
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
   const [isEditing, setIsEditing] = useState(false);
@@ -126,6 +129,10 @@ function NoteCard({ note }: { note: CrmNote }) {
     <div
       className="crm-note-card"
       onClick={() => setIsEditing(true)}
+      role="button"
+      tabIndex={0}
+      aria-label={t('crm.notes.title') + ': ' + (note.title || extractText(note.content).slice(0, 50))}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsEditing(true); } }}
       style={{
         padding: 'var(--spacing-md)',
         border: '1px solid var(--color-border-secondary)',
@@ -145,7 +152,7 @@ function NoteCard({ note }: { note: CrmNote }) {
             </div>
           )}
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {textContent || 'Empty note'}
+            {textContent || t('crm.notes.noNotes')}
           </div>
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 4 }}>
             {timeAgo(note.updatedAt)}
@@ -154,12 +161,14 @@ function NoteCard({ note }: { note: CrmNote }) {
         <div style={{ display: 'flex', gap: 2, marginLeft: 'var(--spacing-sm)' }} onClick={(e) => e.stopPropagation()}>
           <IconButton
             icon={note.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
-            label={note.isPinned ? 'Unpin' : 'Pin'}
+            label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
+            aria-label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
             onClick={() => updateNote.mutate({ id: note.id, isPinned: !note.isPinned })}
           />
           <IconButton
             icon={<Trash2 size={12} />}
-            label="Delete"
+            label={t('crm.notes.delete')}
+            aria-label={t('crm.notes.delete')}
             destructive
             onClick={() => deleteNote.mutate(note.id)}
           />
@@ -186,6 +195,7 @@ function extractText(content: Record<string, unknown>): string {
 export function NotesSection({
   dealId, contactId, companyId,
 }: { dealId?: string; contactId?: string; companyId?: string }) {
+  const { t } = useTranslation();
   const { data: notesData, isLoading } = useNotes({ dealId, contactId, companyId });
   const notes = notesData?.notes ?? [];
   const createNote = useCreateNote();
@@ -195,11 +205,11 @@ export function NotesSection({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
-          Notes
+          {t('crm.notes.title')}
         </span>
         <Button variant="ghost" size="sm" onClick={() => setShowEditor(true)}>
           <Plus size={13} style={{ marginRight: 4 }} />
-          Add note
+          {t('crm.notes.newNote')}
         </Button>
       </div>
 
@@ -216,9 +226,9 @@ export function NotesSection({
       )}
 
       {isLoading ? (
-        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)', padding: 'var(--spacing-md)', textAlign: 'center' }}>Loading notes...</div>
+        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)', padding: 'var(--spacing-md)', textAlign: 'center' }}>{t('common.loading')}</div>
       ) : notes.length === 0 && !showEditor ? (
-        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)', padding: 'var(--spacing-md)', textAlign: 'center' }}>No notes yet</div>
+        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)', padding: 'var(--spacing-md)', textAlign: 'center' }}>{t('crm.notes.noNotes')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           {notes.map((note) => (

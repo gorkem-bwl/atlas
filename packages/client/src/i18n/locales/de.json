@@ -849,6 +849,71 @@
     "bulk": {
       "deleteTitle": "{{count}} Elemente löschen?",
       "deleteDescription": "Diese Aktion kann nicht rückgängig gemacht werden. Die ausgewählten Elemente werden dauerhaft gelöscht."
+    },
+    "leads": {
+      "title": "Leads",
+      "newLead": "Neuer Lead",
+      "name": "Name",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "companyName": "Firmenname",
+      "source": "Quelle",
+      "status": "Status",
+      "notes": "Notizen",
+      "convert": "In Geschäft umwandeln",
+      "convertTitle": "Lead umwandeln",
+      "convertDescription": "Dies erstellt einen Kontakt, ein Unternehmen und ein Geschäft aus diesem Lead",
+      "dealTitle": "Geschäftstitel",
+      "selectStage": "Phase auswählen",
+      "new": "Neu",
+      "contacted": "Kontaktiert",
+      "qualified": "Qualifiziert",
+      "converted": "Umgewandelt",
+      "lost": "Verloren",
+      "website": "Webseite",
+      "referral": "Empfehlung",
+      "coldCall": "Kaltakquise",
+      "socialMedia": "Soziale Medien",
+      "event": "Veranstaltung",
+      "other": "Sonstiges",
+      "noLeads": "Noch keine Leads"
+    },
+    "notes": {
+      "title": "Notizen",
+      "newNote": "Neue Notiz",
+      "pinned": "Angeheftet",
+      "pin": "Notiz anheften",
+      "unpin": "Notiz lösen",
+      "delete": "Notiz löschen",
+      "placeholder": "Notiz schreiben...",
+      "noNotes": "Noch keine Notizen"
+    },
+    "forecast": {
+      "title": "Prognose",
+      "weightedForecast": "Gewichtete Prognose",
+      "bestCase": "Bestfall",
+      "committed": "Bestätigt",
+      "monthlyForecast": "Monatliche Prognose",
+      "noData": "Keine Prognosedaten"
+    },
+    "merge": {
+      "title": "Datensätze zusammenführen",
+      "selectPrimary": "Primären Datensatz auswählen",
+      "primaryDescription": "Der primäre Datensatz wird beibehalten. Daten des sekundären Datensatzes werden zusammengeführt.",
+      "merge": "Zusammenführen",
+      "mergeContacts": "Kontakte zusammenführen",
+      "mergeCompanies": "Unternehmen zusammenführen"
+    },
+    "charts": {
+      "winLoss": "Gewinn/Verlust nach Monat",
+      "revenueTrend": "Umsatztrend",
+      "salesCycle": "Verkaufszykluslänge",
+      "conversionFunnel": "Konversionstrichter",
+      "dealsBySource": "Geschäfte nach Quelle",
+      "won": "Gewonnen",
+      "lost": "Verloren",
+      "days": "Tage",
+      "deals": "Geschäfte"
     }
   },
   "sign": {

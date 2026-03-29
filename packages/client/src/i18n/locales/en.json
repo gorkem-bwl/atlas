@@ -890,6 +890,71 @@
     "bulk": {
       "deleteTitle": "Delete {{count}} items?",
       "deleteDescription": "This action cannot be undone. The selected items will be permanently deleted."
+    },
+    "leads": {
+      "title": "Leads",
+      "newLead": "New lead",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "companyName": "Company name",
+      "source": "Source",
+      "status": "Status",
+      "notes": "Notes",
+      "convert": "Convert to deal",
+      "convertTitle": "Convert lead",
+      "convertDescription": "This will create a contact, company, and deal from this lead",
+      "dealTitle": "Deal title",
+      "selectStage": "Select stage",
+      "new": "New",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "converted": "Converted",
+      "lost": "Lost",
+      "website": "Website",
+      "referral": "Referral",
+      "coldCall": "Cold call",
+      "socialMedia": "Social media",
+      "event": "Event",
+      "other": "Other",
+      "noLeads": "No leads yet"
+    },
+    "notes": {
+      "title": "Notes",
+      "newNote": "New note",
+      "pinned": "Pinned",
+      "pin": "Pin note",
+      "unpin": "Unpin note",
+      "delete": "Delete note",
+      "placeholder": "Write a note...",
+      "noNotes": "No notes yet"
+    },
+    "forecast": {
+      "title": "Forecast",
+      "weightedForecast": "Weighted forecast",
+      "bestCase": "Best case",
+      "committed": "Committed",
+      "monthlyForecast": "Monthly forecast",
+      "noData": "No forecast data"
+    },
+    "merge": {
+      "title": "Merge records",
+      "selectPrimary": "Select primary record",
+      "primaryDescription": "The primary record will be kept. Data from the secondary record will be merged in.",
+      "merge": "Merge",
+      "mergeContacts": "Merge contacts",
+      "mergeCompanies": "Merge companies"
+    },
+    "charts": {
+      "winLoss": "Win/Loss by month",
+      "revenueTrend": "Revenue trend",
+      "salesCycle": "Sales cycle length",
+      "conversionFunnel": "Conversion funnel",
+      "dealsBySource": "Deals by source",
+      "won": "Won",
+      "lost": "Lost",
+      "days": "days",
+      "deals": "deals"
     }
   },
   "sign": {

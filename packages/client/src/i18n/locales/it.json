@@ -849,6 +849,71 @@
     "bulk": {
       "deleteTitle": "Eliminare {{count}} elementi?",
       "deleteDescription": "Questa azione non può essere annullata. Gli elementi selezionati verranno eliminati definitivamente."
+    },
+    "leads": {
+      "title": "Lead",
+      "newLead": "Nuovo lead",
+      "name": "Nome",
+      "email": "E-mail",
+      "phone": "Telefono",
+      "companyName": "Nome azienda",
+      "source": "Fonte",
+      "status": "Stato",
+      "notes": "Note",
+      "convert": "Converti in trattativa",
+      "convertTitle": "Converti lead",
+      "convertDescription": "Questo creerà un contatto, un'azienda e una trattativa da questo lead",
+      "dealTitle": "Titolo trattativa",
+      "selectStage": "Seleziona fase",
+      "new": "Nuovo",
+      "contacted": "Contattato",
+      "qualified": "Qualificato",
+      "converted": "Convertito",
+      "lost": "Perso",
+      "website": "Sito web",
+      "referral": "Referenza",
+      "coldCall": "Chiamata a freddo",
+      "socialMedia": "Social media",
+      "event": "Evento",
+      "other": "Altro",
+      "noLeads": "Nessun lead ancora"
+    },
+    "notes": {
+      "title": "Note",
+      "newNote": "Nuova nota",
+      "pinned": "Fissata",
+      "pin": "Fissa nota",
+      "unpin": "Rimuovi fissaggio",
+      "delete": "Elimina nota",
+      "placeholder": "Scrivi una nota...",
+      "noNotes": "Nessuna nota ancora"
+    },
+    "forecast": {
+      "title": "Previsioni",
+      "weightedForecast": "Previsione ponderata",
+      "bestCase": "Miglior scenario",
+      "committed": "Confermato",
+      "monthlyForecast": "Previsione mensile",
+      "noData": "Nessun dato di previsione"
+    },
+    "merge": {
+      "title": "Unisci record",
+      "selectPrimary": "Seleziona record principale",
+      "primaryDescription": "Il record principale verrà mantenuto. I dati del record secondario verranno uniti.",
+      "merge": "Unisci",
+      "mergeContacts": "Unisci contatti",
+      "mergeCompanies": "Unisci aziende"
+    },
+    "charts": {
+      "winLoss": "Vittorie/Perdite per mese",
+      "revenueTrend": "Tendenza del fatturato",
+      "salesCycle": "Durata del ciclo di vendita",
+      "conversionFunnel": "Imbuto di conversione",
+      "dealsBySource": "Trattative per fonte",
+      "won": "Vinto",
+      "lost": "Perso",
+      "days": "giorni",
+      "deals": "trattative"
     }
   },
   "sign": {

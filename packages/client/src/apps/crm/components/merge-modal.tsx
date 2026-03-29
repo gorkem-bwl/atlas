@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Merge } from 'lucide-react';
 import { useMergeContacts, useMergeCompanies, type CrmContact, type CrmCompany } from '../hooks';
 import { Modal } from '../../../components/ui/modal';
@@ -15,6 +16,7 @@ export function MergeContactsModal({
   contactA: CrmContact | null;
   contactB: CrmContact | null;
 }) {
+  const { t } = useTranslation();
   const mergeContacts = useMergeContacts();
   const [primaryId, setPrimaryId] = useState<string | null>(null);
 
@@ -31,16 +33,20 @@ export function MergeContactsModal({
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()}>
-      <Modal.Header title="Merge contacts" />
+      <Modal.Header title={t('crm.merge.mergeContacts')} />
       <Modal.Body>
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-          Choose which contact to keep as the primary record. Data from the secondary contact will be merged in.
+          {t('crm.merge.primaryDescription')}
         </div>
         <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
           {[contactA, contactB].map((contact) => (
             <div
               key={contact.id}
               onClick={() => setPrimaryId(contact.id)}
+              role="button"
+              tabIndex={0}
+              aria-label={t('crm.merge.selectPrimary') + ': ' + contact.name}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPrimaryId(contact.id); } }}
               style={{
                 flex: 1,
                 padding: 'var(--spacing-md)',
@@ -54,22 +60,22 @@ export function MergeContactsModal({
                 <span style={{ fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-sm)' }}>
                   {contact.name}
                 </span>
-                {(primaryId ?? contactA.id) === contact.id && <Badge variant="success">Primary</Badge>}
+                {(primaryId ?? contactA.id) === contact.id && <Badge variant="success">{t('crm.merge.selectPrimary')}</Badge>}
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                {contact.email || 'No email'}<br />
-                {contact.phone || 'No phone'}<br />
-                {contact.companyName || 'No company'}
+                {contact.email || '--'}<br />
+                {contact.phone || '--'}<br />
+                {contact.companyName || '--'}
               </div>
             </div>
           ))}
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} size="md">Cancel</Button>
+        <Button variant="secondary" onClick={onClose} size="md">{t('common.cancel')}</Button>
         <Button variant="primary" onClick={handleMerge} size="md" disabled={mergeContacts.isPending}>
           <Merge size={14} style={{ marginRight: 4 }} />
-          {mergeContacts.isPending ? 'Merging...' : 'Merge contacts'}
+          {mergeContacts.isPending ? t('common.loading') : t('crm.merge.mergeContacts')}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -86,6 +92,7 @@ export function MergeCompaniesModal({
   companyA: CrmCompany | null;
   companyB: CrmCompany | null;
 }) {
+  const { t } = useTranslation();
   const mergeCompanies = useMergeCompanies();
   const [primaryId, setPrimaryId] = useState<string | null>(null);
 
@@ -102,16 +109,20 @@ export function MergeCompaniesModal({
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()}>
-      <Modal.Header title="Merge companies" />
+      <Modal.Header title={t('crm.merge.mergeCompanies')} />
       <Modal.Body>
         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-          Choose which company to keep as the primary record. Data from the secondary company will be merged in.
+          {t('crm.merge.primaryDescription')}
         </div>
         <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
           {[companyA, companyB].map((company) => (
             <div
               key={company.id}
               onClick={() => setPrimaryId(company.id)}
+              role="button"
+              tabIndex={0}
+              aria-label={t('crm.merge.selectPrimary') + ': ' + company.name}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPrimaryId(company.id); } }}
               style={{
                 flex: 1,
                 padding: 'var(--spacing-md)',
@@ -125,22 +136,22 @@ export function MergeCompaniesModal({
                 <span style={{ fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-sm)' }}>
                   {company.name}
                 </span>
-                {(primaryId ?? companyA.id) === company.id && <Badge variant="success">Primary</Badge>}
+                {(primaryId ?? companyA.id) === company.id && <Badge variant="success">{t('crm.merge.selectPrimary')}</Badge>}
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                {company.domain || 'No domain'}<br />
-                {company.industry || 'No industry'}<br />
-                {company.phone || 'No phone'}
+                {company.domain || '--'}<br />
+                {company.industry || '--'}<br />
+                {company.phone || '--'}
               </div>
             </div>
           ))}
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} size="md">Cancel</Button>
+        <Button variant="secondary" onClick={onClose} size="md">{t('common.cancel')}</Button>
         <Button variant="primary" onClick={handleMerge} size="md" disabled={mergeCompanies.isPending}>
           <Merge size={14} style={{ marginRight: 4 }} />
-          {mergeCompanies.isPending ? 'Merging...' : 'Merge companies'}
+          {mergeCompanies.isPending ? t('common.loading') : t('crm.merge.mergeCompanies')}
         </Button>
       </Modal.Footer>
     </Modal>

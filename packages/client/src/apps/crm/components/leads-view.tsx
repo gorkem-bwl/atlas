@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserPlus, Search, ChevronRight, Trash2, ArrowRightLeft } from 'lucide-react';
 import {
   useLeads, useCreateLead, useUpdateLead, useDeleteLead, useConvertLead, useStages,
@@ -13,22 +14,26 @@ import { Badge } from '../../../components/ui/badge';
 import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 
-const STATUS_OPTIONS: { value: CrmLeadStatus; label: string }[] = [
-  { value: 'new', label: 'New' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'qualified', label: 'Qualified' },
-  { value: 'converted', label: 'Converted' },
-  { value: 'lost', label: 'Lost' },
-];
+function getStatusOptions(t: (key: string) => string): { value: CrmLeadStatus; label: string }[] {
+  return [
+    { value: 'new', label: t('crm.leads.new') },
+    { value: 'contacted', label: t('crm.leads.contacted') },
+    { value: 'qualified', label: t('crm.leads.qualified') },
+    { value: 'converted', label: t('crm.leads.converted') },
+    { value: 'lost', label: t('crm.leads.lost') },
+  ];
+}
 
-const SOURCE_OPTIONS: { value: CrmLeadSource; label: string }[] = [
-  { value: 'website', label: 'Website' },
-  { value: 'referral', label: 'Referral' },
-  { value: 'cold_call', label: 'Cold call' },
-  { value: 'social_media', label: 'Social media' },
-  { value: 'event', label: 'Event' },
-  { value: 'other', label: 'Other' },
-];
+function getSourceOptions(t: (key: string) => string): { value: CrmLeadSource; label: string }[] {
+  return [
+    { value: 'website', label: t('crm.leads.website') },
+    { value: 'referral', label: t('crm.leads.referral') },
+    { value: 'cold_call', label: t('crm.leads.coldCall') },
+    { value: 'social_media', label: t('crm.leads.socialMedia') },
+    { value: 'event', label: t('crm.leads.event') },
+    { value: 'other', label: t('crm.leads.other') },
+  ];
+}
 
 function statusBadgeVariant(status: CrmLeadStatus): 'default' | 'primary' | 'success' | 'warning' | 'error' {
   switch (status) {
@@ -51,6 +56,7 @@ function formatDate(dateStr: string): string {
 // ─── Create lead modal ──────────────────────────────────────────
 
 function CreateLeadModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const createLead = useCreateLead();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,6 +64,7 @@ function CreateLeadModal({ open, onClose }: { open: boolean; onClose: () => void
   const [companyName, setCompanyName] = useState('');
   const [source, setSource] = useState<CrmLeadSource>('other');
   const [notes, setNotes] = useState('');
+  const SOURCE_OPTIONS = getSourceOptions(t);
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -78,24 +85,24 @@ function CreateLeadModal({ open, onClose }: { open: boolean; onClose: () => void
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()}>
-      <Modal.Header title="New lead" />
+      <Modal.Header title={t('crm.leads.newLead')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} size="md" />
-          <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} size="md" />
-          <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} size="md" />
-          <Input label="Company name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} size="md" />
+          <Input label={t('crm.leads.name')} value={name} onChange={(e) => setName(e.target.value)} size="md" />
+          <Input label={t('crm.leads.email')} value={email} onChange={(e) => setEmail(e.target.value)} size="md" />
+          <Input label={t('crm.leads.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} size="md" />
+          <Input label={t('crm.leads.companyName')} value={companyName} onChange={(e) => setCompanyName(e.target.value)} size="md" />
           <div>
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 4 }}>Source</div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 4 }}>{t('crm.leads.source')}</div>
             <Select value={source} onChange={(v) => setSource(v as CrmLeadSource)} options={SOURCE_OPTIONS} size="md" />
           </div>
-          <Textarea label="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <Textarea label={t('crm.leads.notes')} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} size="md">Cancel</Button>
+        <Button variant="secondary" onClick={onClose} size="md">{t('common.cancel')}</Button>
         <Button variant="primary" onClick={handleSubmit} size="md" disabled={!name.trim() || createLead.isPending}>
-          {createLead.isPending ? 'Creating...' : 'Create lead'}
+          {createLead.isPending ? t('common.loading') : t('crm.leads.newLead')}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -107,6 +114,7 @@ function CreateLeadModal({ open, onClose }: { open: boolean; onClose: () => void
 function ConvertLeadModal({
   open, onClose, lead,
 }: { open: boolean; onClose: () => void; lead: CrmLead | null }) {
+  const { t } = useTranslation();
   const convertLead = useConvertLead();
   const { data: stagesData } = useStages();
   const stages = stagesData?.stages ?? [];
@@ -131,21 +139,16 @@ function ConvertLeadModal({
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()}>
-      <Modal.Header title="Convert lead to deal" />
+      <Modal.Header title={t('crm.leads.convertTitle')} />
       <Modal.Body>
         {lead && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-size-sm)' }}>
-              <div style={{ fontWeight: 'var(--font-weight-medium)', marginBottom: 4 }}>This will create:</div>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                <li>Contact: {lead.name} {lead.email ? `(${lead.email})` : ''}</li>
-                {lead.companyName && <li>Company: {lead.companyName}</li>}
-                <li>Deal (details below)</li>
-              </ul>
+              <div style={{ fontWeight: 'var(--font-weight-medium)', marginBottom: 4 }}>{t('crm.leads.convertDescription')}</div>
             </div>
-            <Input label="Deal title" value={dealTitle} onChange={(e) => setDealTitle(e.target.value)} size="md" />
+            <Input label={t('crm.leads.dealTitle')} value={dealTitle} onChange={(e) => setDealTitle(e.target.value)} size="md" />
             <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 4 }}>Stage</div>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 4 }}>{t('crm.leads.selectStage')}</div>
               <Select
                 value={dealStageId || defaultStage?.id || ''}
                 onChange={(v) => setDealStageId(v)}
@@ -153,14 +156,14 @@ function ConvertLeadModal({
                 size="md"
               />
             </div>
-            <Input label="Value" type="number" value={dealValue} onChange={(e) => setDealValue(e.target.value)} size="md" />
+            <Input label={t('crm.deals.value')} type="number" value={dealValue} onChange={(e) => setDealValue(e.target.value)} size="md" />
           </div>
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} size="md">Cancel</Button>
+        <Button variant="secondary" onClick={onClose} size="md">{t('common.cancel')}</Button>
         <Button variant="primary" onClick={handleSubmit} size="md" disabled={!dealTitle.trim() || convertLead.isPending}>
-          {convertLead.isPending ? 'Converting...' : 'Convert'}
+          {convertLead.isPending ? t('common.loading') : t('crm.leads.convert')}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -172,7 +175,9 @@ function ConvertLeadModal({
 function LeadDetailPanel({
   lead, onClose, onConvert,
 }: { lead: CrmLead; onClose: () => void; onConvert: () => void }) {
+  const { t } = useTranslation();
   const updateLead = useUpdateLead();
+  const STATUS_OPTIONS = getStatusOptions(t);
 
   return (
     <div className="crm-detail-panel">
@@ -182,7 +187,7 @@ function LeadDetailPanel({
       </div>
       <div className="crm-detail-panel-body">
         <div className="crm-detail-field">
-          <span className="crm-detail-label">Status</span>
+          <span className="crm-detail-label">{t('crm.leads.status')}</span>
           <Select
             value={lead.status}
             onChange={(v) => updateLead.mutate({ id: lead.id, status: v })}
@@ -192,29 +197,29 @@ function LeadDetailPanel({
         </div>
         {lead.email && (
           <div className="crm-detail-field">
-            <span className="crm-detail-label">Email</span>
+            <span className="crm-detail-label">{t('crm.leads.email')}</span>
             <span className="crm-detail-value">{lead.email}</span>
           </div>
         )}
         {lead.phone && (
           <div className="crm-detail-field">
-            <span className="crm-detail-label">Phone</span>
+            <span className="crm-detail-label">{t('crm.leads.phone')}</span>
             <span className="crm-detail-value">{lead.phone}</span>
           </div>
         )}
         {lead.companyName && (
           <div className="crm-detail-field">
-            <span className="crm-detail-label">Company</span>
+            <span className="crm-detail-label">{t('crm.leads.companyName')}</span>
             <span className="crm-detail-value">{lead.companyName}</span>
           </div>
         )}
         <div className="crm-detail-field">
-          <span className="crm-detail-label">Source</span>
+          <span className="crm-detail-label">{t('crm.leads.source')}</span>
           <Badge variant={sourceBadgeVariant(lead.source)}>{lead.source.replace('_', ' ')}</Badge>
         </div>
         {lead.notes && (
           <div className="crm-detail-field">
-            <span className="crm-detail-label">Notes</span>
+            <span className="crm-detail-label">{t('crm.leads.notes')}</span>
             <span className="crm-detail-value" style={{ whiteSpace: 'pre-wrap' }}>{lead.notes}</span>
           </div>
         )}
@@ -227,13 +232,13 @@ function LeadDetailPanel({
           <div style={{ marginTop: 'var(--spacing-lg)' }}>
             <Button variant="primary" onClick={onConvert} size="md" style={{ width: '100%' }}>
               <ArrowRightLeft size={14} style={{ marginRight: 6 }} />
-              Convert to deal
+              {t('crm.leads.convert')}
             </Button>
           </div>
         )}
         {lead.status === 'converted' && (
           <div style={{ marginTop: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-            This lead has been converted.
+            {t('crm.leads.converted')}
           </div>
         )}
       </div>
@@ -244,9 +249,12 @@ function LeadDetailPanel({
 // ─── Main leads view ────────────────────────────────────────────
 
 export function LeadsView() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
+  const STATUS_OPTIONS = getStatusOptions(t);
+  const SOURCE_OPTIONS = getSourceOptions(t);
   const { data: leadsData, isLoading } = useLeads({
     search: searchQuery || undefined,
     status: statusFilter || undefined,
@@ -268,12 +276,12 @@ export function LeadsView() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div className="crm-content-header">
-          <span className="crm-content-header-title">Leads</span>
+          <span className="crm-content-header-title">{t('crm.leads.title')}</span>
           <div className="crm-content-header-actions">
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
               <Input
                 iconLeft={<Search size={14} />}
-                placeholder="Search leads..."
+                placeholder={t('crm.actions.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 size="sm"
@@ -282,20 +290,20 @@ export function LeadsView() {
               <Select
                 value={statusFilter}
                 onChange={(v) => setStatusFilter(v)}
-                options={[{ value: '', label: 'All statuses' }, ...STATUS_OPTIONS]}
+                options={[{ value: '', label: t('crm.leads.status') }, ...STATUS_OPTIONS]}
                 size="sm"
                 width={140}
               />
               <Select
                 value={sourceFilter}
                 onChange={(v) => setSourceFilter(v)}
-                options={[{ value: '', label: 'All sources' }, ...SOURCE_OPTIONS]}
+                options={[{ value: '', label: t('crm.leads.source') }, ...SOURCE_OPTIONS]}
                 size="sm"
                 width={140}
               />
               <Button variant="primary" onClick={() => setShowCreateModal(true)} size="sm">
                 <UserPlus size={14} style={{ marginRight: 4 }} />
-                New lead
+                {t('crm.leads.newLead')}
               </Button>
             </div>
           </div>
@@ -304,22 +312,22 @@ export function LeadsView() {
         {/* Table */}
         <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-lg)' }}>
           {isLoading ? (
-            <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 40 }}>Loading...</div>
+            <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 40 }}>{t('common.loading')}</div>
           ) : leads.length === 0 ? (
             <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 40 }}>
-              No leads yet. Click "New lead" to create one.
+              {t('crm.leads.noLeads')}
             </div>
           ) : (
             <table className="crm-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Company</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th style={{ width: 60 }}>Actions</th>
+                  <th>{t('crm.leads.name')}</th>
+                  <th>{t('crm.leads.email')}</th>
+                  <th>{t('crm.leads.companyName')}</th>
+                  <th>{t('crm.leads.source')}</th>
+                  <th>{t('crm.leads.status')}</th>
+                  <th>{t('crm.deals.closeDate')}</th>
+                  <th style={{ width: 60 }}>{t('crm.actions.delete')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -329,6 +337,10 @@ export function LeadsView() {
                     className={selectedLeadId === lead.id ? 'crm-row-selected' : ''}
                     onClick={() => setSelectedLeadId(lead.id)}
                     style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t('crm.leads.name') + ': ' + lead.name}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedLeadId(lead.id); } }}
                   >
                     <td className="crm-cell-primary">{lead.name}</td>
                     <td>{lead.email || '--'}</td>
@@ -339,8 +351,9 @@ export function LeadsView() {
                     <td>
                       <IconButton
                         icon={<Trash2 size={13} />}
-                        label="Delete"
+                        label={t('crm.actions.delete')}
                         destructive
+                        aria-label={t('crm.actions.delete') + ' ' + lead.name}
                         onClick={(e) => { e.stopPropagation(); setDeletingId(lead.id); }}
                       />
                     </td>
@@ -367,8 +380,8 @@ export function LeadsView() {
       <ConfirmDialog
         open={!!deletingId}
         onOpenChange={(open) => { if (!open) setDeletingId(null); }}
-        title="Delete lead"
-        description="Are you sure you want to delete this lead?"
+        title={t('crm.actions.delete')}
+        description={t('crm.bulk.deleteDescription')}
         onConfirm={() => { if (deletingId) { deleteLead.mutate(deletingId); setDeletingId(null); if (selectedLeadId === deletingId) setSelectedLeadId(null); } }}
         destructive
       />

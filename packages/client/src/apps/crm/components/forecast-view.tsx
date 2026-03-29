@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, DollarSign, Trophy } from 'lucide-react';
 import { useForecast, type CrmForecast } from '../hooks';
 import { Skeleton } from '../../../components/ui/skeleton';
@@ -23,6 +24,7 @@ function ForecastSkeleton() {
 }
 
 export function ForecastView() {
+  const { t } = useTranslation();
   const { data: forecast, isLoading } = useForecast();
 
   const maxValue = useMemo(() => {
@@ -41,9 +43,9 @@ export function ForecastView() {
             <TrendingUp size={18} />
           </div>
           <div className="crm-kpi-card-content">
-            <span className="crm-kpi-card-label">Weighted forecast</span>
+            <span className="crm-kpi-card-label">{t('crm.forecast.weightedForecast')}</span>
             <span className="crm-kpi-card-value">{formatCurrency(forecast.totalWeighted)}</span>
-            <span className="crm-kpi-card-subtitle">Based on probability</span>
+            <span className="crm-kpi-card-subtitle">{t('crm.forecast.weightedForecast')}</span>
           </div>
         </div>
         <div className="crm-kpi-card">
@@ -51,9 +53,9 @@ export function ForecastView() {
             <DollarSign size={18} />
           </div>
           <div className="crm-kpi-card-content">
-            <span className="crm-kpi-card-label">Best case</span>
+            <span className="crm-kpi-card-label">{t('crm.forecast.bestCase')}</span>
             <span className="crm-kpi-card-value">{formatCurrency(forecast.bestCase)}</span>
-            <span className="crm-kpi-card-subtitle">100% of pipeline</span>
+            <span className="crm-kpi-card-subtitle">{t('crm.forecast.bestCase')}</span>
           </div>
         </div>
         <div className="crm-kpi-card">
@@ -61,16 +63,16 @@ export function ForecastView() {
             <Trophy size={18} />
           </div>
           <div className="crm-kpi-card-content">
-            <span className="crm-kpi-card-label">Committed</span>
+            <span className="crm-kpi-card-label">{t('crm.forecast.committed')}</span>
             <span className="crm-kpi-card-value">{formatCurrency(forecast.committed)}</span>
-            <span className="crm-kpi-card-subtitle">Won deals</span>
+            <span className="crm-kpi-card-subtitle">{t('crm.forecast.committed')}</span>
           </div>
         </div>
       </div>
 
       {/* Monthly bar chart */}
       <div className="crm-dashboard-card">
-        <h3 className="crm-dashboard-card-title">6-month forecast</h3>
+        <h3 className="crm-dashboard-card-title">{t('crm.forecast.monthlyForecast')}</h3>
         <div className="crm-bar-chart">
           {forecast.months.map((month) => (
             <div key={month.month} className="crm-bar-row">

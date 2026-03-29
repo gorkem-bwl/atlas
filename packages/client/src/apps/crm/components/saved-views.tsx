@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, Save, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -54,6 +55,7 @@ export function SavedViews({
   currentSort,
   onApplyView,
 }: SavedViewsProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [viewName, setViewName] = useState('');
@@ -97,7 +99,7 @@ export function SavedViews({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="ghost" size="sm" icon={<Eye size={13} />}>
-            Views
+            {t('crm.actions.saveView')}
             <ChevronDown size={11} style={{ marginLeft: 2 }} />
           </Button>
         </PopoverTrigger>
@@ -108,7 +110,7 @@ export function SavedViews({
               color: 'var(--color-text-tertiary)', padding: 'var(--spacing-xs) var(--spacing-sm)',
               textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)',
             }}>
-              Saved views
+              {t('crm.actions.saveView')}
             </div>
 
             {entityViews.length === 0 && (
@@ -117,7 +119,7 @@ export function SavedViews({
                 padding: 'var(--spacing-sm)', fontFamily: 'var(--font-family)',
                 textAlign: 'center',
               }}>
-                No saved views yet
+                {t('crm.actions.saveView')}
               </div>
             )}
 
@@ -177,7 +179,7 @@ export function SavedViews({
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <Save size={13} />
-                Save current view
+                {t('crm.actions.saveView')}
               </button>
             </div>
           </div>
@@ -185,8 +187,8 @@ export function SavedViews({
       </Popover>
 
       {/* Save view modal */}
-      <Modal open={showSaveModal} onOpenChange={setShowSaveModal} width={380} title="Save view">
-        <Modal.Header title="Save view" subtitle="Save the current filters and sort as a named view" />
+      <Modal open={showSaveModal} onOpenChange={setShowSaveModal} width={380} title={t('crm.actions.saveView')}>
+        <Modal.Header title={t('crm.actions.saveView')} />
         <Modal.Body>
           <Input
             label="View name"
@@ -198,8 +200,8 @@ export function SavedViews({
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="ghost" onClick={() => { setShowSaveModal(false); setViewName(''); }}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave} disabled={!viewName.trim()}>Save view</Button>
+          <Button variant="ghost" onClick={() => { setShowSaveModal(false); setViewName(''); }}>{t('common.cancel')}</Button>
+          <Button variant="primary" onClick={handleSave} disabled={!viewName.trim()}>{t('crm.actions.saveView')}</Button>
         </Modal.Footer>
       </Modal>
     </>

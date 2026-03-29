@@ -271,6 +271,28 @@ Input and Button sizes match: sm=28px, md=34px, lg=40px. **Always use the same s
 
 ## Coding Rules
 
+## Translation / i18n
+
+Atlas uses `react-i18next` for internationalization. 5 languages: EN, TR, DE, FR, IT.
+
+### Translation files
+`packages/client/src/i18n/locales/{en,tr,de,fr,it}.json`
+
+### Adding translations for a new app
+1. Add a new section to ALL 5 locale files: `"appName": { "key": "value" }`
+2. Import `useTranslation` in components: `import { useTranslation } from 'react-i18next'`
+3. Use `const { t } = useTranslation()` in each component
+4. Replace hardcoded strings with `t('appName.key')`
+5. For interpolation: `t('key', { count: 5 })` → `"{{count}} items"`
+
+### Rules
+- Every user-visible string MUST use `t()` — no hardcoded English text
+- Sidebar labels, view titles, button labels, form labels, empty states, error messages
+- Keys are namespaced by app: `crm.sidebar.dashboard`, `sign.actions.upload`
+- Add keys to ALL 5 locale files in the same commit
+
+---
+
 ### Never do
 - Use hardcoded hex colors — use CSS variables
 - Use raw `<button>`, `<input>`, `<select>`, `<textarea>` — use shared components
