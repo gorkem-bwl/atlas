@@ -86,7 +86,7 @@ export function OrgLayout() {
       height: '100vh',
       overflow: 'hidden',
       fontFamily: 'var(--font-family)',
-      background: 'var(--color-bg-secondary)',
+      background: 'var(--color-bg-primary)',
       color: 'var(--color-text-primary)',
     }}>
       <AppSidebar

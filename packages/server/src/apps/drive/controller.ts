@@ -57,8 +57,10 @@ export async function uploadFiles(req: Request, res: Response) {
 
     const created = [];
     for (const file of files) {
+      // Multer decodes filenames as Latin-1; re-decode as UTF-8 for proper Unicode support
+      const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
       const item = await driveService.uploadFile(userId, accountId, {
-        name: file.originalname,
+        name: decodedName,
         type: 'file',
         mimeType: file.mimetype,
         size: file.size,
@@ -498,7 +500,8 @@ export async function replaceFile(req: Request, res: Response) {
 
     // Update main record with new file data
     const now = new Date();
-    await driveService.updateItem(userId, itemId, { name: file.originalname });
+    const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    await driveService.updateItem(userId, itemId, { name: decodedName });
 
     // Also update mimeType, size, storagePath via raw update
     const { db: database } = await import('../../config/database');
