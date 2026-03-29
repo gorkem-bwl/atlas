@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api-client';
 import { ROUTES } from '../config/routes';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 
 export function ResetPasswordPage() {
   const { token } = useParams<{ token: string }>();
@@ -60,14 +62,14 @@ export function ResetPasswordPage() {
           maxWidth: 400,
           padding: 32,
           background: 'var(--color-bg-secondary)',
-          border: '1px solid #d0d5dd',
-          borderRadius: 8,
+          border: '1px solid var(--color-border-primary)',
+          borderRadius: 'var(--radius-md)',
         }}
       >
         <h1
           style={{
-            fontSize: 24,
-            fontWeight: 600,
+            fontSize: 'var(--font-size-2xl)',
+            fontWeight: 'var(--font-weight-semibold)',
             textAlign: 'center',
             marginBottom: 8,
             color: 'var(--color-text-primary)',
@@ -77,7 +79,7 @@ export function ResetPasswordPage() {
         </h1>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
             textAlign: 'center',
             marginBottom: 24,
             color: 'var(--color-text-secondary)',
@@ -89,13 +91,13 @@ export function ResetPasswordPage() {
         {error && (
           <div
             style={{
-              padding: '8px 12px',
+              padding: 'var(--spacing-sm) var(--spacing-md)',
               marginBottom: 16,
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 4,
-              color: '#dc2626',
-              fontSize: 13,
+              background: 'color-mix(in srgb, var(--color-error) 8%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-error) 25%, transparent)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-error)',
+              fontSize: 'var(--font-size-xs)',
             }}
           >
             {error}
@@ -104,7 +106,7 @@ export function ResetPasswordPage() {
                 {' '}
                 <Link
                   to={ROUTES.FORGOT_PASSWORD}
-                  style={{ color: '#dc2626', fontWeight: 500 }}
+                  style={{ color: 'var(--color-error)', fontWeight: 500 }}
                 >
                   Request a new link
                 </Link>
@@ -117,13 +119,13 @@ export function ResetPasswordPage() {
           <div>
             <div
               style={{
-                padding: '12px 16px',
+                padding: 'var(--spacing-md) var(--spacing-lg)',
                 marginBottom: 24,
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: 4,
-                color: '#166534',
-                fontSize: 13,
+                background: 'color-mix(in srgb, var(--color-success, #16a34a) 8%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-success, #16a34a) 25%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-success, #166534)',
+                fontSize: 'var(--font-size-xs)',
                 lineHeight: 1.5,
               }}
             >
@@ -132,21 +134,21 @@ export function ResetPasswordPage() {
             <Link
               to={ROUTES.LOGIN}
               style={{
-                display: 'block',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 width: '100%',
-                padding: '8px 16px',
                 height: 34,
-                background: '#13715B',
+                background: 'var(--color-accent-primary)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: 4,
-                fontSize: 14,
-                fontWeight: 500,
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--font-size-md)',
+                fontWeight: 'var(--font-weight-medium)',
                 cursor: 'pointer',
                 textAlign: 'center',
                 textDecoration: 'none',
                 boxSizing: 'border-box',
-                lineHeight: '18px',
               }}
             >
               Sign in
@@ -155,93 +157,44 @@ export function ResetPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 16 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  marginBottom: 6,
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                New password
-              </label>
-              <input
+              <Input
+                label="New password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 8 characters"
                 required
                 minLength={8}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d0d5dd',
-                  borderRadius: 4,
-                  fontSize: 14,
-                  outline: 'none',
-                  background: 'var(--color-bg-primary)',
-                  color: 'var(--color-text-primary)',
-                  boxSizing: 'border-box',
-                }}
               />
             </div>
 
             <div style={{ marginBottom: 24 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  marginBottom: 6,
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                Confirm new password
-              </label>
-              <input
+              <Input
+                label="Confirm new password"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat your password"
                 required
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #d0d5dd',
-                  borderRadius: 4,
-                  fontSize: 14,
-                  outline: 'none',
-                  background: 'var(--color-bg-primary)',
-                  color: 'var(--color-text-primary)',
-                  boxSizing: 'border-box',
-                }}
               />
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              size="md"
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '8px 16px',
-                height: 34,
-                background: '#13715B',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.7 : 1,
               }}
             >
               {loading ? 'Resetting...' : 'Reset password'}
-            </button>
+            </Button>
 
             <p
               style={{
-                fontSize: 13,
+                fontSize: 'var(--font-size-xs)',
                 textAlign: 'center',
                 marginTop: 20,
                 color: 'var(--color-text-secondary)',
@@ -249,7 +202,7 @@ export function ResetPasswordPage() {
             >
               <Link
                 to={ROUTES.LOGIN}
-                style={{ color: '#13715B', textDecoration: 'none', fontWeight: 500 }}
+                style={{ color: 'var(--color-accent-primary)', textDecoration: 'none', fontWeight: 500 }}
               >
                 Back to sign in
               </Link>

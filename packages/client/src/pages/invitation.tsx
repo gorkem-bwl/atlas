@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/api-client';
 import { useAuthStore } from '../stores/auth-store';
 import { ROUTES } from '../config/routes';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import type { Account } from '@atlasmail/shared';
 
 interface InvitationDetails {
@@ -61,26 +63,6 @@ export function InvitationPage() {
     }
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '8px 12px',
-    border: '1px solid #d0d5dd',
-    borderRadius: 4,
-    fontSize: 14,
-    outline: 'none',
-    background: 'var(--color-bg-primary)',
-    color: 'var(--color-text-primary)',
-    boxSizing: 'border-box',
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: 13,
-    fontWeight: 500,
-    marginBottom: 6,
-    color: 'var(--color-text-primary)',
-  };
-
   if (fetchError) {
     return (
       <div
@@ -99,17 +81,17 @@ export function InvitationPage() {
             padding: 32,
             textAlign: 'center',
             background: 'var(--color-bg-secondary)',
-            border: '1px solid #d0d5dd',
-            borderRadius: 8,
+            border: '1px solid var(--color-border-primary)',
+            borderRadius: 'var(--radius-md)',
           }}
         >
-          <h2 style={{ fontSize: 20, marginBottom: 12, color: 'var(--color-text-primary)' }}>
+          <h2 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 12, color: 'var(--color-text-primary)' }}>
             Invitation unavailable
           </h2>
-          <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 20 }}>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 20 }}>
             {fetchError}
           </p>
-          <a href={ROUTES.LOGIN} style={{ color: '#13715B', fontSize: 14 }}>
+          <a href={ROUTES.LOGIN} style={{ color: 'var(--color-accent-primary)', fontSize: 'var(--font-size-sm)' }}>
             Go to sign in
           </a>
         </div>
@@ -152,14 +134,14 @@ export function InvitationPage() {
           maxWidth: 420,
           padding: 32,
           background: 'var(--color-bg-secondary)',
-          border: '1px solid #d0d5dd',
-          borderRadius: 8,
+          border: '1px solid var(--color-border-primary)',
+          borderRadius: 'var(--radius-md)',
         }}
       >
         <h1
           style={{
-            fontSize: 24,
-            fontWeight: 600,
+            fontSize: 'var(--font-size-2xl)',
+            fontWeight: 'var(--font-weight-semibold)',
             textAlign: 'center',
             marginBottom: 8,
             color: 'var(--color-text-primary)',
@@ -169,7 +151,7 @@ export function InvitationPage() {
         </h1>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
             textAlign: 'center',
             marginBottom: 24,
             color: 'var(--color-text-secondary)',
@@ -182,13 +164,13 @@ export function InvitationPage() {
         {error && (
           <div
             style={{
-              padding: '8px 12px',
+              padding: 'var(--spacing-sm) var(--spacing-md)',
               marginBottom: 16,
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 4,
-              color: '#dc2626',
-              fontSize: 13,
+              background: 'color-mix(in srgb, var(--color-error) 8%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-error) 25%, transparent)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--color-error)',
+              fontSize: 'var(--font-size-xs)',
             }}
           >
             {error}
@@ -197,71 +179,61 @@ export function InvitationPage() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Email</label>
-            <input
+            <Input
+              label="Email"
               type="email"
               value={invitation.email}
               disabled
-              style={{ ...inputStyle, opacity: 0.6 }}
+              style={{ opacity: 0.6 }}
             />
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Your name</label>
-            <input
+            <Input
+              label="Your name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Jane Doe"
               required
-              style={inputStyle}
             />
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Password</label>
-            <input
+            <Input
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 8 characters"
               required
               minLength={8}
-              style={inputStyle}
             />
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <label style={labelStyle}>Confirm password</label>
-            <input
+            <Input
+              label="Confirm password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               required
-              style={inputStyle}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="md"
             disabled={loading}
             style={{
               width: '100%',
-              padding: '8px 16px',
-              height: 34,
-              background: '#13715B',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 4,
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.7 : 1,
             }}
           >
             {loading ? 'Setting up your account...' : 'Accept invitation'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

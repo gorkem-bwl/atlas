@@ -173,12 +173,14 @@ export function OrgMembersPage() {
           justifyContent: 'space-between',
         }}>
           {inviteSuccess}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setInviteSuccess('')}
-            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0 }}
+            style={{ color: 'inherit', padding: 0, height: 'auto', minWidth: 0, fontSize: 16, lineHeight: 1 }}
           >
             &times;
-          </button>
+          </Button>
         </div>
       )}
 

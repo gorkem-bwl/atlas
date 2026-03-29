@@ -4,6 +4,7 @@ import { Users, UserPlus, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { useTenantUsers, useMyTenants } from '../../hooks/use-platform';
 import { ROUTES } from '../../config/routes';
+import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 
 // ---------------------------------------------------------------------------
@@ -123,30 +124,18 @@ function QuickActionCard({ icon, label, description, onClick }: {
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
+      variant="secondary"
       onClick={onClick}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--spacing-md)',
         padding: 'var(--spacing-lg)',
-        background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-primary)',
-        borderRadius: 'var(--radius-md)',
-        cursor: 'pointer',
-        fontFamily: 'var(--font-family)',
+        height: 'auto',
         textAlign: 'left',
-        transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-        boxShadow: 'none',
         width: '100%',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-accent-primary)';
-        e.currentTarget.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--color-accent-primary) 12%, transparent)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-        e.currentTarget.style.boxShadow = 'none';
+        justifyContent: 'flex-start',
       }}
     >
       <div
@@ -173,7 +162,7 @@ function QuickActionCard({ icon, label, description, onClick }: {
         </div>
       </div>
       <ArrowRight size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-    </button>
+    </Button>
   );
 }
 
