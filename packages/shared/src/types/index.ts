@@ -8,3 +8,4 @@ export * from './table';
 export * from './drive';
 export * from './platform';
 export * from './app-manifest';
+export * from './custom-field';

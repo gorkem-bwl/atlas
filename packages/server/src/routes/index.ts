@@ -5,6 +5,8 @@ import aiRoutes from './ai.routes';
 import uploadRoutes from './upload.routes';
 import platformRoutes from './platform.routes';
 import adminRoutes from './admin.routes';
+import customFieldsRoutes from './custom-fields.routes';
+import recordLinksRoutes from './record-links.routes';
 import { adminLimiter } from '../middleware/rate-limit';
 import { serverAppRegistry } from '../apps';
 
@@ -17,6 +19,8 @@ router.use('/settings', settingsRoutes);
 router.use('/ai', aiRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/platform', adminLimiter, platformRoutes);
+router.use('/custom-fields', customFieldsRoutes);
+router.use('/links', recordLinksRoutes);
 
 // App routes mounted dynamically from registry
 serverAppRegistry.mountAll(router);

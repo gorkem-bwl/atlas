@@ -591,6 +591,37 @@ export async function runMigrations() {
         UNIQUE(tenant_id, app_id)
       );
 
+      CREATE TABLE IF NOT EXISTS custom_field_definitions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        app_id VARCHAR(100) NOT NULL,
+        record_type VARCHAR(100) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        field_type VARCHAR(50) NOT NULL,
+        options JSONB NOT NULL DEFAULT '{}',
+        is_required BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_by UUID NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(tenant_id, app_id, record_type, slug)
+      );
+
+      CREATE TABLE IF NOT EXISTS record_links (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        source_app_id VARCHAR(100) NOT NULL,
+        source_record_id UUID NOT NULL,
+        target_app_id VARCHAR(100) NOT NULL,
+        target_record_id UUID NOT NULL,
+        link_type VARCHAR(100) NOT NULL DEFAULT 'related',
+        metadata JSONB NOT NULL DEFAULT '{}',
+        created_by UUID NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(source_app_id, source_record_id, target_app_id, target_record_id, link_type)
+      );
+
       CREATE TABLE IF NOT EXISTS app_catalog (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         manifest_id VARCHAR(255) UNIQUE NOT NULL,

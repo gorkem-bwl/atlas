@@ -722,3 +722,47 @@ export const tenantApps = pgTable('tenant_apps', {
   tenantIdx: index('idx_tenant_apps_tenant').on(table.tenantId),
 }));
 
+// ─── Custom Field Definitions ──────────────────────────────────────
+
+export const customFieldDefinitions = pgTable('custom_field_definitions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+  appId: varchar('app_id', { length: 100 }).notNull(),
+  recordType: varchar('record_type', { length: 100 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  fieldType: varchar('field_type', { length: 50 }).notNull(),
+  options: jsonb('options').$type<Record<string, unknown>>().notNull().default({}),
+  isRequired: boolean('is_required').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantAppIdx: index('idx_cfd_tenant_app').on(table.tenantId, table.appId, table.recordType),
+  slugIdx: uniqueIndex('idx_cfd_slug_unique').on(table.tenantId, table.appId, table.recordType, table.slug),
+}));
+
+// ─── Cross-App Record Links ────────────────────────────────────────
+
+export const recordLinks = pgTable('record_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+  sourceAppId: varchar('source_app_id', { length: 100 }).notNull(),
+  sourceRecordId: uuid('source_record_id').notNull(),
+  targetAppId: varchar('target_app_id', { length: 100 }).notNull(),
+  targetRecordId: uuid('target_record_id').notNull(),
+  linkType: varchar('link_type', { length: 100 }).notNull().default('related'),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  sourceIdx: index('idx_record_links_source').on(table.sourceAppId, table.sourceRecordId),
+  targetIdx: index('idx_record_links_target').on(table.targetAppId, table.targetRecordId),
+  uniqueLink: uniqueIndex('idx_record_links_unique').on(
+    table.sourceAppId, table.sourceRecordId,
+    table.targetAppId, table.targetRecordId,
+    table.linkType,
+  ),
+}));
+
