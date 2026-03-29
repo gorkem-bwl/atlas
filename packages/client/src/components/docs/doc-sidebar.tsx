@@ -9,13 +9,11 @@ import {
   Search,
   Clock,
   Star,
-  ArrowLeft,
   RotateCcw,
   StarOff,
   LayoutTemplate,
   Upload,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import {
   useDocumentList,
   useCreateDocument,
@@ -24,9 +22,9 @@ import {
   useDuplicateDocument,
   useMoveDocument,
 } from '../../hooks/use-documents';
-import { ROUTES } from '../../config/routes';
 import { useDocSettingsStore } from '../../stores/docs-settings-store';
 import type { DocumentTreeNode } from '@atlasmail/shared';
+import { AppSidebar } from '../layout/app-sidebar';
 
 // ─── Server-backed helpers for favorites & recently viewed ──────────────
 
@@ -99,22 +97,8 @@ interface DocSidebarProps {
   onImport?: () => void;
 }
 
-const SIDEBAR_WIDTH_KEY = 'atlasmail_doc_sidebar_width';
-const DEFAULT_SIDEBAR_WIDTH = 260;
-const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 480;
-
-function getSavedSidebarWidth(): number {
-  try {
-    const w = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
-    if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
-  } catch { /* ignore */ }
-  return DEFAULT_SIDEBAR_WIDTH;
-}
 
 export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }: DocSidebarProps) {
-  const navigate = useNavigate();
-  const isDesktop = !!('atlasDesktop' in window);
   const { data, isLoading } = useDocumentList();
   const createDoc = useCreateDocument();
   const deleteDoc = useDeleteDocument();
@@ -126,37 +110,6 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
   const [view, setView] = useState<SidebarView>(useDocSettingsStore.getState().sidebarDefault);
   const { favorites, recent: recentIds, setFavorites: setServerFavorites, addRecentlyViewed } = useDocFavoritesAndRecent();
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
-  // Sidebar resize handler
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-
-    const onMouseMove = (ev: MouseEvent) => {
-      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidth + (ev.clientX - startX)));
-      setSidebarWidth(newWidth);
-    };
-
-    const onMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      // Save to localStorage on release
-      const el = sidebarRef.current;
-      if (el) {
-        const w = el.getBoundingClientRect().width;
-        localStorage.setItem(SIDEBAR_WIDTH_KEY, String(Math.round(w)));
-      }
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }, [sidebarWidth]);
 
   // Track recently viewed when selection changes
   useEffect(() => {
@@ -242,94 +195,152 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
     .map((id) => allDocs.find((d) => d.id === id))
     .filter(Boolean) as typeof allDocs;
 
-  return (
+  const searchBar = (
     <div
-      ref={sidebarRef}
       style={{
-        width: sidebarWidth,
-        minWidth: MIN_SIDEBAR_WIDTH,
-        maxWidth: MAX_SIDEBAR_WIDTH,
-        height: '100%',
-        borderRight: '1px solid var(--color-border-primary)',
-        background: 'var(--color-bg-secondary)',
         display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--font-family)',
-        overflow: 'hidden',
-        userSelect: isResizing ? 'none' : 'none',
-        position: 'relative',
+        alignItems: 'center',
+        gap: 6,
+        padding: '5px 8px',
+        borderRadius: 'var(--radius-sm)',
+        background: searchFocused ? 'var(--color-bg-primary)' : 'transparent',
+        border: `1px solid ${searchFocused ? 'var(--color-border-primary)' : 'transparent'}`,
+        transition: 'all 0.15s ease',
       }}
     >
-      {/* Resize handle */}
-      <div
-        className={`doc-sidebar-resize-handle ${isResizing ? 'is-dragging' : ''}`}
-        onMouseDown={handleResizeStart}
-      />
-      {/* Workspace header */}
-      <div
+      <Search size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+      <input
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        onFocus={() => { setSearchFocused(true); setView('tree'); }}
+        onBlur={() => setSearchFocused(false)}
+        placeholder="Search"
         style={{
-          padding: '12px 12px 0 12px',
-          paddingTop: isDesktop ? 40 : 12,
+          flex: 1,
+          border: 'none',
+          outline: 'none',
+          background: 'transparent',
+          fontSize: 12,
+          fontFamily: 'var(--font-family)',
+          color: 'var(--color-text-primary)',
+          padding: 0,
+        }}
+      />
+    </div>
+  );
+
+  const footerContent = view === 'tree' ? (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+      }}
+    >
+      <button
+        onClick={handleNewPage}
+        disabled={createDoc.isPending}
+        style={{
           display: 'flex',
-          flexDirection: 'column',
+          alignItems: 'center',
           gap: 8,
+          width: '100%',
+          padding: '6px 8px',
+          background: 'transparent',
+          border: 'none',
+          borderRadius: 'var(--radius-sm)',
+          color: 'var(--color-text-tertiary)',
+          fontSize: 12,
+          fontFamily: 'var(--font-family)',
+          cursor: 'pointer',
+          transition: 'background 0.1s ease, color 0.1s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--color-surface-hover)';
+          e.currentTarget.style.color = 'var(--color-text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'var(--color-text-tertiary)';
         }}
       >
-        {/* Back + title row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <SidebarButton
-            icon={<ArrowLeft size={14} />}
-            onClick={() => navigate(ROUTES.HOME)}
-            tooltip="Home screen"
-          />
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            Write
-          </span>
-        </div>
-
-        {/* Search */}
-        <div
+        <Plus size={14} />
+        New page
+      </button>
+      {onNewFromTemplate && (
+        <button
+          onClick={onNewFromTemplate}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '5px 8px',
+            gap: 8,
+            width: '100%',
+            padding: '6px 8px',
+            background: 'transparent',
+            border: 'none',
             borderRadius: 'var(--radius-sm)',
-            background: searchFocused ? 'var(--color-bg-primary)' : 'transparent',
-            border: `1px solid ${searchFocused ? 'var(--color-border-primary)' : 'transparent'}`,
-            transition: 'all 0.15s ease',
+            color: 'var(--color-text-tertiary)',
+            fontSize: 12,
+            fontFamily: 'var(--font-family)',
+            cursor: 'pointer',
+            transition: 'background 0.1s ease, color 0.1s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--color-surface-hover)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--color-text-tertiary)';
           }}
         >
-          <Search size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => { setSearchFocused(true); setView('tree'); }}
-            onBlur={() => setSearchFocused(false)}
-            placeholder="Search"
-            style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              fontSize: 12,
-              fontFamily: 'var(--font-family)',
-              color: 'var(--color-text-primary)',
-              padding: 0,
-            }}
-          />
-        </div>
-      </div>
+          <LayoutTemplate size={14} />
+          From template
+        </button>
+      )}
+      {onImport && (
+        <button
+          onClick={onImport}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            padding: '6px 8px',
+            background: 'transparent',
+            border: 'none',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--color-text-tertiary)',
+            fontSize: 12,
+            fontFamily: 'var(--font-family)',
+            cursor: 'pointer',
+            transition: 'background 0.1s ease, color 0.1s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--color-surface-hover)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--color-text-tertiary)';
+          }}
+        >
+          <Upload size={14} />
+          Import document
+        </button>
+      )}
+    </div>
+  ) : undefined;
 
+  return (
+    <AppSidebar
+      storageKey="atlas_docs_sidebar"
+      title="Write"
+      search={searchBar}
+      footer={footerContent}
+    >
       {/* Quick links */}
-      <div style={{ padding: '8px 8px 0 8px' }}>
+      <div style={{ padding: '0 0 0 0' }}>
         <QuickLink
           icon={<Clock size={14} />}
           label="Recently viewed"
@@ -356,7 +367,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
         style={{
           height: 1,
           background: 'var(--color-border-primary)',
-          margin: '8px 12px',
+          margin: '8px 4px',
           flexShrink: 0,
         }}
       />
@@ -368,7 +379,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '2px 12px',
+            padding: '2px 4px',
             marginBottom: 2,
           }}
         >
@@ -397,7 +408,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '2px 12px',
+            padding: '2px 4px',
             marginBottom: 2,
           }}
         >
@@ -416,14 +427,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
       )}
 
       {/* Content area */}
-      <div
-        role="tree"
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0 4px 8px 4px',
-        }}
-      >
+      <div role="tree">
         {isLoading ? (
           <LoadingPlaceholder />
         ) : view === 'tree' ? (
@@ -498,114 +502,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
           />
         )}
       </div>
-
-      {/* New page buttons at bottom */}
-      {view === 'tree' && (
-        <div
-          style={{
-            padding: '4px 8px 8px',
-            borderTop: '1px solid var(--color-border-primary)',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0,
-          }}
-        >
-          <button
-            onClick={handleNewPage}
-            disabled={createDoc.isPending}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              width: '100%',
-              padding: '6px 8px',
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--color-text-tertiary)',
-              fontSize: 12,
-              fontFamily: 'var(--font-family)',
-              cursor: 'pointer',
-              transition: 'background 0.1s ease, color 0.1s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-surface-hover)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-tertiary)';
-            }}
-          >
-            <Plus size={14} />
-            New page
-          </button>
-          {onNewFromTemplate && (
-            <button
-              onClick={onNewFromTemplate}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '6px 8px',
-                background: 'transparent',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--color-text-tertiary)',
-                fontSize: 12,
-                fontFamily: 'var(--font-family)',
-                cursor: 'pointer',
-                transition: 'background 0.1s ease, color 0.1s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-surface-hover)';
-                e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--color-text-tertiary)';
-              }}
-            >
-              <LayoutTemplate size={14} />
-              From template
-            </button>
-          )}
-          {onImport && (
-            <button
-              onClick={onImport}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '6px 8px',
-                background: 'transparent',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--color-text-tertiary)',
-                fontSize: 12,
-                fontFamily: 'var(--font-family)',
-                cursor: 'pointer',
-                transition: 'background 0.1s ease, color 0.1s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-surface-hover)';
-                e.currentTarget.style.color = 'var(--color-text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--color-text-tertiary)';
-              }}
-            >
-              <Upload size={14} />
-              Import document
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+    </AppSidebar>
   );
 }
 

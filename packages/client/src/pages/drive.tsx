@@ -2,13 +2,14 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus, Search, Upload, FolderPlus, ArrowLeft, Trash2, RotateCcw,
+  Plus, Search, Upload, FolderPlus, Trash2, RotateCcw,
   Star, MoreHorizontal, Pencil, Download, FolderInput, ChevronRight,
   LayoutGrid, LayoutList, Home, Clock, Heart, HardDrive, Upload as UploadIcon,
   Copy, X, Check, ChevronDown, Tag, FileArchive, Share2, History,
   FileImage, FileText, FileVideo, FileAudio, Link2, Trash, Music, Settings,
   ExternalLink, Table2,
 } from 'lucide-react';
+import { AppSidebar } from '../components/layout/app-sidebar';
 import {
   useDriveItems, useDriveBreadcrumbs, useDriveFavourites, useDriveRecent,
   useDriveTrash, useDriveSearch, useCreateFolder, useUploadFiles,
@@ -60,10 +61,6 @@ function extractTextFromContent(content: Record<string, unknown> | null): string
 
 // ─── Constants ───────────────────────────────────────────────────────
 
-const SIDEBAR_WIDTH_KEY = 'atlasmail_drive_sidebar_width';
-const DEFAULT_SIDEBAR_WIDTH = 240;
-const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 400;
 const PREVIEW_WIDTH_KEY = 'atlasmail_drive_preview_width';
 const DEFAULT_PREVIEW_WIDTH = 380;
 const MIN_PREVIEW_WIDTH = 280;
@@ -191,14 +188,6 @@ const TAG_COLORS = [
   { name: 'purple', hex: '#8b5cf6' },
   { name: 'gray', hex: '#6b7280' },
 ];
-
-function getSavedSidebarWidth(): number {
-  try {
-    const w = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
-    if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
-  } catch { /* ignore */ }
-  return DEFAULT_SIDEBAR_WIDTH;
-}
 
 function getSavedPreviewWidth(): number {
   try {
@@ -426,7 +415,6 @@ export function DrivePage() {
   const driveSettings = useDriveSettingsStore();
 
   // State
-  const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
   const [previewWidth, setPreviewWidth] = useState(getSavedPreviewWidth);
   const [viewMode, setViewMode] = useState<ViewMode>(() => driveSettings.defaultView as ViewMode || getSavedViewMode());
   const [sidebarView, setSidebarView] = useState<SidebarView>(() => driveSettings.sidebarDefault as SidebarView || 'files');
@@ -468,7 +456,6 @@ export function DrivePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
-  const resizingRef = useRef(false);
   const newDropdownRef = useRef<HTMLDivElement>(null);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
@@ -620,33 +607,6 @@ export function DrivePage() {
     setSelectedIds(new Set());
     setPreviewItem(null);
   }, [folderId, sidebarView]);
-
-  // ─── Sidebar resize ────────────────────────────────────────────────
-
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    resizingRef.current = true;
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-    let finalWidth = startWidth;
-
-    const onMove = (ev: MouseEvent) => {
-      if (!resizingRef.current) return;
-      const delta = ev.clientX - startX;
-      finalWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, startWidth + delta));
-      setSidebarWidth(finalWidth);
-    };
-
-    const onUp = () => {
-      resizingRef.current = false;
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(finalWidth));
-    };
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }, [sidebarWidth]);
 
   // ─── Preview panel resize ─────────────────────────────────────────
 
@@ -1259,157 +1219,143 @@ export function DrivePage() {
       />
 
       {/* ─── Sidebar ─────────────────────────────────────────────── */}
-      <div className="drive-sidebar" style={{ width: sidebarWidth }}>
-        <div className="drive-sidebar-header">
-          <button
-            onClick={() => navigate(ROUTES.HOME)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-              fontFamily: 'var(--font-family)',
-              fontSize: 'var(--font-size-sm)',
-              padding: '4px 6px',
-              borderRadius: 'var(--radius-sm)',
-              transition: 'color var(--transition-fast)',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-primary)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <span className="drive-sidebar-title">Drive</span>
-          <div style={{ flex: 1 }} />
-        </div>
-
-        <div className="drive-sidebar-actions">
-          <div ref={newDropdownRef} style={{ flex: 1, position: 'relative' }}>
+      <AppSidebar
+        storageKey="atlas_drive_sidebar"
+        title="Drive"
+        search={
+          <div className="drive-sidebar-actions">
+            <div ref={newDropdownRef} style={{ flex: 1, position: 'relative' }}>
+              <button
+                onClick={() => setNewDropdownOpen((v) => !v)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  height: 32,
+                  border: '1px solid var(--color-border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-bg-primary)',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: 'var(--font-size-sm)',
+                  fontFamily: 'var(--font-family)',
+                  cursor: 'pointer',
+                  transition: 'background var(--transition-fast)',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-bg-primary)'; }}
+              >
+                <Plus size={14} />
+                New
+                <ChevronDown size={12} />
+              </button>
+              {newDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: 4,
+                  background: 'var(--color-bg-primary)',
+                  border: '1px solid var(--color-border-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 50,
+                  padding: '4px 0',
+                  minWidth: 180,
+                }}>
+                  <button
+                    onClick={() => { setNewDropdownOpen(false); setNewFolderOpen(true); }}
+                    className="drive-new-dropdown-item"
+                  >
+                    <FolderPlus size={14} />
+                    New folder
+                  </button>
+                  <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 0' }} />
+                  <button
+                    onClick={() => {
+                      setNewDropdownOpen(false);
+                      createLinkedDocument.mutate({ parentId: currentParentId }, {
+                        onSuccess: (data) => {
+                          navigate(`/docs/${data.resourceId}`);
+                        },
+                        onError: () => addToast({ type: 'error', message: 'Failed to create document' }),
+                      });
+                    }}
+                    className="drive-new-dropdown-item"
+                  >
+                    <FileText size={14} />
+                    New document
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewDropdownOpen(false);
+                      createLinkedDrawing.mutate({ parentId: currentParentId }, {
+                        onSuccess: (data) => {
+                          navigate(`/draw/${data.resourceId}`);
+                        },
+                        onError: () => addToast({ type: 'error', message: 'Failed to create drawing' }),
+                      });
+                    }}
+                    className="drive-new-dropdown-item"
+                  >
+                    <Pencil size={14} />
+                    New drawing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewDropdownOpen(false);
+                      createLinkedSpreadsheet.mutate({ parentId: currentParentId }, {
+                        onSuccess: (data) => {
+                          navigate(`/tables/${data.resourceId}`);
+                        },
+                        onError: () => addToast({ type: 'error', message: 'Failed to create spreadsheet' }),
+                      });
+                    }}
+                    className="drive-new-dropdown-item"
+                  >
+                    <Table2 size={14} />
+                    New spreadsheet
+                  </button>
+                </div>
+              )}
+            </div>
             <button
-              onClick={() => setNewDropdownOpen((v) => !v)}
+              onClick={() => fileInputRef.current?.click()}
               style={{
-                width: '100%',
+                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
                 height: 32,
-                border: '1px solid var(--color-border-primary)',
+                border: 'none',
                 borderRadius: 'var(--radius-md)',
-                background: 'var(--color-bg-primary)',
-                color: 'var(--color-text-secondary)',
+                background: 'var(--color-accent-primary)',
+                color: '#fff',
                 fontSize: 'var(--font-size-sm)',
                 fontFamily: 'var(--font-family)',
                 cursor: 'pointer',
                 transition: 'background var(--transition-fast)',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-bg-primary)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-accent-primary-hover, #0f6350)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-accent-primary)'; }}
             >
-              <Plus size={14} />
-              New
-              <ChevronDown size={12} />
+              <Upload size={14} />
+              Upload
             </button>
-            {newDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                right: 0,
-                marginTop: 4,
-                background: 'var(--color-bg-primary)',
-                border: '1px solid var(--color-border-primary)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-lg)',
-                zIndex: 50,
-                padding: '4px 0',
-                minWidth: 180,
-              }}>
-                <button
-                  onClick={() => { setNewDropdownOpen(false); setNewFolderOpen(true); }}
-                  className="drive-new-dropdown-item"
-                >
-                  <FolderPlus size={14} />
-                  New folder
-                </button>
-                <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 0' }} />
-                <button
-                  onClick={() => {
-                    setNewDropdownOpen(false);
-                    createLinkedDocument.mutate({ parentId: currentParentId }, {
-                      onSuccess: (data) => {
-                        navigate(`/docs/${data.resourceId}`);
-                      },
-                      onError: () => addToast({ type: 'error', message: 'Failed to create document' }),
-                    });
-                  }}
-                  className="drive-new-dropdown-item"
-                >
-                  <FileText size={14} />
-                  New document
-                </button>
-                <button
-                  onClick={() => {
-                    setNewDropdownOpen(false);
-                    createLinkedDrawing.mutate({ parentId: currentParentId }, {
-                      onSuccess: (data) => {
-                        navigate(`/draw/${data.resourceId}`);
-                      },
-                      onError: () => addToast({ type: 'error', message: 'Failed to create drawing' }),
-                    });
-                  }}
-                  className="drive-new-dropdown-item"
-                >
-                  <Pencil size={14} />
-                  New drawing
-                </button>
-                <button
-                  onClick={() => {
-                    setNewDropdownOpen(false);
-                    createLinkedSpreadsheet.mutate({ parentId: currentParentId }, {
-                      onSuccess: (data) => {
-                        navigate(`/tables/${data.resourceId}`);
-                      },
-                      onError: () => addToast({ type: 'error', message: 'Failed to create spreadsheet' }),
-                    });
-                  }}
-                  className="drive-new-dropdown-item"
-                >
-                  <Table2 size={14} />
-                  New spreadsheet
-                </button>
-              </div>
-            )}
           </div>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              height: 32,
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-accent-primary)',
-              color: '#fff',
-              fontSize: 'var(--font-size-sm)',
-              fontFamily: 'var(--font-family)',
-              cursor: 'pointer',
-              transition: 'background var(--transition-fast)',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-accent-primary-hover, #0f6350)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-accent-primary)'; }}
-          >
-            <Upload size={14} />
-            Upload
-          </button>
-        </div>
-
+        }
+        footer={storageData ? (
+          <div className="drive-storage">
+            <span className="drive-storage-label">{formatBytes(storageData.totalBytes)} used</span>
+            <div className="drive-storage-bar">
+              <div className="drive-storage-fill" style={{ width: `${Math.min(100, (storageData.totalBytes / (1024 * 1024 * 1024)) * 100)}%` }} />
+            </div>
+          </div>
+        ) : undefined}
+      >
         <nav className="drive-sidebar-nav">
           <button
             className={`drive-nav-item ${sidebarView === 'files' && !folderId ? 'active' : ''}`}
@@ -1475,31 +1421,7 @@ export function DrivePage() {
             Audio
           </button>
         </nav>
-
-        {/* Storage usage */}
-        {storageData && (
-          <div className="drive-storage">
-            <span className="drive-storage-label">{formatBytes(storageData.totalBytes)} used</span>
-            <div className="drive-storage-bar">
-              <div className="drive-storage-fill" style={{ width: `${Math.min(100, (storageData.totalBytes / (1024 * 1024 * 1024)) * 100)}%` }} />
-            </div>
-          </div>
-        )}
-
-        {/* Resize handle */}
-        <div
-          onMouseDown={handleResizeStart}
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: -2,
-            bottom: 0,
-            width: 4,
-            cursor: 'col-resize',
-            zIndex: 10,
-          }}
-        />
-      </div>
+      </AppSidebar>
 
       {/* ─── Main content ────────────────────────────────────────── */}
       <div className="drive-main" style={{ flex: previewItem ? undefined : 1 }}>

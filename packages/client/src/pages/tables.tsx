@@ -68,6 +68,7 @@ import {
   useAutoSaveTable,
 } from '../hooks/use-tables';
 import { ROUTES } from '../config/routes';
+import { AppSidebar } from '../components/layout/app-sidebar';
 import type { TableColumn, TableRow, TableFieldType, TableViewConfig, TableAttachment, TableViewTab } from '@atlasmail/shared';
 import { api } from '../lib/api-client';
 import { TableCustomHeader } from '../components/tables/TableCustomHeader';
@@ -111,19 +112,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const PLACEHOLDER_ROW_ID = '__placeholder__';
 const ROW_HEIGHT_MAP: Record<string, number> = { short: 28, medium: 36, tall: 52, extraTall: 72 };
-const SIDEBAR_WIDTH_KEY = 'atlasmail_tables_sidebar_width';
 const LAST_TABLE_KEY = 'atlasmail_tables_last_selected';
-const DEFAULT_SIDEBAR_WIDTH = 260;
-const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 400;
-
-function getSavedSidebarWidth(): number {
-  try {
-    const w = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
-    if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
-  } catch { /* ignore */ }
-  return DEFAULT_SIDEBAR_WIDTH;
-}
 
 const FIELD_TYPES: { value: TableFieldType; label: string }[] = [
   { value: 'text', label: 'Text' },
@@ -1485,7 +1474,6 @@ export function TablesPage() {
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddColumn, setShowAddColumn] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
   const [showTrash, setShowTrash] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -3016,39 +3004,6 @@ export function TablesPage() {
 
   const draggedRow = draggedRowId ? localRows.find((r) => r._id === draggedRowId) : null;
 
-  // Sidebar resize
-  const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  const latestWidthRef = useRef(sidebarWidth);
-  latestWidthRef.current = sidebarWidth;
-
-  const handleResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      resizeRef.current = { startX: e.clientX, startWidth: latestWidthRef.current };
-
-      const handleMove = (ev: MouseEvent) => {
-        if (!resizeRef.current) return;
-        const newWidth = Math.min(
-          MAX_SIDEBAR_WIDTH,
-          Math.max(MIN_SIDEBAR_WIDTH, resizeRef.current.startWidth + (ev.clientX - resizeRef.current.startX)),
-        );
-        setSidebarWidth(newWidth);
-        latestWidthRef.current = newWidth;
-      };
-
-      const handleUp = () => {
-        document.removeEventListener('mousemove', handleMove);
-        document.removeEventListener('mouseup', handleUp);
-        localStorage.setItem(SIDEBAR_WIDTH_KEY, String(latestWidthRef.current));
-        resizeRef.current = null;
-      };
-
-      document.addEventListener('mousemove', handleMove);
-      document.addEventListener('mouseup', handleUp);
-    },
-    [],
-  );
-
   // Row data for AG Grid (with getRowId)
   const getRowId = useCallback((params: { data: TableRow }) => params.data._id, []);
 
@@ -3058,13 +3013,11 @@ export function TablesPage() {
   return (
     <div className="tables-page">
       {/* ── Sidebar ─────────────────────────────────────────────────── */}
-      <div className="tables-sidebar" style={{ width: sidebarWidth, position: 'relative' }}>
-        <div className="tables-sidebar-header">
-          <button className="tables-back-btn" onClick={() => navigate(ROUTES.HOME)} title={t('tables.backToHome')}>
-            <ArrowLeft size={16} />
-          </button>
-          <span className="tables-sidebar-title">{t('tables.title')}</span>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
+      <AppSidebar
+        storageKey="atlas_tables_sidebar"
+        title={t('tables.title')}
+        headerAction={
+          <div style={{ display: 'flex', gap: 2 }}>
             <button
               className="tables-toolbar-btn"
               onClick={() => setShowTemplates(true)}
@@ -3082,16 +3035,47 @@ export function TablesPage() {
               <Plus size={14} />
             </button>
           </div>
-        </div>
-
-        <div className="tables-sidebar-search">
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('tables.searchTables')}
-          />
-        </div>
-
+        }
+        search={
+          <div className="tables-sidebar-search">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('tables.searchTables')}
+            />
+          </div>
+        }
+        footer={
+          <>
+            <div className="tables-sidebar-views">
+              {[
+                { key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') },
+                { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') },
+                { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') },
+                { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') },
+                { key: 'gantt' as const, icon: GanttChart, label: t('tables.ganttView', 'Gantt') },
+              ].map((v) => (
+                <button
+                  key={v.key}
+                  className={`tables-sidebar-view-item${localViewConfig.activeView === v.key ? ' active' : ''}`}
+                  onClick={() => handleViewToggle(v.key)}
+                >
+                  <v.icon size={14} />
+                  <span>{v.label}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              className="tables-sidebar-view-item"
+              onClick={() => openSettings('tables')}
+              title="Tables settings"
+            >
+              <Settings2 size={14} />
+              <span>Settings</span>
+            </button>
+          </>
+        }
+      >
         <div className="tables-sidebar-list">
           {filteredTables.length === 0 && !listLoading && (
             <div className="tables-sidebar-empty">{t('tables.noTables')}</div>
@@ -3169,40 +3153,7 @@ export function TablesPage() {
             </>
           )}
         </div>
-
-        {/* Sidebar bottom: view types + settings */}
-        <div className="tables-sidebar-bottom">
-          <div className="tables-sidebar-views">
-            {[
-              { key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') },
-              { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') },
-              { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') },
-              { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') },
-              { key: 'gantt' as const, icon: GanttChart, label: t('tables.ganttView', 'Gantt') },
-            ].map((v) => (
-              <button
-                key={v.key}
-                className={`tables-sidebar-view-item${localViewConfig.activeView === v.key ? ' active' : ''}`}
-                onClick={() => handleViewToggle(v.key)}
-              >
-                <v.icon size={14} />
-                <span>{v.label}</span>
-              </button>
-            ))}
-          </div>
-          <button
-            className="tables-sidebar-view-item"
-            onClick={() => openSettings('tables')}
-            title="Tables settings"
-          >
-            <Settings2 size={14} />
-            <span>Settings</span>
-          </button>
-        </div>
-
-        {/* Resize handle */}
-        <div className="tables-sidebar-resize" onMouseDown={handleResizeStart} />
-      </div>
+      </AppSidebar>
 
       {/* ── Main content ──────────────────────────────────────────── */}
       <div className="tables-main">

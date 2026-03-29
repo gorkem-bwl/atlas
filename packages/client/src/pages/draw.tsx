@@ -7,7 +7,6 @@ import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import {
   Plus,
   Search,
-  ArrowLeft,
   Trash2,
   RotateCcw,
   Pencil,
@@ -21,6 +20,7 @@ import {
   LayoutTemplate,
   ArrowDownAZ,
 } from 'lucide-react';
+import { AppSidebar } from '../components/layout/app-sidebar';
 import { useTranslation } from 'react-i18next';
 import {
   useDrawingList,
@@ -38,23 +38,7 @@ import { DrawSettingsModal } from '../components/draw/draw-settings-modal';
 import { useUIStore } from '../stores/ui-store';
 import { DRAWING_TEMPLATES } from '../config/drawing-templates';
 import { DEFAULT_LIBRARY_ITEMS } from '../config/drawing-libraries';
-import { ROUTES } from '../config/routes';
 import type { Drawing } from '@atlasmail/shared';
-
-// ─── Constants ───────────────────────────────────────────────────────
-
-const SIDEBAR_WIDTH_KEY = 'atlasmail_draw_sidebar_width';
-const DEFAULT_SIDEBAR_WIDTH = 280;
-const MIN_SIDEBAR_WIDTH = 220;
-const MAX_SIDEBAR_WIDTH = 440;
-
-function getSavedSidebarWidth(): number {
-  try {
-    const w = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
-    if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
-  } catch { /* ignore */ }
-  return DEFAULT_SIDEBAR_WIDTH;
-}
 
 // ─── Sort helper ────────────────────────────────────────────────────
 
@@ -532,8 +516,6 @@ function DrawSidebar({
   isCreating?: boolean;
 }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const isDesktop = !!('atlasDesktop' in window);
   const { data, isLoading } = useDrawingList();
   const { data: archivedData } = useDrawingList(true);
   const deleteDrawing = useDeleteDrawing();
@@ -543,36 +525,6 @@ function DrawSidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [view, setView] = useState<SidebarView>('list');
-  const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
-  // Sidebar resize handler
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-
-    const onMouseMove = (ev: MouseEvent) => {
-      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidth + (ev.clientX - startX)));
-      setSidebarWidth(newWidth);
-    };
-
-    const onMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      const el = sidebarRef.current;
-      if (el) {
-        const w = el.getBoundingClientRect().width;
-        localStorage.setItem(SIDEBAR_WIDTH_KEY, String(Math.round(w)));
-      }
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }, [sidebarWidth]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -614,68 +566,11 @@ function DrawSidebar({
   }, [allDrawings, searchQuery, sortOrder]);
 
   return (
-    <div
-      ref={sidebarRef}
-      style={{
-        width: sidebarWidth,
-        minWidth: MIN_SIDEBAR_WIDTH,
-        maxWidth: MAX_SIDEBAR_WIDTH,
-        height: '100%',
-        borderRight: '1px solid var(--color-border-primary)',
-        background: 'var(--color-bg-secondary)',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--font-family)',
-        overflow: 'hidden',
-        userSelect: 'none',
-        position: 'relative',
-      }}
-    >
-      {/* Resize handle */}
-      <div
-        className="doc-sidebar-resize-handle"
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: -3,
-          bottom: 0,
-          width: 6,
-          cursor: 'col-resize',
-          zIndex: 10,
-          transition: 'background 0.15s ease',
-          ...(isResizing ? { background: 'var(--color-accent-primary)', opacity: 0.3 } : {}),
-        }}
-        onMouseDown={handleResizeStart}
-      />
-
-      {/* Header */}
-      <div
-        style={{
-          padding: '12px 12px 0 12px',
-          paddingTop: isDesktop ? 40 : 12,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        {/* Back + title row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <SidebarButton
-            icon={<ArrowLeft size={14} />}
-            onClick={() => navigate(ROUTES.HOME)}
-            tooltip={t('nav.homeScreen')}
-          />
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {t('draw.title')}
-          </span>
-          <div style={{ flex: 1 }} />
+    <AppSidebar
+      storageKey="atlas_draw_sidebar"
+      title={t('draw.title')}
+      headerAction={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <SidebarButton
             icon={<Settings size={13} />}
             onClick={onOpenSettings}
@@ -688,8 +583,8 @@ function DrawSidebar({
             disabled={isCreating}
           />
         </div>
-
-        {/* Search */}
+      }
+      search={
         <div
           style={{
             display: 'flex',
@@ -721,10 +616,10 @@ function DrawSidebar({
             }}
           />
         </div>
-      </div>
-
+      }
+    >
       {/* Quick links */}
-      <div style={{ padding: '8px 8px 0 8px' }}>
+      <div style={{ padding: '0 0 0 0' }}>
         <QuickLink
           icon={<Trash2 size={14} />}
           label={t('draw.trash')}
@@ -739,7 +634,7 @@ function DrawSidebar({
         style={{
           height: 1,
           background: 'var(--color-border-primary)',
-          margin: '8px 12px',
+          margin: '8px 4px',
           flexShrink: 0,
         }}
       />
@@ -750,7 +645,7 @@ function DrawSidebar({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '2px 12px',
+          padding: '2px 4px',
           marginBottom: 2,
         }}
       >
@@ -770,65 +665,21 @@ function DrawSidebar({
         )}
       </div>
 
-      {/* Content area */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0 4px 8px 4px',
-        }}
-      >
-        {isLoading ? (
-          <div
-            style={{
-              padding: '24px 12px',
-              textAlign: 'center',
-              color: 'var(--color-text-tertiary)',
-              fontSize: 12,
-            }}
-          >
-            {t('common.loading')}
-          </div>
-        ) : view === 'list' ? (
-          filteredDrawings.length === 0 ? (
-            searchQuery.trim() ? (
-              <div
-                style={{
-                  padding: '24px 12px',
-                  textAlign: 'center',
-                  color: 'var(--color-text-tertiary)',
-                  fontSize: 12,
-                }}
-              >
-                {t('docs.noResults', { query: searchQuery })}
-              </div>
-            ) : (
-              <div
-                style={{
-                  padding: '24px 12px',
-                  textAlign: 'center',
-                  color: 'var(--color-text-tertiary)',
-                  fontSize: 12,
-                }}
-              >
-                {t('draw.noDrawings')}
-              </div>
-            )
-          ) : (
-            filteredDrawings.map((drawing) => (
-              <DrawingListItem
-                key={drawing.id}
-                drawing={drawing}
-                isSelected={drawing.id === selectedId}
-                onClick={() => onSelect(drawing.id)}
-                onDelete={() => handleDelete(drawing.id)}
-                onDuplicate={() => handleDuplicate(drawing.id)}
-              />
-            ))
-          )
-        ) : (
-          /* Trash view */
-          archivedDrawings.length === 0 ? (
+      {/* Drawing list */}
+      {isLoading ? (
+        <div
+          style={{
+            padding: '24px 12px',
+            textAlign: 'center',
+            color: 'var(--color-text-tertiary)',
+            fontSize: 12,
+          }}
+        >
+          {t('common.loading')}
+        </div>
+      ) : view === 'list' ? (
+        filteredDrawings.length === 0 ? (
+          searchQuery.trim() ? (
             <div
               style={{
                 padding: '24px 12px',
@@ -837,24 +688,60 @@ function DrawSidebar({
                 fontSize: 12,
               }}
             >
-              {t('draw.trashEmpty')}
+              {t('docs.noResults', { query: searchQuery })}
             </div>
           ) : (
-            archivedDrawings.map((drawing) => (
-              <DrawingListItem
-                key={drawing.id}
-                drawing={drawing}
-                isSelected={drawing.id === selectedId}
-                onClick={() => onSelect(drawing.id)}
-                onDelete={() => handleDelete(drawing.id)}
-                onRestore={() => handleRestore(drawing.id)}
-                isTrash
-              />
-            ))
+            <div
+              style={{
+                padding: '24px 12px',
+                textAlign: 'center',
+                color: 'var(--color-text-tertiary)',
+                fontSize: 12,
+              }}
+            >
+              {t('draw.noDrawings')}
+            </div>
           )
-        )}
-      </div>
-    </div>
+        ) : (
+          filteredDrawings.map((drawing) => (
+            <DrawingListItem
+              key={drawing.id}
+              drawing={drawing}
+              isSelected={drawing.id === selectedId}
+              onClick={() => onSelect(drawing.id)}
+              onDelete={() => handleDelete(drawing.id)}
+              onDuplicate={() => handleDuplicate(drawing.id)}
+            />
+          ))
+        )
+      ) : (
+        /* Trash view */
+        archivedDrawings.length === 0 ? (
+          <div
+            style={{
+              padding: '24px 12px',
+              textAlign: 'center',
+              color: 'var(--color-text-tertiary)',
+              fontSize: 12,
+            }}
+          >
+            {t('draw.trashEmpty')}
+          </div>
+        ) : (
+          archivedDrawings.map((drawing) => (
+            <DrawingListItem
+              key={drawing.id}
+              drawing={drawing}
+              isSelected={drawing.id === selectedId}
+              onClick={() => onSelect(drawing.id)}
+              onDelete={() => handleDelete(drawing.id)}
+              onRestore={() => handleRestore(drawing.id)}
+              isTrash
+            />
+          ))
+        )
+      )}
+    </AppSidebar>
   );
 }
 

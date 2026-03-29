@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Plus, Search, Inbox, Star, Calendar, Coffee,
+  Plus, Search, Inbox, Star, Calendar, Coffee,
   Archive, BookOpen, Check, Trash2, X, ChevronRight, ChevronDown,
   Hash, CircleDot, MoreHorizontal, Moon, Sun, GripVertical,
   Clock, FileText, Filter, Tag, CheckCircle2, Settings2,
@@ -19,29 +18,14 @@ import {
 import { TaskNotesEditor } from '../components/tasks/task-notes-editor';
 import { queryKeys } from '../config/query-keys';
 import { api } from '../lib/api-client';
-import { ROUTES } from '../config/routes';
 import type { Task, TaskProject, TaskWhen, RecurrenceRule } from '@atlasmail/shared';
+import { AppSidebar } from '../components/layout/app-sidebar';
 import { EmojiPicker } from '../components/shared/emoji-picker';
 import { TasksSettingsModal } from '../components/tasks/tasks-settings-modal';
 import { KanbanBoard } from '../components/tasks/kanban-board';
 import { useTasksSettingsStore } from '../stores/tasks-settings-store';
 import { useUIStore } from '../stores/ui-store';
 import '../styles/tasks.css';
-
-// ─── Constants ───────────────────────────────────────────────────────
-
-const SIDEBAR_WIDTH_KEY = 'atlasmail_tasks_sidebar_width';
-const DEFAULT_SIDEBAR_WIDTH = 240;
-const MIN_SIDEBAR_WIDTH = 200;
-const MAX_SIDEBAR_WIDTH = 360;
-
-function getSavedSidebarWidth(): number {
-  try {
-    const w = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10);
-    if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w;
-  } catch { /* ignore */ }
-  return DEFAULT_SIDEBAR_WIDTH;
-}
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
 
@@ -969,7 +953,6 @@ function ProjectHeader({
 
 export function TasksPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const isDesktop = !!('atlasDesktop' in window);
 
   // Settings
@@ -977,8 +960,6 @@ export function TasksPage() {
   const tasksSettings = useTasksSettingsStore();
 
   // Sidebar
-  const [sidebarWidth, setSidebarWidth] = useState(getSavedSidebarWidth);
-  const [isResizing, setIsResizing] = useState(false);
   const [activeSection, setActiveSection] = useState<NavSection>(tasksSettings.defaultView);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1193,27 +1174,6 @@ export function TasksPage() {
 
   const activeProject = projectIdForNew ? projects.find(p => p.id === projectIdForNew) : null;
 
-  // Sidebar resize
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    const startX = e.clientX;
-    const startWidth = sidebarWidth;
-
-    const onMouseMove = (ev: MouseEvent) => {
-      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, startWidth + (ev.clientX - startX)));
-      setSidebarWidth(newWidth);
-    };
-    const onMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(Math.round(sidebarWidth)));
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }, [sidebarWidth]);
-
   // Close project menu on click outside
   useEffect(() => {
     if (!projectMenuId) return;
@@ -1399,14 +1359,7 @@ export function TasksPage() {
       {isDesktop && <div className="desktop-drag-region tasks-drag-region" />}
 
       {/* ─── Sidebar ─── */}
-      <div className="tasks-sidebar" style={{ width: sidebarWidth }}>
-        <div className="tasks-sidebar-header" style={{ paddingTop: isDesktop ? 46 : 12 }}>
-          <button className="tasks-back-btn" onClick={() => navigate(ROUTES.HOME)} title="Home screen">
-            <ArrowLeft size={14} />
-          </button>
-          <span className="tasks-sidebar-title">Tasks</span>
-        </div>
-
+      <AppSidebar storageKey="atlas_tasks_sidebar" title="Tasks">
         {/* Nav items */}
         <div className="tasks-nav-section">
           {NAV_ITEMS.map(item => (
@@ -1499,10 +1452,7 @@ export function TasksPage() {
         )}
 
         <div style={{ flex: 1 }} />
-      </div>
-
-      {/* Resize handle */}
-      <div className="tasks-resize-handle" onMouseDown={handleResizeStart} />
+      </AppSidebar>
 
       {/* ─── Main content ─── */}
       <div className="tasks-main">
