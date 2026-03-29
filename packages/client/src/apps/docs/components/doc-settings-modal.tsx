@@ -1,14 +1,14 @@
 import { useState, type CSSProperties, type ReactElement } from 'react';
 import { Type, Rocket } from 'lucide-react';
-import { useDocSettingsStore, type DocFontStyle, type DocSidebarDefault } from '../../stores/docs-settings-store';
+import { useDocSettingsStore, type DocFontStyle, type DocSidebarDefault } from '../settings-store';
 import {
   SettingsSection,
   SettingsRow,
   SettingsToggle,
   SelectableCard,
   SettingsSelect,
-} from '../settings/settings-primitives';
-import { Modal, ModalSidebarNavButton } from '../ui/modal';
+} from '../../../components/settings/settings-primitives';
+import { Modal, ModalSidebarNavButton } from '../../../components/ui/modal';
 
 // ---------------------------------------------------------------------------
 // Types

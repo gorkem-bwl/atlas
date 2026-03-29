@@ -1,7 +1,7 @@
-import { db } from '../config/database';
-import { documents, documentVersions, documentComments, documentLinks } from '../db/schema';
+import { db } from '../../config/database';
+import { documents, documentVersions, documentComments, documentLinks } from '../../db/schema';
 import { eq, and, isNull, asc, desc, sql } from 'drizzle-orm';
-import { logger } from '../utils/logger';
+import { logger } from '../../utils/logger';
 import type {
   CreateDocumentInput,
   UpdateDocumentInput,

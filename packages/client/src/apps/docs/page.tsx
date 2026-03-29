@@ -15,8 +15,8 @@ import {
   MessageSquare,
   Upload,
 } from 'lucide-react';
-import { DocSidebar } from '../components/docs/doc-sidebar';
-import { DocEditor } from '../components/docs/doc-editor';
+import { DocSidebar } from './components/doc-sidebar';
+import { DocEditor } from './components/doc-editor';
 import {
   useDocument,
   useDocumentList,
@@ -26,21 +26,21 @@ import {
   useDocumentVersions,
   useCreateVersion,
   useRestoreVersion,
-} from '../hooks/use-documents';
-import { DocSettingsModal } from '../components/docs/doc-settings-modal';
-import { CommentSidebar } from '../components/docs/comment-sidebar';
-import { BacklinksSection } from '../components/docs/backlinks-section';
-import { useUIStore } from '../stores/ui-store';
-import { useDocSettingsStore, useDocSettingsSync } from '../stores/docs-settings-store';
+} from './hooks';
+import { DocSettingsModal } from './components/doc-settings-modal';
+import { CommentSidebar } from './components/comment-sidebar';
+import { BacklinksSection } from './components/backlinks-section';
+import { useUIStore } from '../../stores/ui-store';
+import { useDocSettingsStore, useDocSettingsSync } from './settings-store';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api-client';
-import { queryKeys } from '../config/query-keys';
-import { useDrawingList } from '../apps/draw/hooks';
-import { useTableList } from '../hooks/use-tables';
-import { EmojiPicker } from '../components/shared/emoji-picker';
-import { CoverPicker, isCoverGradient } from '../components/shared/cover-picker';
-import { SmartButtonBar } from '../components/shared/SmartButtonBar';
-import '../styles/docs.css';
+import { api } from '../../lib/api-client';
+import { queryKeys } from '../../config/query-keys';
+import { useDrawingList } from '../draw/hooks';
+import { useTableList } from '../../hooks/use-tables';
+import { EmojiPicker } from '../../components/shared/emoji-picker';
+import { CoverPicker, isCoverGradient } from '../../components/shared/cover-picker';
+import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import '../../styles/docs.css';
 
 // ─── Page templates ──────────────────────────────────────────────────────
 

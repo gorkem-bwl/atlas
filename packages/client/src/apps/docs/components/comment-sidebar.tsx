@@ -5,7 +5,7 @@ import {
   useCreateDocComment,
   useResolveDocComment,
   useDeleteDocComment,
-} from '../../hooks/use-doc-comments';
+} from '../hooks/use-doc-comments';
 import type { DocumentComment } from '@atlasmail/shared';
 
 interface CommentSidebarProps {

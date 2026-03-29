@@ -1,5 +1,5 @@
 import { Node, mergeAttributes } from '@tiptap/core';
-import { api } from '../../../lib/api-client';
+import { api } from '../../../../lib/api-client';
 
 /**
  * TableEmbed — a block that references a spreadsheet table by ID.

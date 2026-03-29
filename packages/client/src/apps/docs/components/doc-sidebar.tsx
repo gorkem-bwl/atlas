@@ -21,16 +21,16 @@ import {
   useRestoreDocument,
   useDuplicateDocument,
   useMoveDocument,
-} from '../../hooks/use-documents';
-import { useDocSettingsStore } from '../../stores/docs-settings-store';
+} from '../hooks';
+import { useDocSettingsStore } from '../settings-store';
 import type { DocumentTreeNode } from '@atlasmail/shared';
-import { AppSidebar } from '../layout/app-sidebar';
+import { AppSidebar } from '../../../components/layout/app-sidebar';
 
 // ─── Server-backed helpers for favorites & recently viewed ──────────────
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../lib/api-client';
-import { queryKeys } from '../../config/query-keys';
+import { api } from '../../../lib/api-client';
+import { queryKeys } from '../../../config/query-keys';
 
 const MAX_RECENT = 10;
 

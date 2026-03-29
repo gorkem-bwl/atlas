@@ -26,7 +26,7 @@ import { SearchReplace } from './extensions/search-replace';
 import type { SearchReplaceState } from './extensions/search-replace';
 import { DrawingEmbed } from './extensions/drawing-embed';
 import { TableEmbed } from './extensions/table-embed';
-import { useDocSettingsStore, type DocFontStyle } from '../../stores/docs-settings-store';
+import { useDocSettingsStore, type DocFontStyle } from '../settings-store';
 import {
   Bold,
   Italic,
@@ -54,7 +54,7 @@ import {
   Keyboard,
   CaseSensitive,
 } from 'lucide-react';
-import '../../styles/docs.css';
+import '../../../styles/docs.css';
 
 // ─── Lowlight instance ────────────────────────────────────────────────────────
 const lowlight = createLowlight(common);

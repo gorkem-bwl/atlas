@@ -1,7 +1,7 @@
 import { FileText, Type, Rocket } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
-import { DocsPage } from '../../pages/docs';
-import { DocsEditorPanel, DocsStartupPanel } from '../../components/docs/doc-settings-modal';
+import { DocsPage } from './page';
+import { DocsEditorPanel, DocsStartupPanel } from './components/doc-settings-modal';
 
 export const docsManifest: ClientAppManifest = {
   id: 'docs',

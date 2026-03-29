@@ -596,7 +596,7 @@ export async function listItemsByType(userId: string, typeCategory: string) {
 // ─── Create linked resources ─────────────────────────────────────────
 
 export async function createLinkedDocument(userId: string, accountId: string, parentId?: string | null) {
-  const { createDocument } = await import('./document.service');
+  const { createDocument } = await import('../apps/docs/service');
   const doc = await createDocument(userId, accountId, { title: 'Untitled document' });
 
   const now = new Date();

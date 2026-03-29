@@ -1,4 +1,4 @@
-import docsRouter from '../../routes/docs.routes';
+import docsRouter from './routes';
 import type { ServerAppManifest } from '../../config/app-manifest.server';
 
 export const docsServerManifest: ServerAppManifest = {

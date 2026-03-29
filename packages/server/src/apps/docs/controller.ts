@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import * as documentService from '../services/document.service';
-import { logger } from '../utils/logger';
+import * as documentService from './service';
+import { logger } from '../../utils/logger';
 
 // GET /api/docs
 export async function listDocuments(req: Request, res: Response) {
