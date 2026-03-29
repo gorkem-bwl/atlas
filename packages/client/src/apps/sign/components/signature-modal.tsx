@@ -91,14 +91,17 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
           }}
         >
           {(['draw', 'type'] as TabId[]).map((tab) => (
-            <button
+            <Button
               key={tab}
+              variant="ghost"
               onClick={() => setActiveTab(tab)}
+              aria-label={`${tab} tab`}
               style={{
                 flex: 1,
                 padding: '8px 0',
                 background: 'none',
                 border: 'none',
+                borderRadius: 0,
                 borderBottom: activeTab === tab ? '2px solid var(--color-accent-primary)' : '2px solid transparent',
                 color: activeTab === tab ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                 fontFamily: 'var(--font-family)',
@@ -110,7 +113,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
               }}
             >
               {tab}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -154,8 +157,10 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
             />
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               {FONTS.map((font, idx) => (
-                <button
+                <Button
                   key={font.label}
+                  variant="ghost"
+                  aria-label={`Select ${font.label} font`}
                   onClick={() => setSelectedFont(idx)}
                   style={{
                     flex: 1,
@@ -172,7 +177,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
                   }}
                 >
                   {font.label}
-                </button>
+                </Button>
               ))}
             </div>
             {/* Preview */}
@@ -185,7 +190,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
                   borderRadius: 'var(--radius-md)',
                   background: '#fff',
                   fontFamily: FONTS[selectedFont].family,
-                  fontSize: 32,
+                  fontSize: 'var(--font-size-2xl)',
                   color: '#000',
                   textAlign: 'center',
                   minHeight: 60,

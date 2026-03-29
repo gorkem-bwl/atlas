@@ -235,6 +235,7 @@ function FieldBox({
       {/* Delete button (top-right) */}
       {editable && isSelected && (
         <button
+          aria-label="Delete field"
           onClick={(e) => {
             e.stopPropagation();
             onDelete?.(field.id);
@@ -272,7 +273,7 @@ function FieldBox({
             width: 8,
             height: 8,
             background: colors.border,
-            borderRadius: 2,
+            borderRadius: 'var(--radius-sm)',
             cursor: 'nwse-resize',
             zIndex: 10,
           }}

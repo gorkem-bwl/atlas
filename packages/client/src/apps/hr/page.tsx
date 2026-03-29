@@ -210,12 +210,16 @@ function CreateDepartmentModal({
             </label>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {DEPARTMENT_COLORS.map((c) => (
-                <button
+                <Button
                   key={c}
+                  variant="ghost"
+                  aria-label={`Select color ${c}`}
                   onClick={() => setColor(c)}
                   style={{
                     width: 28,
                     height: 28,
+                    minWidth: 28,
+                    padding: 0,
                     borderRadius: 'var(--radius-md)',
                     background: c,
                     border: color === c ? '2px solid var(--color-text-primary)' : '2px solid transparent',
@@ -381,12 +385,16 @@ function EditDepartmentModal({
             </label>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {DEPARTMENT_COLORS.map((c) => (
-                <button
+                <Button
                   key={c}
+                  variant="ghost"
+                  aria-label={`Select color ${c}`}
                   onClick={() => setColor(c)}
                   style={{
                     width: 28,
                     height: 28,
+                    minWidth: 28,
+                    padding: 0,
                     borderRadius: 'var(--radius-md)',
                     background: c,
                     border: color === c ? '2px solid var(--color-text-primary)' : '2px solid transparent',
@@ -532,9 +540,10 @@ function EmployeeDetailPanel({
           {/* Role */}
           <div className="hr-detail-field">
             <span className="hr-detail-field-label">Role</span>
-            <input
+            <Input
               ref={roleRef}
               value={role}
+              aria-label="Employee role"
               onChange={(e) => {
                 setRole(e.target.value);
                 autoSave({ role: e.target.value });
@@ -1107,6 +1116,15 @@ export function HrPage() {
     }
   }, [loadingEmployees, employees.length, departments.length, countsData, counts.totalEmployees, seedHr]);
 
+  // Memoize department employee counts for sidebar
+  const deptEmployeeCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const dept of departments) {
+      map[dept.id] = employees.filter((e) => e.departmentId === dept.id).length;
+    }
+    return map;
+  }, [departments, employees]);
+
   // Selected employee
   const selectedEmployee = selectedEmployeeId ? employees.find((e) => e.id === selectedEmployeeId) : null;
 
@@ -1222,7 +1240,7 @@ export function HrPage() {
                 />
               }
               isActive={activeNav === `dept:${dept.id}`}
-              count={employees.filter((e) => e.departmentId === dept.id).length}
+              count={deptEmployeeCounts[dept.id] ?? 0}
               onClick={() => {
                 setActiveNav(`dept:${dept.id}`);
                 setSelectedEmployeeId(null);

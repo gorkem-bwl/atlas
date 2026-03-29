@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   FileText,
   Clock,
@@ -39,6 +39,7 @@ import {
 import { config } from '../../config/env';
 import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atlasmail/shared';
 import { format } from 'date-fns';
+import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import '../../styles/sign.css';
 
 // ─── Status helpers ─────────────────────────────────────────────────
@@ -247,13 +248,13 @@ export function SignPage() {
 
   // ─── Sidebar counts ───────────────────────────────────────────
 
-  const counts = {
+  const counts = useMemo(() => ({
     all: documents?.length ?? 0,
     pending: documents?.filter((d) => d.status === 'pending').length ?? 0,
     signed: documents?.filter((d) => d.status === 'signed').length ?? 0,
     draft: documents?.filter((d) => d.status === 'draft').length ?? 0,
     expired: documents?.filter((d) => d.status === 'expired').length ?? 0,
-  };
+  }), [documents]);
 
   // PDF url for the selected document
   const pdfUrl = selectedDocId
@@ -451,6 +452,8 @@ export function SignPage() {
                 </Button>
               </div>
             </div>
+
+            <SmartButtonBar appId="sign" recordId={selectedDoc.id} />
 
             {/* PDF viewer + field overlay */}
             <div className="sign-content">
