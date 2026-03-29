@@ -435,6 +435,7 @@ function AppCard({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: 6,
         padding: '12px 8px 10px',
         background: hovered ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
