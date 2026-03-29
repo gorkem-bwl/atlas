@@ -23,6 +23,10 @@ export async function searchGlobal(query: string, accountId: string): Promise<Gl
     (SELECT id::text AS record_id, title, 'tables' AS app_id, 'Tables' AS app_name
      FROM spreadsheets WHERE account_id = ${accountId} AND is_archived = false AND title ILIKE ${term}
      ORDER BY updated_at DESC LIMIT 5)
+    UNION ALL
+    (SELECT id::text AS record_id, title, 'sign' AS app_id, 'Sign' AS app_name
+     FROM signature_documents WHERE account_id = ${accountId} AND is_archived = false AND title ILIKE ${term}
+     ORDER BY updated_at DESC LIMIT 5)
     LIMIT 20
   `);
 

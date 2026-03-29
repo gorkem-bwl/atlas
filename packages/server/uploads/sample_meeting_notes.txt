@@ -1,6 +1,0 @@
-Meeting notes from Feb 28, 2026.
-
-Attendees: Alice, Bob, Charlie
-Action items:
-1. Review PR #42
-2. Update documentation

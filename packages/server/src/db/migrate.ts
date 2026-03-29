@@ -720,6 +720,60 @@ export async function runMigrations() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN NOT NULL DEFAULT FALSE;
     `);
 
+    // ─── Signature tables ────────────────────────────────────────────
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS signature_documents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        title VARCHAR(500) NOT NULL,
+        file_name VARCHAR(500) NOT NULL,
+        storage_path TEXT NOT NULL,
+        page_count INTEGER NOT NULL DEFAULT 1,
+        status VARCHAR(50) NOT NULL DEFAULT 'draft',
+        expires_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ,
+        tags JSONB NOT NULL DEFAULT '[]',
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS signature_fields (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        document_id UUID NOT NULL REFERENCES signature_documents(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL DEFAULT 'signature',
+        page_number INTEGER NOT NULL DEFAULT 1,
+        x REAL NOT NULL,
+        y REAL NOT NULL,
+        width REAL NOT NULL,
+        height REAL NOT NULL,
+        signer_email VARCHAR(255),
+        label VARCHAR(255),
+        required BOOLEAN NOT NULL DEFAULT TRUE,
+        signed_at TIMESTAMPTZ,
+        signature_data TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS signing_tokens (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        document_id UUID NOT NULL REFERENCES signature_documents(id) ON DELETE CASCADE,
+        signer_email VARCHAR(255) NOT NULL,
+        signer_name VARCHAR(255),
+        token VARCHAR(255) UNIQUE NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        signed_at TIMESTAMPTZ,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // ─── Indexes ────────────────────────────────────────────────────
 
     const indexes = [
@@ -813,6 +867,14 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_provisioning_log_installation ON provisioning_log(installation_id)',
       'CREATE INDEX IF NOT EXISTS idx_provisioning_log_user ON provisioning_log(user_id)',
       'CREATE INDEX IF NOT EXISTS idx_provisioning_log_status ON provisioning_log(status)',
+      // Signature documents
+      'CREATE INDEX IF NOT EXISTS idx_sig_docs_account ON signature_documents(account_id)',
+      'CREATE INDEX IF NOT EXISTS idx_sig_docs_status ON signature_documents(status)',
+      // Signature fields
+      'CREATE INDEX IF NOT EXISTS idx_sig_fields_document ON signature_fields(document_id)',
+      // Signing tokens
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_signing_tokens_token ON signing_tokens(token)',
+      'CREATE INDEX IF NOT EXISTS idx_signing_tokens_document ON signing_tokens(document_id)',
     ];
 
     for (const idx of indexes) {

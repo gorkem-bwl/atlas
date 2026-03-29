@@ -1,6 +1,6 @@
 import {
   pgTable, text, uuid, varchar, integer, bigint, boolean, jsonb,
-  timestamp, index, uniqueIndex, type AnyPgColumn,
+  timestamp, index, uniqueIndex, real, type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { customType } from 'drizzle-orm/pg-core';
 
@@ -764,5 +764,66 @@ export const recordLinks = pgTable('record_links', {
     table.targetAppId, table.targetRecordId,
     table.linkType,
   ),
+}));
+
+// ─── Signature: Documents ──────────────────────────────────────────
+export const signatureDocuments = pgTable('signature_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  title: varchar('title', { length: 500 }).notNull(),
+  fileName: varchar('file_name', { length: 500 }).notNull(),
+  storagePath: text('storage_path').notNull(),
+  pageCount: integer('page_count').notNull().default(1),
+  status: varchar('status', { length: 50 }).notNull().default('draft'),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  isArchived: boolean('is_archived').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  accountIdx: index('idx_sig_docs_account').on(table.accountId),
+  statusIdx: index('idx_sig_docs_status').on(table.status),
+}));
+
+// ─── Signature: Fields ─────────────────────────────────────────────
+export const signatureFields = pgTable('signature_fields', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id').notNull().references(() => signatureDocuments.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull().default('signature'),
+  pageNumber: integer('page_number').notNull().default(1),
+  x: real('x').notNull(),
+  y: real('y').notNull(),
+  width: real('width').notNull(),
+  height: real('height').notNull(),
+  signerEmail: varchar('signer_email', { length: 255 }),
+  label: varchar('label', { length: 255 }),
+  required: boolean('required').notNull().default(true),
+  signedAt: timestamp('signed_at', { withTimezone: true }),
+  signatureData: text('signature_data'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  documentIdx: index('idx_sig_fields_document').on(table.documentId),
+}));
+
+// ─── Signature: Signing Tokens ─────────────────────────────────────
+export const signingTokens = pgTable('signing_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id').notNull().references(() => signatureDocuments.id, { onDelete: 'cascade' }),
+  signerEmail: varchar('signer_email', { length: 255 }).notNull(),
+  signerName: varchar('signer_name', { length: 255 }),
+  token: varchar('token', { length: 255 }).unique().notNull(),
+  status: varchar('status', { length: 50 }).notNull().default('pending'),
+  signedAt: timestamp('signed_at', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tokenIdx: uniqueIndex('idx_signing_tokens_token').on(table.token),
+  documentIdx: index('idx_signing_tokens_document').on(table.documentId),
 }));
 

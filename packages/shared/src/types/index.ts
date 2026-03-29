@@ -9,3 +9,4 @@ export * from './drive';
 export * from './platform';
 export * from './app-manifest';
 export * from './custom-field';
+export * from './signature';
