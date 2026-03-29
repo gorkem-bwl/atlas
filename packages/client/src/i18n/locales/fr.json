@@ -830,7 +830,8 @@
       "search": "Rechercher...",
       "clearFilters": "Effacer les filtres",
       "addFilter": "Ajouter un filtre",
-      "saveView": "Enregistrer la vue"
+      "saveView": "Enregistrer la vue",
+      "addNew": "Ajouter"
     },
     "empty": {
       "noDeals": "Pas encore d'affaires",

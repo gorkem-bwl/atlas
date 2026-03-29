@@ -830,7 +830,8 @@
       "search": "Cerca...",
       "clearFilters": "Cancella filtri",
       "addFilter": "Aggiungi filtro",
-      "saveView": "Salva vista"
+      "saveView": "Salva vista",
+      "addNew": "Aggiungi nuovo"
     },
     "empty": {
       "noDeals": "Nessuna trattativa ancora",

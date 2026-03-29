@@ -234,6 +234,36 @@ function getCompaniesImportFields(t: (key: string) => string) {
 
 // ─── Helpers ───────────────────────────────────────────────────────
 
+// ─── Avatar colors ────────────────────────────────────────────────
+
+const AVATAR_COLORS = ['#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#ec4899','#14b8a6'];
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function NameAvatar({ name }: { name: string }) {
+  return (
+    <span style={{ width: 24, height: 24, borderRadius: '50%', background: getAvatarColor(name), color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+function CompanyLogo({ domain }: { domain: string | null | undefined }) {
+  if (!domain) return null;
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+      width={16} height={16}
+      style={{ borderRadius: 2, flexShrink: 0 }}
+      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      alt=""
+    />
+  );
+}
+
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1056,6 +1086,7 @@ function DealsListView({
   deals, stages, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
+  companies, onAdd,
 }: {
   deals: CrmDeal[];
   stages: CrmDealStage[];
@@ -1070,6 +1101,8 @@ function DealsListView({
   onEditingCellChange: (cell: EditingCell | null) => void;
   sort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
+  companies: CrmCompany[];
+  onAdd: () => void;
 }) {
   const { t } = useTranslation();
   const updateDeal = useUpdateDeal();
@@ -1173,6 +1206,13 @@ function DealsListView({
     }
   }, [editingCell, focusedIndex, sorted, selectedIds, onFocusedIndexChange, onSelectionChange, onSelect]);
 
+  // Company domain lookup for logos
+  const companyDomainMap = useMemo(() => {
+    const map = new Map<string, string>();
+    companies.forEach((c) => { if (c.domain) map.set(c.id, c.domain); });
+    return map;
+  }, [companies]);
+
   const totalValue = useMemo(() => sorted.reduce((sum, d) => sum + d.value, 0), [sorted]);
   const avgValue = sorted.length > 0 ? totalValue / sorted.length : 0;
 
@@ -1219,11 +1259,13 @@ function DealsListView({
                   <InlineEditInput value={deal.title} type="text" onSave={(v) => handleSave(deal.id, 'title', v)} onCancel={() => onEditingCellChange(null)} />
                 </span>
               ) : (
-                <span style={{ width: 180, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }} onClick={(e) => handleCellClick(deal.id, 'title', e)}>
-                  {deal.title}
+                <span style={{ width: 180, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => handleCellClick(deal.id, 'title', e)}>
+                  <NameAvatar name={deal.title} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deal.title}</span>
                 </span>
               )}
-              <span style={{ width: 130, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ width: 130, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {deal.companyId && <CompanyLogo domain={companyDomainMap.get(deal.companyId)} />}
                 {deal.companyName || '-'}
               </span>
               <span style={{ width: 110, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1267,6 +1309,9 @@ function DealsListView({
             </div>
           );
         })}
+        <div className="crm-add-row" onClick={onAdd}>
+          <Plus size={14} /> {t('crm.actions.addNew')}
+        </div>
       </div>
       <div className="crm-table-footer">
         <span>{sorted.length} {sorted.length !== 1 ? t('crm.sidebar.deals').toLowerCase() : t('crm.deals.deal')}</span>
@@ -1283,6 +1328,7 @@ function ContactsListView({
   contacts, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
+  companies, onAdd,
 }: {
   contacts: CrmContact[];
   selectedId: string | null;
@@ -1296,6 +1342,8 @@ function ContactsListView({
   onEditingCellChange: (cell: EditingCell | null) => void;
   sort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
+  companies: CrmCompany[];
+  onAdd: () => void;
 }) {
   const { t } = useTranslation();
   const updateContact = useUpdateContact();
@@ -1394,6 +1442,13 @@ function ContactsListView({
     }
   }, [editingCell, focusedIndex, sorted, selectedIds, onFocusedIndexChange, onSelectionChange, onSelect]);
 
+  // Company domain lookup for logos
+  const companyDomainMap = useMemo(() => {
+    const map = new Map<string, string>();
+    companies.forEach((c) => { if (c.domain) map.set(c.id, c.domain); });
+    return map;
+  }, [companies]);
+
   if (filtered.length === 0) {
     return (
       <div className="crm-empty-state">
@@ -1436,8 +1491,9 @@ function ContactsListView({
                   <InlineEditInput value={contact.name} type="text" onSave={(v) => handleSave(contact.id, 'name', v)} onCancel={() => onEditingCellChange(null)} />
                 </span>
               ) : (
-                <span style={{ width: 160, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }} onClick={(e) => handleCellClick(contact.id, 'name', e)}>
-                  {contact.name}
+                <span style={{ width: 160, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => handleCellClick(contact.id, 'name', e)}>
+                  <NameAvatar name={contact.name} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contact.name}</span>
                 </span>
               )}
               {isEd('email') ? (
@@ -1458,7 +1514,8 @@ function ContactsListView({
                   {contact.phone || '-'}
                 </span>
               )}
-              <span style={{ width: 130, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ width: 130, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {contact.companyId && <CompanyLogo domain={companyDomainMap.get(contact.companyId)} />}
                 {contact.companyName || '-'}
               </span>
               {isEd('position') ? (
@@ -1474,6 +1531,9 @@ function ContactsListView({
             </div>
           );
         })}
+        <div className="crm-add-row" onClick={onAdd}>
+          <Plus size={14} /> {t('crm.actions.addNew')}
+        </div>
       </div>
     </div>
   );
@@ -1485,6 +1545,7 @@ function CompaniesListView({
   companies, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
+  onAdd,
 }: {
   companies: CrmCompany[];
   selectedId: string | null;
@@ -1498,6 +1559,7 @@ function CompaniesListView({
   onEditingCellChange: (cell: EditingCell | null) => void;
   sort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
+  onAdd: () => void;
 }) {
   const { t } = useTranslation();
   const updateCompany = useUpdateCompany();
@@ -1636,8 +1698,10 @@ function CompaniesListView({
                   <InlineEditInput value={company.name} type="text" onSave={(v) => handleSave(company.id, 'name', v)} onCancel={() => onEditingCellChange(null)} />
                 </span>
               ) : (
-                <span style={{ width: 160, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }} onClick={(e) => handleCellClick(company.id, 'name', e)}>
-                  {company.name}
+                <span style={{ width: 160, flexShrink: 0, fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', display: 'flex', alignItems: 'center', gap: 8 }} onClick={(e) => handleCellClick(company.id, 'name', e)}>
+                  <NameAvatar name={company.name} />
+                  <CompanyLogo domain={company.domain} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{company.name}</span>
                 </span>
               )}
               {isEd('domain') ? (
@@ -1668,6 +1732,9 @@ function CompaniesListView({
             </div>
           );
         })}
+        <div className="crm-add-row" onClick={onAdd}>
+          <Plus size={14} /> {t('crm.actions.addNew')}
+        </div>
       </div>
     </div>
   );
@@ -2142,7 +2209,12 @@ export function CrmPage() {
         {/* Content header */}
         {activeView !== 'leads' && activeView !== 'forecast' && (
         <div className="crm-content-header">
-          <span className="crm-content-header-title">{sectionTitle}</span>
+          <span className="crm-content-header-title">
+            {sectionTitle}
+            {activeView === 'deals' && <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 400, marginLeft: 8 }}>&middot; {filteredDeals.length}</span>}
+            {activeView === 'contacts' && <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 400, marginLeft: 8 }}>&middot; {filteredContacts.length}</span>}
+            {activeView === 'companies' && <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 400, marginLeft: 8 }}>&middot; {filteredCompanies.length}</span>}
+          </span>
           {activeView !== 'dashboard' && activeView !== 'automations' && activeView !== 'permissions' && (
             <div className="crm-content-header-actions">
               <IconButton
@@ -2259,6 +2331,8 @@ export function CrmPage() {
                 onEditingCellChange={setEditingCell}
                 sort={sort}
                 onSortChange={setSort}
+                companies={companies}
+                onAdd={() => setShowCreateDeal(true)}
               />
             )}
 
@@ -2276,6 +2350,8 @@ export function CrmPage() {
                 onEditingCellChange={setEditingCell}
                 sort={sort}
                 onSortChange={setSort}
+                companies={companies}
+                onAdd={() => setShowCreateContact(true)}
               />
             )}
 
@@ -2293,6 +2369,7 @@ export function CrmPage() {
                 onEditingCellChange={setEditingCell}
                 sort={sort}
                 onSortChange={setSort}
+                onAdd={() => setShowCreateCompany(true)}
               />
             )}
 

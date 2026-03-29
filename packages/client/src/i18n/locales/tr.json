@@ -830,7 +830,8 @@
       "search": "Ara...",
       "clearFilters": "Filtreleri temizle",
       "addFilter": "Filtre ekle",
-      "saveView": "Görünümü kaydet"
+      "saveView": "Görünümü kaydet",
+      "addNew": "Yeni ekle"
     },
     "empty": {
       "noDeals": "Henüz anlaşma yok",

@@ -871,7 +871,8 @@
       "search": "Search...",
       "clearFilters": "Clear filters",
       "addFilter": "Add filter",
-      "saveView": "Save view"
+      "saveView": "Save view",
+      "addNew": "Add new"
     },
     "empty": {
       "noDeals": "No deals yet",

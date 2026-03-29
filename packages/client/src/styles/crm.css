@@ -658,6 +658,25 @@
   white-space: nowrap;
 }
 
+/* ─── Add new row ────────────────────────────────────────────── */
+
+.crm-add-row {
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.crm-add-row:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+}
+
 /* ─── Responsive ─────────────────────────────────────────────── */
 
 @media (max-width: 1100px) {

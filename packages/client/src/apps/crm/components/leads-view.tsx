@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserPlus, Search, ChevronRight, Trash2, ArrowRightLeft, User, Mail, Building2, Globe, Tag } from 'lucide-react';
+import { UserPlus, Search, ChevronRight, Trash2, ArrowRightLeft, User, Mail, Building2, Globe, Tag, Plus } from 'lucide-react';
 import {
   useLeads, useCreateLead, useUpdateLead, useDeleteLead, useConvertLead, useStages,
   type CrmLead, type CrmLeadStatus, type CrmLeadSource,
@@ -14,6 +14,13 @@ import { Badge } from '../../../components/ui/badge';
 import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { ColumnHeader } from '../../../components/ui/column-header';
+
+const AVATAR_COLORS = ['#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#ec4899','#14b8a6'];
+function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
 
 function getStatusOptions(t: (key: string) => string): { value: CrmLeadStatus; label: string }[] {
   return [
@@ -277,7 +284,10 @@ export function LeadsView() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <div className="crm-content-header">
-          <span className="crm-content-header-title">{t('crm.leads.title')}</span>
+          <span className="crm-content-header-title">
+            {t('crm.leads.title')}
+            <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 400, marginLeft: 8 }}>&middot; {leads.length}</span>
+          </span>
           <div className="crm-content-header-actions">
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
               <Input
@@ -343,7 +353,14 @@ export function LeadsView() {
                     aria-label={t('crm.leads.name') + ': ' + lead.name}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedLeadId(lead.id); } }}
                   >
-                    <td className="crm-cell-primary">{lead.name}</td>
+                    <td className="crm-cell-primary">
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 24, height: 24, borderRadius: '50%', background: getAvatarColor(lead.name), color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+                          {lead.name.charAt(0).toUpperCase()}
+                        </span>
+                        {lead.name}
+                      </span>
+                    </td>
                     <td>{lead.email || '--'}</td>
                     <td>{lead.companyName || '--'}</td>
                     <td><Badge variant={sourceBadgeVariant(lead.source)}>{lead.source.replace('_', ' ')}</Badge></td>
@@ -362,6 +379,11 @@ export function LeadsView() {
                 ))}
               </tbody>
             </table>
+          )}
+          {!isLoading && (
+            <div className="crm-add-row" onClick={() => setShowCreateModal(true)}>
+              <Plus size={14} /> {t('crm.actions.addNew')}
+            </div>
           )}
         </div>
       </div>
