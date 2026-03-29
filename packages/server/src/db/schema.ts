@@ -1032,3 +1032,47 @@ export const crmPermissions = pgTable('crm_permissions', {
   userIdx: uniqueIndex('idx_crm_permissions_user').on(table.accountId, table.userId),
 }));
 
+// ─── CRM: Leads ───────────────────────────────────────────────────
+export const crmLeads = pgTable('crm_leads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  name: varchar('name', { length: 500 }).notNull(),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 50 }),
+  companyName: varchar('company_name', { length: 500 }),
+  source: varchar('source', { length: 50 }).notNull().default('other'),
+  status: varchar('status', { length: 50 }).notNull().default('new'),
+  notes: text('notes'),
+  convertedContactId: uuid('converted_contact_id'),
+  convertedDealId: uuid('converted_deal_id'),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  isArchived: boolean('is_archived').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  accountIdx: index('idx_crm_leads_account').on(table.accountId),
+  statusIdx: index('idx_crm_leads_status').on(table.status),
+}));
+
+// ─── CRM: Notes (rich text) ──────────────────────────────────────
+export const crmNotes = pgTable('crm_notes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  title: varchar('title', { length: 500 }).notNull().default(''),
+  content: jsonb('content').$type<Record<string, unknown>>().notNull().default({}),
+  dealId: uuid('deal_id').references(() => crmDeals.id, { onDelete: 'cascade' }),
+  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'cascade' }),
+  companyId: uuid('company_id').references(() => crmCompanies.id, { onDelete: 'cascade' }),
+  isPinned: boolean('is_pinned').notNull().default(false),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  dealIdx: index('idx_crm_notes_deal').on(table.dealId),
+  contactIdx: index('idx_crm_notes_contact').on(table.contactId),
+  companyIdx: index('idx_crm_notes_company').on(table.companyId),
+}));
+

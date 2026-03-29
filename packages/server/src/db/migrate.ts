@@ -940,6 +940,41 @@ export async function runMigrations() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS crm_leads (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        name VARCHAR(500) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        company_name VARCHAR(500),
+        source VARCHAR(50) NOT NULL DEFAULT 'other',
+        status VARCHAR(50) NOT NULL DEFAULT 'new',
+        notes TEXT,
+        converted_contact_id UUID,
+        converted_deal_id UUID,
+        tags JSONB NOT NULL DEFAULT '[]',
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_notes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        title VARCHAR(500) NOT NULL DEFAULT '',
+        content JSONB NOT NULL DEFAULT '{}',
+        deal_id UUID REFERENCES crm_deals(id) ON DELETE CASCADE,
+        contact_id UUID REFERENCES crm_contacts(id) ON DELETE CASCADE,
+        company_id UUID REFERENCES crm_companies(id) ON DELETE CASCADE,
+        is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
 
     // ─── Indexes ────────────────────────────────────────────────────
@@ -1075,6 +1110,13 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_crm_workflows_trigger ON crm_workflows(trigger)',
       // CRM Permissions
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_permissions_user ON crm_permissions(account_id, user_id)',
+      // CRM Leads
+      'CREATE INDEX IF NOT EXISTS idx_crm_leads_account ON crm_leads(account_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_leads_status ON crm_leads(status)',
+      // CRM Notes
+      'CREATE INDEX IF NOT EXISTS idx_crm_notes_deal ON crm_notes(deal_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_notes_contact ON crm_notes(contact_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_notes_company ON crm_notes(company_id)',
     ];
 
     for (const idx of indexes) {

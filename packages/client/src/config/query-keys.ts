@@ -114,6 +114,15 @@ export const queryKeys = {
     workflows: {
       all: ['crm', 'workflows'] as const,
     },
+    leads: {
+      all: ['crm', 'leads'] as const,
+      detail: (id: string) => ['crm', 'leads', id] as const,
+    },
+    notes: {
+      all: ['crm', 'notes'] as const,
+    },
+    forecast: ['crm', 'forecast'] as const,
+    dashboardCharts: ['crm', 'dashboard', 'charts'] as const,
     dashboard: ['crm', 'dashboard'] as const,
     permissions: {
       all: ['crm', 'permissions'] as const,

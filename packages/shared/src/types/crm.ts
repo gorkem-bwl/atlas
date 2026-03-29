@@ -107,3 +107,61 @@ export interface CrmPermissionWithUser extends CrmPermission {
   userName: string | null;
   userEmail: string;
 }
+
+// ─── Leads ──────────────────────────────────────────────────────────
+
+export type CrmLeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+export type CrmLeadSource = 'website' | 'referral' | 'cold_call' | 'social_media' | 'event' | 'other';
+
+export interface CrmLead {
+  id: string; accountId: string; userId: string;
+  name: string; email: string | null; phone: string | null;
+  companyName: string | null; source: CrmLeadSource;
+  status: CrmLeadStatus; notes: string | null;
+  convertedContactId: string | null; convertedDealId: string | null;
+  tags: string[]; isArchived: boolean; sortOrder: number;
+  createdAt: string; updatedAt: string;
+}
+
+export interface CreateCrmLeadInput {
+  name: string; email?: string; phone?: string;
+  companyName?: string; source?: CrmLeadSource; notes?: string;
+}
+
+// ─── Notes (rich text) ──────────────────────────────────────────────
+
+export interface CrmNote {
+  id: string; accountId: string; userId: string;
+  title: string; content: Record<string, unknown>;
+  dealId: string | null; contactId: string | null; companyId: string | null;
+  isPinned: boolean; isArchived: boolean;
+  createdAt: string; updatedAt: string;
+}
+
+export interface CreateCrmNoteInput {
+  title?: string; content: Record<string, unknown>;
+  dealId?: string; contactId?: string; companyId?: string;
+}
+
+// ─── Dashboard Charts ───────────────────────────────────────────────
+
+export interface CrmDashboardCharts {
+  winLossByMonth: { month: string; won: number; lost: number }[];
+  revenueTrend: { month: string; revenue: number }[];
+  salesCycleLength: { month: string; avgDays: number }[];
+  conversionFunnel: { stage: string; stageColor: string; count: number; sequence: number }[];
+  dealsBySource: { source: string; count: number; value: number }[];
+}
+
+// ─── Forecast ───────────────────────────────────────────────────────
+
+export interface CrmForecastMonth {
+  month: string; weightedValue: number;
+}
+
+export interface CrmForecast {
+  months: CrmForecastMonth[];
+  totalWeighted: number;
+  bestCase: number;
+  committed: number;
+}

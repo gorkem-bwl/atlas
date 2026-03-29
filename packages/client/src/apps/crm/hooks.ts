@@ -730,3 +730,258 @@ export function useSeedExampleWorkflows() {
     },
   });
 }
+
+// ─── Lead Types ──────────────────────────────────────────────────
+
+export type CrmLeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+export type CrmLeadSource = 'website' | 'referral' | 'cold_call' | 'social_media' | 'event' | 'other';
+
+export interface CrmLead {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  companyName: string | null;
+  source: CrmLeadSource;
+  status: CrmLeadStatus;
+  notes: string | null;
+  convertedContactId: string | null;
+  convertedDealId: string | null;
+  tags: string[];
+  isArchived: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Lead Queries ────────────────────────────────────────────────
+
+export function useLeads(filters?: { status?: string; source?: string; search?: string }) {
+  const filterKey = filters ? JSON.stringify(filters) : '';
+  return useQuery({
+    queryKey: [...queryKeys.crm.leads.all, filterKey],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.status) params.set('status', filters.status);
+      if (filters?.source) params.set('source', filters.source);
+      if (filters?.search) params.set('search', filters.search);
+      const qs = params.toString();
+      const { data } = await api.get(`/crm/leads/list${qs ? `?${qs}` : ''}`);
+      return data.data as { leads: CrmLead[] };
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useLead(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.leads.detail(id!),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/leads/${id}`);
+      return data.data as CrmLead;
+    },
+    enabled: !!id,
+    staleTime: 10_000,
+  });
+}
+
+export function useCreateLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; email?: string; phone?: string; companyName?: string; source?: CrmLeadSource; notes?: string }) => {
+      const { data } = await api.post('/crm/leads', input);
+      return data.data as CrmLead;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+export function useUpdateLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; email: string | null; phone: string | null; companyName: string | null; source: string; status: string; notes: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
+      const { data } = await api.patch(`/crm/leads/${id}`, input);
+      return data.data as CrmLead;
+    },
+    onSuccess: (lead) => {
+      queryClient.setQueryData(queryKeys.crm.leads.detail(lead.id), lead);
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+export function useDeleteLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/crm/leads/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+export function useConvertLead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { leadId: string; dealTitle: string; dealStageId: string; dealValue?: number }) => {
+      const { data } = await api.post(`/crm/leads/${input.leadId}/convert`, {
+        dealTitle: input.dealTitle, dealStageId: input.dealStageId, dealValue: input.dealValue,
+      });
+      return data.data as { contact: CrmContact; company?: CrmCompany; deal: CrmDeal };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+// ─── Note Types ──────────────────────────────────────────────────
+
+export interface CrmNote {
+  id: string;
+  title: string;
+  content: Record<string, unknown>;
+  dealId: string | null;
+  contactId: string | null;
+  companyId: string | null;
+  isPinned: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Note Queries ────────────────────────────────────────────────
+
+export function useNotes(filters?: { dealId?: string; contactId?: string; companyId?: string }) {
+  const filterKey = filters ? JSON.stringify(filters) : '';
+  return useQuery({
+    queryKey: [...queryKeys.crm.notes.all, filterKey],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.dealId) params.set('dealId', filters.dealId);
+      if (filters?.contactId) params.set('contactId', filters.contactId);
+      if (filters?.companyId) params.set('companyId', filters.companyId);
+      const qs = params.toString();
+      const { data } = await api.get(`/crm/notes/list${qs ? `?${qs}` : ''}`);
+      return data.data as { notes: CrmNote[] };
+    },
+    staleTime: 10_000,
+    enabled: !!(filters?.dealId || filters?.contactId || filters?.companyId),
+  });
+}
+
+export function useCreateNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { title?: string; content: Record<string, unknown>; dealId?: string; contactId?: string; companyId?: string }) => {
+      const { data } = await api.post('/crm/notes', input);
+      return data.data as CrmNote;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.notes.all });
+    },
+  });
+}
+
+export function useUpdateNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ title: string; content: Record<string, unknown>; isPinned: boolean; isArchived: boolean }>) => {
+      const { data } = await api.patch(`/crm/notes/${id}`, input);
+      return data.data as CrmNote;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.notes.all });
+    },
+  });
+}
+
+export function useDeleteNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/crm/notes/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.notes.all });
+    },
+  });
+}
+
+// ─── Forecast ────────────────────────────────────────────────────
+
+export interface CrmForecastMonth {
+  month: string;
+  weightedValue: number;
+}
+
+export interface CrmForecast {
+  months: CrmForecastMonth[];
+  totalWeighted: number;
+  bestCase: number;
+  committed: number;
+}
+
+export function useForecast() {
+  return useQuery({
+    queryKey: queryKeys.crm.forecast,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/forecast');
+      return data.data as CrmForecast;
+    },
+    staleTime: 30_000,
+  });
+}
+
+// ─── Dashboard Charts ────────────────────────────────────────────
+
+export interface CrmDashboardCharts {
+  winLossByMonth: { month: string; won: number; lost: number }[];
+  revenueTrend: { month: string; revenue: number }[];
+  salesCycleLength: { month: string; avgDays: number }[];
+  conversionFunnel: { stage: string; stageColor: string; count: number; sequence: number }[];
+  dealsBySource: { source: string; count: number; value: number }[];
+}
+
+export function useDashboardCharts() {
+  return useQuery({
+    queryKey: queryKeys.crm.dashboardCharts,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/dashboard/charts');
+      return data.data as CrmDashboardCharts;
+    },
+    staleTime: 30_000,
+  });
+}
+
+// ─── Merge Records ───────────────────────────────────────────────
+
+export function useMergeContacts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { primaryId: string; secondaryId: string }) => {
+      const { data } = await api.post('/crm/contacts/merge', input);
+      return data.data as CrmContact;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+export function useMergeCompanies() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { primaryId: string; secondaryId: string }) => {
+      const { data } = await api.post('/crm/companies/merge', input);
+      return data.data as CrmCompany;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}

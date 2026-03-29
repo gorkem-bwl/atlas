@@ -7,6 +7,7 @@ import {
   Trophy, XCircle, LayoutGrid, List, ArrowUp, ArrowDown,
   PhoneCall, CalendarDays, StickyNote,
   Download, Upload, BarChart3, Zap, Shield,
+  UserPlus, TrendingUp, Merge,
 } from 'lucide-react';
 import {
   useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany,
@@ -24,8 +25,13 @@ import { FilterBar, applyFilters, type CrmFilter, type FilterColumn } from './co
 import { SavedViews, type SavedView } from './components/saved-views';
 import { CsvImportModal, exportToCsv } from './components/csv-import-modal';
 import { CrmDashboard } from './components/dashboard';
+import { DashboardCharts } from './components/dashboard-charts';
 import { AutomationsView } from './components/automations-view';
 import { PermissionsView } from './components/permissions-view';
+import { LeadsView } from './components/leads-view';
+import { ForecastView } from './components/forecast-view';
+import { MergeContactsModal, MergeCompaniesModal } from './components/merge-modal';
+import { NotesSection } from './components/notes-section';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -149,7 +155,7 @@ function InlineSelectCell({
 
 // ─── Types ─────────────────────────────────────────────────────────
 
-type ActiveView = 'dashboard' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions';
+type ActiveView = 'dashboard' | 'leads' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions' | 'forecast';
 
 // ─── Column definitions for filtering ─────────────────────────────
 
@@ -792,6 +798,11 @@ function DealDetailPanel({
           </div>
           <ActivityTimeline activities={activities} />
         </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <NotesSection dealId={deal.id} />
+        </div>
       </div>
     </div>
   );
@@ -907,6 +918,11 @@ function ContactDetailPanel({
             {t('crm.sidebar.activities')}
           </div>
           <ActivityTimeline activities={activities} />
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <NotesSection contactId={contact.id} />
         </div>
       </div>
     </div>
@@ -1047,6 +1063,11 @@ function CompanyDetailPanel({
             {t('crm.sidebar.activities')}
           </div>
           <ActivityTimeline activities={activities} />
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <NotesSection companyId={company.id} />
         </div>
       </div>
     </div>
@@ -1792,6 +1813,8 @@ export function CrmPage() {
   const [showCreateCompany, setShowCreateCompany] = useState(false);
   const [showLogActivity, setShowLogActivity] = useState(false);
   const [markLostDealId, setMarkLostDealId] = useState<string | null>(null);
+  const [showMergeContacts, setShowMergeContacts] = useState(false);
+  const [showMergeCompanies, setShowMergeCompanies] = useState(false);
 
   // Data
   const { data: companiesData } = useCompanies();
@@ -1939,6 +1962,7 @@ export function CrmPage() {
   const sectionTitle = useMemo(() => {
     switch (activeView) {
       case 'dashboard': return t('crm.sidebar.dashboard');
+      case 'leads': return 'Leads';
       case 'pipeline': return t('crm.sidebar.pipeline');
       case 'deals': return t('crm.sidebar.deals');
       case 'contacts': return t('crm.sidebar.contacts');
@@ -1946,6 +1970,7 @@ export function CrmPage() {
       case 'activities': return t('crm.sidebar.activities');
       case 'automations': return t('crm.sidebar.automations');
       case 'permissions': return t('crm.sidebar.permissions');
+      case 'forecast': return 'Forecast';
     }
   }, [activeView, t]);
 
@@ -1983,6 +2008,8 @@ export function CrmPage() {
         return t('crm.activities.logActivity');
       case 'permissions':
       case 'automations':
+      case 'leads':
+      case 'forecast':
         return '';
     }
   }, [activeView, t]);
@@ -2054,6 +2081,13 @@ export function CrmPage() {
             onClick={() => setActiveView('dashboard')}
           />
           <SidebarItem
+            label="Leads"
+            icon={<UserPlus size={14} />}
+            iconColor="#ec4899"
+            isActive={activeView === 'leads'}
+            onClick={() => setActiveView('leads')}
+          />
+          <SidebarItem
             label={t('crm.sidebar.pipeline')}
             icon={<LayoutGrid size={14} />}
             iconColor="#8b5cf6"
@@ -2090,6 +2124,13 @@ export function CrmPage() {
         </SidebarSection>
 
         <SidebarSection>
+          <SidebarItem
+            label="Forecast"
+            icon={<TrendingUp size={14} />}
+            iconColor="#6366f1"
+            isActive={activeView === 'forecast'}
+            onClick={() => setActiveView('forecast')}
+          />
           {canAccess(myRole, 'activities', 'view') && (
             <SidebarItem
               label={t('crm.sidebar.activities')}
@@ -2123,6 +2164,7 @@ export function CrmPage() {
       {/* Main content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Content header */}
+        {activeView !== 'leads' && activeView !== 'forecast' && (
         <div className="crm-content-header">
           <span className="crm-content-header-title">{sectionTitle}</span>
           {activeView !== 'dashboard' && activeView !== 'automations' && activeView !== 'permissions' && (
@@ -2149,6 +2191,7 @@ export function CrmPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Search bar */}
         {showSearch && (
@@ -2200,7 +2243,20 @@ export function CrmPage() {
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {activeView === 'dashboard' && (
-              <CrmDashboard />
+              <div style={{ overflow: 'auto', flex: 1 }}>
+                <CrmDashboard />
+                <div style={{ padding: '0 var(--spacing-xl) var(--spacing-xl)' }}>
+                  <DashboardCharts />
+                </div>
+              </div>
+            )}
+
+            {activeView === 'leads' && (
+              <LeadsView />
+            )}
+
+            {activeView === 'forecast' && (
+              <ForecastView />
             )}
 
             {activeView === 'pipeline' && (
@@ -2331,6 +2387,18 @@ export function CrmPage() {
               width={150}
             />
           )}
+          {selectedIds.size === 2 && activeView === 'contacts' && (
+            <Button variant="secondary" size="sm" onClick={() => setShowMergeContacts(true)}>
+              <Merge size={14} style={{ marginRight: 4 }} />
+              Merge
+            </Button>
+          )}
+          {selectedIds.size === 2 && activeView === 'companies' && (
+            <Button variant="secondary" size="sm" onClick={() => setShowMergeCompanies(true)}>
+              <Merge size={14} style={{ marginRight: 4 }} />
+              Merge
+            </Button>
+          )}
           {((activeView === 'deals' && canAccess(myRole, 'deals', 'delete')) ||
             (activeView === 'contacts' && canAccess(myRole, 'contacts', 'delete')) ||
             (activeView === 'companies' && canAccess(myRole, 'companies', 'delete'))) && (
@@ -2392,6 +2460,36 @@ export function CrmPage() {
           fields={importFields}
         />
       )}
+
+      {/* Merge modals */}
+      {(() => {
+        const selectedArr = Array.from(selectedIds);
+        if (showMergeContacts && selectedArr.length === 2) {
+          const cA = contacts.find((c) => c.id === selectedArr[0]) ?? null;
+          const cB = contacts.find((c) => c.id === selectedArr[1]) ?? null;
+          return (
+            <MergeContactsModal
+              open={showMergeContacts}
+              onClose={() => { setShowMergeContacts(false); setSelectedIds(new Set()); }}
+              contactA={cA}
+              contactB={cB}
+            />
+          );
+        }
+        if (showMergeCompanies && selectedArr.length === 2) {
+          const cA = companies.find((c) => c.id === selectedArr[0]) ?? null;
+          const cB = companies.find((c) => c.id === selectedArr[1]) ?? null;
+          return (
+            <MergeCompaniesModal
+              open={showMergeCompanies}
+              onClose={() => { setShowMergeCompanies(false); setSelectedIds(new Set()); }}
+              companyA={cA}
+              companyB={cB}
+            />
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 }

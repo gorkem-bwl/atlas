@@ -63,6 +63,30 @@ router.get('/permissions', crmController.listPermissions);
 router.get('/permissions/me', crmController.getMyPermission);
 router.put('/permissions/:userId', crmController.updatePermission);
 
+// Leads
+router.get('/leads/list', crmController.listLeads);
+router.post('/leads', crmController.createLead);
+router.get('/leads/:id', crmController.getLead);
+router.patch('/leads/:id', crmController.updateLead);
+router.delete('/leads/:id', crmController.deleteLead);
+router.post('/leads/:id/convert', crmController.convertLead);
+
+// Notes (rich text)
+router.get('/notes/list', crmController.listNotes);
+router.post('/notes', crmController.createNote);
+router.patch('/notes/:id', crmController.updateNote);
+router.delete('/notes/:id', crmController.deleteNote);
+
+// Forecast
+router.get('/forecast', crmController.getForecast);
+
+// Merge
+router.post('/contacts/merge', crmController.mergeContacts);
+router.post('/companies/merge', crmController.mergeCompanies);
+
+// Dashboard Charts (extended)
+router.get('/dashboard/charts', crmController.getDashboardCharts);
+
 // Seed sample data
 router.post('/seed', crmController.seedSampleData);
 

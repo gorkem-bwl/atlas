@@ -1,7 +1,7 @@
 import { db } from '../../config/database';
-import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities, crmWorkflows } from '../../db/schema';
+import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities, crmWorkflows, crmLeads, crmNotes } from '../../db/schema';
 import { tasks as tasksTable } from '../../db/schema';
-import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import type { CrmRecordAccess } from '@atlasmail/shared';
 
@@ -1724,4 +1724,495 @@ async function executeAction(
       break;
     }
   }
+}
+
+// ─── Leads ─────────────────────────────────────────────────────────
+
+interface CreateLeadInput {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  companyName?: string | null;
+  source?: string;
+  notes?: string | null;
+}
+
+interface UpdateLeadInput extends Partial<CreateLeadInput> {
+  status?: string;
+  sortOrder?: number;
+  isArchived?: boolean;
+  tags?: string[];
+}
+
+export async function listLeads(userId: string, accountId: string, filters?: {
+  status?: string;
+  source?: string;
+  search?: string;
+  recordAccess?: CrmRecordAccess;
+}) {
+  const conditions = [eq(crmLeads.accountId, accountId)];
+  if (!filters?.recordAccess || filters.recordAccess === 'own') {
+    conditions.push(eq(crmLeads.userId, userId));
+  }
+  conditions.push(eq(crmLeads.isArchived, false));
+
+  if (filters?.status) {
+    conditions.push(eq(crmLeads.status, filters.status));
+  }
+  if (filters?.source) {
+    conditions.push(eq(crmLeads.source, filters.source));
+  }
+  if (filters?.search) {
+    const searchTerm = `%${filters.search}%`;
+    conditions.push(sql`(${crmLeads.name} ILIKE ${searchTerm} OR ${crmLeads.email} ILIKE ${searchTerm} OR ${crmLeads.companyName} ILIKE ${searchTerm})`);
+  }
+
+  return db.select().from(crmLeads)
+    .where(and(...conditions))
+    .orderBy(asc(crmLeads.sortOrder), desc(crmLeads.createdAt));
+}
+
+export async function getLead(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const conditions = [eq(crmLeads.id, id), eq(crmLeads.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmLeads.userId, userId));
+  }
+  const [lead] = await db.select().from(crmLeads).where(and(...conditions)).limit(1);
+  return lead || null;
+}
+
+export async function createLead(userId: string, accountId: string, input: CreateLeadInput) {
+  const now = new Date();
+  const [maxSort] = await db
+    .select({ max: sql<number>`COALESCE(MAX(${crmLeads.sortOrder}), -1)` })
+    .from(crmLeads)
+    .where(eq(crmLeads.userId, userId));
+
+  const sortOrder = (maxSort?.max ?? -1) + 1;
+
+  const [created] = await db.insert(crmLeads).values({
+    accountId,
+    userId,
+    name: input.name,
+    email: input.email ?? null,
+    phone: input.phone ?? null,
+    companyName: input.companyName ?? null,
+    source: input.source ?? 'other',
+    status: 'new',
+    notes: input.notes ?? null,
+    tags: [],
+    sortOrder,
+    createdAt: now,
+    updatedAt: now,
+  }).returning();
+
+  logger.info({ userId, leadId: created.id }, 'CRM lead created');
+  return created;
+}
+
+export async function updateLead(userId: string, accountId: string, id: string, input: UpdateLeadInput, recordAccess?: CrmRecordAccess) {
+  const now = new Date();
+  const updates: Record<string, unknown> = { updatedAt: now };
+
+  if (input.name !== undefined) updates.name = input.name;
+  if (input.email !== undefined) updates.email = input.email;
+  if (input.phone !== undefined) updates.phone = input.phone;
+  if (input.companyName !== undefined) updates.companyName = input.companyName;
+  if (input.source !== undefined) updates.source = input.source;
+  if (input.status !== undefined) updates.status = input.status;
+  if (input.notes !== undefined) updates.notes = input.notes;
+  if (input.tags !== undefined) updates.tags = input.tags;
+  if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
+  if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
+
+  const conditions = [eq(crmLeads.id, id), eq(crmLeads.accountId, accountId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmLeads.userId, userId));
+  }
+
+  await db.update(crmLeads).set(updates).where(and(...conditions));
+  const [updated] = await db.select().from(crmLeads).where(and(...conditions)).limit(1);
+  return updated || null;
+}
+
+export async function deleteLead(userId: string, accountId: string, id: string, recordAccess?: CrmRecordAccess) {
+  await updateLead(userId, accountId, id, { isArchived: true }, recordAccess);
+}
+
+export async function convertLead(userId: string, accountId: string, leadId: string, options: {
+  dealTitle: string;
+  dealStageId: string;
+  dealValue?: number;
+}) {
+  const lead = await getLead(userId, accountId, leadId, 'all');
+  if (!lead) throw new Error('Lead not found');
+  if (lead.status === 'converted') throw new Error('Lead is already converted');
+
+  // 1. Create a contact from the lead
+  const contact = await createContact(userId, accountId, {
+    name: lead.name,
+    email: lead.email ?? null,
+    phone: lead.phone ?? null,
+    source: lead.source,
+    companyId: null,
+  });
+
+  // 2. Optionally create a company from lead's companyName
+  let company = null;
+  if (lead.companyName) {
+    company = await createCompany(userId, accountId, {
+      name: lead.companyName,
+    });
+    // Link contact to company
+    await updateContact(userId, accountId, contact.id, { companyId: company.id }, 'all');
+  }
+
+  // 3. Create a deal
+  const deal = await createDeal(userId, accountId, {
+    title: options.dealTitle,
+    value: options.dealValue ?? 0,
+    stageId: options.dealStageId,
+    contactId: contact.id,
+    companyId: company?.id ?? null,
+  });
+
+  // 4. Update lead status
+  const now = new Date();
+  await db.update(crmLeads).set({
+    status: 'converted',
+    convertedContactId: contact.id,
+    convertedDealId: deal.id,
+    updatedAt: now,
+  }).where(eq(crmLeads.id, leadId));
+
+  logger.info({ userId, leadId, contactId: contact.id, dealId: deal.id }, 'CRM lead converted');
+  return { contact, company, deal };
+}
+
+// ─── Notes (rich text) ─────────────────────────────────────────────
+
+interface CreateNoteInput {
+  title?: string;
+  content: Record<string, unknown>;
+  dealId?: string | null;
+  contactId?: string | null;
+  companyId?: string | null;
+}
+
+interface UpdateNoteInput {
+  title?: string;
+  content?: Record<string, unknown>;
+  isPinned?: boolean;
+  isArchived?: boolean;
+}
+
+export async function listNotes(userId: string, accountId: string, filters?: {
+  dealId?: string;
+  contactId?: string;
+  companyId?: string;
+}) {
+  const conditions = [eq(crmNotes.accountId, accountId), eq(crmNotes.isArchived, false)];
+
+  if (filters?.dealId) conditions.push(eq(crmNotes.dealId, filters.dealId));
+  if (filters?.contactId) conditions.push(eq(crmNotes.contactId, filters.contactId));
+  if (filters?.companyId) conditions.push(eq(crmNotes.companyId, filters.companyId));
+
+  return db.select().from(crmNotes)
+    .where(and(...conditions))
+    .orderBy(desc(crmNotes.isPinned), desc(crmNotes.createdAt));
+}
+
+export async function createNote(userId: string, accountId: string, input: CreateNoteInput) {
+  const now = new Date();
+  const [created] = await db.insert(crmNotes).values({
+    accountId,
+    userId,
+    title: input.title ?? '',
+    content: input.content,
+    dealId: input.dealId ?? null,
+    contactId: input.contactId ?? null,
+    companyId: input.companyId ?? null,
+    createdAt: now,
+    updatedAt: now,
+  }).returning();
+
+  logger.info({ userId, noteId: created.id }, 'CRM note created');
+  return created;
+}
+
+export async function updateNote(userId: string, noteId: string, input: UpdateNoteInput) {
+  const now = new Date();
+  const updates: Record<string, unknown> = { updatedAt: now };
+
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.content !== undefined) updates.content = input.content;
+  if (input.isPinned !== undefined) updates.isPinned = input.isPinned;
+  if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
+
+  await db.update(crmNotes).set(updates)
+    .where(and(eq(crmNotes.id, noteId), eq(crmNotes.userId, userId)));
+
+  const [updated] = await db.select().from(crmNotes)
+    .where(and(eq(crmNotes.id, noteId), eq(crmNotes.userId, userId)))
+    .limit(1);
+
+  return updated || null;
+}
+
+export async function deleteNote(userId: string, noteId: string) {
+  await db.update(crmNotes).set({ isArchived: true, updatedAt: new Date() })
+    .where(and(eq(crmNotes.id, noteId), eq(crmNotes.userId, userId)));
+}
+
+// ─── Forecasting ───────────────────────────────────────────────────
+
+export async function getForecast(accountId: string) {
+  const now = new Date();
+  const months: { month: string; weightedValue: number }[] = [];
+
+  for (let i = 0; i < 6; i++) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + i + 1, 0, 23, 59, 59);
+    const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    const [agg] = await db
+      .select({
+        weighted: sql<number>`COALESCE(SUM(${crmDeals.value} * ${crmDeals.probability} / 100.0), 0)`.as('weighted'),
+      })
+      .from(crmDeals)
+      .where(and(
+        eq(crmDeals.accountId, accountId),
+        eq(crmDeals.isArchived, false),
+        isNull(crmDeals.wonAt),
+        isNull(crmDeals.lostAt),
+        sql`${crmDeals.expectedCloseDate} IS NOT NULL`,
+        gte(crmDeals.expectedCloseDate, monthDate),
+        lte(crmDeals.expectedCloseDate, monthEnd),
+      ));
+
+    months.push({ month: monthLabel, weightedValue: Number(agg?.weighted ?? 0) });
+  }
+
+  // Total weighted pipeline
+  const [totalAgg] = await db
+    .select({
+      weighted: sql<number>`COALESCE(SUM(${crmDeals.value} * ${crmDeals.probability} / 100.0), 0)`.as('weighted'),
+      bestCase: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('best_case'),
+    })
+    .from(crmDeals)
+    .where(and(
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      isNull(crmDeals.wonAt),
+      isNull(crmDeals.lostAt),
+    ));
+
+  // Committed (won deals)
+  const [wonAgg] = await db
+    .select({
+      committed: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`.as('committed'),
+    })
+    .from(crmDeals)
+    .where(and(
+      eq(crmDeals.accountId, accountId),
+      eq(crmDeals.isArchived, false),
+      sql`${crmDeals.wonAt} IS NOT NULL`,
+    ));
+
+  return {
+    months,
+    totalWeighted: Number(totalAgg?.weighted ?? 0),
+    bestCase: Number(totalAgg?.bestCase ?? 0),
+    committed: Number(wonAgg?.committed ?? 0),
+  };
+}
+
+// ─── Merge Records ─────────────────────────────────────────────────
+
+export async function mergeContacts(userId: string, accountId: string, primaryId: string, secondaryId: string) {
+  const [primary] = await db.select().from(crmContacts)
+    .where(and(eq(crmContacts.id, primaryId), eq(crmContacts.accountId, accountId))).limit(1);
+  const [secondary] = await db.select().from(crmContacts)
+    .where(and(eq(crmContacts.id, secondaryId), eq(crmContacts.accountId, accountId))).limit(1);
+
+  if (!primary || !secondary) throw new Error('Contact not found');
+
+  const now = new Date();
+  // Copy empty fields from secondary to primary
+  const updates: Record<string, unknown> = { updatedAt: now };
+  if (!primary.email && secondary.email) updates.email = secondary.email;
+  if (!primary.phone && secondary.phone) updates.phone = secondary.phone;
+  if (!primary.companyId && secondary.companyId) updates.companyId = secondary.companyId;
+  if (!primary.position && secondary.position) updates.position = secondary.position;
+  if (!primary.source && secondary.source) updates.source = secondary.source;
+
+  // Merge tags
+  const mergedTags = [...new Set([...(primary.tags ?? []), ...(secondary.tags ?? [])])];
+  updates.tags = mergedTags;
+
+  await db.update(crmContacts).set(updates).where(eq(crmContacts.id, primaryId));
+
+  // Re-link deals from secondary to primary
+  await db.update(crmDeals).set({ contactId: primaryId, updatedAt: now })
+    .where(eq(crmDeals.contactId, secondaryId));
+
+  // Re-link activities from secondary to primary
+  await db.update(crmActivities).set({ contactId: primaryId, updatedAt: now })
+    .where(eq(crmActivities.contactId, secondaryId));
+
+  // Re-link notes from secondary to primary
+  await db.update(crmNotes).set({ contactId: primaryId, updatedAt: now })
+    .where(eq(crmNotes.contactId, secondaryId));
+
+  // Delete secondary (soft)
+  await db.update(crmContacts).set({ isArchived: true, updatedAt: now })
+    .where(eq(crmContacts.id, secondaryId));
+
+  logger.info({ userId, primaryId, secondaryId }, 'CRM contacts merged');
+  return getContact(userId, accountId, primaryId, 'all');
+}
+
+export async function mergeCompanies(userId: string, accountId: string, primaryId: string, secondaryId: string) {
+  const [primary] = await db.select().from(crmCompanies)
+    .where(and(eq(crmCompanies.id, primaryId), eq(crmCompanies.accountId, accountId))).limit(1);
+  const [secondary] = await db.select().from(crmCompanies)
+    .where(and(eq(crmCompanies.id, secondaryId), eq(crmCompanies.accountId, accountId))).limit(1);
+
+  if (!primary || !secondary) throw new Error('Company not found');
+
+  const now = new Date();
+  const updates: Record<string, unknown> = { updatedAt: now };
+  if (!primary.domain && secondary.domain) updates.domain = secondary.domain;
+  if (!primary.industry && secondary.industry) updates.industry = secondary.industry;
+  if (!primary.size && secondary.size) updates.size = secondary.size;
+  if (!primary.address && secondary.address) updates.address = secondary.address;
+  if (!primary.phone && secondary.phone) updates.phone = secondary.phone;
+
+  const mergedTags = [...new Set([...(primary.tags ?? []), ...(secondary.tags ?? [])])];
+  updates.tags = mergedTags;
+
+  await db.update(crmCompanies).set(updates).where(eq(crmCompanies.id, primaryId));
+
+  // Re-link contacts from secondary to primary
+  await db.update(crmContacts).set({ companyId: primaryId, updatedAt: now })
+    .where(eq(crmContacts.companyId, secondaryId));
+
+  // Re-link deals from secondary to primary
+  await db.update(crmDeals).set({ companyId: primaryId, updatedAt: now })
+    .where(eq(crmDeals.companyId, secondaryId));
+
+  // Re-link activities from secondary to primary
+  await db.update(crmActivities).set({ companyId: primaryId, updatedAt: now })
+    .where(eq(crmActivities.companyId, secondaryId));
+
+  // Re-link notes from secondary to primary
+  await db.update(crmNotes).set({ companyId: primaryId, updatedAt: now })
+    .where(eq(crmNotes.companyId, secondaryId));
+
+  // Delete secondary (soft)
+  await db.update(crmCompanies).set({ isArchived: true, updatedAt: now })
+    .where(eq(crmCompanies.id, secondaryId));
+
+  logger.info({ userId, primaryId, secondaryId }, 'CRM companies merged');
+  return getCompany(userId, accountId, primaryId, 'all');
+}
+
+// ─── Dashboard Charts (extended) ──────────────────────────────────
+
+export async function getDashboardCharts(userId: string, accountId: string, recordAccess?: CrmRecordAccess) {
+  const ownerFilter = (!recordAccess || recordAccess === 'own')
+    ? eq(crmDeals.userId, userId)
+    : sql`TRUE`;
+  const now = new Date();
+
+  // Win/Loss by month (last 6 months)
+  const winLossByMonth: { month: string; won: number; lost: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    const [wonAgg] = await db.select({ count: sql<number>`COUNT(*)` }).from(crmDeals)
+      .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false),
+        sql`${crmDeals.wonAt} IS NOT NULL`, gte(crmDeals.wonAt, monthDate), lte(crmDeals.wonAt, monthEnd)));
+
+    const [lostAgg] = await db.select({ count: sql<number>`COUNT(*)` }).from(crmDeals)
+      .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false),
+        sql`${crmDeals.lostAt} IS NOT NULL`, gte(crmDeals.lostAt, monthDate), lte(crmDeals.lostAt, monthEnd)));
+
+    winLossByMonth.push({
+      month: monthLabel,
+      won: Number(wonAgg?.count ?? 0),
+      lost: Number(lostAgg?.count ?? 0),
+    });
+  }
+
+  // Revenue trend (last 6 months)
+  const revenueTrend: { month: string; revenue: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    const [revAgg] = await db.select({
+      revenue: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`,
+    }).from(crmDeals)
+      .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false),
+        sql`${crmDeals.wonAt} IS NOT NULL`, gte(crmDeals.wonAt, monthDate), lte(crmDeals.wonAt, monthEnd)));
+
+    revenueTrend.push({ month: monthLabel, revenue: Number(revAgg?.revenue ?? 0) });
+  }
+
+  // Sales cycle length (avg days from created to won, last 6 months)
+  const salesCycleLength: { month: string; avgDays: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    const [cycleAgg] = await db.select({
+      avgDays: sql<number>`COALESCE(AVG(EXTRACT(EPOCH FROM (${crmDeals.wonAt} - ${crmDeals.createdAt})) / 86400), 0)`,
+    }).from(crmDeals)
+      .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false),
+        sql`${crmDeals.wonAt} IS NOT NULL`, gte(crmDeals.wonAt, monthDate), lte(crmDeals.wonAt, monthEnd)));
+
+    salesCycleLength.push({ month: monthLabel, avgDays: Math.round(Number(cycleAgg?.avgDays ?? 0)) });
+  }
+
+  // Conversion funnel — count of deals that reached each stage (ever)
+  const funnelData = await db.select({
+    stage: crmDealStages.name,
+    stageColor: crmDealStages.color,
+    count: sql<number>`COUNT(*)`,
+    sequence: crmDealStages.sequence,
+  }).from(crmDeals)
+    .leftJoin(crmDealStages, eq(crmDeals.stageId, crmDealStages.id))
+    .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false)))
+    .groupBy(crmDealStages.name, crmDealStages.color, crmDealStages.sequence)
+    .orderBy(asc(crmDealStages.sequence));
+
+  const conversionFunnel = funnelData.map((r) => ({
+    stage: r.stage || 'Unknown',
+    stageColor: r.stageColor || '#6b7280',
+    count: Number(r.count),
+    sequence: r.sequence ?? 0,
+  }));
+
+  // Deals by source — grouped by contact.source
+  const sourceData = await db.select({
+    source: crmContacts.source,
+    count: sql<number>`COUNT(*)`,
+    value: sql<number>`COALESCE(SUM(${crmDeals.value}), 0)`,
+  }).from(crmDeals)
+    .leftJoin(crmContacts, eq(crmDeals.contactId, crmContacts.id))
+    .where(and(ownerFilter, eq(crmDeals.accountId, accountId), eq(crmDeals.isArchived, false)))
+    .groupBy(crmContacts.source);
+
+  const dealsBySource = sourceData.map((r) => ({
+    source: r.source || 'Unknown',
+    count: Number(r.count),
+    value: Number(r.value),
+  }));
+
+  return { winLossByMonth, revenueTrend, salesCycleLength, conversionFunnel, dealsBySource };
 }

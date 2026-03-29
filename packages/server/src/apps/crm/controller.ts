@@ -962,3 +962,323 @@ export async function updatePermission(req: Request, res: Response) {
     res.status(500).json({ success: false, error: 'Failed to update permission' });
   }
 }
+
+// ─── Leads ──────────────────────────────────────────────────────────
+
+export async function listLeads(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { status, source, search } = req.query;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'contacts', 'view')) {
+      res.status(403).json({ success: false, error: 'No access to leads' });
+      return;
+    }
+
+    const leads = await crmService.listLeads(userId, accountId, {
+      status: status as string | undefined,
+      source: source as string | undefined,
+      search: search as string | undefined,
+      recordAccess: perm.recordAccess,
+    });
+    res.json({ success: true, data: { leads } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list CRM leads');
+    res.status(500).json({ success: false, error: 'Failed to list leads' });
+  }
+}
+
+export async function getLead(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const lead = await crmService.getLead(userId, accountId, id, perm.recordAccess);
+    if (!lead) {
+      res.status(404).json({ success: false, error: 'Lead not found' });
+      return;
+    }
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get CRM lead');
+    res.status(500).json({ success: false, error: 'Failed to get lead' });
+  }
+}
+
+export async function createLead(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { name, email, phone, companyName, source, notes } = req.body;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'contacts', 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create leads' });
+      return;
+    }
+
+    if (!name?.trim()) {
+      res.status(400).json({ success: false, error: 'Name is required' });
+      return;
+    }
+
+    const lead = await crmService.createLead(userId, accountId, {
+      name: name.trim(), email, phone, companyName, source, notes,
+    });
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create CRM lead');
+    res.status(500).json({ success: false, error: 'Failed to create lead' });
+  }
+}
+
+export async function updateLead(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+    const { name, email, phone, companyName, source, status, notes, tags, sortOrder, isArchived } = req.body;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'contacts', 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update leads' });
+      return;
+    }
+
+    const lead = await crmService.updateLead(userId, accountId, id, {
+      name, email, phone, companyName, source, status, notes, tags, sortOrder, isArchived,
+    }, perm.recordAccess);
+
+    if (!lead) {
+      res.status(404).json({ success: false, error: 'Lead not found' });
+      return;
+    }
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update CRM lead');
+    res.status(500).json({ success: false, error: 'Failed to update lead' });
+  }
+}
+
+export async function deleteLead(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'contacts', 'delete')) {
+      res.status(403).json({ success: false, error: 'No permission to delete leads' });
+      return;
+    }
+
+    await crmService.deleteLead(userId, accountId, id, perm.recordAccess);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete CRM lead');
+    res.status(500).json({ success: false, error: 'Failed to delete lead' });
+  }
+}
+
+export async function convertLead(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+    const { dealTitle, dealStageId, dealValue } = req.body;
+
+    if (!dealTitle?.trim()) {
+      res.status(400).json({ success: false, error: 'Deal title is required' });
+      return;
+    }
+    if (!dealStageId) {
+      res.status(400).json({ success: false, error: 'Deal stage is required' });
+      return;
+    }
+
+    const result = await crmService.convertLead(userId, accountId, id, {
+      dealTitle: dealTitle.trim(), dealStageId, dealValue,
+    });
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    if (error?.message?.includes('not found') || error?.message?.includes('already converted')) {
+      res.status(400).json({ success: false, error: error.message });
+      return;
+    }
+    logger.error({ error }, 'Failed to convert CRM lead');
+    res.status(500).json({ success: false, error: 'Failed to convert lead' });
+  }
+}
+
+// ─── Notes ──────────────────────────────────────────────────────────
+
+export async function listNotes(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { dealId, contactId, companyId } = req.query;
+
+    const notes = await crmService.listNotes(userId, accountId, {
+      dealId: dealId as string | undefined,
+      contactId: contactId as string | undefined,
+      companyId: companyId as string | undefined,
+    });
+    res.json({ success: true, data: { notes } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list CRM notes');
+    res.status(500).json({ success: false, error: 'Failed to list notes' });
+  }
+}
+
+export async function createNote(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { title, content, dealId, contactId, companyId } = req.body;
+
+    if (!content) {
+      res.status(400).json({ success: false, error: 'Content is required' });
+      return;
+    }
+
+    const note = await crmService.createNote(userId, accountId, {
+      title, content, dealId, contactId, companyId,
+    });
+    res.json({ success: true, data: note });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create CRM note');
+    res.status(500).json({ success: false, error: 'Failed to create note' });
+  }
+}
+
+export async function updateNote(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const id = req.params.id as string;
+    const { title, content, isPinned, isArchived } = req.body;
+
+    const note = await crmService.updateNote(userId, id, { title, content, isPinned, isArchived });
+    if (!note) {
+      res.status(404).json({ success: false, error: 'Note not found' });
+      return;
+    }
+    res.json({ success: true, data: note });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update CRM note');
+    res.status(500).json({ success: false, error: 'Failed to update note' });
+  }
+}
+
+export async function deleteNote(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const id = req.params.id as string;
+
+    await crmService.deleteNote(userId, id);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete CRM note');
+    res.status(500).json({ success: false, error: 'Failed to delete note' });
+  }
+}
+
+// ─── Forecast ───────────────────────────────────────────────────────
+
+export async function getForecast(req: Request, res: Response) {
+  try {
+    const accountId = req.auth!.accountId;
+    const forecast = await crmService.getForecast(accountId);
+    res.json({ success: true, data: forecast });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get CRM forecast');
+    res.status(500).json({ success: false, error: 'Failed to get forecast' });
+  }
+}
+
+// ─── Merge Records ──────────────────────────────────────────────────
+
+export async function mergeContacts(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { primaryId, secondaryId } = req.body;
+
+    if (!primaryId || !secondaryId) {
+      res.status(400).json({ success: false, error: 'primaryId and secondaryId are required' });
+      return;
+    }
+    if (primaryId === secondaryId) {
+      res.status(400).json({ success: false, error: 'Cannot merge a record with itself' });
+      return;
+    }
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'contacts', 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to merge contacts' });
+      return;
+    }
+
+    const merged = await crmService.mergeContacts(userId, accountId, primaryId, secondaryId);
+    res.json({ success: true, data: merged });
+  } catch (error: any) {
+    if (error?.message?.includes('not found')) {
+      res.status(404).json({ success: false, error: error.message });
+      return;
+    }
+    logger.error({ error }, 'Failed to merge CRM contacts');
+    res.status(500).json({ success: false, error: 'Failed to merge contacts' });
+  }
+}
+
+export async function mergeCompanies(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { primaryId, secondaryId } = req.body;
+
+    if (!primaryId || !secondaryId) {
+      res.status(400).json({ success: false, error: 'primaryId and secondaryId are required' });
+      return;
+    }
+    if (primaryId === secondaryId) {
+      res.status(400).json({ success: false, error: 'Cannot merge a record with itself' });
+      return;
+    }
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    if (!crmPermissions.canAccess(perm.role, 'companies', 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to merge companies' });
+      return;
+    }
+
+    const merged = await crmService.mergeCompanies(userId, accountId, primaryId, secondaryId);
+    res.json({ success: true, data: merged });
+  } catch (error: any) {
+    if (error?.message?.includes('not found')) {
+      res.status(404).json({ success: false, error: error.message });
+      return;
+    }
+    logger.error({ error }, 'Failed to merge CRM companies');
+    res.status(500).json({ success: false, error: 'Failed to merge companies' });
+  }
+}
+
+// ─── Dashboard Charts ───────────────────────────────────────────────
+
+export async function getDashboardCharts(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+
+    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const charts = await crmService.getDashboardCharts(userId, accountId, perm.recordAccess);
+    res.json({ success: true, data: charts });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get CRM dashboard charts');
+    res.status(500).json({ success: false, error: 'Failed to get dashboard charts' });
+  }
+}
