@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Cpu, HardDrive, MemoryStick } from 'lucide-react';
+import { ArrowLeft, Users, Cpu, HardDrive, MemoryStick, LayoutGrid } from 'lucide-react';
 import { useAdminTenant, useUpdateTenantStatus, useUpdateTenantPlan } from '../../hooks/use-admin';
+import { useTenantAppsAdmin, useToggleTenantApp } from '../../hooks/use-tenant-app-admin';
+import { appRegistry } from '../../apps';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../config/query-keys';
 import { Button } from '../../components/ui/button';
@@ -331,6 +333,9 @@ export function AdminTenantDetailPage() {
         </div>
       </div>
 
+      {/* Apps section */}
+      <TenantAppsSection tenantId={tenant.id} />
+
       {/* Confirm suspend */}
       <ConfirmDialog
         open={confirmSuspend}
@@ -343,6 +348,129 @@ export function AdminTenantDetailPage() {
           statusMutation.mutate({ id: tenant.id, status: 'suspended' }, { onSuccess: invalidate });
         }}
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tenant Apps Section
+// ---------------------------------------------------------------------------
+
+function TenantAppsSection({ tenantId }: { tenantId: string }) {
+  const { data: tenantApps, isLoading } = useTenantAppsAdmin(tenantId);
+  const toggleMutation = useToggleTenantApp(tenantId);
+  const allApps = appRegistry.getAll();
+
+  const enabledSet = new Set(
+    (tenantApps ?? []).filter(a => a.isEnabled).map(a => a.appId),
+  );
+
+  return (
+    <div>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--spacing-xs)',
+        marginBottom: 'var(--spacing-md)',
+      }}>
+        <LayoutGrid size={15} style={{ color: 'var(--color-text-tertiary)' }} />
+        <span style={{
+          fontSize: 'var(--font-size-md)',
+          fontWeight: 'var(--font-weight-semibold)',
+          color: 'var(--color-text-primary)',
+        }}>
+          Apps
+        </span>
+        <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
+          {enabledSet.size}
+        </Chip>
+      </div>
+
+      <div style={{
+        background: 'var(--color-bg-primary)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--color-border-primary)',
+        overflow: 'hidden',
+      }}>
+        {isLoading ? (
+          <div style={{ padding: 'var(--spacing-lg)', textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+            Loading apps...
+          </div>
+        ) : (
+          allApps.map((app, i) => {
+            const isEnabled = enabledSet.has(app.id);
+            return (
+              <div
+                key={app.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-md)',
+                  padding: 'var(--spacing-md) var(--spacing-lg)',
+                  borderBottom: i < allApps.length - 1 ? '1px solid var(--color-border-secondary)' : 'none',
+                }}
+              >
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 'var(--radius-sm)',
+                    background: app.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <app.icon size={16} color="#fff" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
+                    {app.name}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+                    {app.category}
+                  </div>
+                </div>
+                <label style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    disabled={toggleMutation.isPending}
+                    onChange={() => toggleMutation.mutate({ appId: app.id, enable: !isEnabled })}
+                    style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                  />
+                  <div
+                    style={{
+                      width: 36,
+                      height: 20,
+                      borderRadius: 10,
+                      background: isEnabled ? 'var(--color-accent-primary)' : 'var(--color-bg-tertiary)',
+                      border: `1px solid ${isEnabled ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
+                      transition: 'background 0.2s, border-color 0.2s',
+                      position: 'relative',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: '#fff',
+                        position: 'absolute',
+                        top: 1,
+                        left: isEnabled ? 17 : 1,
+                        transition: 'left 0.2s',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                      }}
+                    />
+                  </div>
+                </label>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
