@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -360,158 +360,14 @@ function formatDate(date: Date): string {
 }
 
 // ---------------------------------------------------------------------------
-// App card
+// Dock magnification utility
 // ---------------------------------------------------------------------------
 
-function SparkleOverlay() {
-  // Generate random sparkle particles
-  const particles = useMemo(() =>
-    Array.from({ length: 10 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 2.5,
-      duration: 0.8 + Math.random() * 0.8,
-      size: 2 + Math.random() * 3,
-    })),
-  []);
-
-  return (
-    <div style={{
-      position: 'absolute',
-      inset: 0,
-      pointerEvents: 'none',
-      overflow: 'hidden',
-      borderRadius: 14,
-      zIndex: 10,
-    }}>
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          style={{
-            position: 'absolute',
-            bottom: '20%',
-            left: `${p.left}%`,
-            width: p.size,
-            height: p.size,
-            borderRadius: '50%',
-            background: '#FFD700',
-            boxShadow: '0 0 3px #FFD700, 0 0 5px rgba(255,215,0,0.4)',
-            animation: `sparkle-float ${p.duration}s ease-out ${p.delay}s infinite`,
-            opacity: 0,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function AppCard({
-  icon: Icon,
-  iconNode,
-  label,
-  color,
-  badge,
-  onClick,
-  upcoming,
-  sparkle,
-}: {
-  icon?: typeof FileText;
-  iconNode?: React.ReactNode;
-  label: string;
-  color: string;
-  badge?: string;
-  onClick?: () => void;
-  upcoming?: boolean;
-  sparkle?: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <button
-      onClick={upcoming ? undefined : onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        padding: '12px 8px 10px',
-        background: hovered ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.18)',
-        borderRadius: 14,
-        cursor: upcoming ? 'default' : 'pointer',
-        transition: 'all 0.25s ease',
-        transform: hovered && !upcoming ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: hovered && !upcoming
-          ? '0 12px 28px rgba(0,0,0,0.3)'
-          : '0 4px 16px rgba(0,0,0,0.15)',
-        width: 120,
-        outline: 'none',
-        fontFamily: 'var(--font-family)',
-        position: 'relative',
-        opacity: upcoming ? 0.65 : 1,
-      }}
-    >
-      {sparkle && <SparkleOverlay />}
-      {upcoming && (
-        <span
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            fontSize: 10,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            color: '#fff',
-            background: 'rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            padding: '3px 7px',
-            borderRadius: 6,
-            lineHeight: 1.2,
-          }}
-        >
-          Soon
-        </span>
-      )}
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 12,
-          background: color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: `0 4px 16px ${color}55`,
-          transition: 'transform 0.25s ease',
-          transform: hovered && !upcoming ? 'scale(1.08)' : 'scale(1)',
-        }}
-      >
-        {iconNode ?? (Icon ? <Icon size={22} color="#fff" strokeWidth={1.7} /> : null)}
-      </div>
-      <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>
-        {label}
-      </span>
-      {badge && (
-        <span
-          style={{
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: 12,
-            marginTop: -6,
-          }}
-        >
-          {badge}
-        </span>
-      )}
-    </button>
-  );
-}
+const scaleValue = (value: number, from: [number, number], to: [number, number]) => {
+  const scale = (to[1] - to[0]) / (from[1] - from[0]);
+  const capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
+  return Math.floor(capped * scale + to[0]);
+};
 
 // ---------------------------------------------------------------------------
 // Background layer with crossfade
@@ -637,6 +493,43 @@ export function HomePage() {
       return [];
     }
   }, [userSettings]);
+
+  // Dock magnification
+  const dockRef = useRef<HTMLElement>(null);
+
+  const handleDockItemHover = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    const dock = dockRef.current;
+    if (!dock) return;
+    const mouseX = e.clientX;
+    const items = dock.querySelectorAll<HTMLElement>('.dock-item');
+    items.forEach((item) => {
+      const rect = item.getBoundingClientRect();
+      const itemCenterX = rect.left + rect.width / 2;
+      const distance = Math.abs(mouseX - itemCenterX);
+      const offsetPx = scaleValue(distance, [0, 200], [8, 0]);
+      item.style.setProperty('--dock-offset-left', `${offsetPx}px`);
+      item.style.setProperty('--dock-offset-right', `${offsetPx}px`);
+    });
+  }, []);
+
+  const handleDockMouseLeave = useCallback(() => {
+    const dock = dockRef.current;
+    if (!dock) return;
+    const items = dock.querySelectorAll<HTMLElement>('.dock-item');
+    items.forEach((item) => {
+      item.style.removeProperty('--dock-offset-left');
+      item.style.removeProperty('--dock-offset-right');
+    });
+  }, []);
+
+  // Dock app definitions
+  const dockApps = useMemo(() => [
+    { icon: CheckSquare, label: t('nav.tasks'), color: '#6366f1', route: ROUTES.TASKS },
+    { icon: FileText, label: t('nav.write'), color: '#c4856c', route: ROUTES.DOCS },
+    { icon: Pencil, label: t('nav.draw'), color: '#e06c9f', route: ROUTES.DRAW },
+    { icon: Table2, label: t('nav.tables'), color: '#2d8a6e', route: ROUTES.TABLES },
+    { icon: HardDrive, label: 'Drive', color: '#64748b', route: ROUTES.DRIVE },
+  ], [t]);
 
   return (
     <div
@@ -849,67 +742,20 @@ export function HomePage() {
         }}
       />
 
-      {/* Main layout: app icons left, content center */}
+      {/* Main layout: centered content, dock at bottom */}
       <div
         className="home-content-entrance"
         style={{
           position: 'relative',
           zIndex: 10,
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: 'column',
           alignItems: 'center',
           width: '100%',
           height: '100%',
           padding: '0 24px',
-          gap: 40,
         }}
       >
-        {/* Left sidebar — App icons (column-first flow, 2 columns max) */}
-        <div
-          style={{
-            display: 'grid',
-            gridAutoFlow: 'column',
-            gridTemplateRows: 'repeat(auto-fill, 120px)',
-            gap: 10,
-            justifyItems: 'center',
-            flexShrink: 0,
-            maxHeight: 'calc(100vh - 48px)',
-            paddingTop: isDesktop ? 48 : 16,
-            paddingBottom: 16,
-          }}
-        >
-          <AppCard
-            icon={CheckSquare}
-            label={t('nav.tasks')}
-            color="#6366f1"
-            onClick={() => navigate(ROUTES.TASKS)}
-          />
-          <AppCard
-            icon={FileText}
-            label={t('nav.write')}
-            color="#c4856c"
-            onClick={() => navigate(ROUTES.DOCS)}
-          />
-          <AppCard
-            icon={Pencil}
-            label={t('nav.draw')}
-            color="#e06c9f"
-            onClick={() => navigate(ROUTES.DRAW)}
-          />
-          <AppCard
-            icon={Table2}
-            label={t('nav.tables')}
-            color="#2d8a6e"
-            onClick={() => navigate(ROUTES.TABLES)}
-          />
-          <AppCard
-            icon={HardDrive}
-            label="Drive"
-            color="#64748b"
-            onClick={() => navigate(ROUTES.DRIVE)}
-          />
-        </div>
-
         {/* Center content — Clock, greeting, widgets */}
         <div
           style={{
@@ -919,9 +765,10 @@ export function HomePage() {
             alignItems: 'center',
             textAlign: 'center',
             overflowY: 'auto',
-            maxHeight: 'calc(100vh - 48px)',
-            paddingTop: 24,
+            maxHeight: 'calc(100vh - 120px)',
+            paddingTop: isDesktop ? 56 : 24,
             paddingBottom: 24,
+            width: '100%',
           }}
         >
           {/* Clock */}
@@ -1072,6 +919,58 @@ export function HomePage() {
           {/* Widgets — centered, 2x size */}
           <WidgetGrid />
         </div>
+
+        {/* Bottom dock bar */}
+        <nav
+          ref={dockRef}
+          className="atlas-dock"
+          onMouseLeave={handleDockMouseLeave}
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'flex-end',
+            padding: '8px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+            gap: 6,
+          }}
+        >
+          {dockApps.map((app) => {
+            const Icon = app.icon;
+            return (
+              <div
+                key={app.route}
+                className="dock-item"
+                onMouseMove={handleDockItemHover}
+              >
+                <div
+                  onClick={() => navigate(app.route)}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 14,
+                    background: app.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: `0 4px 12px ${app.color}55`,
+                  }}
+                >
+                  <Icon size={28} color="#fff" strokeWidth={1.7} />
+                </div>
+                <span className="dock-tooltip">{app.label}</span>
+              </div>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
