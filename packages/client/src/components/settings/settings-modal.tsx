@@ -48,6 +48,8 @@ import { useUIStore } from '../../stores/ui-store';
 import { useSettingsStore, type FontFamilyId, type AIProvider } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { Avatar } from '../ui/avatar';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import {
   SettingsSection,
@@ -194,35 +196,15 @@ function KeyBadge({ children }: { children: string }) {
 // Inline save button for settings that need explicit save
 function SaveButton({ onClick, saved }: { onClick: () => void; saved: boolean }) {
   return (
-    <button
+    <Button
+      variant="primary"
+      size="sm"
       onClick={onClick}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 'var(--spacing-xs)',
-        height: 32,
-        padding: '0 var(--spacing-md)',
-        background: saved ? 'var(--color-success)' : 'var(--color-accent-primary)',
-        border: 'none',
-        borderRadius: 'var(--radius-md)',
-        color: '#ffffff',
-        fontSize: 'var(--font-size-sm)',
-        fontFamily: 'var(--font-family)',
-        fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-        cursor: 'pointer',
-        transition: 'background var(--transition-normal)',
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        if (!saved) e.currentTarget.style.opacity = '0.9';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.opacity = '1';
-      }}
+      icon={saved ? <CheckCircle2 size={13} /> : <Save size={13} />}
+      style={saved ? { background: 'var(--color-success)' } : undefined}
     >
-      {saved ? <CheckCircle2 size={13} /> : <Save size={13} />}
       {saved ? 'Saved' : 'Save'}
-    </button>
+    </Button>
   );
 }
 
@@ -434,55 +416,23 @@ export function MailGeneralPanel() {
               {account?.email}
             </div>
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                style={{
-                  padding: '2px 8px',
-                  background: 'transparent',
-                  border: '1px solid var(--color-border-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-text-secondary)',
-                  fontSize: 'var(--font-size-xs)',
-                  fontFamily: 'var(--font-family)',
-                  cursor: 'pointer',
-                  transition: 'background var(--transition-normal), color var(--transition-normal)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--color-surface-hover)';
-                  e.currentTarget.style.color = 'var(--color-text-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--color-text-secondary)';
-                }}
+                style={{ height: 24, padding: '0 8px', fontSize: 'var(--font-size-xs)' }}
               >
                 Upload photo
-              </button>
+              </Button>
               {account?.pictureUrl && (
-                <button
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={(e) => { e.stopPropagation(); handleRemoveAvatar(); }}
-                  style={{
-                    padding: '2px 8px',
-                    background: 'transparent',
-                    border: '1px solid var(--color-border-primary)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--color-text-tertiary)',
-                    fontSize: 'var(--font-size-xs)',
-                    fontFamily: 'var(--font-family)',
-                    cursor: 'pointer',
-                    transition: 'background var(--transition-normal), color var(--transition-normal)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--color-error) 8%, transparent)';
-                    e.currentTarget.style.color = 'var(--color-error)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                  }}
+                  style={{ height: 24, padding: '0 8px', fontSize: 'var(--font-size-xs)' }}
                 >
                   Remove
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -490,27 +440,12 @@ export function MailGeneralPanel() {
 
         <SettingsRow label="Display name" description="How your name appears when you send emails">
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-            <input
+            <Input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your name"
               onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-              style={{
-                width: 220,
-                height: 34,
-                padding: '0 var(--spacing-md)',
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border-primary)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--color-text-primary)',
-                fontSize: 'var(--font-size-md)',
-                fontFamily: 'var(--font-family)',
-                outline: 'none',
-                boxSizing: 'border-box',
-                transition: 'border-color var(--transition-normal)',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'var(--color-border-focus)')}
-              onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-primary)')}
+              style={{ width: 220 }}
             />
             <SaveButton onClick={handleSaveName} saved={saved} />
           </div>
@@ -572,36 +507,15 @@ export function MailGeneralPanel() {
               Sign out of your current account
             </div>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="md"
             onClick={() => setShowLogoutConfirm(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-xs)',
-              height: 34,
-              padding: '0 var(--spacing-md)',
-              background: 'transparent',
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--font-size-sm)',
-              fontFamily: 'var(--font-family)',
-              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-              cursor: 'pointer',
-              transition: 'background var(--transition-normal), color var(--transition-normal)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-surface-hover)';
-              e.currentTarget.style.color = 'var(--color-text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--color-text-secondary)';
-            }}
+            icon={<LogOut size={14} />}
+            style={{ fontSize: 'var(--font-size-sm)' }}
           >
-            <LogOut size={14} />
             Sign out
-          </button>
+          </Button>
         </div>
       </SettingsSection>
 
@@ -719,63 +633,26 @@ export function MailAccountsPanel() {
                         Active
                       </span>
                     ) : (
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => switchAccount(acc.id)}
-                        style={{
-                          height: 28,
-                          padding: '0 var(--spacing-sm)',
-                          background: 'var(--color-bg-elevated)',
-                          border: '1px solid var(--color-border-primary)',
-                          borderRadius: 'var(--radius-md)',
-                          color: 'var(--color-text-secondary)',
-                          fontSize: 'var(--font-size-xs)',
-                          fontFamily: 'var(--font-family)',
-                          cursor: 'pointer',
-                          transition: 'background var(--transition-normal), color var(--transition-normal)',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'var(--color-accent-primary)';
-                          e.currentTarget.style.color = '#ffffff';
-                          e.currentTarget.style.borderColor = 'var(--color-accent-primary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'var(--color-bg-elevated)';
-                          e.currentTarget.style.color = 'var(--color-text-secondary)';
-                          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                        }}
+                        style={{ fontSize: 'var(--font-size-xs)' }}
                       >
                         Switch
-                      </button>
+                      </Button>
                     )}
 
                     {displayAccounts.length > 1 && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setConfirmRemoveId(acc.id)}
                         aria-label={`Remove ${acc.email}`}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 28,
-                          height: 28,
-                          border: 'none',
-                          borderRadius: 'var(--radius-md)',
-                          background: 'transparent',
-                          color: 'var(--color-text-tertiary)',
-                          cursor: 'pointer',
-                          transition: 'background var(--transition-normal), color var(--transition-normal)',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'color-mix(in srgb, var(--color-error) 10%, transparent)';
-                          e.currentTarget.style.color = 'var(--color-error)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                        }}
+                        style={{ width: 28, height: 28, padding: 0 }}
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -1566,21 +1443,6 @@ export function MailAIPanel() {
     setTestingProvider(null);
   };
 
-  // Shared input styles
-  const inputStyle: CSSProperties = {
-    width: '100%',
-    padding: '8px 12px',
-    fontSize: 'var(--font-size-sm)',
-    fontFamily: 'var(--font-family)',
-    background: 'var(--color-bg-tertiary)',
-    border: '1px solid var(--color-border-secondary)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--color-text-primary)',
-    outline: 'none',
-    transition: 'border-color var(--transition-normal)',
-    boxSizing: 'border-box' as const,
-  };
-
   return (
     <div>
       {/* Master toggle */}
@@ -1728,34 +1590,24 @@ export function MailAIPanel() {
             {aiProvider === 'custom' && (
               <div style={{ padding: 'var(--spacing-md) 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                  <Input
+                    label="Service name"
+                    type="text"
+                    value={aiCustomProvider.name}
+                    onChange={(e) => setAICustomProvider({ name: e.target.value })}
+                    placeholder="e.g. LiteLLM, Ollama, vLLM"
+                    spellCheck={false}
+                    style={{ fontSize: 'var(--font-size-sm)' }}
+                  />
                   <div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
-                      Service name
-                    </div>
-                    <input
-                      type="text"
-                      value={aiCustomProvider.name}
-                      onChange={(e) => setAICustomProvider({ name: e.target.value })}
-                      placeholder="e.g. LiteLLM, Ollama, vLLM"
-                      spellCheck={false}
-                      style={inputStyle}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
-                    />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
-                      Base URL
-                    </div>
-                    <input
+                    <Input
+                      label="Base URL"
                       type="url"
                       value={aiCustomProvider.baseUrl}
                       onChange={(e) => setAICustomProvider({ baseUrl: e.target.value })}
                       placeholder="https://api.example.com/v1"
                       spellCheck={false}
-                      style={{ ...inputStyle, fontFamily: 'monospace' }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
+                      style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'monospace' }}
                     />
                     <div style={{ marginTop: 4, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-quaternary)' }}>
                       Must be OpenAI-compatible (supports /chat/completions endpoint)
@@ -1772,16 +1624,14 @@ export function MailAIPanel() {
               </div>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
-                  <input
+                  <Input
                     type={keyVisible ? 'text' : 'password'}
                     value={currentKey}
                     onChange={(e) => handleKeyChange(e.target.value)}
                     placeholder={activeConfig.placeholder}
                     spellCheck={false}
                     autoComplete="off"
-                    style={{ ...inputStyle, fontFamily: 'monospace', paddingRight: 36 }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-accent-primary)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
+                    style={{ fontSize: 'var(--font-size-sm)', fontFamily: 'monospace', paddingRight: 36 }}
                   />
                   <button
                     onClick={() => setKeyVisible(!keyVisible)}
@@ -1803,26 +1653,19 @@ export function MailAIPanel() {
                     {keyVisible ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
-                <button
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={testApiKey}
                   disabled={!currentKey || testingProvider === aiProvider}
                   style={{
-                    padding: '8px 16px',
                     fontSize: 'var(--font-size-sm)',
-                    fontFamily: 'var(--font-family)',
-                    fontWeight: 500,
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border-secondary)',
-                    background: 'var(--color-bg-tertiary)',
-                    color: !currentKey ? 'var(--color-text-quaternary)' : 'var(--color-text-primary)',
-                    cursor: !currentKey ? 'not-allowed' : 'pointer',
-                    transition: 'all var(--transition-normal)',
-                    whiteSpace: 'nowrap',
                     opacity: !currentKey ? 0.5 : 1,
+                    cursor: !currentKey ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {testingProvider === aiProvider ? 'Testing...' : 'Test key'}
-                </button>
+                </Button>
               </div>
               {testResult && (
                 <div
@@ -1830,7 +1673,7 @@ export function MailAIPanel() {
                     marginTop: 'var(--spacing-sm)',
                     fontSize: 'var(--font-size-sm)',
                     fontFamily: 'var(--font-family)',
-                    color: testResult.ok ? 'var(--color-success, #22c55e)' : 'var(--color-error, #ef4444)',
+                    color: testResult.ok ? 'var(--color-success)' : 'var(--color-error)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 'var(--spacing-xs)',
@@ -1905,8 +1748,8 @@ export function MailAIPanel() {
             <div
               style={{
                 padding: 'var(--spacing-md) var(--spacing-lg)',
-                background: 'color-mix(in srgb, var(--color-warning, #f59e0b) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-warning, #f59e0b) 30%, transparent)',
+                background: 'color-mix(in srgb, var(--color-warning) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-warning) 30%, transparent)',
                 borderRadius: 'var(--radius-md)',
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-secondary)',
