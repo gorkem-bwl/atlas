@@ -236,6 +236,13 @@ function getFileExtension(name: string): string {
   return name.split('.').pop()?.toLowerCase() || '';
 }
 
+function isCodeFile(name: string): boolean {
+  const ext = getFileExtension(name);
+  return ['js', 'ts', 'jsx', 'tsx', 'py', 'rb', 'go', 'rs', 'java', 'php', 'sh', 'bash',
+    'css', 'html', 'xml', 'json', 'yaml', 'yml', 'toml', 'sql', 'c', 'cpp', 'h',
+    'swift', 'kt', 'dart', 'lua', 'r', 'ini', 'env', 'dockerfile'].includes(ext);
+}
+
 function getFriendlyTypeName(mimeType: string | null, name: string): string {
   if (!mimeType) return 'File';
   const ext = getFileExtension(name);
@@ -306,19 +313,77 @@ function getFriendlyTypeName(mimeType: string | null, name: string): string {
 }
 
 function renderBasicMarkdown(md: string): string {
-  return md
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/^### (.+)$/gm, '<h3 style="margin:12px 0 4px;font-size:14px;font-weight:600">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 style="margin:14px 0 4px;font-size:15px;font-weight:600">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 style="margin:16px 0 6px;font-size:17px;font-weight:700">$1</h1>')
+  // Escape HTML first
+  let html = md
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Code blocks (```...```) — must come before inline patterns
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, _lang, code) =>
+    `<pre style="background:var(--color-bg-tertiary);padding:var(--spacing-md);border-radius:var(--radius-md);overflow-x:auto;font-family:var(--font-mono);font-size:var(--font-size-xs);line-height:1.6;margin:var(--spacing-sm) 0;border:1px solid var(--color-border-secondary)"><code>${code.trim()}</code></pre>`
+  );
+
+  // Blockquotes
+  html = html.replace(/^&gt; (.+)$/gm,
+    '<blockquote style="border-left:3px solid var(--color-accent-primary);padding-left:var(--spacing-md);color:var(--color-text-secondary);margin:var(--spacing-sm) 0;font-style:italic">$1</blockquote>'
+  );
+
+  // Headings (h1-h4)
+  html = html
+    .replace(/^#### (.+)$/gm, '<h4 style="margin:var(--spacing-md) 0 var(--spacing-xs);font-size:var(--font-size-sm);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)">$1</h4>')
+    .replace(/^### (.+)$/gm, '<h3 style="margin:var(--spacing-md) 0 var(--spacing-xs);font-size:var(--font-size-md);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="margin:var(--spacing-lg) 0 var(--spacing-xs);font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 style="margin:var(--spacing-xl) 0 var(--spacing-sm);font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-text-primary)">$1</h1>');
+
+  // Inline styles
+  html = html
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code style="background:var(--color-bg-tertiary);padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
-    .replace(/^- (.+)$/gm, '<li style="margin-left:16px;list-style:disc">$1</li>')
-    .replace(/^\d+\. (.+)$/gm, '<li style="margin-left:16px;list-style:decimal">$1</li>')
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--color-border-secondary);margin:12px 0">')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
+    .replace(/~~(.+?)~~/g, '<del style="color:var(--color-text-tertiary)">$1</del>')
+    .replace(/`(.+?)`/g, '<code style="background:var(--color-bg-tertiary);padding:1px 4px;border-radius:var(--radius-sm);font-size:var(--font-size-xs);font-family:var(--font-mono)">$1</code>');
+
+  // Links [text](url)
+  html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--color-text-link);text-decoration:underline">$1</a>');
+
+  // Images ![alt](url)
+  html = html.replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:var(--radius-md);margin:var(--spacing-sm) 0" />');
+
+  // Checkboxes
+  html = html
+    .replace(/^- \[x\] (.+)$/gm, '<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span style="color:var(--color-success)">&#9745;</span><span style="text-decoration:line-through;color:var(--color-text-tertiary)">$1</span></div>')
+    .replace(/^- \[ \] (.+)$/gm, '<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><span style="color:var(--color-text-tertiary)">&#9744;</span><span>$1</span></div>');
+
+  // Lists
+  html = html
+    .replace(/^- (.+)$/gm, '<li style="margin-left:var(--spacing-lg);list-style:disc;margin-bottom:2px">$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin-left:var(--spacing-lg);list-style:decimal;margin-bottom:2px">$1</li>');
+
+  // Horizontal rules
+  html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--color-border-secondary);margin:var(--spacing-md) 0">');
+
+  // Tables (simple: | col | col |)
+  html = html.replace(/((?:\|.+\|\n?)+)/g, (table) => {
+    const rows = table.trim().split('\n').filter(r => r.trim());
+    if (rows.length < 2) return table;
+    // Skip separator row (|---|---|)
+    const dataRows = rows.filter(r => !/^\|[\s-:|]+\|$/.test(r));
+    if (dataRows.length === 0) return table;
+    const headerCells = dataRows[0].split('|').filter(c => c.trim());
+    const bodyRows = dataRows.slice(1);
+    let t = '<table style="width:100%;border-collapse:collapse;margin:var(--spacing-sm) 0;font-size:var(--font-size-sm)">';
+    t += '<thead><tr>' + headerCells.map(c => `<th style="text-align:left;padding:var(--spacing-xs) var(--spacing-sm);border-bottom:2px solid var(--color-border-primary);font-weight:var(--font-weight-medium);color:var(--color-text-secondary)">${c.trim()}</th>`).join('') + '</tr></thead>';
+    t += '<tbody>';
+    for (const row of bodyRows) {
+      const cells = row.split('|').filter(c => c.trim());
+      t += '<tr>' + cells.map(c => `<td style="padding:var(--spacing-xs) var(--spacing-sm);border-bottom:1px solid var(--color-border-secondary)">${c.trim()}</td>`).join('') + '</tr>';
+    }
+    t += '</tbody></table>';
+    return t;
+  });
+
+  // Paragraphs
+  html = html.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+  return html;
 }
 
 function parseCsvToRows(content: string): string[][] {
@@ -1918,7 +1983,22 @@ export function DrivePage() {
                   </>
                 ) : (
                   <>
-                    <pre className="drive-preview-pre">{filePreviewData.content}</pre>
+                    {isCodeFile(previewItem.name) ? (
+                      <div className="drive-preview-code">
+                        <table style={{ borderCollapse: 'collapse', width: '100%', fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-xs)', lineHeight: 1.7 }}>
+                          <tbody>
+                            {filePreviewData.content.split('\n').map((line, i) => (
+                              <tr key={i}>
+                                <td style={{ padding: '0 var(--spacing-sm)', color: 'var(--color-text-tertiary)', textAlign: 'right', userSelect: 'none', minWidth: 36, opacity: 0.5 }}>{i + 1}</td>
+                                <td style={{ padding: '0 var(--spacing-sm)', whiteSpace: 'pre', color: 'var(--color-text-primary)' }}>{line}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <pre className="drive-preview-pre">{filePreviewData.content}</pre>
+                    )}
                     {filePreviewData.truncated && (
                       <div className="drive-preview-truncated">File truncated — showing first 512 KB</div>
                     )}
