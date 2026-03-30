@@ -1419,14 +1419,20 @@
       "uploadFirst": "Upload your first PDF",
       "title": "Title",
       "status": "Status",
+      "signers": "Signers",
       "created": "Created",
       "pages": "Pages",
-      "actions": "Actions"
+      "actions": "Actions",
+      "search": "Search documents..."
     },
     "editor": {
       "back": "Back",
       "uploadPdf": "Upload PDF",
       "downloadPdf": "Download PDF",
+      "uploading": "Uploading document...",
+      "processing": "Processing document...",
+      "dragFieldsHint": "Add signature fields from the toolbar on the left",
+      "assignAllFields": "Assign all required fields to a signer before sending",
       "deleteDocument": "Delete document",
       "voidDocument": "Void document",
       "sendForSigning": "Send for signing",
@@ -1466,6 +1472,23 @@
       "noSignersYet": "No signers added yet. Use \"Send for signing\" to add signers.",
       "activeSigner": "Active — new fields assigned here",
       "clickToSelect": "Click to select"
+    },
+    "signerPanel": {
+      "signers": "Signers",
+      "newSigner": "New signer",
+      "moveUp": "Move up",
+      "assignHint": "New fields will be assigned to the selected signer"
+    },
+    "fieldProps": {
+      "title": "Field properties",
+      "fieldType": "Field type",
+      "assignedTo": "Assigned to",
+      "unassigned": "Unassigned",
+      "label": "Label",
+      "labelPlaceholder": "Optional label...",
+      "required": "Required",
+      "size": "Size (W x H)",
+      "deleteField": "Delete field"
     },
     "public": {
       "loading": "Loading document...",

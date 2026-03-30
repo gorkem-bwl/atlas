@@ -1137,14 +1137,20 @@
       "uploadFirst": "Téléchargez votre premier PDF",
       "title": "Titre",
       "status": "Statut",
+      "signers": "Signataires",
       "created": "Créé",
       "pages": "Pages",
-      "actions": "Actions"
+      "actions": "Actions",
+      "search": "Rechercher des documents..."
     },
     "editor": {
       "back": "Retour",
       "uploadPdf": "Télécharger un PDF",
       "downloadPdf": "Télécharger le PDF",
+      "uploading": "Téléchargement du document...",
+      "processing": "Traitement du document...",
+      "dragFieldsHint": "Ajoutez des champs de signature depuis la barre d'outils à gauche",
+      "assignAllFields": "Attribuez tous les champs obligatoires à un signataire avant d'envoyer",
       "deleteDocument": "Supprimer le document",
       "voidDocument": "Annuler le document",
       "sendForSigning": "Envoyer pour signature",
@@ -1184,6 +1190,23 @@
       "noSignersYet": "Aucun signataire ajouté. Utilisez \"Envoyer pour signature\" pour ajouter des signataires.",
       "activeSigner": "Actif — les nouveaux champs sont attribués ici",
       "clickToSelect": "Cliquez pour sélectionner"
+    },
+    "signerPanel": {
+      "signers": "Signataires",
+      "newSigner": "Nouveau signataire",
+      "moveUp": "Monter",
+      "assignHint": "Les nouveaux champs seront attribués au signataire sélectionné"
+    },
+    "fieldProps": {
+      "title": "Propriétés du champ",
+      "fieldType": "Type de champ",
+      "assignedTo": "Attribué à",
+      "unassigned": "Non attribué",
+      "label": "Libellé",
+      "labelPlaceholder": "Libellé optionnel...",
+      "required": "Obligatoire",
+      "size": "Taille (L x H)",
+      "deleteField": "Supprimer le champ"
     },
     "public": {
       "loading": "Chargement du document...",

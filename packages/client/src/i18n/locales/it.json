@@ -1137,14 +1137,20 @@
       "uploadFirst": "Carica il tuo primo PDF",
       "title": "Titolo",
       "status": "Stato",
+      "signers": "Firmatari",
       "created": "Creato",
       "pages": "Pagine",
-      "actions": "Azioni"
+      "actions": "Azioni",
+      "search": "Cerca documenti..."
     },
     "editor": {
       "back": "Indietro",
       "uploadPdf": "Carica PDF",
       "downloadPdf": "Scarica PDF",
+      "uploading": "Caricamento documento...",
+      "processing": "Elaborazione documento...",
+      "dragFieldsHint": "Aggiungi campi firma dalla barra degli strumenti a sinistra",
+      "assignAllFields": "Assegna tutti i campi obbligatori a un firmatario prima di inviare",
       "deleteDocument": "Elimina documento",
       "voidDocument": "Annulla documento",
       "sendForSigning": "Invia per la firma",
@@ -1184,6 +1190,23 @@
       "noSignersYet": "Nessun firmatario aggiunto. Usa \"Invia per la firma\" per aggiungere firmatari.",
       "activeSigner": "Attivo — i nuovi campi vengono assegnati qui",
       "clickToSelect": "Clicca per selezionare"
+    },
+    "signerPanel": {
+      "signers": "Firmatari",
+      "newSigner": "Nuovo firmatario",
+      "moveUp": "Sposta su",
+      "assignHint": "I nuovi campi saranno assegnati al firmatario selezionato"
+    },
+    "fieldProps": {
+      "title": "Proprietà campo",
+      "fieldType": "Tipo di campo",
+      "assignedTo": "Assegnato a",
+      "unassigned": "Non assegnato",
+      "label": "Etichetta",
+      "labelPlaceholder": "Etichetta opzionale...",
+      "required": "Obbligatorio",
+      "size": "Dimensione (L x A)",
+      "deleteField": "Elimina campo"
     },
     "public": {
       "loading": "Caricamento documento...",

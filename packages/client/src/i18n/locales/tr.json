@@ -1137,14 +1137,20 @@
       "uploadFirst": "İlk PDF'inizi yükleyin",
       "title": "Başlık",
       "status": "Durum",
+      "signers": "İmzacılar",
       "created": "Oluşturulma",
       "pages": "Sayfa",
-      "actions": "İşlemler"
+      "actions": "İşlemler",
+      "search": "Belge ara..."
     },
     "editor": {
       "back": "Geri",
       "uploadPdf": "PDF yükle",
       "downloadPdf": "PDF indir",
+      "uploading": "Belge yükleniyor...",
+      "processing": "Belge işleniyor...",
+      "dragFieldsHint": "Soldaki araç çubuğundan imza alanları ekleyin",
+      "assignAllFields": "Göndermeden önce tüm gerekli alanları bir imzacıya atayın",
       "deleteDocument": "Belgeyi sil",
       "voidDocument": "Belgeyi iptal et",
       "sendForSigning": "İmzaya gönder",
@@ -1184,6 +1190,23 @@
       "noSignersYet": "Henüz imzacı eklenmedi. İmzacı eklemek için \"İmzaya gönder\"i kullanın.",
       "activeSigner": "Aktif — yeni alanlar buraya atanır",
       "clickToSelect": "Seçmek için tıklayın"
+    },
+    "signerPanel": {
+      "signers": "İmzacılar",
+      "newSigner": "Yeni imzacı",
+      "moveUp": "Yukarı taşı",
+      "assignHint": "Yeni alanlar seçili imzacıya atanacak"
+    },
+    "fieldProps": {
+      "title": "Alan özellikleri",
+      "fieldType": "Alan tipi",
+      "assignedTo": "Atanan kişi",
+      "unassigned": "Atanmamış",
+      "label": "Etiket",
+      "labelPlaceholder": "İsteğe bağlı etiket...",
+      "required": "Zorunlu",
+      "size": "Boyut (G x Y)",
+      "deleteField": "Alanı sil"
     },
     "public": {
       "loading": "Belge yükleniyor...",

@@ -50,6 +50,20 @@
   overflow-y: auto;
 }
 
+.sign-field-toolbar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sign-field-toolbar-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--color-border-secondary);
+  margin: 4px 0;
+}
+
 .sign-field-toolbar-btn {
   display: flex;
   align-items: center;
@@ -68,6 +82,67 @@
 .sign-field-toolbar-btn:hover {
   background: var(--color-surface-hover);
   color: var(--color-text-primary);
+}
+
+/* Right sidebar panel */
+.sign-right-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--color-border-primary);
+  background: var(--color-bg-primary);
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.sign-right-sidebar-divider {
+  height: 1px;
+  background: var(--color-border-secondary);
+  margin: var(--spacing-xs) 0;
+}
+
+/* Upload feedback */
+.sign-upload-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--spacing-sm);
+  padding: 40px;
+}
+
+/* Empty overlay on PDF page */
+.sign-empty-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sign-empty-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  background: color-mix(in srgb, var(--color-bg-primary) 90%, transparent);
+  border: 1px dashed var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  text-align: center;
+}
+
+/* Document list row status border */
+.sign-doc-row {
+  transition: background 0.1s, border-color 0.15s;
 }
 
 .sign-content {

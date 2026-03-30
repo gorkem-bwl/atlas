@@ -1137,14 +1137,20 @@
       "uploadFirst": "Laden Sie Ihr erstes PDF hoch",
       "title": "Titel",
       "status": "Status",
+      "signers": "Unterzeichner",
       "created": "Erstellt",
       "pages": "Seiten",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "search": "Dokumente suchen..."
     },
     "editor": {
       "back": "Zurück",
       "uploadPdf": "PDF hochladen",
       "downloadPdf": "PDF herunterladen",
+      "uploading": "Dokument wird hochgeladen...",
+      "processing": "Dokument wird verarbeitet...",
+      "dragFieldsHint": "Unterschriftsfelder aus der linken Werkzeugleiste hinzufügen",
+      "assignAllFields": "Alle Pflichtfelder einem Unterzeichner zuweisen, bevor Sie senden",
       "deleteDocument": "Dokument löschen",
       "voidDocument": "Dokument ungültig machen",
       "sendForSigning": "Zur Unterschrift senden",
@@ -1184,6 +1190,23 @@
       "noSignersYet": "Noch keine Unterzeichner hinzugefügt. Verwenden Sie \"Zur Unterschrift senden\", um Unterzeichner hinzuzufügen.",
       "activeSigner": "Aktiv — neue Felder werden hier zugewiesen",
       "clickToSelect": "Klicken zum Auswählen"
+    },
+    "signerPanel": {
+      "signers": "Unterzeichner",
+      "newSigner": "Neuer Unterzeichner",
+      "moveUp": "Nach oben",
+      "assignHint": "Neue Felder werden dem ausgewählten Unterzeichner zugewiesen"
+    },
+    "fieldProps": {
+      "title": "Feldeigenschaften",
+      "fieldType": "Feldtyp",
+      "assignedTo": "Zugewiesen an",
+      "unassigned": "Nicht zugewiesen",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "Optionale Bezeichnung...",
+      "required": "Pflichtfeld",
+      "size": "Größe (B x H)",
+      "deleteField": "Feld löschen"
     },
     "public": {
       "loading": "Dokument wird geladen...",

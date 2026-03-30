@@ -39,9 +39,12 @@ import { StatusDot } from '../../components/ui/status-dot';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { IconButton } from '../../components/ui/icon-button';
 import { Tooltip } from '../../components/ui/tooltip';
+import { Skeleton } from '../../components/ui/skeleton';
 import { PdfViewer } from './components/pdf-viewer';
 import { FieldOverlay } from './components/field-overlay';
 import { SignatureModal } from './components/signature-modal';
+import { SignerPanel, SIGNER_COLORS, type Signer } from './components/signer-panel';
+import { FieldPropertiesPanel } from './components/field-properties-panel';
 import {
   useSignDocuments,
   useSignDocument,
@@ -76,7 +79,14 @@ const STATUS_BADGE_MAP: Record<string, 'default' | 'primary' | 'success' | 'warn
   voided: 'error',
 };
 
-const SIGNER_COLORS = ['#8b5cf6', '#3b82f6', '#ef4444', '#f59e0b', '#10b981'];
+// Status-based left border colors for document list rows
+const STATUS_BORDER_COLORS: Record<string, string> = {
+  signed: 'var(--color-success)',
+  pending: 'var(--color-warning)',
+  draft: 'var(--color-border-primary)',
+  expired: 'var(--color-error)',
+  voided: 'var(--color-error)',
+};
 
 // ─── Main page ──────────────────────────────────────────────────────
 
@@ -93,15 +103,17 @@ export function SignPage() {
   const [sigFieldType, setSigFieldType] = useState<SignatureFieldType>('signature');
   const [sigFieldId, setSigFieldId] = useState<string | undefined>();
   const [sendModalOpen, setSendModalOpen] = useState(false);
-  const [signerEmail, setSignerEmail] = useState('');
-  const [signerName, setSignerName] = useState('');
+  // (signerEmail/signerName state removed — signers array is used instead)
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
-  // Multiple signers
-  const [signers, setSigners] = useState<{ email: string; name: string }[]>([{ email: '', name: '' }]);
+  // Upload progress
+  const [uploading, setUploading] = useState(false);
+  // Multiple signers (editor panel)
+  const [signers, setSigners] = useState<Signer[]>([{ email: '', name: '' }]);
+  const [activeSignerIndex, setActiveSignerIndex] = useState<number | null>(null);
   const [generatedLinks, setGeneratedLinks] = useState<{ email: string; link: string }[]>([]);
   const [activeSigner, setActiveSigner] = useState<string | undefined>();
   const [signersModalOpen, setSignersModalOpen] = useState(false);
@@ -147,6 +159,7 @@ export function SignPage() {
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      setUploading(true);
       const formData = new FormData();
       formData.append('pdf', file);
       formData.append('title', file.name.replace(/\.pdf$/i, ''));
@@ -156,6 +169,8 @@ export function SignPage() {
         setView('editor');
       } catch {
         // Error handled by React Query
+      } finally {
+        setUploading(false);
       }
       // Reset input
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -212,6 +227,10 @@ export function SignPage() {
   const handleAddField = useCallback(
     async (type: SignatureFieldType) => {
       if (!selectedDocId) return;
+      // Auto-assign to active signer if one is selected
+      const assignedEmail = activeSignerIndex !== null && signers[activeSignerIndex]?.email.trim()
+        ? signers[activeSignerIndex].email.trim()
+        : null;
       await createField.mutateAsync({
         type,
         pageNumber: 1,
@@ -219,13 +238,13 @@ export function SignPage() {
         y: 40,
         width: 20,
         height: 5,
-        signerEmail: null,
+        signerEmail: assignedEmail,
         label: null,
         required: true,
         sortOrder: 0,
       });
     },
-    [selectedDocId, createField],
+    [selectedDocId, createField, activeSignerIndex, signers],
   );
 
   const handleFieldMove = useCallback(
@@ -326,15 +345,34 @@ export function SignPage() {
   const handleCloseSendModal = useCallback((open: boolean) => {
     setSendModalOpen(open);
     if (!open) {
-      setSignerEmail('');
-      setSignerName('');
       setGeneratedLink(null);
       setGeneratedLinks([]);
       setLinkCopied(false);
-      setSigners([{ email: '', name: '' }]);
       setExpiryDate(getDefaultExpiry());
     }
   }, []);
+
+  // ─── Selected field (for properties panel) ────────────────────
+  const selectedField = useMemo(() => {
+    if (!selectedFieldId || !fields) return null;
+    return fields.find((f) => f.id === selectedFieldId) ?? null;
+  }, [selectedFieldId, fields]);
+
+  const handleFieldPropertyUpdate = useCallback(
+    (data: Partial<SignatureField>) => {
+      if (!selectedFieldId) return;
+      updateField.mutate({ fieldId: selectedFieldId, ...data });
+    },
+    [selectedFieldId, updateField],
+  );
+
+  // Check if all required fields have a signer assigned (for send enablement)
+  const allFieldsAssigned = useMemo(() => {
+    if (!fields || fields.length === 0) return false;
+    const requiredFields = fields.filter((f) => f.required);
+    if (requiredFields.length === 0) return true;
+    return requiredFields.every((f) => f.signerEmail);
+  }, [fields]);
 
   // ─── Filtered + searched + sorted docs ─────────────────────────
 
@@ -490,7 +528,14 @@ export function SignPage() {
               />
             </ListToolbar>
             <div style={{ flex: 1, overflow: 'auto' }}>
-              {docsLoading ? (
+              {uploading ? (
+                <div className="sign-upload-feedback">
+                  <Skeleton width={60} height={60} borderRadius="var(--radius-lg)" />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-sm)' }}>
+                    {t('sign.editor.uploading')}
+                  </span>
+                </div>
+              ) : docsLoading ? (
                 <div className="sign-empty">{t('sign.list.loading')}</div>
               ) : filteredDocs.length === 0 ? (
                 <FeatureEmptyState
@@ -512,14 +557,17 @@ export function SignPage() {
                     <tr>
                       <th><ColumnHeader label={t('sign.list.title')} icon={<FileText size={12} />} sortable columnKey="title" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
                       <th><ColumnHeader label={t('sign.list.status')} icon={<Tag size={12} />} sortable columnKey="status" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
+                      <th><ColumnHeader label={t('sign.list.signers')} icon={<Users size={12} />} /></th>
                       <th><ColumnHeader label={t('sign.list.created')} icon={<Calendar size={12} />} sortable columnKey="createdAt" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
-                      <th><ColumnHeader label={t('sign.list.pages')} icon={<Users size={12} />} /></th>
                       <th style={{ width: 80 }}><ColumnHeader label={t('sign.list.actions')} /></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredDocs.map((doc) => (
-                      <tr key={doc.id} onClick={() => handleOpenDoc(doc)}>
+                    {filteredDocs.map((doc) => {
+                      const docAny = doc as SignatureDocument & { signerCount?: number; signedCount?: number; signers?: Array<{ email: string; name: string | null; status: string }> };
+                      const borderColor = STATUS_BORDER_COLORS[doc.status] ?? 'var(--color-border-primary)';
+                      return (
+                      <tr key={doc.id} onClick={() => handleOpenDoc(doc)} className="sign-doc-row" style={{ borderLeft: `3px solid ${borderColor}` }}>
                         <td style={{ fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'] }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             <span>{doc.title}</span>
@@ -535,10 +583,35 @@ export function SignPage() {
                             {doc.status}
                           </Badge>
                         </td>
+                        <td>
+                          {docAny.signerCount && docAny.signerCount > 0 ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ display: 'flex', gap: 3 }}>
+                                {(docAny.signers ?? []).map((signer, sIdx) => (
+                                  <StatusDot
+                                    key={sIdx}
+                                    color={
+                                      signer.status === 'signed' ? 'var(--color-success)'
+                                        : signer.status === 'declined' || signer.status === 'expired' ? 'var(--color-error)'
+                                        : 'var(--color-warning)'
+                                    }
+                                    size={8}
+                                    glow={signer.status === 'signed'}
+                                    label={`${signer.email}: ${signer.status}`}
+                                  />
+                                ))}
+                              </div>
+                              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                                {docAny.signedCount}/{docAny.signerCount}
+                              </span>
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--color-text-tertiary)' }}>&mdash;</span>
+                          )}
+                        </td>
                         <td style={{ color: 'var(--color-text-secondary)' }}>
                           {formatDate(doc.createdAt)}
                         </td>
-                        <td style={{ color: 'var(--color-text-secondary)' }}>{doc.pageCount}</td>
                         <td onClick={(e) => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 2 }}>
                             {doc.status === 'signed' && (
@@ -559,7 +632,8 @@ export function SignPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -664,14 +738,22 @@ export function SignPage() {
                   />
                 )}
                 <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<Send size={14} />}
-                  onClick={() => setSendModalOpen(true)}
-                >
-                  {t('sign.editor.sendForSigning')}
-                </Button>
+                <Tooltip content={!allFieldsAssigned && fields && fields.length > 0 ? t('sign.editor.assignAllFields') : undefined}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<Send size={14} />}
+                    onClick={() => setSendModalOpen(true)}
+                    disabled={!allFieldsAssigned && fields != null && fields.length > 0}
+                  >
+                    {t('sign.editor.sendForSigning')}
+                    {signers.filter((s) => s.email.trim()).length > 0 && (
+                      <span style={{ marginLeft: 4, fontSize: 'var(--font-size-xs)', opacity: 0.7 }}>
+                        ({signers.filter((s) => s.email.trim()).length})
+                      </span>
+                    )}
+                  </Button>
+                </Tooltip>
                 <Button
                   variant="primary"
                   size="sm"
@@ -757,69 +839,118 @@ export function SignPage() {
 
             <SmartButtonBar appId="sign" recordId={selectedDoc.id} />
 
-            {/* Field toolbar (vertical) + PDF viewer */}
+            {/* Field toolbar (vertical) + PDF viewer + Right sidebar */}
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
               {/* Vertical field type toolbar */}
               <div className="sign-field-toolbar">
-                <Tooltip content={t('sign.fields.signature')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('signature')}>
-                    <PenTool size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={t('sign.fields.initials')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('initials')}>
-                    <Type size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={t('sign.fields.date')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('date')}>
-                    <Calendar size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={t('sign.fields.text')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('text')}>
-                    <AlignLeft size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={t('sign.fields.checkbox')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('checkbox')}>
-                    <CheckSquare size={18} />
-                  </button>
-                </Tooltip>
-                <Tooltip content={t('sign.fields.dropdown')} side="right">
-                  <button className="sign-field-toolbar-btn" onClick={() => handleAddField('dropdown')}>
-                    <ChevronDown size={18} />
-                  </button>
-                </Tooltip>
+                <div className="sign-field-toolbar-group">
+                  <Tooltip content={t('sign.fields.signature')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('signature')}>
+                      <PenTool size={18} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={t('sign.fields.initials')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('initials')}>
+                      <Type size={18} />
+                    </button>
+                  </Tooltip>
+                </div>
+                <div className="sign-field-toolbar-divider" />
+                <div className="sign-field-toolbar-group">
+                  <Tooltip content={t('sign.fields.date')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('date')}>
+                      <Calendar size={18} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={t('sign.fields.text')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('text')}>
+                      <AlignLeft size={18} />
+                    </button>
+                  </Tooltip>
+                </div>
+                <div className="sign-field-toolbar-divider" />
+                <div className="sign-field-toolbar-group">
+                  <Tooltip content={t('sign.fields.checkbox')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('checkbox')}>
+                      <CheckSquare size={18} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={t('sign.fields.dropdown')} side="right">
+                    <button className="sign-field-toolbar-btn" onClick={() => handleAddField('dropdown')}>
+                      <ChevronDown size={18} />
+                    </button>
+                  </Tooltip>
+                </div>
               </div>
 
               {/* PDF viewer + field overlay */}
               <div className="sign-content">
-                {pdfUrl && (
-                  <PdfViewer
-                    url={pdfUrl}
-                    scale={1.5}
-                    onPageCount={(count) => {
-                      if (selectedDoc.pageCount !== count) {
-                        updateDoc.mutate({ pageCount: count });
-                      }
-                    }}
-                    renderOverlay={(pageNumber, pageWidth, pageHeight) => (
-                      <FieldOverlay
-                        fields={fields ?? []}
-                        pageNumber={pageNumber}
-                        pageWidth={pageWidth}
-                        pageHeight={pageHeight}
-                        onFieldMove={handleFieldMove}
-                        onFieldResize={handleFieldResize}
-                        onFieldClick={handleFieldClick}
-                        onFieldDelete={handleFieldDelete}
-                        selectedFieldId={selectedFieldId}
-                        editable
-                      />
-                  )}
+                {uploading ? (
+                  <div className="sign-upload-feedback">
+                    <Skeleton width={120} height={120} borderRadius="var(--radius-lg)" />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-md)' }}>
+                      {t('sign.editor.uploading')}
+                    </span>
+                  </div>
+                ) : pdfUrl ? (
+                  <div style={{ position: 'relative' }}>
+                    <PdfViewer
+                      url={pdfUrl}
+                      scale={1.5}
+                      onPageCount={(count) => {
+                        if (selectedDoc.pageCount !== count) {
+                          updateDoc.mutate({ pageCount: count });
+                        }
+                      }}
+                      renderOverlay={(pageNumber, pageWidth, pageHeight) => (
+                        <>
+                          <FieldOverlay
+                            fields={fields ?? []}
+                            pageNumber={pageNumber}
+                            pageWidth={pageWidth}
+                            pageHeight={pageHeight}
+                            onFieldMove={handleFieldMove}
+                            onFieldResize={handleFieldResize}
+                            onFieldClick={handleFieldClick}
+                            onFieldDelete={handleFieldDelete}
+                            selectedFieldId={selectedFieldId}
+                            editable
+                          />
+                          {/* Empty state hint overlay when no fields on this page */}
+                          {(!fields || fields.filter((f) => f.pageNumber === pageNumber).length === 0) && pageNumber === 1 && (
+                            <div className="sign-empty-overlay">
+                              <div className="sign-empty-overlay-content">
+                                <PenTool size={20} style={{ color: 'var(--color-text-tertiary)' }} />
+                                <span>{t('sign.editor.dragFieldsHint')}</span>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    />
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Right sidebar: signer panel + field properties */}
+              <div className="sign-right-sidebar">
+                <SignerPanel
+                  signers={signers}
+                  onSignersChange={setSigners}
+                  activeSignerIndex={activeSignerIndex}
+                  onActiveSignerChange={setActiveSignerIndex}
                 />
-              )}
+                {selectedField && (
+                  <>
+                    <div className="sign-right-sidebar-divider" />
+                    <FieldPropertiesPanel
+                      field={selectedField}
+                      signers={signers}
+                      onUpdateField={handleFieldPropertyUpdate}
+                      onDeleteField={() => handleFieldDelete(selectedField.id)}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </>

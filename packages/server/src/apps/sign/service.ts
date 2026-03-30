@@ -1,6 +1,6 @@
 import { db } from '../../config/database';
 import { signatureDocuments, signatureFields, signingTokens } from '../../db/schema';
-import { eq, and, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, inArray } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import crypto from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -23,7 +23,43 @@ export async function listDocuments(userId: string, accountId: string) {
       ),
     )
     .orderBy(desc(signatureDocuments.updatedAt));
-  return docs;
+
+  // Batch-fetch signer summaries for all documents
+  if (docs.length === 0) return docs;
+
+  const docIds = docs.map((d) => d.id);
+  const allTokens = await db
+    .select({
+      documentId: signingTokens.documentId,
+      signerEmail: signingTokens.signerEmail,
+      signerName: signingTokens.signerName,
+      status: signingTokens.status,
+    })
+    .from(signingTokens)
+    .where(inArray(signingTokens.documentId, docIds));
+
+  // Group tokens by document
+  const tokensByDoc = new Map<string, typeof allTokens>();
+  for (const token of allTokens) {
+    const existing = tokensByDoc.get(token.documentId) || [];
+    existing.push(token);
+    tokensByDoc.set(token.documentId, existing);
+  }
+
+  // Enrich documents with signer summary
+  return docs.map((doc) => {
+    const tokens = tokensByDoc.get(doc.id) || [];
+    return {
+      ...doc,
+      signerCount: tokens.length,
+      signedCount: tokens.filter((t) => t.status === 'signed').length,
+      signers: tokens.map((t) => ({
+        email: t.signerEmail,
+        name: t.signerName,
+        status: t.status,
+      })),
+    };
+  });
 }
 
 export async function getDocument(userId: string, documentId: string) {
