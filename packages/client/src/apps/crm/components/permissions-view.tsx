@@ -1,8 +1,42 @@
-import { Shield, Users } from 'lucide-react';
-import { useCrmPermissions, useUpdateCrmPermission, type CrmRole, type CrmRecordAccess, type CrmPermissionWithUser } from '../hooks';
+import { useState, useMemo, type CSSProperties } from 'react';
+import { Shield, Users, Check, X, Eye, Plus, Pencil, Trash2, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import {
+  useCrmPermissions,
+  useUpdateCrmPermission,
+  type CrmRole,
+  type CrmRecordAccess,
+  type CrmPermissionWithUser,
+  type CrmEntity,
+  type CrmOperation,
+  canAccess,
+} from '../hooks';
 import { Select } from '../../../components/ui/select';
 import { Badge } from '../../../components/ui/badge';
 import { Skeleton } from '../../../components/ui/skeleton';
+import { Avatar } from '../../../components/ui/avatar';
+import { Tooltip } from '../../../components/ui/tooltip';
+import { StatusDot } from '../../../components/ui/status-dot';
+
+// ─── Constants ──────────────────────────────────────────────────────
+
+const ROLES: CrmRole[] = ['admin', 'manager', 'sales', 'viewer'];
+
+const ENTITIES: { id: CrmEntity; label: string; icon: typeof Eye }[] = [
+  { id: 'deals', label: 'Deals', icon: Eye },
+  { id: 'contacts', label: 'Contacts', icon: Eye },
+  { id: 'companies', label: 'Companies', icon: Eye },
+  { id: 'activities', label: 'Activities', icon: Eye },
+  { id: 'workflows', label: 'Automations', icon: Eye },
+  { id: 'dashboard', label: 'Dashboard', icon: Eye },
+];
+
+const OPERATIONS: { id: CrmOperation; label: string; icon: typeof Eye }[] = [
+  { id: 'view', label: 'View', icon: Eye },
+  { id: 'create', label: 'Create', icon: Plus },
+  { id: 'update', label: 'Edit', icon: Pencil },
+  { id: 'delete', label: 'Delete', icon: Trash2 },
+];
 
 const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin' },
@@ -13,56 +47,223 @@ const ROLE_OPTIONS = [
 
 const ACCESS_OPTIONS = [
   { value: 'all', label: 'All records' },
-  { value: 'own', label: 'Own records' },
+  { value: 'own', label: 'Own records only' },
 ];
 
+const ROLE_COLORS: Record<CrmRole, string> = {
+  admin: '#7c3aed',
+  manager: '#2563eb',
+  sales: '#f59e0b',
+  viewer: '#6b7280',
+};
+
 const ROLE_DESCRIPTIONS: Record<CrmRole, string> = {
-  admin: 'Full access to all CRM features and permissions management',
+  admin: 'Full access to all CRM features including permissions and automations',
   manager: 'Full CRUD on all entities, view-only on automations',
-  sales: 'CRUD on deals, contacts, activities; view-only on companies',
+  sales: 'Manage deals, contacts, and activities. View-only on companies',
   viewer: 'Read-only access to all entities',
 };
 
-function getRoleBadgeVariant(role: CrmRole): 'primary' | 'success' | 'warning' | 'default' {
-  switch (role) {
-    case 'admin': return 'primary';
-    case 'manager': return 'success';
-    case 'sales': return 'warning';
-    case 'viewer': return 'default';
-  }
+// ─── Permission Matrix Cell ─────────────────────────────────────────
+
+function MatrixCell({ allowed }: { allowed: boolean }) {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 28,
+      height: 28,
+      borderRadius: 'var(--radius-sm)',
+      background: allowed
+        ? 'color-mix(in srgb, var(--color-success) 12%, transparent)'
+        : 'transparent',
+    }}>
+      {allowed ? (
+        <Check size={14} style={{ color: 'var(--color-success)' }} />
+      ) : (
+        <X size={12} style={{ color: 'var(--color-text-tertiary)', opacity: 0.3 }} />
+      )}
+    </div>
+  );
 }
 
-function PermissionRow({ perm, onUpdate }: {
+// ─── Permission Matrix (Odoo/Salesforce style) ──────────────────────
+
+function PermissionMatrix() {
+  const [hoveredRole, setHoveredRole] = useState<CrmRole | null>(null);
+
+  return (
+    <div style={{
+      border: '1px solid var(--color-border-secondary)',
+      borderRadius: 'var(--radius-lg)',
+      overflow: 'hidden',
+      marginBottom: 'var(--spacing-xl)',
+    }}>
+      {/* Header row: Entity names across the top */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '120px repeat(6, 1fr)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        background: 'var(--color-bg-secondary)',
+      }}>
+        <div style={{
+          padding: 'var(--spacing-sm) var(--spacing-md)',
+          fontSize: 'var(--font-size-xs)',
+          fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+          color: 'var(--color-text-tertiary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+        }}>
+          Role
+        </div>
+        {ENTITIES.map((entity) => (
+          <div
+            key={entity.id}
+            style={{
+              padding: 'var(--spacing-sm) var(--spacing-xs)',
+              fontSize: 'var(--font-size-xs)',
+              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+              color: 'var(--color-text-secondary)',
+              textAlign: 'center',
+            }}
+          >
+            {entity.label}
+          </div>
+        ))}
+      </div>
+
+      {/* Operation sub-header */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '120px repeat(6, 1fr)',
+        borderBottom: '1px solid var(--color-border-primary)',
+        background: 'var(--color-bg-secondary)',
+      }}>
+        <div />
+        {ENTITIES.map((entity) => (
+          <div key={entity.id} style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 2,
+            padding: '2px var(--spacing-xs)',
+          }}>
+            {OPERATIONS.map((op) => {
+              const Icon = op.icon;
+              return (
+                <Tooltip key={op.id} content={op.label}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 28,
+                    height: 20,
+                  }}>
+                    <Icon size={10} style={{ color: 'var(--color-text-tertiary)', opacity: 0.6 }} />
+                  </div>
+                </Tooltip>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Role rows */}
+      {ROLES.map((role, idx) => (
+        <div
+          key={role}
+          onMouseEnter={() => setHoveredRole(role)}
+          onMouseLeave={() => setHoveredRole(null)}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '120px repeat(6, 1fr)',
+            borderBottom: idx < ROLES.length - 1 ? '1px solid var(--color-border-secondary)' : 'none',
+            background: hoveredRole === role ? 'var(--color-surface-hover)' : 'transparent',
+            transition: 'background var(--transition-fast)',
+          }}
+        >
+          {/* Role name + color dot */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+          }}>
+            <StatusDot color={ROLE_COLORS[role]} size={8} />
+            <span style={{
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+              color: 'var(--color-text-primary)',
+              textTransform: 'capitalize',
+            }}>
+              {role}
+            </span>
+          </div>
+
+          {/* CRUD cells per entity */}
+          {ENTITIES.map((entity) => (
+            <div key={entity.id} style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 2,
+              padding: 'var(--spacing-xs)',
+              alignItems: 'center',
+            }}>
+              {OPERATIONS.map((op) => (
+                <MatrixCell key={op.id} allowed={canAccess(role, entity.id, op.id)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── User Permission Row ────────────────────────────────────────────
+
+function UserPermissionRow({ perm, onUpdate }: {
   perm: CrmPermissionWithUser;
   onUpdate: (userId: string, role: CrmRole, recordAccess: CrmRecordAccess) => void;
 }) {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '1fr 140px 160px',
+      gridTemplateColumns: '1fr 140px 170px',
       gap: 'var(--spacing-md)',
       alignItems: 'center',
-      padding: 'var(--spacing-md) var(--spacing-lg)',
+      padding: 'var(--spacing-sm) var(--spacing-lg)',
       borderBottom: '1px solid var(--color-border-secondary)',
     }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{
-          fontSize: 'var(--font-size-md)',
-          fontWeight: 'var(--font-weight-medium)',
-          color: 'var(--color-text-primary)',
-        }}>
-          {perm.userName || perm.userEmail}
-        </span>
-        {perm.userName && (
-          <span style={{
-            fontSize: 'var(--font-size-xs)',
-            color: 'var(--color-text-tertiary)',
+      {/* User info */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', minWidth: 0 }}>
+        <Avatar name={perm.userName} email={perm.userEmail} size={32} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+            color: 'var(--color-text-primary)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}>
-            {perm.userEmail}
-          </span>
-        )}
+            {perm.userName || perm.userEmail}
+          </div>
+          {perm.userName && (
+            <div style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {perm.userEmail}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Role selector */}
       <Select
         value={perm.role}
         onChange={(v) => onUpdate(perm.userId, v as CrmRole, perm.recordAccess)}
@@ -70,6 +271,7 @@ function PermissionRow({ perm, onUpdate }: {
         size="sm"
       />
 
+      {/* Record access selector */}
       <Select
         value={perm.recordAccess}
         onChange={(v) => onUpdate(perm.userId, perm.role, v as CrmRecordAccess)}
@@ -80,7 +282,10 @@ function PermissionRow({ perm, onUpdate }: {
   );
 }
 
+// ─── Main Component ─────────────────────────────────────────────────
+
 export function PermissionsView() {
+  const { t } = useTranslation();
   const { data, isLoading } = useCrmPermissions();
   const updatePermission = useUpdateCrmPermission();
 
@@ -94,6 +299,7 @@ export function PermissionsView() {
     return (
       <div style={{ padding: 'var(--spacing-xl)' }}>
         <Skeleton height={32} style={{ marginBottom: 'var(--spacing-md)' }} />
+        <Skeleton height={200} style={{ marginBottom: 'var(--spacing-xl)' }} />
         <Skeleton height={48} style={{ marginBottom: 'var(--spacing-sm)' }} />
         <Skeleton height={48} style={{ marginBottom: 'var(--spacing-sm)' }} />
         <Skeleton height={48} />
@@ -102,104 +308,175 @@ export function PermissionsView() {
   }
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-xl)' }}>
+    <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-xl)', fontFamily: 'var(--font-family)' }}>
       {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--spacing-sm)',
-        marginBottom: 'var(--spacing-lg)',
+        marginBottom: 'var(--spacing-sm)',
       }}>
         <Shield size={18} style={{ color: 'var(--color-accent-primary)' }} />
         <span style={{
           fontSize: 'var(--font-size-lg)',
-          fontWeight: 'var(--font-weight-semibold)',
+          fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
           color: 'var(--color-text-primary)',
         }}>
-          CRM permissions
+          {t('crm.permissions.title', 'CRM permissions')}
         </span>
       </div>
+      <p style={{
+        fontSize: 'var(--font-size-sm)',
+        color: 'var(--color-text-tertiary)',
+        marginBottom: 'var(--spacing-xl)',
+        lineHeight: 'var(--line-height-normal)',
+      }}>
+        {t('crm.permissions.description', 'Control what each role can do. Assign roles to team members below.')}
+      </p>
 
-      {/* Role legend */}
+      {/* Role descriptions */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gap: 'var(--spacing-sm)',
-        padding: 'var(--spacing-md)',
-        background: 'var(--color-bg-secondary)',
-        borderRadius: 'var(--radius-md)',
         marginBottom: 'var(--spacing-xl)',
       }}>
-        {(Object.entries(ROLE_DESCRIPTIONS) as [CrmRole, string][]).map(([role, desc]) => (
-          <div key={role} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Badge variant={getRoleBadgeVariant(role)}>
-              {role.charAt(0).toUpperCase() + role.slice(1)}
-            </Badge>
-            <span style={{
+        {ROLES.map((role) => (
+          <div
+            key={role}
+            style={{
+              padding: 'var(--spacing-md)',
+              background: 'var(--color-bg-tertiary)',
+              borderRadius: 'var(--radius-md)',
+              borderLeft: `3px solid ${ROLE_COLORS[role]}`,
+            }}
+          >
+            <div style={{
+              fontSize: 'var(--font-size-sm)',
+              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+              color: 'var(--color-text-primary)',
+              textTransform: 'capitalize',
+              marginBottom: 4,
+            }}>
+              {role}
+            </div>
+            <div style={{
               fontSize: 'var(--font-size-xs)',
               color: 'var(--color-text-tertiary)',
-              lineHeight: 1.4,
+              lineHeight: 'var(--line-height-normal)',
             }}>
-              {desc}
-            </span>
+              {ROLE_DESCRIPTIONS[role]}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Table header */}
+      {/* CRUD Permission Matrix */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 140px 160px',
-        gap: 'var(--spacing-md)',
-        padding: 'var(--spacing-sm) var(--spacing-lg)',
-        borderBottom: '1px solid var(--color-border-primary)',
+        fontSize: 'var(--font-size-xs)',
+        fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+        color: 'var(--color-text-tertiary)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        marginBottom: 'var(--spacing-sm)',
       }}>
-        <span style={{
-          fontSize: 'var(--font-size-xs)',
-          fontWeight: 'var(--font-weight-semibold)',
-          color: 'var(--color-text-secondary)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>User</span>
-        <span style={{
-          fontSize: 'var(--font-size-xs)',
-          fontWeight: 'var(--font-weight-semibold)',
-          color: 'var(--color-text-secondary)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>Role</span>
-        <span style={{
-          fontSize: 'var(--font-size-xs)',
-          fontWeight: 'var(--font-weight-semibold)',
-          color: 'var(--color-text-secondary)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>Record access</span>
+        {t('crm.permissions.matrix', 'Permission matrix')}
+      </div>
+      <PermissionMatrix />
+
+      {/* Legend */}
+      <div style={{
+        display: 'flex',
+        gap: 'var(--spacing-lg)',
+        marginBottom: 'var(--spacing-xl)',
+        fontSize: 'var(--font-size-xs)',
+        color: 'var(--color-text-tertiary)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Eye size={10} /> View
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Plus size={10} /> Create
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Pencil size={10} /> Edit
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Trash2 size={10} /> Delete
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <MatrixCell allowed={true} /> Allowed
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <MatrixCell allowed={false} /> Denied
+        </div>
       </div>
 
-      {/* Permission rows */}
-      {permissions.length === 0 ? (
+      {/* Team members section */}
+      <div style={{
+        fontSize: 'var(--font-size-xs)',
+        fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+        color: 'var(--color-text-tertiary)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        marginBottom: 'var(--spacing-sm)',
+      }}>
+        {t('crm.permissions.teamMembers', 'Team member assignments')}
+      </div>
+
+      <div style={{
+        border: '1px solid var(--color-border-secondary)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+      }}>
+        {/* Table header */}
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: 'grid',
+          gridTemplateColumns: '1fr 140px 170px',
           gap: 'var(--spacing-md)',
-          padding: 'var(--spacing-2xl)',
-          color: 'var(--color-text-tertiary)',
+          padding: 'var(--spacing-sm) var(--spacing-lg)',
+          background: 'var(--color-bg-secondary)',
+          borderBottom: '1px solid var(--color-border-secondary)',
         }}>
-          <Users size={32} />
-          <span style={{ fontSize: 'var(--font-size-sm)' }}>No team members found</span>
+          <span style={headerStyle}>User</span>
+          <span style={headerStyle}>Role</span>
+          <span style={headerStyle}>Record access</span>
         </div>
-      ) : (
-        permissions.map((perm) => (
-          <PermissionRow
-            key={perm.userId}
-            perm={perm}
-            onUpdate={handleUpdate}
-          />
-        ))
-      )}
+
+        {/* Permission rows */}
+        {permissions.length === 0 ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 'var(--spacing-md)',
+            padding: 'var(--spacing-2xl)',
+            color: 'var(--color-text-tertiary)',
+          }}>
+            <Users size={32} />
+            <span style={{ fontSize: 'var(--font-size-sm)' }}>
+              {t('crm.permissions.noMembers', 'No team members found')}
+            </span>
+          </div>
+        ) : (
+          permissions.map((perm) => (
+            <UserPermissionRow
+              key={perm.userId}
+              perm={perm}
+              onUpdate={handleUpdate}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
+
+const headerStyle: CSSProperties = {
+  fontSize: 'var(--font-size-xs)',
+  fontWeight: 'var(--font-weight-medium)',
+  color: 'var(--color-text-tertiary)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
