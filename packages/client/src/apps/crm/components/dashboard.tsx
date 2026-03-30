@@ -5,25 +5,9 @@ import {
   Briefcase, Building2, Tag,
 } from 'lucide-react';
 import { useDashboard, type CrmDashboard, type CrmDeal, type CrmActivity } from '../hooks';
+import { formatCurrencyCompact, formatDate } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { ColumnHeader } from '../../../components/ui/column-header';
-
-// ─── Helpers ──────────────────────────────────────────────────────
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toLocaleString()}`;
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '--';
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 function getActivityIcon(type: string) {
   switch (type) {
@@ -133,7 +117,7 @@ function PipelineChart({
               />
             </div>
             <span className="crm-bar-value">
-              {formatCurrency(stage.value)}
+              {formatCurrencyCompact(stage.value)}
               <span className="crm-bar-count">({stage.count} {stage.count === 1 ? 'deal' : 'deals'})</span>
             </span>
           </div>
@@ -217,7 +201,7 @@ function DealsTable({
                 <td className="crm-dashboard-table-primary">{deal.title}</td>
                 <td>{deal.companyName || '--'}</td>
                 <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                  {formatCurrency(deal.value)}
+                  {formatCurrencyCompact(deal.value)}
                 </td>
                 {showCloseDate && (
                   <td>
@@ -292,7 +276,7 @@ export function CrmDashboard() {
           icon={<DollarSign size={18} />}
           iconColor="var(--color-accent-primary)"
           label="Total pipeline value"
-          value={formatCurrency(dashboard.totalPipelineValue)}
+          value={formatCurrencyCompact(dashboard.totalPipelineValue)}
           subtitle={`${dashboard.dealCount} active deal${dashboard.dealCount !== 1 ? 's' : ''}`}
         />
         <KpiCard
@@ -300,7 +284,7 @@ export function CrmDashboard() {
           iconColor="var(--color-success)"
           label="Deals won this month"
           value={`${dashboard.dealsWonCount}`}
-          subtitle={`${formatCurrency(dashboard.dealsWonValue)} revenue`}
+          subtitle={`${formatCurrencyCompact(dashboard.dealsWonValue)} revenue`}
         />
         <KpiCard
           icon={<Target size={18} />}
@@ -313,7 +297,7 @@ export function CrmDashboard() {
           icon={<TrendingUp size={18} />}
           iconColor="#6366f1"
           label="Average deal size"
-          value={formatCurrency(dashboard.averageDealSize)}
+          value={formatCurrencyCompact(dashboard.averageDealSize)}
           subtitle="Across active deals"
         />
       </div>

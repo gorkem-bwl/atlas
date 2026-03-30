@@ -5,6 +5,8 @@ import { purgeOldArchivedDrawings } from './apps/draw/service';
 import { runScheduledBackup } from './services/backup.service';
 import { runMigrations } from './db/migrate';
 import { closeDb } from './config/database';
+import { startSyncWorker, stopSyncWorker } from './workers';
+import { closeRedis } from './config/redis';
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -40,6 +42,9 @@ app.listen(env.PORT, async () => {
   }, BACKUP_INTERVAL_MS);
   setTimeout(() => runScheduledBackup().catch(() => {}), 30000);
   logger.info('Automated daily backups enabled');
+
+  // Start Google sync worker (requires Redis)
+  startSyncWorker().catch((err) => logger.warn({ err }, 'Failed to start sync worker'));
 });
 
 // Graceful shutdown
@@ -48,6 +53,12 @@ function handleShutdown(signal: string) {
 
   if (purgeTimer) { clearInterval(purgeTimer); purgeTimer = null; }
   if (backupTimer) { clearInterval(backupTimer); backupTimer = null; }
+
+  stopSyncWorker()
+    .catch((err) => logger.warn({ err }, 'Error stopping sync worker'));
+
+  closeRedis()
+    .catch((err) => logger.warn({ err }, 'Error closing Redis'));
 
   closeDb()
     .then(() => {

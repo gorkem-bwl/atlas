@@ -85,6 +85,37 @@ export interface CrmActivity {
   updatedAt: string;
 }
 
+export interface CrmEmail {
+  id: string;
+  gmailMessageId: string;
+  threadId: string;
+  fromAddress: string;
+  toAddresses: Array<{ name?: string; address: string }>;
+  ccAddresses: Array<{ name?: string; address: string }>;
+  subject: string | null;
+  body: string | null;
+  bodyHtml: string | null;
+  internalDate: string;
+  isUnread: boolean;
+  isStarred: boolean;
+  hasAttachments?: boolean;
+}
+
+export interface CrmCalendarEvent {
+  id: string;
+  googleEventId: string;
+  summary: string | null;
+  description: string | null;
+  location: string | null;
+  startTime: string;
+  endTime: string;
+  isAllDay: boolean;
+  status: string;
+  htmlLink: string | null;
+  attendees: Array<{ email: string; displayName?: string; responseStatus?: string }> | null;
+  organizer: { email: string; displayName?: string } | null;
+}
+
 export interface CrmDashboard {
   totalPipelineValue: number;
   dealsWonCount: number;
@@ -982,6 +1013,125 @@ export function useMergeCompanies() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
+    },
+  });
+}
+
+// ─── Google Sync ─────────────────────────────────────────────────
+
+export function useGoogleSyncStatus() {
+  return useQuery({
+    queryKey: queryKeys.crm.google.status,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/google/status');
+      return data.data as {
+        googleConfigured: boolean;
+        connected: boolean;
+        syncStatus: string;
+        syncError: string | null;
+        lastSync: string | null;
+        lastFullSync: string | null;
+        redisAvailable: boolean;
+      };
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useStartGoogleSync() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post('/crm/google/sync/start');
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.crm.google.status }),
+  });
+}
+
+export function useStopGoogleSync() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post('/crm/google/sync/stop');
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.crm.google.status }),
+  });
+}
+
+export function useContactEmails(contactId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.emails.byContact(contactId ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/contacts/${contactId}/emails`);
+      return data.data as CrmEmail[];
+    },
+    enabled: !!contactId,
+    staleTime: 30_000,
+  });
+}
+
+export function useDealEmails(dealId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.emails.byDeal(dealId ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/deals/${dealId}/emails`);
+      return data.data as CrmEmail[];
+    },
+    enabled: !!dealId,
+    staleTime: 30_000,
+  });
+}
+
+export function useContactEvents(contactId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.events.byContact(contactId ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/contacts/${contactId}/events`);
+      return data.data as CrmCalendarEvent[];
+    },
+    enabled: !!contactId,
+    staleTime: 30_000,
+  });
+}
+
+export function useDealEvents(dealId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.events.byDeal(dealId ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/deals/${dealId}/events`);
+      return data.data as CrmCalendarEvent[];
+    },
+    enabled: !!dealId,
+    staleTime: 30_000,
+  });
+}
+
+export function useSendEmail() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { to: string; subject: string; body: string; contactId?: string; dealId?: string }) => {
+      const { data } = await api.post('/crm/emails/send', payload);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['crm', 'emails'] });
+      qc.invalidateQueries({ queryKey: queryKeys.crm.activities.all });
+    },
+  });
+}
+
+export function useCreateEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { summary: string; startTime: string; endTime: string; attendees: string[]; location?: string; description?: string; contactId?: string; dealId?: string }) => {
+      const { data } = await api.post('/crm/events/create', payload);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['crm', 'events'] });
+      qc.invalidateQueries({ queryKey: queryKeys.crm.activities.all });
     },
   });
 }

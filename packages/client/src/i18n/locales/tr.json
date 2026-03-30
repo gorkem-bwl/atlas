@@ -449,7 +449,17 @@
     "defaultSection": "Varsayılan bölüm",
     "defaultSectionDesc": "Belgeleri ilk açtığınızda kenar çubuğunun gösterdiği görünüm.",
     "pages": "Sayfalar",
-    "recent": "Son"
+    "recent": "Son",
+    "empty": {
+      "title": "Bir belge seçin",
+      "desc": "Kenar çubuğundan bir sayfa seçin veya yeni bir tane oluşturun",
+      "h1Title": "Zengin editör",
+      "h1Desc": "Başlıklar, listeler, kod blokları ve gömmelerle yazın",
+      "h2Title": "Sayfalarla düzenleyin",
+      "h2Desc": "Alt sayfalar oluşturarak yapılandırılmış bir bilgi tabanı oluşturun",
+      "h3Title": "Şablonlar",
+      "h3Desc": "Toplantı notları, özellikler ve daha fazlası için şablonlardan başlayın"
+    }
   },
   "draw": {
     "title": "Çizim",
@@ -513,7 +523,17 @@
     "autoSave5s": "5 saniye",
     "autoSave10s": "10 saniye",
     "fromTemplate": "Şablondan",
-    "blankDrawing": "Boş çizim"
+    "blankDrawing": "Boş çizim",
+    "empty": {
+      "title": "İlk çiziminizi oluşturun",
+      "desc": "Diyagramlar, tel kafesler ve görsel fikirler çizin",
+      "h1Title": "Serbest tuval",
+      "h1Desc": "Sonsuz bir tuval üzerinde şekiller, oklar ve metin çizin",
+      "h2Title": "Şablonlar",
+      "h2Desc": "Akış şemaları, tel kafesler veya zihin haritalarından başlayın",
+      "h3Title": "Her yere dışa aktarın",
+      "h3Desc": "PNG, SVG olarak indirin veya panoya kopyalayın"
+    }
   },
   "tasks": {
     "title": "Görevler",
@@ -547,7 +567,30 @@
     "repeatYearly": "Yıllık",
     "listView": "Liste görünümü",
     "boardView": "Pano görünümü",
-    "noTasksInColumn": "Görev yok"
+    "noTasksInColumn": "Görev yok",
+    "empty": {
+      "inboxTitle": "Gelen kutunuz boş",
+      "inboxDesc": "Yeni görevler varsayılan olarak burada görünür — hazır olduğunuzda düzenleyin",
+      "inboxH1Title": "Her şeyi kaydedin",
+      "inboxH1Desc": "Görevleri hızlıca ekleyin ve daha sonra sınıflandırın",
+      "inboxH2Title": "Gününüzü planlayın",
+      "inboxH2Desc": "Önemli olanlara odaklanmak için görevleri Bugün'e taşıyın",
+      "inboxH3Title": "Son tarihler belirleyin",
+      "inboxH3Desc": "Hiçbir şeyin gözden kaçmaması için son tarihler ekleyin",
+      "loadSample": "Örnek görevleri yükle",
+      "todayTitle": "Bugün için planlanan yok",
+      "todayDesc": "Odaklanmak için görevleri buraya taşıyın",
+      "upcomingTitle": "Yaklaşan son tarih yok",
+      "upcomingDesc": "Son tarihi olan görevler burada görünür",
+      "anytimeTitle": "Her zaman'da görev yok",
+      "anytimeDesc": "İstediğiniz zaman yapabileceğiniz esnek görevler",
+      "somedayTitle": "Bir gün'de görev yok",
+      "somedayDesc": "Fikirleri ve görevleri daha sonraya bırakın",
+      "logbookTitle": "Günlük boş",
+      "logbookDesc": "Tamamlanan görevler burada görünür",
+      "projectTitle": "Bu projede görev yok",
+      "projectDesc": "Başlamak için görev ekleyin"
+    }
   },
   "errors": {
     "recipientRequired": "En az bir alıcı gereklidir",
@@ -695,7 +738,17 @@
     "rowsSelected_other": "{{count}} satır seçildi",
     "deleteSelected": "Sil",
     "duplicateSelected": "Çoğalt",
-    "clearSelection": "Seçimi temizle"
+    "clearSelection": "Seçimi temizle",
+    "empty": {
+      "title": "İlk tablonuzu oluşturun",
+      "desc": "Güçlü alan türleri ve görünümlerle elektronik tablolar oluşturun",
+      "h1Title": "Zengin alan türleri",
+      "h1Desc": "Metin, sayılar, seçimler, tarihler, onay kutuları ve daha fazlası",
+      "h2Title": "Çoklu görünümler",
+      "h2Desc": "Izgara, kanban, takvim ve galeri arasında geçiş yapın",
+      "h3Title": "Sıralama ve filtreleme",
+      "h3Desc": "Güçlü filtreleme seçenekleriyle verilerinizi düzenleyin"
+    }
   },
   "crm": {
     "title": "CRM",
@@ -849,7 +902,34 @@
       "noMatchingCompanies": "Eşleşen şirket yok",
       "noMatchingActivities": "Eşleşen aktivite yok",
       "logFirstActivity": "Başlamak için ilk aktivitenizi kaydedin",
-      "tryDifferentSearch": "Farklı bir arama terimi deneyin"
+      "tryDifferentSearch": "Farklı bir arama terimi deneyin",
+      "pipelineTitle": "Satış hattınızı oluşturun",
+      "pipelineDesc": "Anlaşmaları ilk temastan kapanışa kadar takip edin",
+      "pipelineH1Title": "Görsel hat",
+      "pipelineH1Desc": "Anlaşmaları kanban panosunda aşamalar arasında sürükleyin",
+      "pipelineH2Title": "Gelir takibi",
+      "pipelineH2Desc": "Anlaşma değerlerini ve tahminleri bir bakışta görün",
+      "pipelineH3Title": "Kazanma oranı analitiği",
+      "pipelineH3Desc": "Hattınızdaki dönüşüm oranlarını takip edin",
+      "createDeal": "İlk anlaşmayı oluştur",
+      "contactsTitle": "Kişilerinizi yönetin",
+      "contactsDesc": "İş yaptığınız herkesi takip edin",
+      "contactsH1Title": "Kişi dizini",
+      "contactsH1Desc": "İsimler, e-postalar, telefon numaraları ve roller saklayın",
+      "contactsH2Title": "E-posta geçmişi",
+      "contactsH2Desc": "Her kişiye bağlı geçmiş görüşmeleri görün",
+      "contactsH3Title": "Anlaşma ilişkilendirmeleri",
+      "contactsH3Desc": "Kişileri anlaşmalarla ilişkilendirin ve etkileşimi takip edin",
+      "addContact": "İlk kişiyi ekle",
+      "companiesTitle": "Şirketlerinizi takip edin",
+      "companiesDesc": "Birlikte çalıştığınız işletmeleri düzenleyin",
+      "companiesH1Title": "Şirket profilleri",
+      "companiesH1Desc": "Şirket bilgilerini, sektörü ve büyüklüğü saklayın",
+      "companiesH2Title": "Alan adı zenginleştirme",
+      "companiesH2Desc": "Şirket logolarını web sitelerinden otomatik olarak alın",
+      "companiesH3Title": "Ekip genel bakışı",
+      "companiesH3Desc": "Her şirket için tüm kişileri ve anlaşmaları görün",
+      "addCompany": "İlk şirketi ekle"
     },
     "bulk": {
       "deleteTitle": "{{count}} öğe silinsin mi?",
@@ -971,6 +1051,19 @@
       "titlePlaceholder": "Toplantı başlığı"
     }
   },
+  "drive": {
+    "empty": {
+      "title": "Sürücünüz boş",
+      "desc": "Başlamak için dosya yükleyin veya klasör oluşturun",
+      "h1Title": "Dosya yükleyin",
+      "h1Desc": "Herhangi bir dosya türünü sürükleyip bırakın veya göz atın",
+      "h2Title": "Klasörlerle düzenleyin",
+      "h2Desc": "Dosyalarınızı yapılandırmak için klasörler oluşturun",
+      "h3Title": "Bağlantılarla paylaşın",
+      "h3Desc": "Herhangi bir dosya veya klasör için paylaşılabilir bağlantılar oluşturun",
+      "uploadFiles": "Dosya yükle"
+    }
+  },
   "hr": {
     "title": "IK",
     "sidebar": { "dashboard": "Pano", "allEmployees": "Tum calisanlar", "departments": "Tum departmanlar", "departmentsTitle": "Departmanlar", "department": "Departman", "orgChart": "Org semasi", "timeOff": "Izin", "allDepartments": "Tum departmanlar", "settings": "Ayarlar" },
@@ -993,7 +1086,17 @@
     "orgChart": { "organization": "Organizasyon", "employees": "calisan", "unassigned": "Atanmamis", "empty": "Org semasi verisi yok", "emptyDesc": "Org semasini gormek icin departman ve calisan ekleyin." },
     "leaveBalance": { "title": "Izin bakiyesi", "allocate": "Tahsis et", "days": "Gun", "allocated": "tahsis", "used": "kullanilan", "remaining": "kalan", "noBalances": "Bu yil icin izin bakiyesi belirlenmedi." },
     "onboarding": { "title": "Ise alisma", "addTask": "Gorev ekle", "applyTemplate": "Sablon uygula", "completed": "tamamlandi", "taskTitle": "Gorev basligi", "noTasks": "Henuz ise alisma gorevi yok." },
-    "documents": { "title": "Belgeler", "upload": "Yukle", "download": "Indir", "noDocuments": "Henuz belge yuklenmedi.", "types": { "contract": "Sozlesme", "certificate": "Sertifika", "id": "Kimlik", "resume": "Ozgecmis", "policy": "Politika", "other": "Diger" } }
+    "documents": { "title": "Belgeler", "upload": "Yukle", "download": "Indir", "noDocuments": "Henuz belge yuklenmedi.", "types": { "contract": "Sozlesme", "certificate": "Sertifika", "id": "Kimlik", "resume": "Ozgecmis", "policy": "Politika", "other": "Diger" } },
+    "empty": {
+      "title": "Ekibinizi yönetin",
+      "desc": "Çalışan kayıtlarını, departmanları ve izinleri tek bir yerde tutun",
+      "h1Title": "Çalışan dizini",
+      "h1Desc": "Profilleri, rolleri ve iletişim bilgilerini saklayın",
+      "h2Title": "Departmanlar",
+      "h2Desc": "Ekibinizi yöneticilerle departmanlara ayırın",
+      "h3Title": "İzin takibi",
+      "h3Desc": "İzin taleplerini yönetin ve bakiyeleri takip edin"
+    }
   },
   "sign": {
     "title": "İmza",
@@ -1109,6 +1212,17 @@
       "clear": "Temizle",
       "cancel": "İptal",
       "apply": "Uygula"
+    },
+    "empty": {
+      "title": "Belgeleri imzalatın",
+      "desc": "Bir PDF yükleyin ve imzacılarınız için imza alanları ekleyin",
+      "h1Title": "İmza alanları yerleştirin",
+      "h1Desc": "Belgenize imza, paraf ve tarih alanları bırakın",
+      "h2Title": "İmzaya gönderin",
+      "h2Desc": "Her alıcı için benzersiz imza bağlantıları oluşturun",
+      "h3Title": "Tamamlanmayı takip edin",
+      "h3Desc": "İmza ilerlemesini izleyin ve imzalı kopyaları indirin",
+      "upload": "İlk PDF'i yükle"
     }
   }
 }

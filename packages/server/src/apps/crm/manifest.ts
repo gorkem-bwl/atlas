@@ -1,5 +1,128 @@
 import crmRouter from './routes';
 import type { ServerAppManifest } from '../../config/app-manifest.server';
+import type { EntityObjectMeta } from '@atlasmail/shared';
+
+const objects: EntityObjectMeta[] = [
+  {
+    id: 'companies',
+    name: 'Companies',
+    iconName: 'Building2',
+    tableName: 'crm_companies',
+    description: 'Organizations and businesses tracked in the CRM',
+    standardFields: [
+      { name: 'Name', slug: 'name', fieldType: 'text', isRequired: true },
+      { name: 'Domain', slug: 'domain', fieldType: 'url', isRequired: false },
+      { name: 'Industry', slug: 'industry', fieldType: 'text', isRequired: false },
+      { name: 'Size', slug: 'size', fieldType: 'select', isRequired: false },
+      { name: 'Address', slug: 'address', fieldType: 'text', isRequired: false },
+      { name: 'Phone', slug: 'phone', fieldType: 'phone', isRequired: false },
+      { name: 'Tags', slug: 'tags', fieldType: 'multi_select', isRequired: false },
+    ],
+    relations: [
+      { targetObjectId: 'crm:contacts', type: 'one-to-many' },
+      { targetObjectId: 'crm:deals', type: 'one-to-many' },
+      { targetObjectId: 'crm:activities', type: 'one-to-many' },
+    ],
+  },
+  {
+    id: 'contacts',
+    name: 'Contacts',
+    iconName: 'Users',
+    tableName: 'crm_contacts',
+    description: 'Individual people associated with companies',
+    standardFields: [
+      { name: 'Name', slug: 'name', fieldType: 'text', isRequired: true },
+      { name: 'Email', slug: 'email', fieldType: 'email', isRequired: false },
+      { name: 'Phone', slug: 'phone', fieldType: 'phone', isRequired: false },
+      { name: 'Company', slug: 'company_id', fieldType: 'relation', isRequired: false },
+      { name: 'Position', slug: 'position', fieldType: 'text', isRequired: false },
+      { name: 'Source', slug: 'source', fieldType: 'select', isRequired: false },
+      { name: 'Tags', slug: 'tags', fieldType: 'multi_select', isRequired: false },
+    ],
+    relations: [
+      { targetObjectId: 'crm:companies', type: 'many-to-one', foreignKey: 'company_id' },
+      { targetObjectId: 'crm:deals', type: 'one-to-many' },
+    ],
+  },
+  {
+    id: 'deal_stages',
+    name: 'Deal stages',
+    iconName: 'BarChart3',
+    tableName: 'crm_deal_stages',
+    description: 'Pipeline stages for tracking deal progress',
+    standardFields: [
+      { name: 'Name', slug: 'name', fieldType: 'text', isRequired: true },
+      { name: 'Color', slug: 'color', fieldType: 'text', isRequired: true },
+      { name: 'Probability', slug: 'probability', fieldType: 'number', isRequired: true },
+      { name: 'Sequence', slug: 'sequence', fieldType: 'number', isRequired: true },
+      { name: 'Is default', slug: 'is_default', fieldType: 'boolean', isRequired: true },
+    ],
+  },
+  {
+    id: 'deals',
+    name: 'Deals',
+    iconName: 'Target',
+    tableName: 'crm_deals',
+    description: 'Sales opportunities and revenue tracking',
+    standardFields: [
+      { name: 'Title', slug: 'title', fieldType: 'text', isRequired: true },
+      { name: 'Value', slug: 'value', fieldType: 'number', isRequired: true },
+      { name: 'Stage', slug: 'stage_id', fieldType: 'relation', isRequired: true },
+      { name: 'Contact', slug: 'contact_id', fieldType: 'relation', isRequired: false },
+      { name: 'Company', slug: 'company_id', fieldType: 'relation', isRequired: false },
+      { name: 'Assigned user', slug: 'assigned_user_id', fieldType: 'relation', isRequired: false },
+      { name: 'Probability', slug: 'probability', fieldType: 'number', isRequired: true },
+      { name: 'Expected close date', slug: 'expected_close_date', fieldType: 'date', isRequired: false },
+      { name: 'Won at', slug: 'won_at', fieldType: 'date', isRequired: false },
+      { name: 'Lost at', slug: 'lost_at', fieldType: 'date', isRequired: false },
+      { name: 'Lost reason', slug: 'lost_reason', fieldType: 'text', isRequired: false },
+      { name: 'Tags', slug: 'tags', fieldType: 'multi_select', isRequired: false },
+    ],
+    relations: [
+      { targetObjectId: 'crm:deal_stages', type: 'many-to-one', foreignKey: 'stage_id' },
+      { targetObjectId: 'crm:contacts', type: 'many-to-one', foreignKey: 'contact_id' },
+      { targetObjectId: 'crm:companies', type: 'many-to-one', foreignKey: 'company_id' },
+    ],
+  },
+  {
+    id: 'activities',
+    name: 'Activities',
+    iconName: 'Activity',
+    tableName: 'crm_activities',
+    description: 'Logged interactions such as calls, emails, and meetings',
+    standardFields: [
+      { name: 'Type', slug: 'type', fieldType: 'select', isRequired: true },
+      { name: 'Body', slug: 'body', fieldType: 'text', isRequired: true },
+      { name: 'Deal', slug: 'deal_id', fieldType: 'relation', isRequired: false },
+      { name: 'Contact', slug: 'contact_id', fieldType: 'relation', isRequired: false },
+      { name: 'Company', slug: 'company_id', fieldType: 'relation', isRequired: false },
+      { name: 'Scheduled at', slug: 'scheduled_at', fieldType: 'date', isRequired: false },
+      { name: 'Completed at', slug: 'completed_at', fieldType: 'date', isRequired: false },
+    ],
+    relations: [
+      { targetObjectId: 'crm:deals', type: 'many-to-one', foreignKey: 'deal_id' },
+      { targetObjectId: 'crm:contacts', type: 'many-to-one', foreignKey: 'contact_id' },
+      { targetObjectId: 'crm:companies', type: 'many-to-one', foreignKey: 'company_id' },
+    ],
+  },
+  {
+    id: 'leads',
+    name: 'Leads',
+    iconName: 'UserPlus',
+    tableName: 'crm_leads',
+    description: 'Prospective customers before qualification',
+    standardFields: [
+      { name: 'Name', slug: 'name', fieldType: 'text', isRequired: true },
+      { name: 'Email', slug: 'email', fieldType: 'email', isRequired: false },
+      { name: 'Phone', slug: 'phone', fieldType: 'phone', isRequired: false },
+      { name: 'Company name', slug: 'company_name', fieldType: 'text', isRequired: false },
+      { name: 'Source', slug: 'source', fieldType: 'select', isRequired: true },
+      { name: 'Status', slug: 'status', fieldType: 'select', isRequired: true },
+      { name: 'Notes', slug: 'notes', fieldType: 'text', isRequired: false },
+      { name: 'Tags', slug: 'tags', fieldType: 'multi_select', isRequired: false },
+    ],
+  },
+];
 
 export const crmServerManifest: ServerAppManifest = {
   id: 'crm',
@@ -15,4 +138,5 @@ export const crmServerManifest: ServerAppManifest = {
   router: crmRouter,
   routePrefix: '/crm',
   tables: ['crm_companies', 'crm_contacts', 'crm_deal_stages', 'crm_deals', 'crm_activities', 'crm_permissions'],
+  objects,
 };

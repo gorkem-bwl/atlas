@@ -1,18 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { DollarSign } from 'lucide-react';
 import type { CrmDeal, CrmDealStage } from '../hooks';
+import { formatCurrencyCompact, formatNumber } from '../../../lib/format';
 
 interface DealKanbanProps {
   deals: CrmDeal[];
   stages: CrmDealStage[];
   onMoveDeal: (dealId: string, newStageId: string) => void;
   onDealClick: (dealId: string) => void;
-}
-
-function formatValue(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toLocaleString()}`;
 }
 
 function getInitials(name: string): string {
@@ -141,7 +136,7 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanba
                   fontFamily: 'var(--font-family)',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
-                  {formatValue(totalValue)}
+                  {formatCurrencyCompact(totalValue)}
                 </span>
               )}
             </div>
@@ -192,7 +187,7 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanba
                       fontVariantNumeric: 'tabular-nums',
                     }}>
                       <DollarSign size={10} />
-                      {deal.value.toLocaleString()}
+                      {formatNumber(deal.value)}
                     </span>
                     {deal.contactName && (
                       <div style={{

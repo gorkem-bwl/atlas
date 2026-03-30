@@ -2,13 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, DollarSign, Trophy } from 'lucide-react';
 import { useForecast, type CrmForecast } from '../hooks';
+import { formatCurrencyCompact } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toLocaleString()}`;
-}
 
 function ForecastSkeleton() {
   return (
@@ -44,7 +39,7 @@ export function ForecastView() {
           </div>
           <div className="crm-kpi-card-content">
             <span className="crm-kpi-card-label">{t('crm.forecast.weightedForecast')}</span>
-            <span className="crm-kpi-card-value">{formatCurrency(forecast.totalWeighted)}</span>
+            <span className="crm-kpi-card-value">{formatCurrencyCompact(forecast.totalWeighted)}</span>
             <span className="crm-kpi-card-subtitle">{t('crm.forecast.weightedForecast')}</span>
           </div>
         </div>
@@ -54,7 +49,7 @@ export function ForecastView() {
           </div>
           <div className="crm-kpi-card-content">
             <span className="crm-kpi-card-label">{t('crm.forecast.bestCase')}</span>
-            <span className="crm-kpi-card-value">{formatCurrency(forecast.bestCase)}</span>
+            <span className="crm-kpi-card-value">{formatCurrencyCompact(forecast.bestCase)}</span>
             <span className="crm-kpi-card-subtitle">{t('crm.forecast.bestCase')}</span>
           </div>
         </div>
@@ -64,7 +59,7 @@ export function ForecastView() {
           </div>
           <div className="crm-kpi-card-content">
             <span className="crm-kpi-card-label">{t('crm.forecast.committed')}</span>
-            <span className="crm-kpi-card-value">{formatCurrency(forecast.committed)}</span>
+            <span className="crm-kpi-card-value">{formatCurrencyCompact(forecast.committed)}</span>
             <span className="crm-kpi-card-subtitle">{t('crm.forecast.committed')}</span>
           </div>
         </div>
@@ -86,7 +81,7 @@ export function ForecastView() {
                   }}
                 />
               </div>
-              <span className="crm-bar-value">{formatCurrency(month.weightedValue)}</span>
+              <span className="crm-bar-value">{formatCurrencyCompact(month.weightedValue)}</span>
             </div>
           ))}
         </div>

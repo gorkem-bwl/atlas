@@ -16,4 +16,9 @@ router.get('/accounts', authMiddleware, authController.listAccounts);
 router.get('/invitation/:token', authController.getInvitationDetails);
 router.post('/invitation/:token/accept', authLimiter, authController.acceptInvitation);
 
+// Google OAuth for CRM email/calendar sync
+router.get('/google/connect', authMiddleware, authController.googleConnect);
+router.get('/google/callback', authController.googleCallback);
+router.post('/google/disconnect', authMiddleware, authController.googleDisconnect);
+
 export default router;

@@ -449,7 +449,17 @@
     "defaultSection": "Sezione predefinita",
     "defaultSectionDesc": "Quale vista mostra la barra laterale alla prima apertura dei documenti.",
     "pages": "Pagine",
-    "recent": "Recenti"
+    "recent": "Recenti",
+    "empty": {
+      "title": "Seleziona un documento",
+      "desc": "Scegli una pagina dalla barra laterale o creane una nuova",
+      "h1Title": "Editor avanzato",
+      "h1Desc": "Scrivi con titoli, elenchi, blocchi di codice e incorporamenti",
+      "h2Title": "Organizza con le pagine",
+      "h2Desc": "Annida sotto-pagine per una base di conoscenza strutturata",
+      "h3Title": "Modelli",
+      "h3Desc": "Inizia con modelli per appunti riunioni, specifiche e altro"
+    }
   },
   "draw": {
     "title": "Disegno",
@@ -513,7 +523,17 @@
     "autoSave5s": "5 secondi",
     "autoSave10s": "10 secondi",
     "fromTemplate": "Da modello",
-    "blankDrawing": "Disegno vuoto"
+    "blankDrawing": "Disegno vuoto",
+    "empty": {
+      "title": "Crea il tuo primo disegno",
+      "desc": "Disegna diagrammi, wireframe e idee visive",
+      "h1Title": "Tela libera",
+      "h1Desc": "Disegna forme, frecce e testo su una tela infinita",
+      "h2Title": "Modelli",
+      "h2Desc": "Inizia con diagrammi di flusso, wireframe o mappe mentali",
+      "h3Title": "Esporta ovunque",
+      "h3Desc": "Scarica come PNG, SVG o copia negli appunti"
+    }
   },
   "tasks": {
     "title": "Attività",
@@ -547,7 +567,30 @@
     "repeatYearly": "Annuale",
     "listView": "Vista elenco",
     "boardView": "Vista bacheca",
-    "noTasksInColumn": "Nessuna attività"
+    "noTasksInColumn": "Nessuna attività",
+    "empty": {
+      "inboxTitle": "La tua casella di posta è vuota",
+      "inboxDesc": "Le nuove attività appaiono qui per impostazione predefinita — organizzale quando sei pronto",
+      "inboxH1Title": "Cattura tutto",
+      "inboxH1Desc": "Aggiungi rapidamente attività e smistale in seguito",
+      "inboxH2Title": "Pianifica la tua giornata",
+      "inboxH2Desc": "Sposta le attività su Oggi per concentrarti su ciò che conta",
+      "inboxH3Title": "Imposta le scadenze",
+      "inboxH3Desc": "Aggiungi date di scadenza per non dimenticare nulla",
+      "loadSample": "Carica attività di esempio",
+      "todayTitle": "Niente in programma per oggi",
+      "todayDesc": "Sposta qui le attività per concentrarti",
+      "upcomingTitle": "Nessuna scadenza imminente",
+      "upcomingDesc": "Le attività con date di scadenza appaiono qui",
+      "anytimeTitle": "Nessuna attività in Qualsiasi momento",
+      "anytimeDesc": "Attività flessibili che puoi fare quando vuoi",
+      "somedayTitle": "Nessuna attività in Un giorno",
+      "somedayDesc": "Metti da parte idee e attività per dopo",
+      "logbookTitle": "Il registro è vuoto",
+      "logbookDesc": "Le attività completate appariranno qui",
+      "projectTitle": "Nessuna attività in questo progetto",
+      "projectDesc": "Aggiungi attività per iniziare"
+    }
   },
   "errors": {
     "recipientRequired": "È necessario almeno un destinatario",
@@ -695,7 +738,17 @@
     "rowsSelected_other": "{{count}} righe selezionate",
     "deleteSelected": "Elimina",
     "duplicateSelected": "Duplica",
-    "clearSelection": "Cancella selezione"
+    "clearSelection": "Cancella selezione",
+    "empty": {
+      "title": "Crea la tua prima tabella",
+      "desc": "Costruisci fogli di calcolo con tipi di campo potenti e viste",
+      "h1Title": "Tipi di campo ricchi",
+      "h1Desc": "Testo, numeri, selezioni, date, caselle di controllo e altro",
+      "h2Title": "Viste multiple",
+      "h2Desc": "Passa tra griglia, kanban, calendario e galleria",
+      "h3Title": "Ordina e filtra",
+      "h3Desc": "Organizza i tuoi dati con potenti opzioni di filtraggio"
+    }
   },
   "crm": {
     "title": "CRM",
@@ -849,7 +902,34 @@
       "noMatchingCompanies": "Nessuna azienda corrispondente",
       "noMatchingActivities": "Nessuna attività corrispondente",
       "logFirstActivity": "Registra la tua prima attività per iniziare",
-      "tryDifferentSearch": "Prova un termine di ricerca diverso"
+      "tryDifferentSearch": "Prova un termine di ricerca diverso",
+      "pipelineTitle": "Costruisci la tua pipeline di vendita",
+      "pipelineDesc": "Monitora le trattative dal primo contatto alla chiusura",
+      "pipelineH1Title": "Pipeline visuale",
+      "pipelineH1Desc": "Trascina le trattative tra le fasi su una bacheca kanban",
+      "pipelineH2Title": "Monitoraggio ricavi",
+      "pipelineH2Desc": "Visualizza valori e previsioni a colpo d'occhio",
+      "pipelineH3Title": "Analisi del tasso di successo",
+      "pipelineH3Desc": "Monitora i tassi di conversione nella tua pipeline",
+      "createDeal": "Crea la prima trattativa",
+      "contactsTitle": "Gestisci i tuoi contatti",
+      "contactsDesc": "Tieni traccia di ogni persona con cui fai affari",
+      "contactsH1Title": "Rubrica contatti",
+      "contactsH1Desc": "Archivia nomi, email, numeri di telefono e ruoli",
+      "contactsH2Title": "Cronologia email",
+      "contactsH2Desc": "Consulta le conversazioni passate collegate a ogni contatto",
+      "contactsH3Title": "Associazioni trattative",
+      "contactsH3Desc": "Collega i contatti alle trattative e monitora l'interazione",
+      "addContact": "Aggiungi il primo contatto",
+      "companiesTitle": "Monitora le tue aziende",
+      "companiesDesc": "Organizza le aziende con cui collabori",
+      "companiesH1Title": "Profili aziendali",
+      "companiesH1Desc": "Archivia dettagli aziendali, settore e dimensione",
+      "companiesH2Title": "Arricchimento dominio",
+      "companiesH2Desc": "Recupera automaticamente i loghi aziendali dal sito web",
+      "companiesH3Title": "Panoramica del team",
+      "companiesH3Desc": "Visualizza tutti i contatti e le trattative per ogni azienda",
+      "addCompany": "Aggiungi la prima azienda"
     },
     "bulk": {
       "deleteTitle": "Eliminare {{count}} elementi?",
@@ -971,6 +1051,19 @@
       "titlePlaceholder": "Titolo della riunione"
     }
   },
+  "drive": {
+    "empty": {
+      "title": "Il tuo archivio è vuoto",
+      "desc": "Carica file o crea cartelle per iniziare",
+      "h1Title": "Carica file",
+      "h1Desc": "Trascina e rilascia o sfoglia per caricare qualsiasi tipo di file",
+      "h2Title": "Organizza con le cartelle",
+      "h2Desc": "Crea cartelle per strutturare i tuoi file",
+      "h3Title": "Condividi con i link",
+      "h3Desc": "Genera link condivisibili per qualsiasi file o cartella",
+      "uploadFiles": "Carica file"
+    }
+  },
   "hr": {
     "title": "Risorse Umane",
     "sidebar": { "dashboard": "Dashboard", "allEmployees": "Tutti i dipendenti", "departments": "Tutti i reparti", "departmentsTitle": "Reparti", "department": "Reparto", "orgChart": "Organigramma", "timeOff": "Permessi", "allDepartments": "Tutti i reparti", "settings": "Impostazioni" },
@@ -993,7 +1086,17 @@
     "orgChart": { "organization": "Organizzazione", "employees": "dipendenti", "unassigned": "Non assegnato", "empty": "Nessun dato organigramma", "emptyDesc": "Aggiungi reparti e dipendenti per vedere l'organigramma." },
     "leaveBalance": { "title": "Saldo permessi", "allocate": "Assegna", "days": "Giorni", "allocated": "assegnati", "used": "utilizzati", "remaining": "rimanenti", "noBalances": "Nessun saldo permessi per quest'anno." },
     "onboarding": { "title": "Inserimento", "addTask": "Aggiungi attivita", "applyTemplate": "Applica modello", "completed": "completato", "taskTitle": "Titolo attivita", "noTasks": "Nessuna attivita di inserimento ancora." },
-    "documents": { "title": "Documenti", "upload": "Carica", "download": "Scarica", "noDocuments": "Nessun documento caricato.", "types": { "contract": "Contratto", "certificate": "Certificato", "id": "Documento", "resume": "Curriculum", "policy": "Politica", "other": "Altro" } }
+    "documents": { "title": "Documenti", "upload": "Carica", "download": "Scarica", "noDocuments": "Nessun documento caricato.", "types": { "contract": "Contratto", "certificate": "Certificato", "id": "Documento", "resume": "Curriculum", "policy": "Politica", "other": "Altro" } },
+    "empty": {
+      "title": "Gestisci il tuo team",
+      "desc": "Tieni i dati dei dipendenti, i reparti e le assenze in un unico posto",
+      "h1Title": "Rubrica dipendenti",
+      "h1Desc": "Archivia profili, ruoli e informazioni di contatto",
+      "h2Title": "Reparti",
+      "h2Desc": "Organizza il tuo team in reparti con responsabili",
+      "h3Title": "Monitoraggio assenze",
+      "h3Desc": "Gestisci le richieste di permesso e monitora i saldi"
+    }
   },
   "sign": {
     "title": "Firma",
@@ -1109,6 +1212,17 @@
       "clear": "Cancella",
       "cancel": "Annulla",
       "apply": "Applica"
+    },
+    "empty": {
+      "title": "Fai firmare i documenti",
+      "desc": "Carica un PDF e aggiungi campi firma per i tuoi firmatari",
+      "h1Title": "Posiziona i campi firma",
+      "h1Desc": "Trascina campi firma, iniziali e data sul tuo documento",
+      "h2Title": "Invia per la firma",
+      "h2Desc": "Genera link di firma univoci per ogni destinatario",
+      "h3Title": "Monitora il completamento",
+      "h3Desc": "Segui l'avanzamento delle firme e scarica le copie firmate",
+      "upload": "Carica il primo PDF"
     }
   }
 }

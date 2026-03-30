@@ -17,11 +17,17 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   SettingsSection,
   SettingsRow,
+  SettingsSelect,
 } from '../../../components/settings/settings-primitives';
+import { useCrmSettingsStore } from '../settings-store';
+import { useSettingsStore } from '../../../stores/settings-store';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { IconButton } from '../../../components/ui/icon-button';
-import { useStages, useCreateStage, useUpdateStage, useDeleteStage, useReorderStages } from '../hooks';
+import { Badge } from '../../../components/ui/badge';
+import { useStages, useCreateStage, useUpdateStage, useDeleteStage, useReorderStages, useGoogleSyncStatus, useStartGoogleSync, useStopGoogleSync } from '../hooks';
+import { api } from '../../../lib/api-client';
+import { formatRelativeDate } from '../../../lib/format';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import type { CrmDealStage } from '@atlasmail/shared';
 
@@ -256,15 +262,133 @@ export function CrmStagesPanel() {
 // ─── General Panel ─────────────────────────────────────────────────
 
 export function CrmGeneralPanel() {
+  const { defaultView, setDefaultView } = useCrmSettingsStore();
+  const { currencySymbol, setCurrencySymbol } = useSettingsStore();
+
   return (
     <div>
       <SettingsSection title="General">
         <SettingsRow label="Default view" description="Which section to show when opening CRM">
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)' }}>Pipeline</span>
+          <SettingsSelect
+            value={defaultView}
+            options={[
+              { value: 'dashboard', label: 'Dashboard' },
+              { value: 'leads', label: 'Leads' },
+              { value: 'pipeline', label: 'Pipeline' },
+              { value: 'deals', label: 'Deals' },
+              { value: 'contacts', label: 'Contacts' },
+              { value: 'companies', label: 'Companies' },
+              { value: 'activities', label: 'Activities' },
+              { value: 'forecast', label: 'Forecast' },
+            ]}
+            onChange={setDefaultView}
+          />
         </SettingsRow>
         <SettingsRow label="Currency" description="Currency symbol used for deal values">
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)' }}>$ (USD)</span>
+          <SettingsSelect
+            value={currencySymbol}
+            options={[
+              { value: '$', label: '$ (USD)' },
+              { value: '€', label: '€ (EUR)' },
+              { value: '£', label: '£ (GBP)' },
+              { value: '¥', label: '¥ (JPY)' },
+              { value: '₺', label: '₺ (TRY)' },
+              { value: '₹', label: '₹ (INR)' },
+              { value: 'CHF', label: 'CHF' },
+            ]}
+            onChange={setCurrencySymbol}
+          />
         </SettingsRow>
+      </SettingsSection>
+    </div>
+  );
+}
+
+// ─── Integrations Panel ───────────────────────────────────────────
+
+export function CrmIntegrationsPanel() {
+  const { data: status, isLoading, refetch } = useGoogleSyncStatus();
+  const startSync = useStartGoogleSync();
+  const stopSync = useStopGoogleSync();
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: 'var(--spacing-xl)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
+        Loading...
+      </div>
+    );
+  }
+
+  const handleConnect = async () => {
+    try {
+      const { data } = await api.get('/auth/google/connect');
+      window.open(data.data.url, '_blank', 'width=600,height=700');
+    } catch {
+      // Connection error handled silently
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await api.post('/auth/google/disconnect');
+      refetch();
+    } catch {
+      // Disconnect error handled silently
+    }
+  };
+
+  return (
+    <div>
+      <SettingsSection title="Google integration" description="Connect your Google account to sync emails and calendar events with CRM.">
+        {!status?.googleConfigured ? (
+          <div style={{ padding: 'var(--spacing-lg)', background: 'var(--color-bg-tertiary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border-secondary)' }}>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
+              Google integration is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables to enable.
+            </div>
+          </div>
+        ) : !status?.connected ? (
+          <SettingsRow label="Google account" description="Connect to sync emails and calendar events">
+            <Button variant="primary" size="sm" onClick={handleConnect}>
+              Connect Google
+            </Button>
+          </SettingsRow>
+        ) : (
+          <>
+            <SettingsRow label="Connection" description="Your Google account is connected">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                <Badge variant="success">Connected</Badge>
+                <Button variant="danger" size="sm" onClick={handleDisconnect}>
+                  Disconnect
+                </Button>
+              </div>
+            </SettingsRow>
+
+            <SettingsRow
+              label="Sync status"
+              description={status.syncError || (status.lastSync ? `Last synced: ${formatRelativeDate(status.lastSync)}` : 'Not yet synced')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                <Badge variant={status.syncStatus === 'active' ? 'success' : status.syncStatus === 'error' ? 'error' : status.syncStatus === 'syncing' ? 'warning' : 'default'}>
+                  {status.syncStatus}
+                </Badge>
+                {status.redisAvailable ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => startSync.mutate()}
+                    disabled={status.syncStatus === 'syncing' || startSync.isPending}
+                  >
+                    {status.syncStatus === 'syncing' ? 'Syncing...' : 'Sync now'}
+                  </Button>
+                ) : (
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
+                    Redis required for sync
+                  </span>
+                )}
+              </div>
+            </SettingsRow>
+          </>
+        )}
       </SettingsSection>
     </div>
   );

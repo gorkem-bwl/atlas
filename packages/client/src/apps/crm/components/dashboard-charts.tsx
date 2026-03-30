@@ -1,13 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardCharts, type CrmDashboardCharts } from '../hooks';
+import { formatCurrencyCompact } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
-
-function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toLocaleString()}`;
-}
 
 // ─── Win/Loss by month ──────────────────────────────────────────
 
@@ -72,7 +67,7 @@ function RevenueTrendChart({ data }: { data: CrmDashboardCharts['revenueTrend'] 
               <div className="crm-bar-track">
                 <div className="crm-bar" style={{ width: `${Math.max((d.revenue / maxVal) * 100, d.revenue > 0 ? 2 : 0)}%`, backgroundColor: '#3b82f6' }} />
               </div>
-              <span className="crm-bar-value">{formatCurrency(d.revenue)}</span>
+              <span className="crm-bar-value">{formatCurrencyCompact(d.revenue)}</span>
             </div>
           ))}
         </div>
@@ -130,7 +125,7 @@ function DealsBySourceChart({ data }: { data: CrmDashboardCharts['dealsBySource'
                 <div className="crm-bar" style={{ width: `${Math.max((d.value / maxVal) * 100, d.value > 0 ? 2 : 0)}%`, backgroundColor: colors[i % colors.length] }} />
               </div>
               <span className="crm-bar-value">
-                {formatCurrency(d.value)}
+                {formatCurrencyCompact(d.value)}
                 <span className="crm-bar-count" style={{ marginLeft: 4 }}>({d.count})</span>
               </span>
             </div>

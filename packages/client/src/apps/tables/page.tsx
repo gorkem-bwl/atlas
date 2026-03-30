@@ -104,6 +104,7 @@ import { GanttView } from './components/gantt-view';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
 import { Select } from '../../components/ui/select';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import '../../styles/tables.css';
 import '../../styles/docs.css'; // Re-use .tg-* template gallery styles
 
@@ -3160,17 +3161,19 @@ export function TablesPage() {
           />
         ) : !selectedId || !spreadsheet ? (
           <div className="tables-empty-state">
-            <Table2 size={48} className="tables-empty-state-icon" />
-            <div className="tables-empty-state-title">{t('tables.emptyTitle')}</div>
-            <div className="tables-empty-state-desc">{t('tables.emptyDesc')}</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={handleCreateTable}>
-                {t('tables.newTable')}
-              </Button>
-              <Button variant="ghost" size="sm" icon={<LayoutTemplate size={14} />} onClick={() => setShowTemplates(true)}>
-                {t('tables.browseTemplates')}
-              </Button>
-            </div>
+            <FeatureEmptyState
+              illustration="table"
+              title={t('tables.empty.title')}
+              description={t('tables.empty.desc')}
+              highlights={[
+                { icon: <Table2 size={14} />, title: t('tables.empty.h1Title'), description: t('tables.empty.h1Desc') },
+                { icon: <Layers size={14} />, title: t('tables.empty.h2Title'), description: t('tables.empty.h2Desc') },
+                { icon: <LayoutGrid size={14} />, title: t('tables.empty.h3Title'), description: t('tables.empty.h3Desc') },
+              ]}
+              actionLabel={t('tables.newTable')}
+              actionIcon={<Plus size={14} />}
+              onAction={handleCreateTable}
+            />
             <div className="tables-templates-section">
               <div className="tables-templates-label">{t('tables.startFromTemplate')}</div>
               <div className="tables-templates-grid">

@@ -43,31 +43,7 @@ export function getFileIconColor(mimeType: string | null, type: 'file' | 'folder
   return 'var(--color-text-tertiary)';
 }
 
-export function formatBytes(bytes: number | null): string {
-  if (bytes === null || bytes === 0) return '—';
-
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const value = bytes / Math.pow(1024, i);
-
-  return `${value.toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
-}
-
-export function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
-}
+export { formatBytes, formatRelativeDate } from './format';
 
 export function isImageFile(mimeType: string | null): boolean {
   return !!mimeType && mimeType.startsWith('image/');

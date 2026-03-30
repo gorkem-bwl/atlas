@@ -147,7 +147,7 @@ export function AppearancePanel() {
                 <span style={{
                   fontSize: 'var(--font-size-xs)',
                   color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                  fontWeight: isActive ? 500 : 400,
+                  fontWeight: isActive ? 'var(--font-weight-medium)' as CSSProperties['fontWeight'] : 'var(--font-weight-normal)' as CSSProperties['fontWeight'],
                 }}>
                   {ct.name}
                 </span>
@@ -210,7 +210,7 @@ export function AppearancePanel() {
               >
                 <span style={{
                   fontSize: 'var(--font-size-lg)',
-                  fontWeight: 500,
+                  fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
                   color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
                 }}>
                   Aa
@@ -218,7 +218,7 @@ export function AppearancePanel() {
                 <span style={{
                   fontSize: 'var(--font-size-xs)',
                   color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                  fontWeight: isActive ? 500 : 400,
+                  fontWeight: isActive ? 'var(--font-weight-medium)' as CSSProperties['fontWeight'] : 'var(--font-weight-normal)' as CSSProperties['fontWeight'],
                 }}>
                   {font.label}
                 </span>

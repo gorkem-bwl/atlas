@@ -1,7 +1,10 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FileText,
+  PenTool,
+  Layers,
   ImageIcon,
   SmilePlus,
   X,
@@ -43,6 +46,7 @@ import { useTableList } from '../tables/hooks';
 import { EmojiPicker } from '../../components/shared/emoji-picker';
 import { CoverPicker, isCoverGradient } from '../../components/shared/cover-picker';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import '../../styles/docs.css';
 
 // ─── Page templates ──────────────────────────────────────────────────────
@@ -1685,19 +1689,18 @@ function DocumentView({
 // ─── Empty and loading states ───────────────────────────────────────────
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
-    <div
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        height: '100%', gap: 12, color: 'var(--color-text-tertiary)',
-      }}
-    >
-      <FileText size={48} strokeWidth={1} />
-      <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-text-secondary)' }}>
-        Select a document
-      </div>
-      <div style={{ fontSize: 13 }}>Choose a page from the sidebar or create a new one</div>
-    </div>
+    <FeatureEmptyState
+      illustration="documents"
+      title={t('docs.empty.title')}
+      description={t('docs.empty.desc')}
+      highlights={[
+        { icon: <PenTool size={14} />, title: t('docs.empty.h1Title'), description: t('docs.empty.h1Desc') },
+        { icon: <Layers size={14} />, title: t('docs.empty.h2Title'), description: t('docs.empty.h2Desc') },
+        { icon: <FileText size={14} />, title: t('docs.empty.h3Title'), description: t('docs.empty.h3Desc') },
+      ]}
+    />
   );
 }
 

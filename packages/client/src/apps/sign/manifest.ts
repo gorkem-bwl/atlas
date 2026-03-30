@@ -14,7 +14,7 @@ export const signManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 55,
+  sidebarOrder: 30,
   routes: [
     { path: '/sign-app', component: SignPage },
   ],

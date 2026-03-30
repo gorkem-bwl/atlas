@@ -15,7 +15,7 @@ export const drawManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 20,
+  sidebarOrder: 80,
 
   routes: [
     { path: '/draw', component: DrawPage },

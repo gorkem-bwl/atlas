@@ -1,7 +1,7 @@
 import { Briefcase, Settings } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
 import { CrmPage } from './page';
-import { CrmStagesPanel, CrmGeneralPanel } from './components/crm-settings-modal';
+import { CrmStagesPanel, CrmGeneralPanel, CrmIntegrationsPanel } from './components/crm-settings-modal';
 
 export const crmManifest: ClientAppManifest = {
   id: 'crm',
@@ -15,7 +15,7 @@ export const crmManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 60,
+  sidebarOrder: 10,
   routes: [{ path: '/crm', component: CrmPage }],
   settingsCategory: {
     id: 'crm',
@@ -25,6 +25,7 @@ export const crmManifest: ClientAppManifest = {
     panels: [
       { id: 'stages', label: 'Pipeline stages', icon: Settings, component: CrmStagesPanel },
       { id: 'general', label: 'General', icon: Settings, component: CrmGeneralPanel },
+      { id: 'integrations', label: 'Integrations', icon: Settings, component: CrmIntegrationsPanel },
     ],
   },
 };

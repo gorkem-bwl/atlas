@@ -38,6 +38,7 @@ import { useDriveSettingsStore, useDriveSettingsSync } from './settings-store';
 import { useUIStore } from '../../stores/ui-store';
 import { useQuery } from '@tanstack/react-query';
 import type { DriveItem, DriveShareLink } from '@atlasmail/shared';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import '../../styles/drive.css';
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -1616,11 +1617,19 @@ export function DrivePage() {
                   <span style={{ fontSize: 'var(--font-size-sm)' }}>Try a different search term</span>
                 </>
               ) : (
-                <>
-                  <HardDrive size={40} strokeWidth={1.2} />
-                  <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 500, color: 'var(--color-text-secondary)' }}>This folder is empty</span>
-                  <span style={{ fontSize: 'var(--font-size-sm)' }}>Upload files or create a folder to get started</span>
-                </>
+                <FeatureEmptyState
+                  illustration="files"
+                  title={t('drive.empty.title')}
+                  description={t('drive.empty.desc')}
+                  highlights={[
+                    { icon: <Upload size={14} />, title: t('drive.empty.h1Title'), description: t('drive.empty.h1Desc') },
+                    { icon: <FolderPlus size={14} />, title: t('drive.empty.h2Title'), description: t('drive.empty.h2Desc') },
+                    { icon: <Share2 size={14} />, title: t('drive.empty.h3Title'), description: t('drive.empty.h3Desc') },
+                  ]}
+                  actionLabel={t('drive.empty.uploadFiles')}
+                  actionIcon={<Upload size={14} />}
+                  onAction={() => fileInputRef.current?.click()}
+                />
               )}
             </div>
           ) : viewMode === 'list' ? (

@@ -47,11 +47,14 @@ service.ts           — Business logic + database queries
 
 | App | ID | Color | Icon | Sidebar Order | Route |
 |-----|----|-------|------|---------------|-------|
-| Write | docs | #c4856c | FileText | 10 | /docs, /docs/:id |
-| Draw | draw | #e06c9f | Pencil | 20 | /draw, /draw/:id |
-| Tasks | tasks | #6366f1 | CheckSquare | 30 | /tasks |
-| Tables | tables | #2d8a6e | Table2 | 40 | /tables, /tables/:id |
-| Drive | drive | #64748b | HardDrive | 50 | /drive, /drive/folder/:id |
+| CRM | crm | #f97316 | Briefcase | 10 | /crm |
+| HRM | hr | #10b981 | Users | 20 | /hr |
+| Sign | sign | #8b5cf6 | PenTool | 30 | /sign-app |
+| Drive | drive | #64748b | HardDrive | 40 | /drive, /drive/folder/:id |
+| Tables | tables | #2d8a6e | Table2 | 50 | /tables, /tables/:id |
+| Tasks | tasks | #6366f1 | CheckSquare | 60 | /tasks |
+| Write | docs | #c4856c | FileText | 70 | /docs, /docs/:id |
+| Draw | draw | #e06c9f | Pencil | 80 | /draw, /draw/:id |
 
 ---
 

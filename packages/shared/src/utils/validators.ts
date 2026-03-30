@@ -52,6 +52,9 @@ export const settingsSchema = z.object({
   dateFormat: z.enum(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']).optional(),
   currencySymbol: z.string().max(5).optional(),
   timezone: z.string().max(100).optional(),
+  timeFormat: z.enum(['12h', '24h']).optional(),
+  numberFormat: z.enum(['comma-period', 'period-comma', 'space-comma']).optional(),
+  calendarStartDay: z.enum(['sunday', 'monday']).optional(),
   // Tables settings
   tablesDefaultView: z.enum(['grid', 'kanban', 'calendar', 'gallery']).optional(),
   tablesDefaultSort: z.enum(['none', 'createdDate', 'alphabetical']).optional(),

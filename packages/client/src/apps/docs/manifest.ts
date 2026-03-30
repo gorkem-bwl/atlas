@@ -15,7 +15,7 @@ export const docsManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 10,
+  sidebarOrder: 70,
 
   routes: [
     { path: '/docs', component: DocsPage },

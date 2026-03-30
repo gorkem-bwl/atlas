@@ -135,7 +135,7 @@ export function OrgAppsPage() {
                       width: 16,
                       height: 16,
                       borderRadius: '50%',
-                      background: '#fff',
+                      background: 'var(--color-bg-primary)',
                       position: 'absolute',
                       top: 1,
                       left: isEnabled ? 17 : 1,

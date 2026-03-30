@@ -449,7 +449,17 @@
     "defaultSection": "Standardansicht",
     "defaultSectionDesc": "Welche Ansicht die Seitenleiste beim ersten Öffnen von Dokumenten anzeigt.",
     "pages": "Seiten",
-    "recent": "Zuletzt"
+    "recent": "Zuletzt",
+    "empty": {
+      "title": "Dokument auswählen",
+      "desc": "Wählen Sie eine Seite aus der Seitenleiste oder erstellen Sie eine neue",
+      "h1Title": "Rich-Editor",
+      "h1Desc": "Schreiben Sie mit Überschriften, Listen, Codeblöcken und Einbettungen",
+      "h2Title": "Mit Seiten organisieren",
+      "h2Desc": "Verschachteln Sie Unterseiten für eine strukturierte Wissensdatenbank",
+      "h3Title": "Vorlagen",
+      "h3Desc": "Starten Sie mit Vorlagen für Besprechungsnotizen, Specs und mehr"
+    }
   },
   "draw": {
     "title": "Zeichnen",
@@ -513,7 +523,17 @@
     "autoSave5s": "5 Sekunden",
     "autoSave10s": "10 Sekunden",
     "fromTemplate": "Aus Vorlage",
-    "blankDrawing": "Leere Zeichnung"
+    "blankDrawing": "Leere Zeichnung",
+    "empty": {
+      "title": "Erste Zeichnung erstellen",
+      "desc": "Skizzieren Sie Diagramme, Wireframes und visuelle Ideen",
+      "h1Title": "Freihand-Leinwand",
+      "h1Desc": "Zeichnen Sie Formen, Pfeile und Text auf einer unendlichen Leinwand",
+      "h2Title": "Vorlagen",
+      "h2Desc": "Starten Sie mit Flussdiagrammen, Wireframes oder Mindmaps",
+      "h3Title": "Überall exportieren",
+      "h3Desc": "Als PNG, SVG herunterladen oder in die Zwischenablage kopieren"
+    }
   },
   "tasks": {
     "title": "Aufgaben",
@@ -547,7 +567,30 @@
     "repeatYearly": "Jährlich",
     "listView": "Listenansicht",
     "boardView": "Board-Ansicht",
-    "noTasksInColumn": "Keine Aufgaben"
+    "noTasksInColumn": "Keine Aufgaben",
+    "empty": {
+      "inboxTitle": "Ihr Posteingang ist leer",
+      "inboxDesc": "Neue Aufgaben erscheinen hier standardmäßig — organisieren Sie sie, wenn Sie bereit sind",
+      "inboxH1Title": "Alles erfassen",
+      "inboxH1Desc": "Fügen Sie schnell Aufgaben hinzu und sortieren Sie sie später",
+      "inboxH2Title": "Ihren Tag planen",
+      "inboxH2Desc": "Verschieben Sie Aufgaben nach Heute, um sich auf das Wichtige zu konzentrieren",
+      "inboxH3Title": "Fristen setzen",
+      "inboxH3Desc": "Fügen Sie Fälligkeitsdaten hinzu, damit nichts vergessen wird",
+      "loadSample": "Beispielaufgaben laden",
+      "todayTitle": "Nichts für heute geplant",
+      "todayDesc": "Verschieben Sie Aufgaben hierher, um sich zu konzentrieren",
+      "upcomingTitle": "Keine anstehenden Fristen",
+      "upcomingDesc": "Aufgaben mit Fälligkeitsdaten erscheinen hier",
+      "anytimeTitle": "Keine Aufgaben in Jederzeit",
+      "anytimeDesc": "Flexible Aufgaben, die Sie jederzeit erledigen können",
+      "somedayTitle": "Keine Aufgaben in Irgendwann",
+      "somedayDesc": "Parken Sie Ideen und Aufgaben für später",
+      "logbookTitle": "Logbuch ist leer",
+      "logbookDesc": "Abgeschlossene Aufgaben erscheinen hier",
+      "projectTitle": "Keine Aufgaben in diesem Projekt",
+      "projectDesc": "Fügen Sie Aufgaben hinzu, um loszulegen"
+    }
   },
   "errors": {
     "recipientRequired": "Mindestens ein Empfänger ist erforderlich",
@@ -695,7 +738,17 @@
     "rowsSelected_other": "{{count}} Zeilen ausgewählt",
     "deleteSelected": "Löschen",
     "duplicateSelected": "Duplizieren",
-    "clearSelection": "Auswahl aufheben"
+    "clearSelection": "Auswahl aufheben",
+    "empty": {
+      "title": "Erste Tabelle erstellen",
+      "desc": "Erstellen Sie Tabellen mit leistungsstarken Feldtypen und Ansichten",
+      "h1Title": "Vielfältige Feldtypen",
+      "h1Desc": "Text, Zahlen, Auswahlen, Daten, Kontrollkästchen und mehr",
+      "h2Title": "Mehrere Ansichten",
+      "h2Desc": "Wechseln Sie zwischen Raster, Kanban, Kalender und Galerie",
+      "h3Title": "Sortieren und Filtern",
+      "h3Desc": "Organisieren Sie Ihre Daten mit leistungsstarken Filteroptionen"
+    }
   },
   "crm": {
     "title": "CRM",
@@ -849,7 +902,34 @@
       "noMatchingCompanies": "Keine passenden Unternehmen",
       "noMatchingActivities": "Keine passenden Aktivitäten",
       "logFirstActivity": "Erfassen Sie Ihre erste Aktivität",
-      "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff"
+      "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff",
+      "pipelineTitle": "Vertriebspipeline aufbauen",
+      "pipelineDesc": "Verfolgen Sie Geschäfte vom Erstkontakt bis zum Abschluss",
+      "pipelineH1Title": "Visuelle Pipeline",
+      "pipelineH1Desc": "Ziehen Sie Geschäfte zwischen Phasen auf einem Kanban-Board",
+      "pipelineH2Title": "Umsatzverfolgung",
+      "pipelineH2Desc": "Sehen Sie Geschäftswerte und Prognosen auf einen Blick",
+      "pipelineH3Title": "Gewinnraten-Analytik",
+      "pipelineH3Desc": "Verfolgen Sie Konversionsraten in Ihrer Pipeline",
+      "createDeal": "Erstes Geschäft erstellen",
+      "contactsTitle": "Kontakte verwalten",
+      "contactsDesc": "Behalten Sie den Überblick über alle Geschäftspartner",
+      "contactsH1Title": "Kontaktverzeichnis",
+      "contactsH1Desc": "Speichern Sie Namen, E-Mails, Telefonnummern und Rollen",
+      "contactsH2Title": "E-Mail-Verlauf",
+      "contactsH2Desc": "Sehen Sie vergangene Gespräche zu jedem Kontakt",
+      "contactsH3Title": "Geschäftszuordnungen",
+      "contactsH3Desc": "Verknüpfen Sie Kontakte mit Geschäften und verfolgen Sie Interaktionen",
+      "addContact": "Ersten Kontakt hinzufügen",
+      "companiesTitle": "Unternehmen verfolgen",
+      "companiesDesc": "Organisieren Sie die Unternehmen, mit denen Sie zusammenarbeiten",
+      "companiesH1Title": "Unternehmensprofile",
+      "companiesH1Desc": "Speichern Sie Unternehmensdetails, Branche und Größe",
+      "companiesH2Title": "Domain-Anreicherung",
+      "companiesH2Desc": "Firmenlogos automatisch von der Website abrufen",
+      "companiesH3Title": "Teamübersicht",
+      "companiesH3Desc": "Sehen Sie alle Kontakte und Geschäfte pro Unternehmen",
+      "addCompany": "Erstes Unternehmen hinzufügen"
     },
     "bulk": {
       "deleteTitle": "{{count}} Elemente löschen?",
@@ -971,6 +1051,19 @@
       "titlePlaceholder": "Besprechungstitel"
     }
   },
+  "drive": {
+    "empty": {
+      "title": "Ihr Laufwerk ist leer",
+      "desc": "Laden Sie Dateien hoch oder erstellen Sie Ordner, um loszulegen",
+      "h1Title": "Dateien hochladen",
+      "h1Desc": "Ziehen Sie beliebige Dateitypen per Drag & Drop oder durchsuchen Sie Dateien",
+      "h2Title": "Mit Ordnern organisieren",
+      "h2Desc": "Erstellen Sie Ordner, um Ihre Dateien zu strukturieren",
+      "h3Title": "Mit Links teilen",
+      "h3Desc": "Erstellen Sie teilbare Links für jede Datei oder jeden Ordner",
+      "uploadFiles": "Dateien hochladen"
+    }
+  },
   "hr": {
     "title": "Personal",
     "sidebar": { "dashboard": "Dashboard", "allEmployees": "Alle Mitarbeiter", "departments": "Alle Abteilungen", "departmentsTitle": "Abteilungen", "department": "Abteilung", "orgChart": "Organigramm", "timeOff": "Abwesenheit", "allDepartments": "Alle Abteilungen", "settings": "Einstellungen" },
@@ -993,7 +1086,17 @@
     "orgChart": { "organization": "Organisation", "employees": "Mitarbeiter", "unassigned": "Nicht zugewiesen", "empty": "Keine Organigramm-Daten", "emptyDesc": "Fuegen Sie Abteilungen und Mitarbeiter hinzu." },
     "leaveBalance": { "title": "Urlaubskonto", "allocate": "Zuweisen", "days": "Tage", "allocated": "zugewiesen", "used": "verwendet", "remaining": "verbleibend", "noBalances": "Kein Urlaubskonto fuer dieses Jahr." },
     "onboarding": { "title": "Einarbeitung", "addTask": "Aufgabe hinzufuegen", "applyTemplate": "Vorlage anwenden", "completed": "abgeschlossen", "taskTitle": "Aufgabentitel", "noTasks": "Noch keine Einarbeitungsaufgaben." },
-    "documents": { "title": "Dokumente", "upload": "Hochladen", "download": "Herunterladen", "noDocuments": "Noch keine Dokumente hochgeladen.", "types": { "contract": "Vertrag", "certificate": "Zertifikat", "id": "Ausweis", "resume": "Lebenslauf", "policy": "Richtlinie", "other": "Sonstiges" } }
+    "documents": { "title": "Dokumente", "upload": "Hochladen", "download": "Herunterladen", "noDocuments": "Noch keine Dokumente hochgeladen.", "types": { "contract": "Vertrag", "certificate": "Zertifikat", "id": "Ausweis", "resume": "Lebenslauf", "policy": "Richtlinie", "other": "Sonstiges" } },
+    "empty": {
+      "title": "Ihr Team verwalten",
+      "desc": "Mitarbeiterdaten, Abteilungen und Abwesenheiten an einem Ort",
+      "h1Title": "Mitarbeiterverzeichnis",
+      "h1Desc": "Speichern Sie Profile, Rollen und Kontaktinformationen",
+      "h2Title": "Abteilungen",
+      "h2Desc": "Organisieren Sie Ihr Team in Abteilungen mit Managern",
+      "h3Title": "Abwesenheitsverfolgung",
+      "h3Desc": "Verwalten Sie Urlaubsanträge und verfolgen Sie Kontingente"
+    }
   },
   "sign": {
     "title": "Unterschrift",
@@ -1109,6 +1212,17 @@
       "clear": "Löschen",
       "cancel": "Abbrechen",
       "apply": "Anwenden"
+    },
+    "empty": {
+      "title": "Dokumente unterschreiben lassen",
+      "desc": "Laden Sie ein PDF hoch und fügen Sie Unterschriftsfelder für Ihre Unterzeichner hinzu",
+      "h1Title": "Unterschriftsfelder platzieren",
+      "h1Desc": "Platzieren Sie Unterschrift-, Initialen- und Datumsfelder auf Ihrem Dokument",
+      "h2Title": "Zum Unterschreiben senden",
+      "h2Desc": "Erstellen Sie eindeutige Unterschriftslinks für jeden Empfänger",
+      "h3Title": "Fortschritt verfolgen",
+      "h3Desc": "Überwachen Sie den Unterschriftfortschritt und laden Sie unterschriebene Kopien herunter",
+      "upload": "Erstes PDF hochladen"
     }
   }
 }

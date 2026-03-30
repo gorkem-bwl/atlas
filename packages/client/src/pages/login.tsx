@@ -24,7 +24,6 @@ function getDailyImageIndex(): number {
 const glassInputStyle = {
   background: 'rgba(255, 255, 255, 0.1)',
   borderColor: 'rgba(255, 255, 255, 0.2)',
-  color: '#fff',
 };
 
 export function LoginPage() {
@@ -80,7 +79,7 @@ export function LoginPage() {
       <div style={{ position: 'absolute', inset: '-20px', backgroundImage: `url(${BG_IMAGES[getDailyImageIndex()]})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(2px) brightness(0.55)' }} />
 
       {/* Glass card */}
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 400, padding: 32, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+      <div className="glass-card" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 400, padding: 32, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
         <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, textAlign: 'center', marginBottom: 8, color: '#fff' }}>
           Sign in to Atlas
         </h1>

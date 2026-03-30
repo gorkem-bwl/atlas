@@ -14,6 +14,7 @@ import { Badge } from '../../../components/ui/badge';
 import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { ColumnHeader } from '../../../components/ui/column-header';
+import { formatDate } from '../../../lib/format';
 
 const AVATAR_COLORS = ['#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#ec4899','#14b8a6'];
 function getAvatarColor(name: string): string {
@@ -55,10 +56,6 @@ function statusBadgeVariant(status: CrmLeadStatus): 'default' | 'primary' | 'suc
 
 function sourceBadgeVariant(_source: CrmLeadSource): 'default' | 'primary' | 'success' | 'warning' | 'error' {
   return 'default';
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // ─── Create lead modal ──────────────────────────────────────────

@@ -9,6 +9,47 @@ export type AppMinPlan = 'starter' | 'pro' | 'enterprise';
 /** App category for grouping */
 export type AppCategory = 'productivity' | 'communication' | 'data' | 'storage' | 'other';
 
+// ─── Entity / Data Model Types ────────────────────────────────────────
+
+export interface EntityFieldMeta {
+  /** Display name, e.g. "Email address" */
+  name: string;
+  /** DB column slug, e.g. "email" */
+  slug: string;
+  /** Field type: text, number, date, boolean, select, relation, url, email, phone, json, multi_select */
+  fieldType: string;
+  /** Whether the field is required */
+  isRequired: boolean;
+  /** Optional description */
+  description?: string;
+}
+
+export interface EntityRelationMeta {
+  /** Target in "appId:objectId" format, e.g. "crm:contacts" */
+  targetObjectId: string;
+  /** Relationship type */
+  type: 'one-to-many' | 'many-to-one' | 'many-to-many';
+  /** Foreign key column name */
+  foreignKey?: string;
+}
+
+export interface EntityObjectMeta {
+  /** Unique within app, e.g. "companies" */
+  id: string;
+  /** Display name, e.g. "Companies" */
+  name: string;
+  /** Lucide icon name */
+  iconName: string;
+  /** Database table name */
+  tableName: string;
+  /** Optional description */
+  description?: string;
+  /** Standard (built-in) fields */
+  standardFields: EntityFieldMeta[];
+  /** Relationships to other objects */
+  relations?: EntityRelationMeta[];
+}
+
 /**
  * Shared (isomorphic) portion of the app manifest.
  * No React components, no Express routers — safe for both client and server.
@@ -44,6 +85,9 @@ export interface AppManifestBase {
 
   /** Version string */
   version: string;
+
+  /** Entity/object metadata for the data model settings panel */
+  objects?: EntityObjectMeta[];
 }
 
 // ─── Cross-App Record Linking ───────────────────────────────────────

@@ -8,6 +8,7 @@ import adminRoutes from './admin.routes';
 import customFieldsRoutes from './custom-fields.routes';
 import recordLinksRoutes from './record-links.routes';
 import searchRoutes from './search.routes';
+import dataModelRoutes from './data-model.routes';
 import { adminLimiter } from '../middleware/rate-limit';
 import { serverAppRegistry } from '../apps';
 
@@ -23,6 +24,7 @@ router.use('/platform', adminLimiter, platformRoutes);
 router.use('/custom-fields', customFieldsRoutes);
 router.use('/links', recordLinksRoutes);
 router.use('/search', searchRoutes);
+router.use('/data-model', dataModelRoutes);
 
 // App routes mounted dynamically from registry
 serverAppRegistry.mountAll(router);

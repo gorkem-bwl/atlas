@@ -58,6 +58,7 @@ import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atl
 import { formatDate } from '../../lib/format';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import { Chip } from '../../components/ui/chip';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import '../../styles/sign.css';
 
 // ─── Status helpers ─────────────────────────────────────────────────
@@ -488,13 +489,19 @@ export function SignPage() {
               {docsLoading ? (
                 <div className="sign-empty">{t('sign.list.loading')}</div>
               ) : filteredDocs.length === 0 ? (
-                <div className="sign-empty">
-                  <PenTool size={40} style={{ opacity: 0.3 }} />
-                  <div>{t('sign.list.noDocuments')}</div>
-                  <Button variant="secondary" size="sm" icon={<Upload size={14} />} onClick={handleUpload}>
-                    {t('sign.list.uploadFirst')}
-                  </Button>
-                </div>
+                <FeatureEmptyState
+                  illustration="documents"
+                  title={t('sign.empty.title')}
+                  description={t('sign.empty.desc')}
+                  highlights={[
+                    { icon: <PenTool size={14} />, title: t('sign.empty.h1Title'), description: t('sign.empty.h1Desc') },
+                    { icon: <Send size={14} />, title: t('sign.empty.h2Title'), description: t('sign.empty.h2Desc') },
+                    { icon: <CheckCircle size={14} />, title: t('sign.empty.h3Title'), description: t('sign.empty.h3Desc') },
+                  ]}
+                  actionLabel={t('sign.empty.upload')}
+                  actionIcon={<Upload size={14} />}
+                  onAction={handleUpload}
+                />
               ) : (
                 <table className="sign-doc-table">
                   <thead>

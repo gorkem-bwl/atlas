@@ -89,5 +89,22 @@ router.get('/dashboard/charts', crmController.getDashboardCharts);
 
 // Seed sample data
 router.post('/seed', crmController.seedSampleData);
+router.post('/leads/seed', crmController.seedSampleLeads);
+
+// Google sync
+router.get('/google/status', crmController.getGoogleSyncStatus);
+router.post('/google/sync/start', crmController.startGoogleSync);
+router.post('/google/sync/stop', crmController.stopGoogleSync);
+
+// CRM emails (linked to contacts/deals/companies)
+router.get('/contacts/:id/emails', crmController.getContactEmails);
+router.get('/deals/:id/emails', crmController.getDealEmails);
+router.get('/companies/:id/emails', crmController.getCompanyEmails);
+router.post('/emails/send', crmController.sendCrmEmail);
+
+// CRM calendar (linked to contacts/deals)
+router.get('/contacts/:id/events', crmController.getContactEvents);
+router.get('/deals/:id/events', crmController.getDealEvents);
+router.post('/events/create', crmController.createCrmEvent);
 
 export default router;

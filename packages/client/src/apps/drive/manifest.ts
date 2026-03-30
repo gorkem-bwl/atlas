@@ -15,7 +15,7 @@ export const driveManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 50,
+  sidebarOrder: 40,
 
   routes: [
     { path: '/drive', component: DrivePage },

@@ -4,6 +4,8 @@ import {
   Globe,
   Settings,
   Palette,
+  Clock,
+  Database,
   Info,
   Image,
   LayoutGrid,
@@ -11,6 +13,8 @@ import {
 
 import { GeneralPanel } from '../components/settings/general-panel';
 import { AppearancePanel } from '../components/settings/appearance-panel';
+import { FormatsPanel } from '../components/settings/formats-panel';
+import { DataModelPanel } from '../components/settings/data-model-panel';
 import { AboutPanel } from '../components/settings/about-panel';
 
 import {
@@ -49,6 +53,8 @@ export const globalSettingsCategory: SettingsCategory = {
   panels: [
     { id: 'general', label: 'General', icon: Settings, component: GeneralPanel },
     { id: 'appearance', label: 'Appearance', icon: Palette, component: AppearancePanel },
+    { id: 'formats', label: 'Formats', icon: Clock, component: FormatsPanel },
+    { id: 'data-model', label: 'Data model', icon: Database, component: DataModelPanel },
     { id: 'home-background', label: 'Home background', icon: Image, component: HomeBackgroundPanel },
     { id: 'home-widgets', label: 'Widgets', icon: LayoutGrid, component: HomeWidgetsPanel },
     { id: 'about', label: 'About', icon: Info, component: AboutPanel },

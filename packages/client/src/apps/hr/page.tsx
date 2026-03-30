@@ -30,6 +30,7 @@ import { Avatar } from '../../components/ui/avatar';
 import { Skeleton } from '../../components/ui/skeleton';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import { ColumnHeader } from '../../components/ui/column-header';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import { useUIStore } from '../../stores/ui-store';
 import { formatDate } from '../../lib/format';
 import '../../styles/hr.css';
@@ -1465,12 +1466,14 @@ function EmployeesListView({
   selectedId,
   onSelect,
   searchQuery,
+  onAdd,
 }: {
   employees: HrEmployee[];
   departments: HrDepartment[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   searchQuery: string;
+  onAdd: () => void;
 }) {
   const { t } = useTranslation();
   const filtered = useMemo(() => {
@@ -1485,16 +1488,29 @@ function EmployeesListView({
   }, [employees, searchQuery]);
 
   if (filtered.length === 0) {
+    if (searchQuery) {
+      return (
+        <div className="hr-empty-state">
+          <Users size={48} className="hr-empty-state-icon" />
+          <div className="hr-empty-state-title">{t('hr.employees.noMatch')}</div>
+          <div className="hr-empty-state-desc">{t('hr.employees.noMatchDesc')}</div>
+        </div>
+      );
+    }
     return (
-      <div className="hr-empty-state">
-        <Users size={48} className="hr-empty-state-icon" />
-        <div className="hr-empty-state-title">
-          {searchQuery ? t('hr.employees.noMatch') : t('hr.employees.empty')}
-        </div>
-        <div className="hr-empty-state-desc">
-          {searchQuery ? t('hr.employees.noMatchDesc') : t('hr.employees.emptyDesc')}
-        </div>
-      </div>
+      <FeatureEmptyState
+        illustration="employees"
+        title={t('hr.empty.title')}
+        description={t('hr.empty.desc')}
+        highlights={[
+          { icon: <Users size={14} />, title: t('hr.empty.h1Title'), description: t('hr.empty.h1Desc') },
+          { icon: <Building2 size={14} />, title: t('hr.empty.h2Title'), description: t('hr.empty.h2Desc') },
+          { icon: <CalendarDays size={14} />, title: t('hr.empty.h3Title'), description: t('hr.empty.h3Desc') },
+        ]}
+        actionLabel={t('hr.actions.addEmployee')}
+        actionIcon={<Plus size={14} />}
+        onAction={onAdd}
+      />
     );
   }
 
@@ -1948,6 +1964,7 @@ export function HrPage() {
             selectedId={selectedEmployeeId}
             onSelect={setSelectedEmployeeId}
             searchQuery={searchQuery}
+            onAdd={handleAdd}
           />
         )}
 

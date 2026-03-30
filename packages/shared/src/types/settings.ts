@@ -12,6 +12,9 @@ export type Density = 'compact' | 'default' | 'comfortable';
 export type ReadingPanePosition = 'right' | 'bottom' | 'hidden';
 export type AutoAdvance = 'next' | 'previous' | 'list';
 export type DateFormat = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
+export type TimeFormat = '12h' | '24h';
+export type NumberFormat = 'comma-period' | 'period-comma' | 'space-comma';
+export type CalendarStartDay = 'sunday' | 'monday';
 export type TablesDefaultView = 'grid' | 'kanban' | 'calendar' | 'gallery';
 export type TablesDefaultSort = 'none' | 'createdDate' | 'alphabetical';
 
@@ -32,6 +35,9 @@ export interface UserSettings {
   dateFormat: DateFormat;
   currencySymbol: string;
   timezone: string;
+  timeFormat: TimeFormat;
+  numberFormat: NumberFormat;
+  calendarStartDay: CalendarStartDay;
   // Tables settings
   tablesDefaultView: TablesDefaultView;
   tablesDefaultSort: TablesDefaultSort;

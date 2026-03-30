@@ -15,7 +15,7 @@ export const tasksManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 30,
+  sidebarOrder: 60,
 
   routes: [
     { path: '/tasks', component: TasksPage },

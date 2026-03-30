@@ -15,7 +15,7 @@ export const tablesManifest: ClientAppManifest = {
   dependencies: [],
   defaultEnabled: true,
   version: '1.0.0',
-  sidebarOrder: 40,
+  sidebarOrder: 50,
 
   routes: [
     { path: '/tables', component: TablesPage },

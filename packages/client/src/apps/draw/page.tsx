@@ -19,6 +19,8 @@ import {
   ChevronDown,
   LayoutTemplate,
   ArrowDownAZ,
+  Layers,
+  Share2,
 } from 'lucide-react';
 import { AppSidebar } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
@@ -42,6 +44,7 @@ import { useUIStore } from '../../stores/ui-store';
 import { DRAWING_TEMPLATES } from '../../config/drawing-templates';
 import { DEFAULT_LIBRARY_ITEMS } from '../../config/drawing-libraries';
 import type { Drawing } from '@atlasmail/shared';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 
 // ─── Sort helper ────────────────────────────────────────────────────
 
@@ -800,34 +803,19 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        color: 'var(--color-text-tertiary)',
-        fontFamily: 'var(--font-family)',
-      }}
-    >
-      <Pencil size={48} strokeWidth={1} style={{ opacity: 0.3 }} />
-      <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 500, color: 'var(--color-text-secondary)' }}>
-        {t('draw.createFirst')}
-      </div>
-      <div style={{ fontSize: 'var(--font-size-sm)', maxWidth: 280, textAlign: 'center', lineHeight: 1.5 }}>
-        {t('draw.createFirstDesc')}
-      </div>
-      <Button
-        variant="primary"
-        size="md"
-        icon={<Plus size={15} />}
-        onClick={onCreate}
-      >
-        {t('draw.newDrawing')}
-      </Button>
-    </div>
+    <FeatureEmptyState
+      illustration="drawings"
+      title={t('draw.empty.title')}
+      description={t('draw.empty.desc')}
+      highlights={[
+        { icon: <Pencil size={14} />, title: t('draw.empty.h1Title'), description: t('draw.empty.h1Desc') },
+        { icon: <Layers size={14} />, title: t('draw.empty.h2Title'), description: t('draw.empty.h2Desc') },
+        { icon: <Share2 size={14} />, title: t('draw.empty.h3Title'), description: t('draw.empty.h3Desc') },
+      ]}
+      actionLabel={t('draw.newDrawing')}
+      actionIcon={<Plus size={14} />}
+      onAction={onCreate}
+    />
   );
 }
 

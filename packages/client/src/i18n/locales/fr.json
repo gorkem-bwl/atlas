@@ -449,7 +449,17 @@
     "defaultSection": "Section par défaut",
     "defaultSectionDesc": "Quelle vue la barre latérale affiche à la première ouverture des documents.",
     "pages": "Pages",
-    "recent": "Récent"
+    "recent": "Récent",
+    "empty": {
+      "title": "Sélectionnez un document",
+      "desc": "Choisissez une page dans la barre latérale ou créez-en une nouvelle",
+      "h1Title": "Éditeur riche",
+      "h1Desc": "Écrivez avec des titres, des listes, des blocs de code et des intégrations",
+      "h2Title": "Organisez avec des pages",
+      "h2Desc": "Imbriquez des sous-pages pour une base de connaissances structurée",
+      "h3Title": "Modèles",
+      "h3Desc": "Commencez avec des modèles pour les notes de réunion, les specs et plus"
+    }
   },
   "draw": {
     "title": "Dessin",
@@ -513,7 +523,17 @@
     "autoSave5s": "5 secondes",
     "autoSave10s": "10 secondes",
     "fromTemplate": "À partir d'un modèle",
-    "blankDrawing": "Dessin vierge"
+    "blankDrawing": "Dessin vierge",
+    "empty": {
+      "title": "Créez votre premier dessin",
+      "desc": "Esquissez des diagrammes, des maquettes et des idées visuelles",
+      "h1Title": "Canevas libre",
+      "h1Desc": "Dessinez des formes, des flèches et du texte sur un canevas infini",
+      "h2Title": "Modèles",
+      "h2Desc": "Commencez avec des organigrammes, des maquettes ou des cartes mentales",
+      "h3Title": "Exportez partout",
+      "h3Desc": "Téléchargez en PNG, SVG ou copiez dans le presse-papiers"
+    }
   },
   "tasks": {
     "title": "Tâches",
@@ -547,7 +567,30 @@
     "repeatYearly": "Annuel",
     "listView": "Vue liste",
     "boardView": "Vue tableau",
-    "noTasksInColumn": "Aucune tâche"
+    "noTasksInColumn": "Aucune tâche",
+    "empty": {
+      "inboxTitle": "Votre boîte de réception est vide",
+      "inboxDesc": "Les nouvelles tâches apparaissent ici par défaut — organisez-les quand vous êtes prêt",
+      "inboxH1Title": "Capturez tout",
+      "inboxH1Desc": "Ajoutez rapidement des tâches et triez-les plus tard",
+      "inboxH2Title": "Planifiez votre journée",
+      "inboxH2Desc": "Déplacez des tâches vers Aujourd'hui pour vous concentrer sur l'essentiel",
+      "inboxH3Title": "Définissez des échéances",
+      "inboxH3Desc": "Ajoutez des dates d'échéance pour ne rien oublier",
+      "loadSample": "Charger des tâches exemples",
+      "todayTitle": "Rien de prévu pour aujourd'hui",
+      "todayDesc": "Déplacez des tâches ici pour vous concentrer",
+      "upcomingTitle": "Aucune échéance à venir",
+      "upcomingDesc": "Les tâches avec des dates d'échéance apparaissent ici",
+      "anytimeTitle": "Aucune tâche dans N'importe quand",
+      "anytimeDesc": "Tâches flexibles que vous pouvez faire quand vous voulez",
+      "somedayTitle": "Aucune tâche dans Un jour",
+      "somedayDesc": "Mettez des idées et des tâches de côté pour plus tard",
+      "logbookTitle": "Le journal est vide",
+      "logbookDesc": "Les tâches terminées apparaîtront ici",
+      "projectTitle": "Aucune tâche dans ce projet",
+      "projectDesc": "Ajoutez des tâches pour commencer"
+    }
   },
   "errors": {
     "recipientRequired": "Au moins un destinataire est requis",
@@ -695,7 +738,17 @@
     "rowsSelected_other": "{{count}} lignes sélectionnées",
     "deleteSelected": "Supprimer",
     "duplicateSelected": "Dupliquer",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "empty": {
+      "title": "Créez votre première table",
+      "desc": "Construisez des feuilles de calcul avec des types de champs puissants et des vues",
+      "h1Title": "Types de champs riches",
+      "h1Desc": "Texte, nombres, sélections, dates, cases à cocher et plus",
+      "h2Title": "Vues multiples",
+      "h2Desc": "Basculez entre grille, kanban, calendrier et galerie",
+      "h3Title": "Tri et filtrage",
+      "h3Desc": "Organisez vos données avec des options de filtrage puissantes"
+    }
   },
   "crm": {
     "title": "CRM",
@@ -849,7 +902,34 @@
       "noMatchingCompanies": "Aucune entreprise correspondante",
       "noMatchingActivities": "Aucune activité correspondante",
       "logFirstActivity": "Enregistrez votre première activité pour commencer",
-      "tryDifferentSearch": "Essayez un terme de recherche différent"
+      "tryDifferentSearch": "Essayez un terme de recherche différent",
+      "pipelineTitle": "Construisez votre pipeline commercial",
+      "pipelineDesc": "Suivez les affaires du premier contact à la conclusion",
+      "pipelineH1Title": "Pipeline visuel",
+      "pipelineH1Desc": "Glissez les affaires entre les étapes sur un tableau kanban",
+      "pipelineH2Title": "Suivi des revenus",
+      "pipelineH2Desc": "Voyez les valeurs et les prévisions d'un coup d'œil",
+      "pipelineH3Title": "Analytique du taux de réussite",
+      "pipelineH3Desc": "Suivez les taux de conversion dans votre pipeline",
+      "createDeal": "Créer la première affaire",
+      "contactsTitle": "Gérez vos contacts",
+      "contactsDesc": "Gardez une trace de chaque personne avec qui vous faites affaire",
+      "contactsH1Title": "Répertoire de contacts",
+      "contactsH1Desc": "Stockez les noms, e-mails, téléphones et rôles",
+      "contactsH2Title": "Historique des e-mails",
+      "contactsH2Desc": "Consultez les conversations passées liées à chaque contact",
+      "contactsH3Title": "Associations d'affaires",
+      "contactsH3Desc": "Reliez les contacts aux affaires et suivez l'engagement",
+      "addContact": "Ajouter le premier contact",
+      "companiesTitle": "Suivez vos entreprises",
+      "companiesDesc": "Organisez les entreprises avec lesquelles vous travaillez",
+      "companiesH1Title": "Profils d'entreprise",
+      "companiesH1Desc": "Stockez les détails, le secteur et la taille de l'entreprise",
+      "companiesH2Title": "Enrichissement de domaine",
+      "companiesH2Desc": "Récupérez automatiquement les logos d'entreprise depuis leur site web",
+      "companiesH3Title": "Vue d'ensemble de l'équipe",
+      "companiesH3Desc": "Voyez tous les contacts et affaires de chaque entreprise",
+      "addCompany": "Ajouter la première entreprise"
     },
     "bulk": {
       "deleteTitle": "Supprimer {{count}} éléments ?",
@@ -971,6 +1051,19 @@
       "titlePlaceholder": "Titre de la réunion"
     }
   },
+  "drive": {
+    "empty": {
+      "title": "Votre lecteur est vide",
+      "desc": "Téléchargez des fichiers ou créez des dossiers pour commencer",
+      "h1Title": "Télécharger des fichiers",
+      "h1Desc": "Glissez-déposez ou parcourez pour télécharger tout type de fichier",
+      "h2Title": "Organiser avec des dossiers",
+      "h2Desc": "Créez des dossiers pour structurer vos fichiers",
+      "h3Title": "Partager avec des liens",
+      "h3Desc": "Générez des liens partageables pour tout fichier ou dossier",
+      "uploadFiles": "Télécharger des fichiers"
+    }
+  },
   "hr": {
     "title": "RH",
     "sidebar": { "dashboard": "Tableau de bord", "allEmployees": "Tous les employes", "departments": "Tous les departements", "departmentsTitle": "Departements", "department": "Departement", "orgChart": "Organigramme", "timeOff": "Conges", "allDepartments": "Tous les departements", "settings": "Parametres" },
@@ -993,7 +1086,17 @@
     "orgChart": { "organization": "Organisation", "employees": "employes", "unassigned": "Non assigne", "empty": "Pas de donnees d'organigramme", "emptyDesc": "Ajoutez des departements et des employes." },
     "leaveBalance": { "title": "Solde de conges", "allocate": "Attribuer", "days": "Jours", "allocated": "attribues", "used": "utilises", "remaining": "restants", "noBalances": "Aucun solde de conges pour cette annee." },
     "onboarding": { "title": "Integration", "addTask": "Ajouter une tache", "applyTemplate": "Appliquer un modele", "completed": "termine", "taskTitle": "Titre de la tache", "noTasks": "Pas encore de taches d'integration." },
-    "documents": { "title": "Documents", "upload": "Telecharger", "download": "Telecharger", "noDocuments": "Aucun document telecharge.", "types": { "contract": "Contrat", "certificate": "Certificat", "id": "Piece d'identite", "resume": "CV", "policy": "Politique", "other": "Autre" } }
+    "documents": { "title": "Documents", "upload": "Telecharger", "download": "Telecharger", "noDocuments": "Aucun document telecharge.", "types": { "contract": "Contrat", "certificate": "Certificat", "id": "Piece d'identite", "resume": "CV", "policy": "Politique", "other": "Autre" } },
+    "empty": {
+      "title": "Gérez votre équipe",
+      "desc": "Gardez les dossiers des employés, les départements et les congés en un seul endroit",
+      "h1Title": "Répertoire des employés",
+      "h1Desc": "Stockez les profils, rôles et informations de contact",
+      "h2Title": "Départements",
+      "h2Desc": "Organisez votre équipe en départements avec des responsables",
+      "h3Title": "Suivi des congés",
+      "h3Desc": "Gérez les demandes de congés et suivez les soldes"
+    }
   },
   "sign": {
     "title": "Signature",
@@ -1109,6 +1212,17 @@
       "clear": "Effacer",
       "cancel": "Annuler",
       "apply": "Appliquer"
+    },
+    "empty": {
+      "title": "Faites signer vos documents",
+      "desc": "Téléchargez un PDF et ajoutez des champs de signature pour vos signataires",
+      "h1Title": "Placez des champs de signature",
+      "h1Desc": "Déposez des champs de signature, de paraphe et de date sur votre document",
+      "h2Title": "Envoyez pour signature",
+      "h2Desc": "Générez des liens de signature uniques pour chaque destinataire",
+      "h3Title": "Suivez la progression",
+      "h3Desc": "Surveillez la progression des signatures et téléchargez les copies signées",
+      "upload": "Télécharger le premier PDF"
     }
   }
 }

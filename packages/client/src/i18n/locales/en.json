@@ -490,7 +490,17 @@
     "defaultSection": "Default section",
     "defaultSectionDesc": "Which view the sidebar shows when you first open documents.",
     "pages": "Pages",
-    "recent": "Recent"
+    "recent": "Recent",
+    "empty": {
+      "title": "Select a document",
+      "desc": "Choose a page from the sidebar or create a new one",
+      "h1Title": "Rich editor",
+      "h1Desc": "Write with headings, lists, code blocks, and embeds",
+      "h2Title": "Organize with pages",
+      "h2Desc": "Nest sub-pages to build a structured knowledge base",
+      "h3Title": "Templates",
+      "h3Desc": "Start from a template for meeting notes, specs, and more"
+    }
   },
   "draw": {
     "title": "Draw",
@@ -554,7 +564,17 @@
     "autoSave5s": "5 seconds",
     "autoSave10s": "10 seconds",
     "fromTemplate": "From template",
-    "blankDrawing": "Blank drawing"
+    "blankDrawing": "Blank drawing",
+    "empty": {
+      "title": "Create your first drawing",
+      "desc": "Sketch diagrams, wireframes, and visual ideas",
+      "h1Title": "Freehand canvas",
+      "h1Desc": "Draw shapes, arrows, and text on an infinite canvas",
+      "h2Title": "Templates",
+      "h2Desc": "Start from flowcharts, wireframes, or mind maps",
+      "h3Title": "Export anywhere",
+      "h3Desc": "Download as PNG, SVG, or copy to clipboard"
+    }
   },
   "tasks": {
     "title": "Tasks",
@@ -588,7 +608,30 @@
     "repeatYearly": "Yearly",
     "listView": "List view",
     "boardView": "Board view",
-    "noTasksInColumn": "No tasks"
+    "noTasksInColumn": "No tasks",
+    "empty": {
+      "inboxTitle": "Your inbox is empty",
+      "inboxDesc": "New tasks appear here by default — organize them when you are ready",
+      "inboxH1Title": "Capture everything",
+      "inboxH1Desc": "Quickly add tasks and triage them later",
+      "inboxH2Title": "Plan your day",
+      "inboxH2Desc": "Move tasks to Today to focus on what matters",
+      "inboxH3Title": "Set deadlines",
+      "inboxH3Desc": "Add due dates so nothing slips through the cracks",
+      "loadSample": "Load sample tasks",
+      "todayTitle": "Nothing planned for today",
+      "todayDesc": "Move tasks here to focus on what matters",
+      "upcomingTitle": "No upcoming deadlines",
+      "upcomingDesc": "Tasks with due dates appear here",
+      "anytimeTitle": "No tasks in anytime",
+      "anytimeDesc": "Flexible tasks you can do whenever",
+      "somedayTitle": "No tasks in someday",
+      "somedayDesc": "Park ideas and tasks for later",
+      "logbookTitle": "Logbook is empty",
+      "logbookDesc": "Completed tasks will appear here",
+      "projectTitle": "No tasks in this project",
+      "projectDesc": "Add tasks to get started"
+    }
   },
   "errors": {
     "recipientRequired": "At least one recipient is required",
@@ -736,7 +779,17 @@
     "rowsSelected_other": "{{count}} rows selected",
     "deleteSelected": "Delete",
     "duplicateSelected": "Duplicate",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "empty": {
+      "title": "Create your first table",
+      "desc": "Build spreadsheets with powerful field types and views",
+      "h1Title": "Rich field types",
+      "h1Desc": "Text, numbers, selects, dates, checkboxes, and more",
+      "h2Title": "Multiple views",
+      "h2Desc": "Switch between grid, kanban, calendar, and gallery",
+      "h3Title": "Sort and filter",
+      "h3Desc": "Organize your data with powerful filtering options"
+    }
   },
   "crm": {
     "title": "CRM",
@@ -890,7 +943,34 @@
       "noMatchingCompanies": "No matching companies",
       "noMatchingActivities": "No matching activities",
       "logFirstActivity": "Log your first activity to get started",
-      "tryDifferentSearch": "Try a different search term"
+      "tryDifferentSearch": "Try a different search term",
+      "pipelineTitle": "Build your sales pipeline",
+      "pipelineDesc": "Track deals from first contact to close",
+      "pipelineH1Title": "Visual pipeline",
+      "pipelineH1Desc": "Drag deals between stages on a kanban board",
+      "pipelineH2Title": "Revenue tracking",
+      "pipelineH2Desc": "See deal values and forecasts at a glance",
+      "pipelineH3Title": "Win rate analytics",
+      "pipelineH3Desc": "Track conversion rates across your pipeline",
+      "createDeal": "Create first deal",
+      "contactsTitle": "Manage your contacts",
+      "contactsDesc": "Keep track of every person you do business with",
+      "contactsH1Title": "Contact directory",
+      "contactsH1Desc": "Store names, emails, phone numbers, and roles",
+      "contactsH2Title": "Email history",
+      "contactsH2Desc": "See past conversations linked to each contact",
+      "contactsH3Title": "Deal associations",
+      "contactsH3Desc": "Connect contacts to deals and track engagement",
+      "addContact": "Add first contact",
+      "companiesTitle": "Track your companies",
+      "companiesDesc": "Organize the businesses you work with",
+      "companiesH1Title": "Company profiles",
+      "companiesH1Desc": "Store company details, industry, and size",
+      "companiesH2Title": "Domain enrichment",
+      "companiesH2Desc": "Auto-fetch company logos from their website",
+      "companiesH3Title": "Team overview",
+      "companiesH3Desc": "See all contacts and deals for each company",
+      "addCompany": "Add first company"
     },
     "bulk": {
       "deleteTitle": "Delete {{count}} items?",
@@ -1010,6 +1090,19 @@
       "dateRequired": "Date is required",
       "createFailed": "Failed to create event. Please try again.",
       "titlePlaceholder": "Meeting title"
+    }
+  },
+  "drive": {
+    "empty": {
+      "title": "Your drive is empty",
+      "desc": "Upload files or create folders to get started",
+      "h1Title": "Upload files",
+      "h1Desc": "Drag and drop or browse to upload any file type",
+      "h2Title": "Organize with folders",
+      "h2Desc": "Create folders to keep your files structured",
+      "h3Title": "Share with links",
+      "h3Desc": "Generate shareable links for any file or folder",
+      "uploadFiles": "Upload files"
     }
   },
   "hr": {
@@ -1202,6 +1295,16 @@
         "policy": "Policy",
         "other": "Other"
       }
+    },
+    "empty": {
+      "title": "Manage your team",
+      "desc": "Keep employee records, departments, and time off in one place",
+      "h1Title": "Employee directory",
+      "h1Desc": "Store profiles, roles, and contact information",
+      "h2Title": "Departments",
+      "h2Desc": "Organize your team into departments with managers",
+      "h3Title": "Time off tracking",
+      "h3Desc": "Manage leave requests and track balances"
     }
   },
   "sign": {
@@ -1318,6 +1421,17 @@
       "clear": "Clear",
       "cancel": "Cancel",
       "apply": "Apply"
+    },
+    "empty": {
+      "title": "Get documents signed",
+      "desc": "Upload a PDF and add signature fields for your signers",
+      "h1Title": "Place signature fields",
+      "h1Desc": "Drop signature, initial, and date fields onto your document",
+      "h2Title": "Send for signing",
+      "h2Desc": "Generate unique signing links for each recipient",
+      "h3Title": "Track completion",
+      "h3Desc": "Monitor signing progress and download signed copies",
+      "upload": "Upload first PDF"
     }
   }
 }

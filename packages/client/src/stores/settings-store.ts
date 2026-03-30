@@ -59,6 +59,19 @@ interface SettingsState {
   aiQuickReplies: boolean;
   aiThreadSummary: boolean;
   aiTranslation: boolean;
+  // Format settings
+  dateFormat: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
+  timezone: string;
+  currencySymbol: string;
+  timeFormat: '12h' | '24h';
+  numberFormat: 'comma-period' | 'period-comma' | 'space-comma';
+  calendarStartDay: 'sunday' | 'monday';
+  setDateFormat: (value: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD') => void;
+  setTimezone: (value: string) => void;
+  setCurrencySymbol: (value: string) => void;
+  setTimeFormat: (value: '12h' | '24h') => void;
+  setNumberFormat: (value: 'comma-period' | 'period-comma' | 'space-comma') => void;
+  setCalendarStartDay: (value: 'sunday' | 'monday') => void;
   _hydrated: boolean;
   setTheme: (theme: ThemeMode) => void;
   setColorTheme: (colorTheme: ColorThemeId) => void;
@@ -122,6 +135,12 @@ const TO_SERVER: Record<string, string> = {
   aiQuickReplies: 'aiQuickReplies',
   aiThreadSummary: 'aiThreadSummary',
   aiTranslation: 'aiTranslation',
+  dateFormat: 'dateFormat',
+  timezone: 'timezone',
+  currencySymbol: 'currencySymbol',
+  timeFormat: 'timeFormat',
+  numberFormat: 'numberFormat',
+  calendarStartDay: 'calendarStartDay',
 };
 
 const FROM_SERVER: Record<string, string> = Object.fromEntries(
@@ -163,6 +182,13 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
   aiQuickReplies: true,
   aiThreadSummary: true,
   aiTranslation: true,
+  // Format defaults
+  dateFormat: 'MM/DD/YYYY',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  currencySymbol: '$',
+  timeFormat: '12h',
+  numberFormat: 'comma-period',
+  calendarStartDay: 'sunday',
   _hydrated: false,
   setTheme: (theme) => { set({ theme }); persistToServer('theme', theme); },
   setColorTheme: (colorTheme) => { set({ colorTheme }); persistToServer('colorTheme', colorTheme); },
@@ -212,6 +238,13 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
   setAIQuickReplies: (aiQuickReplies) => { set({ aiQuickReplies }); persistToServer('aiQuickReplies', aiQuickReplies); },
   setAIThreadSummary: (aiThreadSummary) => { set({ aiThreadSummary }); persistToServer('aiThreadSummary', aiThreadSummary); },
   setAITranslation: (aiTranslation) => { set({ aiTranslation }); persistToServer('aiTranslation', aiTranslation); },
+  // Format setters
+  setDateFormat: (dateFormat) => { set({ dateFormat }); persistToServer('dateFormat', dateFormat); },
+  setTimezone: (timezone) => { set({ timezone }); persistToServer('timezone', timezone); },
+  setCurrencySymbol: (currencySymbol) => { set({ currencySymbol }); persistToServer('currencySymbol', currencySymbol); },
+  setTimeFormat: (timeFormat) => { set({ timeFormat }); persistToServer('timeFormat', timeFormat); },
+  setNumberFormat: (numberFormat) => { set({ numberFormat }); persistToServer('numberFormat', numberFormat); },
+  setCalendarStartDay: (calendarStartDay) => { set({ calendarStartDay }); persistToServer('calendarStartDay', calendarStartDay); },
   _hydrateFromServer: (data: Record<string, unknown>) => {
     const patch: Record<string, unknown> = {};
     for (const [serverKey, localKey] of Object.entries(FROM_SERVER)) {

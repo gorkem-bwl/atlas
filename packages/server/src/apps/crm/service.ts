@@ -1184,8 +1184,76 @@ export async function seedSampleData(userId: string, accountId: string) {
     dealId: deal1.id, contactId: johnSmith.id, companyId: acme.id,
   });
 
+  // Create sample leads
+  await createLead(userId, accountId, {
+    name: 'David Park', email: 'david.park@novacorp.io', phone: '+1-555-7001',
+    companyName: 'NovaCorp', source: 'website',
+    notes: 'Requested a demo after reading our blog post on workflow automation.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Sarah Chen', email: 'sarah.chen@brightpath.com', phone: '+1-555-7002',
+    companyName: 'BrightPath Analytics', source: 'linkedin',
+    notes: 'Connected on LinkedIn. Interested in enterprise plan for 200+ users.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Marcus Rivera', email: 'mrivera@steelridge.co',
+    companyName: 'SteelRidge Manufacturing', source: 'conference',
+    notes: 'Met at SaaS Connect 2026. Looking to replace their current CRM.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Emma Johansson', email: 'emma@nordiqsystems.se', phone: '+46-70-555-0103',
+    companyName: 'Nordiq Systems', source: 'referral',
+    notes: 'Referred by Alice Wong at Umbrella Partners. Evaluating tools for Q3.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Raj Patel', email: 'raj.patel@cloudnine.in', phone: '+91-98765-43210',
+    companyName: 'CloudNine Solutions', source: 'cold-email',
+    notes: 'Replied to outbound campaign. Wants to see pricing for their 50-person team.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Lisa Tanaka', email: 'ltanaka@futureworks.jp',
+    companyName: 'FutureWorks Inc', source: 'website',
+    notes: 'Downloaded the whitepaper. VP of Operations.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Tom Bradley', email: 'tbradley@apexventures.com', phone: '+1-555-7007',
+    companyName: 'Apex Ventures', source: 'partner',
+    notes: 'Inbound from partner channel. Seed-stage startup, 15 employees.',
+  });
+  await createLead(userId, accountId, {
+    name: 'Ana Morales', email: 'ana.morales@luminahealth.mx', phone: '+52-55-5555-0108',
+    companyName: 'Lumina Health', source: 'webinar',
+    notes: 'Attended our webinar on data-driven sales. Asked about HIPAA compliance.',
+  });
+
   logger.info({ userId, accountId }, 'Seeded CRM sample data');
-  return { companies: 4, contacts: 5, stages: stages.length, deals: 4, activities: 5 };
+  return { companies: 4, contacts: 5, stages: stages.length, deals: 4, activities: 5, leads: 8 };
+}
+
+// ─── Seed Sample Leads (standalone) ──────────────────────────────────
+
+export async function seedSampleLeads(userId: string, accountId: string) {
+  const existing = await db.select({ id: crmLeads.id }).from(crmLeads)
+    .where(and(eq(crmLeads.userId, userId), eq(crmLeads.isArchived, false))).limit(1);
+  if (existing.length > 0) return { skipped: true };
+
+  const leads = [
+    { name: 'David Park', email: 'david.park@novacorp.io', phone: '+1-555-7001', companyName: 'NovaCorp', source: 'website', notes: 'Requested a demo after reading our blog post on workflow automation.' },
+    { name: 'Sarah Chen', email: 'sarah.chen@brightpath.com', phone: '+1-555-7002', companyName: 'BrightPath Analytics', source: 'linkedin', notes: 'Connected on LinkedIn. Interested in enterprise plan for 200+ users.' },
+    { name: 'Marcus Rivera', email: 'mrivera@steelridge.co', companyName: 'SteelRidge Manufacturing', source: 'conference', notes: 'Met at SaaS Connect 2026. Looking to replace their current CRM.' },
+    { name: 'Emma Johansson', email: 'emma@nordiqsystems.se', phone: '+46-70-555-0103', companyName: 'Nordiq Systems', source: 'referral', notes: 'Referred by Alice Wong at Umbrella Partners. Evaluating tools for Q3.' },
+    { name: 'Raj Patel', email: 'raj.patel@cloudnine.in', phone: '+91-98765-43210', companyName: 'CloudNine Solutions', source: 'cold-email', notes: 'Replied to outbound campaign. Wants to see pricing for their 50-person team.' },
+    { name: 'Lisa Tanaka', email: 'ltanaka@futureworks.jp', companyName: 'FutureWorks Inc', source: 'website', notes: 'Downloaded the whitepaper. VP of Operations.' },
+    { name: 'Tom Bradley', email: 'tbradley@apexventures.com', phone: '+1-555-7007', companyName: 'Apex Ventures', source: 'partner', notes: 'Inbound from partner channel. Seed-stage startup, 15 employees.' },
+    { name: 'Ana Morales', email: 'ana.morales@luminahealth.mx', phone: '+52-55-5555-0108', companyName: 'Lumina Health', source: 'webinar', notes: 'Attended our webinar on data-driven sales. Asked about HIPAA compliance.' },
+  ];
+
+  for (const lead of leads) {
+    await createLead(userId, accountId, lead);
+  }
+
+  logger.info({ userId, accountId, count: leads.length }, 'Seeded CRM sample leads');
+  return { leads: leads.length };
 }
 
 // ─── Seed Example Workflows ──────────────────────────────────────────

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { formatDate as formatDateGlobal } from '../../lib/format';
 import {
   useTaskList, useCreateTask, useUpdateTask, useDeleteTask,
   useProjectList, useCreateProject, useUpdateProject, useDeleteProject, useTaskCounts,
@@ -29,6 +30,7 @@ import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
 import { Select } from '../../components/ui/select';
+import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import '../../styles/tasks.css';
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
@@ -82,7 +84,7 @@ function formatDueDate(dateStr: string): string {
   if (diff === -1) return 'Yesterday';
   if (diff < -1) return `${Math.abs(diff)}d overdue`;
   if (diff <= 7) return dueLocal.toLocaleDateString([], { weekday: 'short' });
-  return dueLocal.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return formatDateGlobal(dueLocal);
 }
 
 function getDueBadgeClass(dateStr: string): string {
@@ -771,9 +773,9 @@ function TaskDetailPanel({
         {/* Timestamps */}
         <div className="task-detail-timestamps">
           <div className="task-detail-timestamp-text">
-            Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+            Created {formatDateGlobal(task.createdAt)}
             {task.completedAt && (
-              <> · Completed {new Date(task.completedAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</>
+              <> · Completed {formatDateGlobal(task.completedAt)}</>
             )}
           </div>
         </div>
@@ -1723,19 +1725,40 @@ function EmptyState({
   seeding: boolean;
   onSeed: () => void;
 }) {
+  const { t } = useTranslation();
+  const isProject = section.startsWith('project:');
+
+  // For inbox section with no tasks, show rich empty state
+  if (section === 'inbox') {
+    return (
+      <FeatureEmptyState
+        illustration="tasks"
+        title={t('tasks.empty.inboxTitle')}
+        description={t('tasks.empty.inboxDesc')}
+        highlights={[
+          { icon: <Inbox size={14} />, title: t('tasks.empty.inboxH1Title'), description: t('tasks.empty.inboxH1Desc') },
+          { icon: <Star size={14} />, title: t('tasks.empty.inboxH2Title'), description: t('tasks.empty.inboxH2Desc') },
+          { icon: <Calendar size={14} />, title: t('tasks.empty.inboxH3Title'), description: t('tasks.empty.inboxH3Desc') },
+        ]}
+        actionLabel={seeding ? t('common.loading') : t('tasks.empty.loadSample')}
+        actionIcon={<Plus size={14} />}
+        onAction={onSeed}
+      />
+    );
+  }
+
+  // For other sections, keep simple empty states
   const config: Record<string, { icon: typeof Inbox; title: string; desc: string }> = {
-    inbox: { icon: Inbox, title: 'Inbox is empty', desc: 'New tasks appear here by default' },
-    today: { icon: Star, title: 'Nothing planned for today', desc: 'Move tasks here to focus on what matters' },
-    upcoming: { icon: Calendar, title: 'No upcoming deadlines', desc: 'Tasks with due dates appear here' },
-    anytime: { icon: CircleDot, title: 'No tasks in anytime', desc: 'Flexible tasks you can do whenever' },
-    someday: { icon: Coffee, title: 'No tasks in someday', desc: 'Park ideas and tasks for later' },
-    logbook: { icon: BookOpen, title: 'Logbook is empty', desc: 'Completed tasks will appear here' },
+    today: { icon: Star, title: t('tasks.empty.todayTitle'), desc: t('tasks.empty.todayDesc') },
+    upcoming: { icon: Calendar, title: t('tasks.empty.upcomingTitle'), desc: t('tasks.empty.upcomingDesc') },
+    anytime: { icon: CircleDot, title: t('tasks.empty.anytimeTitle'), desc: t('tasks.empty.anytimeDesc') },
+    someday: { icon: Coffee, title: t('tasks.empty.somedayTitle'), desc: t('tasks.empty.somedayDesc') },
+    logbook: { icon: BookOpen, title: t('tasks.empty.logbookTitle'), desc: t('tasks.empty.logbookDesc') },
   };
 
-  const isProject = section.startsWith('project:');
   const cfg = isProject
-    ? { icon: Archive, title: 'No tasks in this project', desc: 'Add tasks to get started' }
-    : config[section] ?? { icon: Inbox, title: 'No tasks', desc: '' };
+    ? { icon: Archive, title: t('tasks.empty.projectTitle'), desc: t('tasks.empty.projectDesc') }
+    : config[section] ?? { icon: Inbox, title: t('tasks.noTasks'), desc: '' };
 
   const Icon = cfg.icon;
 
@@ -1744,16 +1767,6 @@ function EmptyState({
       <Icon size={32} color="var(--color-text-tertiary)" strokeWidth={1.2} />
       <span className="task-empty-title">{cfg.title}</span>
       <span className="task-empty-desc">{cfg.desc}</span>
-      {section === 'inbox' && (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onSeed}
-          disabled={seeding}
-        >
-          {seeding ? 'Loading...' : 'Load sample tasks'}
-        </Button>
-      )}
     </div>
   );
 }

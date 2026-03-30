@@ -11,6 +11,24 @@
   -webkit-app-region: no-drag;
 }
 
+/* ─── Glass-morphism input overrides (login / setup pages) ─────────── */
+/* Inputs inside a .glass-card get white text and visible placeholders.
+   !important is required to override the inline styles on <input>.     */
+
+.glass-card input::placeholder,
+.glass-card textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.glass-card input,
+.glass-card textarea {
+  color: #fff !important;
+}
+
+.glass-card label {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
 /* ─── Accessibility utilities ───────────────────────────────────────── */
 
 /* Screen-reader only — visually hidden but accessible to assistive technology */
