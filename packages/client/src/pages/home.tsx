@@ -503,15 +503,17 @@ export function HomePage() {
     const dock = dockRef.current;
     if (!dock) return;
     const mouseX = e.clientX;
-    const BASE = 60;
-    const MAX = 76;
-    const RANGE = 200; // px distance for full falloff
+    const BASE = 52;
+    const MAX = 72;
+    const RANGE = 160;
     const items = dock.querySelectorAll<HTMLElement>('.dock-item');
     items.forEach((item) => {
       const rect = item.getBoundingClientRect();
       const itemCenterX = rect.left + rect.width / 2;
       const distance = Math.abs(mouseX - itemCenterX);
-      const scale = Math.max(0, 1 - distance / RANGE);
+      // Parabolic falloff (like real macOS) — smoother than linear
+      const normalized = Math.min(distance / RANGE, 1);
+      const scale = Math.max(0, 1 - normalized * normalized);
       const size = BASE + (MAX - BASE) * scale;
       const mt = -(size - BASE);
       item.style.setProperty('--dock-w', `${size}px`);
@@ -975,19 +977,21 @@ export function HomePage() {
           onMouseLeave={handleDockMouseLeave}
           style={{
             position: 'absolute',
-            bottom: 16,
+            bottom: 8,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 50,
             display: 'flex',
             alignItems: 'flex-end',
-            padding: '8px 12px',
-            borderRadius: 20,
-            background: 'rgba(255,255,255,0.12)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.18)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-            gap: 2,
+            padding: '4px 8px 6px',
+            borderRadius: 18,
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderBottom: '1px solid rgba(255,255,255,0.10)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+            gap: 3,
           }}
         >
           {dockApps.map((app) => {
@@ -998,21 +1002,17 @@ export function HomePage() {
                 className="dock-item"
               >
                 <div
+                  className="dock-icon-inner"
                   onClick={() => navigate(app.route)}
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: 14,
-                    background: `linear-gradient(135deg, ${app.color} 0%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: `0 4px 14px ${app.color}44, 0 2px 6px rgba(0,0,0,0.15)`,
+                    background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                    boxShadow: `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
                   }}
                 >
-                  <Icon size={28} color="#fff" strokeWidth={1.7} />
+                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                 </div>
+                {/* Reflection */}
+                <div className="dock-icon-reflection" style={{ background: app.color }} />
                 <span className="dock-tooltip">{app.label}</span>
               </div>
             );
