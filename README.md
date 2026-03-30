@@ -105,6 +105,41 @@ npm run dev
 | `SMTP_USER` | No | — | SMTP username |
 | `SMTP_PASS` | No | — | SMTP password |
 
+## Troubleshooting
+
+**Build fails with "JavaScript heap out of memory"**
+
+Docker Desktop needs at least 4GB memory. Go to Docker Desktop > Settings > Resources > Memory and increase it.
+
+**"network ... not found" error**
+
+```bash
+docker compose -f docker-compose.production.yml down
+docker compose -f docker-compose.production.yml up -d --build
+```
+
+**Build uses cached old Dockerfile after `git pull`**
+
+```bash
+docker compose -f docker-compose.production.yml build --no-cache atlas
+docker compose -f docker-compose.production.yml up -d
+```
+
+**Port 3001 already in use**
+
+Stop the process using port 3001, or set a different port in `.env`:
+```
+PORT=3002
+```
+
+**Blank page after login (no UI)**
+
+This was fixed in recent versions. Pull the latest code and rebuild:
+```bash
+git pull
+docker compose -f docker-compose.production.yml up -d --build
+```
+
 ## License
 
 [Business Source License 1.1](LICENSE) — free for non-production use. Converts to Apache 2.0 after 4 years.
