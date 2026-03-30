@@ -14,7 +14,8 @@ export function createApp() {
 
   app.use(helmet({
     frameguard: { action: 'sameorigin' },
-    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
     hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
   }));
 

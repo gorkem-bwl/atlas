@@ -1,5 +1,5 @@
 import { type CSSProperties } from 'react';
-import { LayoutGrid, Keyboard, ChevronRight } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import {
   SettingsSection,
   SettingsRow,
@@ -97,66 +97,6 @@ export function AboutPanel() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection title="Quick links">
-        <button
-          onClick={() => {
-            document.dispatchEvent(new CustomEvent('atlasmail:settings_navigate', { detail: { panel: 'shortcuts' } }));
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: 'var(--spacing-md) var(--spacing-lg)',
-            marginBottom: 'var(--spacing-xs)',
-            background: 'var(--color-bg-tertiary)',
-            border: '1px solid var(--color-border-secondary)',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            transition: 'background var(--transition-normal)',
-            width: '100%',
-            fontFamily: 'var(--font-family)',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-surface-hover)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-tertiary)')}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <span
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 32,
-                height: 32,
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--color-bg-secondary)',
-              }}
-            >
-              <Keyboard size={16} style={{ color: 'var(--color-text-secondary)' }} />
-            </span>
-            <div style={{ textAlign: 'left' }}>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-md)',
-                  color: 'var(--color-text-primary)',
-                  fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-                }}
-              >
-                Keyboard shortcuts
-              </div>
-              <div
-                style={{
-                  marginTop: 1,
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-tertiary)',
-                }}
-              >
-                View all available shortcuts
-              </div>
-            </div>
-          </div>
-          <ChevronRight size={16} style={{ color: 'var(--color-text-tertiary)' }} />
-        </button>
-      </SettingsSection>
     </div>
   );
 }
