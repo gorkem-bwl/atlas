@@ -951,41 +951,287 @@ export async function seedSampleData(userId: string, accountId: string) {
     .where(eq(employees.userId, userId)).limit(1);
   if (existing.length > 0) return { skipped: true };
 
-  // Create 3 departments
-  const engineering = await createDepartment(userId, accountId, { name: 'Engineering', color: '#3b82f6' });
-  const marketing = await createDepartment(userId, accountId, { name: 'Marketing', color: '#f59e0b' });
-  const operations = await createDepartment(userId, accountId, { name: 'Operations', color: '#10b981' });
+  // ── Dates ────────────────────────────────────────────────────────
+  const d = (offset: number) => new Date(Date.now() + offset * 86400000).toISOString().split('T')[0];
+  const today = d(0);
+  const threeMonthsAgo = d(-90);
+  const sixMonthsAgo = d(-180);
+  const nineMonthsAgo = d(-270);
+  const oneYearAgo = d(-365);
+  const eighteenMonthsAgo = d(-545);
+  const twoYearsAgo = d(-730);
+  const threeYearsAgo = d(-1095);
+  const fourYearsAgo = d(-1460);
+  const fiveYearsAgo = d(-1825);
+  const nextWeek = d(7);
+  const inTwoWeeks = d(14);
+  const inThreeWeeks = d(21);
+  const inFourWeeks = d(28);
 
-  const today = new Date().toISOString().split('T')[0];
-  const sixMonthsAgo = new Date(Date.now() - 180 * 86400000).toISOString().split('T')[0];
-  const oneYearAgo = new Date(Date.now() - 365 * 86400000).toISOString().split('T')[0];
-  const twoYearsAgo = new Date(Date.now() - 730 * 86400000).toISOString().split('T')[0];
-  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
-  const inTwoWeeks = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
-  const inThreeWeeks = new Date(Date.now() + 21 * 86400000).toISOString().split('T')[0];
+  // ── Departments (6) ──────────────────────────────────────────────
+  const engineering = await createDepartment(userId, accountId, { name: 'Engineering', color: '#3b82f6', description: 'Product development, infrastructure, and technical operations' });
+  const product = await createDepartment(userId, accountId, { name: 'Product', color: '#8b5cf6', description: 'Product management, design, and user research' });
+  const marketing = await createDepartment(userId, accountId, { name: 'Marketing', color: '#f59e0b', description: 'Brand, growth, content, and demand generation' });
+  const sales = await createDepartment(userId, accountId, { name: 'Sales', color: '#ef4444', description: 'Business development, account management, and partnerships' });
+  const operations = await createDepartment(userId, accountId, { name: 'Operations', color: '#10b981', description: 'HR, finance, legal, and office management' });
+  const support = await createDepartment(userId, accountId, { name: 'Customer Success', color: '#06b6d4', description: 'Customer support, onboarding, and retention' });
 
-  // Create 8 employees
-  const emp1 = await createEmployee(userId, accountId, { name: 'Alice Johnson', email: 'alice@company.com', role: 'Senior Engineer', departmentId: engineering.id, startDate: twoYearsAgo, phone: '+1-555-0101' });
-  const emp2 = await createEmployee(userId, accountId, { name: 'Bob Williams', email: 'bob@company.com', role: 'Marketing Lead', departmentId: marketing.id, startDate: oneYearAgo, phone: '+1-555-0102' });
-  const emp3 = await createEmployee(userId, accountId, { name: 'Carol Davis', email: 'carol@company.com', role: 'Frontend Developer', departmentId: engineering.id, startDate: sixMonthsAgo });
-  const emp4 = await createEmployee(userId, accountId, { name: 'David Brown', email: 'david@company.com', role: 'Operations Manager', departmentId: operations.id, startDate: twoYearsAgo, phone: '+1-555-0104' });
-  const emp5 = await createEmployee(userId, accountId, { name: 'Eva Martinez', email: 'eva@company.com', role: 'Content Strategist', departmentId: marketing.id, startDate: oneYearAgo });
-  const emp6 = await createEmployee(userId, accountId, { name: 'Frank Lee', email: 'frank@company.com', role: 'DevOps Engineer', departmentId: engineering.id, startDate: sixMonthsAgo, status: 'on-leave' });
-  const emp7 = await createEmployee(userId, accountId, { name: 'Grace Kim', email: 'grace@company.com', role: 'HR Coordinator', departmentId: operations.id, startDate: oneYearAgo, phone: '+1-555-0107' });
-  const emp8 = await createEmployee(userId, accountId, { name: 'Henry Wilson', email: 'henry@company.com', role: 'Backend Developer', departmentId: engineering.id, startDate: twoYearsAgo });
+  // ── Employees (20) ───────────────────────────────────────────────
+  // Engineering (6)
+  const alice = await createEmployee(userId, accountId, {
+    name: 'Alice Johnson', email: 'alice.johnson@atlas.so', role: 'VP of Engineering',
+    departmentId: engineering.id, startDate: fiveYearsAgo, phone: '+1-415-555-0101',
+    jobTitle: 'VP of Engineering', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1985-03-15', gender: 'female',
+    salary: 195000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Robert Johnson', emergencyContactPhone: '+1-415-555-9901', emergencyContactRelation: 'Spouse',
+    tags: ['leadership', 'architecture', 'hiring-committee'],
+  });
+  const henry = await createEmployee(userId, accountId, {
+    name: 'Henry Wilson', email: 'henry.wilson@atlas.so', role: 'Staff Backend Engineer',
+    departmentId: engineering.id, startDate: fourYearsAgo, phone: '+1-415-555-0108',
+    jobTitle: 'Staff Backend Engineer', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1988-11-22', gender: 'male', managerId: alice.id,
+    salary: 175000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Linda Wilson', emergencyContactPhone: '+1-415-555-9908', emergencyContactRelation: 'Mother',
+    tags: ['backend', 'postgresql', 'node'],
+  });
+  const carol = await createEmployee(userId, accountId, {
+    name: 'Carol Davis', email: 'carol.davis@atlas.so', role: 'Senior Frontend Engineer',
+    departmentId: engineering.id, startDate: eighteenMonthsAgo,
+    jobTitle: 'Senior Frontend Engineer', employmentType: 'full-time', workLocation: 'Remote (Portland, OR)',
+    dateOfBirth: '1992-07-04', gender: 'female', managerId: alice.id,
+    salary: 155000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'James Davis', emergencyContactPhone: '+1-503-555-0203', emergencyContactRelation: 'Partner',
+    tags: ['frontend', 'react', 'typescript'],
+  });
+  const frank = await createEmployee(userId, accountId, {
+    name: 'Frank Lee', email: 'frank.lee@atlas.so', role: 'DevOps Engineer',
+    departmentId: engineering.id, startDate: oneYearAgo, phone: '+1-415-555-0106',
+    jobTitle: 'DevOps Engineer', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1990-09-18', gender: 'male', managerId: alice.id, status: 'on-leave',
+    salary: 145000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Susan Lee', emergencyContactPhone: '+1-415-555-9906', emergencyContactRelation: 'Spouse',
+    tags: ['devops', 'kubernetes', 'terraform'],
+  });
+  const tomasz = await createEmployee(userId, accountId, {
+    name: 'Tomasz Kowalski', email: 'tomasz.kowalski@atlas.so', role: 'Backend Engineer',
+    departmentId: engineering.id, startDate: sixMonthsAgo,
+    jobTitle: 'Backend Engineer', employmentType: 'full-time', workLocation: 'Remote (Warsaw, Poland)',
+    dateOfBirth: '1994-01-30', gender: 'male', managerId: henry.id,
+    salary: 95000, salaryCurrency: 'EUR', salaryPeriod: 'yearly',
+    tags: ['backend', 'go', 'grpc'],
+  });
+  const priya = await createEmployee(userId, accountId, {
+    name: 'Priya Sharma', email: 'priya.sharma@atlas.so', role: 'QA Engineer',
+    departmentId: engineering.id, startDate: threeMonthsAgo, phone: '+91-98765-43210',
+    jobTitle: 'QA Engineer', employmentType: 'full-time', workLocation: 'Remote (Bangalore, India)',
+    dateOfBirth: '1996-05-12', gender: 'female', managerId: alice.id,
+    salary: 4200000, salaryCurrency: 'INR', salaryPeriod: 'yearly',
+    tags: ['qa', 'automation', 'playwright'],
+  });
 
-  // Set department heads
-  await updateDepartment(userId, accountId, engineering.id, { headEmployeeId: emp1.id });
-  await updateDepartment(userId, accountId, marketing.id, { headEmployeeId: emp2.id });
-  await updateDepartment(userId, accountId, operations.id, { headEmployeeId: emp4.id });
+  // Product (3)
+  const mia = await createEmployee(userId, accountId, {
+    name: 'Mia Chen', email: 'mia.chen@atlas.so', role: 'Head of Product',
+    departmentId: product.id, startDate: threeYearsAgo, phone: '+1-415-555-0120',
+    jobTitle: 'Head of Product', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1987-12-03', gender: 'female',
+    salary: 185000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Wei Chen', emergencyContactPhone: '+1-415-555-9920', emergencyContactRelation: 'Father',
+    tags: ['product', 'strategy', 'roadmap'],
+  });
+  const liam = await createEmployee(userId, accountId, {
+    name: 'Liam O\'Brien', email: 'liam.obrien@atlas.so', role: 'Product Designer',
+    departmentId: product.id, startDate: oneYearAgo,
+    jobTitle: 'Senior Product Designer', employmentType: 'full-time', workLocation: 'Remote (Dublin, Ireland)',
+    dateOfBirth: '1991-06-21', gender: 'male', managerId: mia.id,
+    salary: 85000, salaryCurrency: 'EUR', salaryPeriod: 'yearly',
+    tags: ['design', 'figma', 'ux-research'],
+  });
+  const yuki = await createEmployee(userId, accountId, {
+    name: 'Yuki Tanaka', email: 'yuki.tanaka@atlas.so', role: 'Product Manager',
+    departmentId: product.id, startDate: nineMonthsAgo,
+    jobTitle: 'Product Manager', employmentType: 'full-time', workLocation: 'Remote (Tokyo, Japan)',
+    dateOfBirth: '1993-04-08', gender: 'female', managerId: mia.id,
+    salary: 12000000, salaryCurrency: 'JPY', salaryPeriod: 'yearly',
+    tags: ['product', 'analytics', 'user-research'],
+  });
 
-  // Create 5 time-off requests
-  await createTimeOffRequest(userId, accountId, { employeeId: emp1.id, type: 'vacation', startDate: nextWeek, endDate: inTwoWeeks, notes: 'Family vacation' });
-  await createTimeOffRequest(userId, accountId, { employeeId: emp3.id, type: 'sick', startDate: today, endDate: today, notes: 'Not feeling well' });
-  await createTimeOffRequest(userId, accountId, { employeeId: emp5.id, type: 'personal', startDate: inTwoWeeks, endDate: inTwoWeeks });
-  await createTimeOffRequest(userId, accountId, { employeeId: emp6.id, type: 'sick', startDate: today, endDate: nextWeek, notes: 'Medical recovery' });
-  await createTimeOffRequest(userId, accountId, { employeeId: emp8.id, type: 'vacation', startDate: inTwoWeeks, endDate: inThreeWeeks, notes: 'Travel abroad' });
+  // Marketing (3)
+  const bob = await createEmployee(userId, accountId, {
+    name: 'Bob Williams', email: 'bob.williams@atlas.so', role: 'Marketing Director',
+    departmentId: marketing.id, startDate: twoYearsAgo, phone: '+1-415-555-0102',
+    jobTitle: 'Marketing Director', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1986-08-14', gender: 'male',
+    salary: 165000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Sarah Williams', emergencyContactPhone: '+1-415-555-9902', emergencyContactRelation: 'Spouse',
+    tags: ['marketing', 'leadership', 'brand'],
+  });
+  const eva = await createEmployee(userId, accountId, {
+    name: 'Eva Martinez', email: 'eva.martinez@atlas.so', role: 'Content Strategist',
+    departmentId: marketing.id, startDate: oneYearAgo,
+    jobTitle: 'Senior Content Strategist', employmentType: 'full-time', workLocation: 'Remote (Austin, TX)',
+    dateOfBirth: '1993-02-28', gender: 'female', managerId: bob.id,
+    salary: 110000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    tags: ['content', 'seo', 'copywriting'],
+  });
+  const nina = await createEmployee(userId, accountId, {
+    name: 'Nina Petrova', email: 'nina.petrova@atlas.so', role: 'Growth Marketing Manager',
+    departmentId: marketing.id, startDate: sixMonthsAgo, phone: '+49-30-555-0130',
+    jobTitle: 'Growth Marketing Manager', employmentType: 'full-time', workLocation: 'Remote (Berlin, Germany)',
+    dateOfBirth: '1995-10-05', gender: 'female', managerId: bob.id,
+    salary: 78000, salaryCurrency: 'EUR', salaryPeriod: 'yearly',
+    tags: ['growth', 'paid-ads', 'analytics'],
+  });
 
-  logger.info({ userId, accountId }, 'Seeded HR sample data');
-  return { departments: 3, employees: 8, timeOffRequests: 5 };
+  // Sales (3)
+  const james = await createEmployee(userId, accountId, {
+    name: 'James Carter', email: 'james.carter@atlas.so', role: 'Head of Sales',
+    departmentId: sales.id, startDate: twoYearsAgo, phone: '+1-415-555-0140',
+    jobTitle: 'Head of Sales', employmentType: 'full-time', workLocation: 'New York, NY',
+    dateOfBirth: '1984-04-19', gender: 'male',
+    salary: 160000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Katherine Carter', emergencyContactPhone: '+1-212-555-9940', emergencyContactRelation: 'Spouse',
+    tags: ['sales', 'enterprise', 'leadership'],
+  });
+  const aisha = await createEmployee(userId, accountId, {
+    name: 'Aisha Okonkwo', email: 'aisha.okonkwo@atlas.so', role: 'Account Executive',
+    departmentId: sales.id, startDate: nineMonthsAgo, phone: '+44-20-7946-0155',
+    jobTitle: 'Senior Account Executive', employmentType: 'full-time', workLocation: 'Remote (London, UK)',
+    dateOfBirth: '1991-07-23', gender: 'female', managerId: james.id,
+    salary: 72000, salaryCurrency: 'GBP', salaryPeriod: 'yearly',
+    tags: ['sales', 'emea', 'saas'],
+  });
+  const diego = await createEmployee(userId, accountId, {
+    name: 'Diego Fernandez', email: 'diego.fernandez@atlas.so', role: 'SDR',
+    departmentId: sales.id, startDate: threeMonthsAgo, phone: '+1-646-555-0160',
+    jobTitle: 'Sales Development Representative', employmentType: 'full-time', workLocation: 'New York, NY',
+    dateOfBirth: '1998-11-11', gender: 'male', managerId: james.id,
+    salary: 65000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    tags: ['sales', 'outbound', 'prospecting'],
+  });
+
+  // Operations (3)
+  const david = await createEmployee(userId, accountId, {
+    name: 'David Brown', email: 'david.brown@atlas.so', role: 'COO',
+    departmentId: operations.id, startDate: fiveYearsAgo, phone: '+1-415-555-0104',
+    jobTitle: 'Chief Operating Officer', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1982-06-30', gender: 'male',
+    salary: 210000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Maria Brown', emergencyContactPhone: '+1-415-555-9904', emergencyContactRelation: 'Spouse',
+    tags: ['leadership', 'operations', 'finance'],
+  });
+  const grace = await createEmployee(userId, accountId, {
+    name: 'Grace Kim', email: 'grace.kim@atlas.so', role: 'HR Manager',
+    departmentId: operations.id, startDate: twoYearsAgo, phone: '+1-415-555-0107',
+    jobTitle: 'HR Manager', employmentType: 'full-time', workLocation: 'San Francisco, CA',
+    dateOfBirth: '1989-09-01', gender: 'female', managerId: david.id,
+    salary: 120000, salaryCurrency: 'USD', salaryPeriod: 'yearly',
+    emergencyContactName: 'Daniel Kim', emergencyContactPhone: '+1-415-555-9907', emergencyContactRelation: 'Brother',
+    tags: ['hr', 'recruiting', 'culture'],
+  });
+  const lucas = await createEmployee(userId, accountId, {
+    name: 'Lucas Meyer', email: 'lucas.meyer@atlas.so', role: 'Finance Analyst',
+    departmentId: operations.id, startDate: oneYearAgo,
+    jobTitle: 'Senior Finance Analyst', employmentType: 'full-time', workLocation: 'Remote (Zurich, Switzerland)',
+    dateOfBirth: '1992-12-17', gender: 'male', managerId: david.id,
+    salary: 115000, salaryCurrency: 'CHF', salaryPeriod: 'yearly',
+    tags: ['finance', 'budgeting', 'reporting'],
+  });
+
+  // Customer Success (2)
+  const sophie = await createEmployee(userId, accountId, {
+    name: 'Sophie Laurent', email: 'sophie.laurent@atlas.so', role: 'Head of Customer Success',
+    departmentId: support.id, startDate: eighteenMonthsAgo, phone: '+33-1-55-55-0170',
+    jobTitle: 'Head of Customer Success', employmentType: 'full-time', workLocation: 'Remote (Paris, France)',
+    dateOfBirth: '1990-03-22', gender: 'female',
+    salary: 82000, salaryCurrency: 'EUR', salaryPeriod: 'yearly',
+    emergencyContactName: 'Pierre Laurent', emergencyContactPhone: '+33-1-55-55-9970', emergencyContactRelation: 'Father',
+    tags: ['customer-success', 'onboarding', 'retention'],
+  });
+  const omar = await createEmployee(userId, accountId, {
+    name: 'Omar Hassan', email: 'omar.hassan@atlas.so', role: 'Support Engineer',
+    departmentId: support.id, startDate: sixMonthsAgo,
+    jobTitle: 'Technical Support Engineer', employmentType: 'contract', workLocation: 'Remote (Cairo, Egypt)',
+    dateOfBirth: '1997-08-09', gender: 'male', managerId: sophie.id,
+    salary: 3500, salaryCurrency: 'USD', salaryPeriod: 'monthly',
+    tags: ['support', 'technical', 'troubleshooting'],
+  });
+
+  // ── Department heads ─────────────────────────────────────────────
+  await updateDepartment(userId, accountId, engineering.id, { headEmployeeId: alice.id });
+  await updateDepartment(userId, accountId, product.id, { headEmployeeId: mia.id });
+  await updateDepartment(userId, accountId, marketing.id, { headEmployeeId: bob.id });
+  await updateDepartment(userId, accountId, sales.id, { headEmployeeId: james.id });
+  await updateDepartment(userId, accountId, operations.id, { headEmployeeId: david.id });
+  await updateDepartment(userId, accountId, support.id, { headEmployeeId: sophie.id });
+
+  // ── Time-off requests (10) ──────────────────────────────────────
+  const t1 = await createTimeOffRequest(userId, accountId, { employeeId: alice.id, type: 'vacation', startDate: nextWeek, endDate: inTwoWeeks, notes: 'Family vacation to Hawaii' });
+  await createTimeOffRequest(userId, accountId, { employeeId: carol.id, type: 'sick', startDate: today, endDate: today, notes: 'Migraine' });
+  const t3 = await createTimeOffRequest(userId, accountId, { employeeId: eva.id, type: 'personal', startDate: inTwoWeeks, endDate: inTwoWeeks, notes: 'Moving to new apartment' });
+  await createTimeOffRequest(userId, accountId, { employeeId: frank.id, type: 'sick', startDate: d(-3), endDate: nextWeek, notes: 'Surgery recovery — doctor note on file' });
+  await createTimeOffRequest(userId, accountId, { employeeId: henry.id, type: 'vacation', startDate: inThreeWeeks, endDate: inFourWeeks, notes: 'Trip to Japan' });
+  await createTimeOffRequest(userId, accountId, { employeeId: liam.id, type: 'vacation', startDate: inTwoWeeks, endDate: d(18), notes: 'Visiting family in Cork' });
+  const t7 = await createTimeOffRequest(userId, accountId, { employeeId: nina.id, type: 'personal', startDate: d(10), endDate: d(10) });
+  await createTimeOffRequest(userId, accountId, { employeeId: sophie.id, type: 'vacation', startDate: inFourWeeks, endDate: d(35), notes: 'Summer break — Provence' });
+  await createTimeOffRequest(userId, accountId, { employeeId: tomasz.id, type: 'sick', startDate: d(-1), endDate: today, notes: 'Cold / flu' });
+  await createTimeOffRequest(userId, accountId, { employeeId: diego.id, type: 'personal', startDate: d(5), endDate: d(5), notes: 'DMV appointment' });
+
+  // Approve some requests
+  await updateTimeOffRequest(userId, accountId, t1.id, { status: 'approved', approverId: david.id });
+  await updateTimeOffRequest(userId, accountId, t3.id, { status: 'approved', approverId: bob.id });
+  await updateTimeOffRequest(userId, accountId, t7.id, { status: 'rejected', approverId: bob.id });
+
+  // ── Leave balances (for all 20 employees) ───────────────────────
+  const currentYear = new Date().getFullYear();
+  const allEmps = [alice, henry, carol, frank, tomasz, priya, mia, liam, yuki, bob, eva, nina, james, aisha, diego, david, grace, lucas, sophie, omar];
+  for (const emp of allEmps) {
+    // Vacation: 20 days for FT, 10 for contract
+    const vacDays = emp.employmentType === 'contract' ? 10 : 20;
+    await allocateLeave(accountId, emp.id, 'vacation', currentYear, vacDays);
+    // Sick: 10 days
+    await allocateLeave(accountId, emp.id, 'sick', currentYear, 10);
+    // Personal: 5 days
+    await allocateLeave(accountId, emp.id, 'personal', currentYear, 5);
+  }
+
+  // ── Onboarding tasks for recent hires ───────────────────────────
+  await seedDefaultTemplate(accountId);
+
+  // Priya (3 months ago) — partially complete onboarding
+  await createOnboardingTask(accountId, priya.id, { title: 'Set up email account', category: 'IT', description: 'Create company email and configure mail client' });
+  await createOnboardingTask(accountId, priya.id, { title: 'Complete tax forms', category: 'HR', description: 'Submit W-8BEN for international employees' });
+  await createOnboardingTask(accountId, priya.id, { title: 'Set up development environment', category: 'IT', description: 'Install IDE, clone repos, configure local dev' });
+  await createOnboardingTask(accountId, priya.id, { title: 'Meet the QA team', category: 'Team', description: 'Schedule 1:1 with each QA team member' });
+  await createOnboardingTask(accountId, priya.id, { title: 'Review testing playbook', category: 'HR', description: 'Read test strategy docs and automation guidelines' });
+  await createOnboardingTask(accountId, priya.id, { title: 'Write first test suite', category: 'Team', description: 'Pick a module and write end-to-end tests' });
+
+  // Diego (3 months ago) — mostly complete
+  await createOnboardingTask(accountId, diego.id, { title: 'Set up email and Slack', category: 'IT' });
+  await createOnboardingTask(accountId, diego.id, { title: 'CRM training session', category: 'Team', description: 'Learn the sales pipeline and CRM workflows' });
+  await createOnboardingTask(accountId, diego.id, { title: 'Shadow senior AE calls', category: 'Team', description: 'Sit in on 5 calls with Aisha' });
+  await createOnboardingTask(accountId, diego.id, { title: 'Complete sales certification', category: 'HR', description: 'Pass the internal sales methodology exam' });
+  await createOnboardingTask(accountId, diego.id, { title: 'Build first prospect list', category: 'Team', description: 'Research and build a 50-prospect target list' });
+
+  // Mark some onboarding tasks as completed
+  const priyaTasks = await listOnboardingTasks(accountId, priya.id);
+  for (const t of priyaTasks.slice(0, 4)) {
+    await updateOnboardingTask(accountId, t.id, { completedAt: new Date(), completedBy: priya.id });
+  }
+  const diegoTasks = await listOnboardingTasks(accountId, diego.id);
+  for (const t of diegoTasks.slice(0, 4)) {
+    await updateOnboardingTask(accountId, t.id, { completedAt: new Date(), completedBy: diego.id });
+  }
+
+  logger.info({ userId, accountId }, 'Seeded rich HR sample data');
+  return {
+    departments: 6,
+    employees: 20,
+    timeOffRequests: 10,
+    leaveBalances: 60,
+    onboardingTasks: 11,
+    onboardingTemplates: 1,
+  };
 }
