@@ -177,7 +177,7 @@ export async function removeTenantUser(req: Request, res: Response) {
     logger.info({ audit: true, action: 'user.remove', tenantId, userId, performedBy: req.auth!.userId }, 'User removed');
     res.json({ success: true, data: { message: 'User removed' } });
   } catch (err: any) {
-    if (err?.message?.includes('last admin')) {
+    if (err?.code === 'LAST_ADMIN') {
       res.status(400).json({ success: false, error: err.message });
       return;
     }
@@ -208,7 +208,7 @@ export async function updateTenantUserRole(req: Request, res: Response) {
     logger.info({ audit: true, action: 'user.role.update', tenantId, userId, newRole: role, performedBy: req.auth!.userId }, 'User role updated');
     res.json({ success: true, data: { message: 'Role updated' } });
   } catch (err: any) {
-    if (err?.message?.includes('last admin')) {
+    if (err?.code === 'LAST_ADMIN') {
       res.status(400).json({ success: false, error: err.message });
       return;
     }

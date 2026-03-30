@@ -74,52 +74,40 @@ export async function listTenantUsers(tenantId: string) {
   });
 }
 
-export async function removeTenantUser(tenantId: string, userId: string) {
-  // Prevent removing the last owner/admin
-  const member = await db.select({ role: tenantMembers.role })
-    .from(tenantMembers)
-    .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
-    .limit(1);
+const PRIVILEGED_ROLES: TenantMemberRole[] = ['owner', 'admin'];
 
-  if (member[0] && ['owner', 'admin'].includes(member[0].role)) {
-    const adminCount = await db.select({ u: tenantMembers.userId })
-      .from(tenantMembers)
-      .where(and(
-        eq(tenantMembers.tenantId, tenantId),
-        inArray(tenantMembers.role, ['owner', 'admin']),
-      ));
-    if (adminCount.length <= 1) {
-      throw new Error('Cannot remove the last admin. Promote another user first.');
-    }
+export class LastAdminError extends Error {
+  readonly code = 'LAST_ADMIN' as const;
+  constructor(message = 'Cannot remove or demote the last admin. Promote another user first.') {
+    super(message);
   }
+}
 
-  const result = await db
+/** Single-query check: throws if userId is the last privileged member */
+async function assertNotLastAdmin(tenantId: string, userId: string) {
+  const admins = await db.select({ u: tenantMembers.userId })
+    .from(tenantMembers)
+    .where(and(
+      eq(tenantMembers.tenantId, tenantId),
+      inArray(tenantMembers.role, PRIVILEGED_ROLES),
+    ));
+  const targetIsAdmin = admins.some((r) => r.u === userId);
+  if (targetIsAdmin && admins.length <= 1) {
+    throw new LastAdminError();
+  }
+}
+
+export async function removeTenantUser(tenantId: string, userId: string) {
+  await assertNotLastAdmin(tenantId, userId);
+  return db
     .delete(tenantMembers)
     .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)));
-  return result;
 }
 
 export async function updateTenantUserRole(tenantId: string, userId: string, role: TenantMemberRole) {
-  // Prevent demoting the last owner/admin
   if (role === 'member') {
-    const current = await db.select({ role: tenantMembers.role })
-      .from(tenantMembers)
-      .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
-      .limit(1);
-
-    if (current[0] && ['owner', 'admin'].includes(current[0].role)) {
-      const adminCount = await db.select({ u: tenantMembers.userId })
-        .from(tenantMembers)
-        .where(and(
-          eq(tenantMembers.tenantId, tenantId),
-          inArray(tenantMembers.role, ['owner', 'admin']),
-        ));
-      if (adminCount.length <= 1) {
-        throw new Error('Cannot demote the last admin. Promote another user first.');
-      }
-    }
+    await assertNotLastAdmin(tenantId, userId);
   }
-
   await db
     .update(tenantMembers)
     .set({ role })

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { UserPlus, Mail, Search, UserMinus, User, Shield, Calendar } from 'lucide-react';
 import { ColumnHeader } from '../../components/ui/column-header';
 import { useAuthStore } from '../../stores/auth-store';
@@ -122,8 +122,8 @@ export function OrgMembersPage() {
     }
   }
 
-  // Determine current user's role
-  const currentUserRole = users?.find((u) => u.userId === currentUserId)?.role;
+  // Determine current user's role (memoized to avoid scanning on every render)
+  const currentUserRole = useMemo(() => users?.find((u) => u.userId === currentUserId)?.role, [users, currentUserId]);
   const isAdminOrOwner = currentUserRole === 'owner' || currentUserRole === 'admin';
 
   const filteredUsers = users?.filter((u) => {
@@ -289,7 +289,7 @@ export function OrgMembersPage() {
 
                 {/* Role */}
                 <div>
-                  {isCurrentUser || currentUserRole !== 'owner' ? (
+                  {isCurrentUser || currentUserRole !== 'owner' || user.role === 'owner' ? (
                     <Chip
                       color={ROLE_COLORS[user.role] ?? ROLE_COLORS.member}
                       height={20}

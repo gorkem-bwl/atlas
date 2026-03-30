@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Setting up Atlas..."
+echo "Setting up Atlas..."
+
+# Check prerequisites
+command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required but not found."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "Error: docker is required but not found."; exit 1; }
 
 # Generate .env if it doesn't exist
 if [ ! -f .env ]; then
-  echo "📝 Creating .env file..."
+  echo "Creating .env file..."
   cp .env.example .env
 
   # Generate secrets
@@ -24,9 +28,13 @@ if [ ! -f .env ]; then
     sed -i "s/^TOKEN_ENCRYPTION_KEY=CHANGE_ME$/TOKEN_ENCRYPTION_KEY=$TOKEN_ENCRYPTION_KEY/" .env
   fi
 
-  echo "✅ Secrets generated"
+  # Secure the file and clear variables from memory
+  chmod 600 .env
+  unset JWT_SECRET JWT_REFRESH_SECRET TOKEN_ENCRYPTION_KEY
+
+  echo "Secrets generated"
 else
-  echo "📋 Using existing .env file"
+  echo "Using existing .env file"
 fi
 
 # Start services
