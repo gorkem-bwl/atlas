@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as driveService from './service';
 import { logger } from '../../utils/logger';
+import { emitAppEvent } from '../../services/event.service';
 import path from 'node:path';
 import { existsSync, createReadStream, readFileSync, statSync } from 'node:fs';
 import archiver from 'archiver';
@@ -68,6 +69,18 @@ export async function uploadFiles(req: Request, res: Response) {
         storagePath: file.filename,
       });
       created.push(item);
+    }
+
+    if (req.auth!.tenantId && created.length > 0) {
+      const names = created.map((i) => i.name).join(', ');
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'drive',
+        eventType: 'file.uploaded',
+        title: `uploaded ${created.length === 1 ? names : `${created.length} files`}`,
+        metadata: { itemIds: created.map((i) => i.id) },
+      }).catch(() => {});
     }
 
     res.json({ success: true, data: { items: created } });
@@ -610,6 +623,18 @@ export async function createShareLink(req: Request, res: Response) {
     if (!link) {
       res.status(404).json({ success: false, error: 'Item not found' });
       return;
+    }
+
+    if (req.auth!.tenantId) {
+      const item = await driveService.getItem(userId, itemId);
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'drive',
+        eventType: 'file.shared',
+        title: `shared ${item?.name ?? 'a file'}`,
+        metadata: { itemId, linkId: link.id },
+      }).catch(() => {});
     }
 
     res.json({ success: true, data: link });

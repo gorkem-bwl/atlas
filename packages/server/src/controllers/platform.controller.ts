@@ -4,6 +4,7 @@ import * as tenantService from '../services/platform/tenant.service';
 import * as tenantUserService from '../services/platform/tenant-user.service';
 import * as tenantAppService from '../services/platform/tenant-app.service';
 import { logger } from '../utils/logger';
+import { emitAppEvent, getTenantMemberUserIds } from '../services/event.service';
 import { validatePasswordStrength } from '../utils/password';
 import type { TenantMemberRole } from '@atlasmail/shared';
 
@@ -146,6 +147,17 @@ export async function createTenantUser(req: Request, res: Response) {
 
     const user = await tenantUserService.createTenantUser(tenantId, { email: data.email, name: data.name, password: data.password, role: data.role });
     logger.info({ audit: true, action: 'user.create', tenantId, email: data.email, performedBy: req.auth!.userId }, 'User created');
+
+    emitAppEvent({
+      tenantId,
+      userId: req.auth!.userId,
+      appId: 'platform',
+      eventType: 'user.created',
+      title: `${data.name} joined the team`,
+      metadata: { email: data.email, name: data.name },
+      notifyUserIds: await getTenantMemberUserIds(tenantId),
+    }).catch(() => {});
+
     res.status(201).json({ success: true, data: user });
   } catch (err: any) {
     if (err?.message?.includes('UNIQUE constraint failed') || err?.code === '23505') {
@@ -175,6 +187,16 @@ export async function removeTenantUser(req: Request, res: Response) {
 
     await tenantUserService.removeTenantUser(tenantId, userId);
     logger.info({ audit: true, action: 'user.remove', tenantId, userId, performedBy: req.auth!.userId }, 'User removed');
+
+    emitAppEvent({
+      tenantId,
+      userId: req.auth!.userId,
+      appId: 'platform',
+      eventType: 'user.removed',
+      title: `removed a member from the team`,
+      metadata: { removedUserId: userId },
+    }).catch(() => {});
+
     res.json({ success: true, data: { message: 'User removed' } });
   } catch (err: any) {
     if (err?.code === 'LAST_ADMIN') {
@@ -232,6 +254,16 @@ export async function inviteTenantUser(req: Request, res: Response) {
     const role = data.role ?? 'member';
     const invitation = await tenantUserService.inviteUser(tenantId, data.email, role, req.auth!.userId);
     logger.info({ audit: true, action: 'invitation.create', tenantId, email: data.email, role, performedBy: req.auth!.userId }, 'User invited');
+
+    emitAppEvent({
+      tenantId,
+      userId: req.auth!.userId,
+      appId: 'platform',
+      eventType: 'user.invited',
+      title: `invited ${data.email} to the team`,
+      metadata: { email: data.email, role },
+    }).catch(() => {});
+
     res.status(201).json({ success: true, data: invitation });
   } catch (err: any) {
     if (err?.code === '23505') {

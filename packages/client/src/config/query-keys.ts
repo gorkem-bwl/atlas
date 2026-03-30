@@ -170,4 +170,13 @@ export const queryKeys = {
     all: ['system'] as const,
     metrics: ['system', 'metrics'] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    list: ['notifications', 'list'] as const,
+    unreadCount: ['notifications', 'unread-count'] as const,
+  },
+  activityFeed: {
+    all: ['activity-feed'] as const,
+    list: (page?: number) => ['activity-feed', 'list', page] as const,
+  },
 };

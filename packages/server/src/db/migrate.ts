@@ -471,6 +471,17 @@ export async function runMigrations() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS activity_feed (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        app_id VARCHAR(50) NOT NULL,
+        event_type VARCHAR(100) NOT NULL,
+        title TEXT NOT NULL,
+        metadata JSONB NOT NULL DEFAULT '{}',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1258,6 +1269,9 @@ export async function runMigrations() {
       // Notifications
       'CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read)',
       'CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at)',
+      // Activity feed
+      'CREATE INDEX IF NOT EXISTS idx_activity_feed_tenant_created ON activity_feed(tenant_id, created_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_activity_feed_user ON activity_feed(user_id)',
       // Push subscriptions
       'CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id)',
       // Subtasks

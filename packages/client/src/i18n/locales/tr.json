@@ -1602,5 +1602,21 @@
     "toNavigate": "Gezinmek için",
     "toSelect": "Seçmek için",
     "toDismiss": "Kapatmak için"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "markAllRead": "Tümünü okundu işaretle",
+    "noNotifications": "Bildirim yok",
+    "justNow": "Az önce"
+  },
+  "activity": {
+    "title": "Son etkinlik",
+    "loadMore": "Daha fazla yükle",
+    "noActivity": "Henüz etkinlik yok",
+    "filterAll": "Tümü",
+    "today": "Bugün",
+    "yesterday": "Dün",
+    "thisWeek": "Bu hafta",
+    "earlier": "Daha önce"
   }
 }

@@ -10,6 +10,7 @@ import { db } from '../../config/database';
 import { accounts } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
+import { emitAppEvent, getTenantMemberUserIds } from '../../services/event.service';
 import type { CrmRole, CrmRecordAccess } from '@atlasmail/shared';
 
 // ─── Companies ──────────────────────────────────────────────────────
@@ -85,6 +86,17 @@ export async function createCompany(req: Request, res: Response) {
     const company = await crmService.createCompany(userId, accountId, {
       name: name.trim(), domain, industry, size, address, phone, tags,
     });
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'crm',
+        eventType: 'company.created',
+        title: `added a new company: ${company.name}`,
+        metadata: { companyId: company.id },
+      }).catch(() => {});
+    }
 
     res.json({ success: true, data: company });
   } catch (error) {
@@ -210,6 +222,17 @@ export async function createContact(req: Request, res: Response) {
     const contact = await crmService.createContact(userId, accountId, {
       name: name.trim(), email, phone, companyId, position, source, tags,
     });
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'crm',
+        eventType: 'contact.created',
+        title: `added a new contact: ${contact.name}`,
+        metadata: { contactId: contact.id },
+      }).catch(() => {});
+    }
 
     res.json({ success: true, data: contact });
   } catch (error) {
@@ -447,6 +470,17 @@ export async function createDeal(req: Request, res: Response) {
       assignedUserId, probability, expectedCloseDate, tags,
     });
 
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'crm',
+        eventType: 'deal.created',
+        title: `created a new deal: ${deal.title}`,
+        metadata: { dealId: deal.id, value: deal.value },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data: deal });
   } catch (error) {
     logger.error({ error }, 'Failed to create CRM deal');
@@ -522,6 +556,18 @@ export async function markDealWon(req: Request, res: Response) {
       return;
     }
 
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'crm',
+        eventType: 'deal.won',
+        title: `won deal: ${deal.title}`,
+        metadata: { dealId: deal.id, value: deal.value },
+        notifyUserIds: await getTenantMemberUserIds(req.auth!.tenantId),
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data: deal });
   } catch (error) {
     logger.error({ error }, 'Failed to mark CRM deal as won');
@@ -546,6 +592,18 @@ export async function markDealLost(req: Request, res: Response) {
     if (!deal) {
       res.status(404).json({ success: false, error: 'Deal not found' });
       return;
+    }
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'crm',
+        eventType: 'deal.lost',
+        title: `lost deal: ${deal.title}`,
+        metadata: { dealId: deal.id, value: deal.value, reason },
+        notifyUserIds: await getTenantMemberUserIds(req.auth!.tenantId),
+      }).catch(() => {});
     }
 
     res.json({ success: true, data: deal });

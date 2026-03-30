@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as taskService from './service';
 import { logger } from '../../utils/logger';
+import { emitAppEvent } from '../../services/event.service';
 
 // ─── Tasks ──────────────────────────────────────────────────────────
 
@@ -71,6 +72,18 @@ export async function updateTask(req: Request, res: Response) {
     if (!task) {
       res.status(404).json({ success: false, error: 'Task not found' });
       return;
+    }
+
+    // Emit event when task is completed
+    if (status === 'completed' && req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'tasks',
+        eventType: 'task.completed',
+        title: `completed task: ${task.title}`,
+        metadata: { taskId: task.id },
+      }).catch(() => {});
     }
 
     res.json({ success: true, data: task });

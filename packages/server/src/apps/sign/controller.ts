@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as signService from './service';
 import { logger } from '../../utils/logger';
+import { emitAppEvent } from '../../services/event.service';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
 
@@ -221,6 +222,18 @@ export async function voidDocument(req: Request, res: Response) {
     }
 
     const updated = await signService.voidDocument(userId, documentId);
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'sign',
+        eventType: 'document.voided',
+        title: `voided document: ${doc.title}`,
+        metadata: { documentId },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data: updated });
   } catch (error) {
     logger.error({ error }, 'Failed to void document');
@@ -335,6 +348,20 @@ export async function createSigningToken(req: Request, res: Response) {
       name || null,
       expiresInDays || 30,
     );
+
+    if (req.auth!.tenantId) {
+      // Fetch the document to get its title for the event message
+      const doc = await signService.getDocument(req.auth!.userId, documentId);
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId: req.auth!.userId,
+        appId: 'sign',
+        eventType: 'document.sent_for_signing',
+        title: `sent ${doc?.title ?? 'a document'} for signing to ${email}`,
+        metadata: { documentId, signerEmail: email },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data: token });
   } catch (error) {
     logger.error({ error }, 'Failed to create signing token');

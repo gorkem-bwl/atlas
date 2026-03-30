@@ -1602,5 +1602,21 @@
     "toNavigate": "Navigare",
     "toSelect": "Selezionare",
     "toDismiss": "Chiudere"
+  },
+  "notifications": {
+    "title": "Notifiche",
+    "markAllRead": "Segna tutto come letto",
+    "noNotifications": "Nessuna notifica",
+    "justNow": "Proprio ora"
+  },
+  "activity": {
+    "title": "Attivita recente",
+    "loadMore": "Carica altro",
+    "noActivity": "Nessuna attivita ancora",
+    "filterAll": "Tutto",
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "thisWeek": "Questa settimana",
+    "earlier": "Precedente"
   }
 }

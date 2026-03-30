@@ -567,6 +567,22 @@ export const notifications = pgTable('notifications', {
   userCreatedIdx: index('idx_notifications_user_created').on(table.userId, table.createdAt),
 }));
 
+// ─── Activity Feed ─────────────────────────────────────────────────
+
+export const activityFeed = pgTable('activity_feed', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  appId: varchar('app_id', { length: 50 }).notNull(),
+  eventType: varchar('event_type', { length: 100 }).notNull(),
+  title: text('title').notNull(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantCreatedIdx: index('idx_activity_feed_tenant_created').on(table.tenantId, table.createdAt),
+  userIdx: index('idx_activity_feed_user').on(table.userId),
+}));
+
 // ─── Push Subscriptions ─────────────────────────────────────────────
 
 export const pushSubscriptions = pgTable('push_subscriptions', {

@@ -3,6 +3,7 @@ import * as hrService from './service';
 import * as leaveService from './leave.service';
 import * as attendanceService from './attendance.service';
 import { logger } from '../../utils/logger';
+import { emitAppEvent } from '../../services/event.service';
 
 // ─── Employees ──────────────────────────────────────────────────────
 
@@ -62,6 +63,17 @@ export async function createEmployee(req: Request, res: Response) {
     const employee = await hrService.createEmployee(userId, accountId, {
       name: name.trim(), email: email.trim(), role, departmentId, startDate, phone, avatarUrl, status, linkedUserId, tags,
     });
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'hr',
+        eventType: 'employee.created',
+        title: `added new employee: ${employee.name}`,
+        metadata: { employeeId: employee.id },
+      }).catch(() => {});
+    }
 
     res.json({ success: true, data: employee });
   } catch (error) {
@@ -853,6 +865,18 @@ export async function createLeaveApplication(req: Request, res: Response) {
     const data = await leaveService.createLeaveApplication(accountId, {
       employeeId, leaveTypeId, startDate, endDate, halfDay, halfDayDate, reason,
     });
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId: req.auth!.userId,
+        appId: 'hr',
+        eventType: 'leave.requested',
+        title: `requested leave from ${startDate} to ${endDate}`,
+        metadata: { leaveApplicationId: data.id, employeeId, startDate, endDate },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data });
   } catch (error: any) {
     logger.error({ error }, 'Failed to create leave application');
@@ -891,6 +915,18 @@ export async function approveLeaveApplication(req: Request, res: Response) {
     const { comment } = req.body;
     const data = await leaveService.approveLeaveApplication(accountId, req.params.id as string, userId, comment);
     if (!data) { res.status(400).json({ success: false, error: 'Cannot approve this application' }); return; }
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'hr',
+        eventType: 'leave.approved',
+        title: `approved leave application`,
+        metadata: { leaveApplicationId: data.id },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to approve leave application');
@@ -905,6 +941,18 @@ export async function rejectLeaveApplication(req: Request, res: Response) {
     const { comment } = req.body;
     const data = await leaveService.rejectLeaveApplication(accountId, req.params.id as string, userId, comment);
     if (!data) { res.status(400).json({ success: false, error: 'Cannot reject this application' }); return; }
+
+    if (req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'hr',
+        eventType: 'leave.rejected',
+        title: `rejected leave application`,
+        metadata: { leaveApplicationId: data.id },
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to reject leave application');

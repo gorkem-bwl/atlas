@@ -1602,5 +1602,21 @@
     "addWidget": "Add widget",
     "removeWidget": "Remove widget",
     "noWidgets": "No widgets enabled"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications",
+    "justNow": "Just now"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "loadMore": "Load more",
+    "noActivity": "No activity yet",
+    "filterAll": "All",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This week",
+    "earlier": "Earlier"
   }
 }

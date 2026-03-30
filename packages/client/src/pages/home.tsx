@@ -16,6 +16,7 @@ import { ROUTES } from '../config/routes';
 import { appRegistry } from '../apps';
 import { useUIStore } from '../stores/ui-store';
 import { WidgetGrid } from '../components/home/widgets/widget-grid';
+import { ActivityFeed } from '../components/activity/activity-feed';
 import '../styles/home.css';
 
 // ---------------------------------------------------------------------------
@@ -929,6 +930,39 @@ export function HomePage() {
 
           {/* Widgets — centered, 2x size */}
           <WidgetGrid />
+
+          {/* Recent activity */}
+          {isAuthenticated && (
+            <div
+              style={{
+                marginTop: 24,
+                maxWidth: 600,
+                width: '100%',
+                padding: '16px 20px',
+                background: 'rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 16,
+                textAlign: 'left',
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+                  color: 'rgba(255,255,255,0.5)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: 8,
+                  margin: '0 0 8px 0',
+                }}
+              >
+                {t('activity.title')}
+              </h3>
+              <ActivityFeed compact limit={8} />
+            </div>
+          )}
         </div>
 
         {/* Bottom dock bar */}
