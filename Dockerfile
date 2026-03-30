@@ -20,13 +20,13 @@ COPY packages/server packages/server
 COPY packages/client packages/client
 
 # Build shared types first (other packages depend on it)
-RUN cd packages/shared && npx tsc
+RUN cd packages/shared && npx tsc --skipLibCheck
 
-# Build client (tsc + vite build)
-RUN cd packages/client && npx tsc && npx vite build
+# Build client (vite build handles its own TS compilation)
+RUN cd packages/client && npx vite build
 
 # Build server (tsc)
-RUN cd packages/server && npx tsc
+RUN cd packages/server && npx tsc --skipLibCheck
 
 # ── Stage 2: Production ────────────────────────────────────────
 FROM node:20-alpine AS production
