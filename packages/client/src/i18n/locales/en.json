@@ -444,7 +444,7 @@
     "noTitle": "(No title)"
   },
   "docs": {
-    "title": "Documents",
+    "title": "Write",
     "search": "Search",
     "recentlyViewed": "Recently viewed",
     "favorites": "Favorites",
@@ -1108,7 +1108,7 @@
     }
   },
   "hr": {
-    "title": "HR",
+    "title": "HRM",
     "sidebar": {
       "dashboard": "Dashboard",
       "allEmployees": "All employees",

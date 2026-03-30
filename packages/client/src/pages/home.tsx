@@ -502,14 +502,20 @@ export function HomePage() {
     const dock = dockRef.current;
     if (!dock) return;
     const mouseX = e.clientX;
+    const BASE = 60;
+    const MAX = 80;
+    const RANGE = 150; // px distance for full falloff
     const items = dock.querySelectorAll<HTMLElement>('.dock-item');
     items.forEach((item) => {
       const rect = item.getBoundingClientRect();
       const itemCenterX = rect.left + rect.width / 2;
       const distance = Math.abs(mouseX - itemCenterX);
-      const offsetPx = scaleValue(distance, [0, 200], [8, 0]);
-      item.style.setProperty('--dock-offset-left', `${offsetPx}px`);
-      item.style.setProperty('--dock-offset-right', `${offsetPx}px`);
+      const scale = Math.max(0, 1 - distance / RANGE);
+      const size = BASE + (MAX - BASE) * scale;
+      const mt = -(size - BASE);
+      item.style.setProperty('--dock-w', `${size}px`);
+      item.style.setProperty('--dock-h', `${size}px`);
+      item.style.setProperty('--dock-mt', `${mt}px`);
     });
   }, []);
 
@@ -518,8 +524,9 @@ export function HomePage() {
     if (!dock) return;
     const items = dock.querySelectorAll<HTMLElement>('.dock-item');
     items.forEach((item) => {
-      item.style.removeProperty('--dock-offset-left');
-      item.style.removeProperty('--dock-offset-right');
+      item.style.removeProperty('--dock-w');
+      item.style.removeProperty('--dock-h');
+      item.style.removeProperty('--dock-mt');
     });
   }, []);
 
