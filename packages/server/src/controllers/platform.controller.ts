@@ -176,7 +176,11 @@ export async function removeTenantUser(req: Request, res: Response) {
     await tenantUserService.removeTenantUser(tenantId, userId);
     logger.info({ audit: true, action: 'user.remove', tenantId, userId, performedBy: req.auth!.userId }, 'User removed');
     res.json({ success: true, data: { message: 'User removed' } });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.message?.includes('last admin')) {
+      res.status(400).json({ success: false, error: err.message });
+      return;
+    }
     logger.error({ err }, 'Failed to remove tenant user');
     res.status(500).json({ success: false, error: 'Failed to remove tenant user' });
   }
@@ -203,7 +207,11 @@ export async function updateTenantUserRole(req: Request, res: Response) {
     await tenantUserService.updateTenantUserRole(tenantId, userId, role);
     logger.info({ audit: true, action: 'user.role.update', tenantId, userId, newRole: role, performedBy: req.auth!.userId }, 'User role updated');
     res.json({ success: true, data: { message: 'Role updated' } });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.message?.includes('last admin')) {
+      res.status(400).json({ success: false, error: err.message });
+      return;
+    }
     logger.error({ err }, 'Failed to update tenant user role');
     res.status(500).json({ success: false, error: 'Failed to update tenant user role' });
   }

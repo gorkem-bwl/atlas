@@ -122,6 +122,10 @@ export function OrgMembersPage() {
     }
   }
 
+  // Determine current user's role
+  const currentUserRole = users?.find((u) => u.userId === currentUserId)?.role;
+  const isAdminOrOwner = currentUserRole === 'owner' || currentUserRole === 'admin';
+
   const filteredUsers = users?.filter((u) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -140,6 +144,7 @@ export function OrgMembersPage() {
             {users ? `${users.length} member${users.length !== 1 ? 's' : ''}` : 'Loading...'}
           </p>
         </div>
+        {isAdminOrOwner && (
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
             variant="secondary"
@@ -158,6 +163,7 @@ export function OrgMembersPage() {
             Add user
           </Button>
         </div>
+        )}
       </div>
 
       {/* Success banner */}
@@ -283,7 +289,7 @@ export function OrgMembersPage() {
 
                 {/* Role */}
                 <div>
-                  {isCurrentUser ? (
+                  {isCurrentUser || currentUserRole !== 'owner' ? (
                     <Chip
                       color={ROLE_COLORS[user.role] ?? ROLE_COLORS.member}
                       height={20}
@@ -313,7 +319,7 @@ export function OrgMembersPage() {
 
                 {/* Actions */}
                 <div style={{ textAlign: 'right' }}>
-                  {!isCurrentUser && (
+                  {!isCurrentUser && isAdminOrOwner && (
                     <Button
                       variant="danger"
                       size="sm"
