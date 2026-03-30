@@ -60,7 +60,7 @@ export function TasksWidget(_props: AppWidgetProps) {
       </div>
 
       {/* Overdue + completed indicators */}
-      <div style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 10, marginTop: 2 }}>
+      <div style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 12, marginTop: 2 }}>
         <span style={{ color: overdue > 0 ? '#ef4444' : 'rgba(255,255,255,0.4)' }}>
           {overdue} {t('tasks.widgetOverdue', 'overdue')}
         </span>

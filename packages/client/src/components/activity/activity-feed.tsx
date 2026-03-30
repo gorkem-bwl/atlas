@@ -259,7 +259,7 @@ function ActivityItemRow({
             color={appColor}
             height={18}
             style={{
-              fontSize: 10,
+              fontSize: 12,
               ...(compact && {
                 background: 'rgba(255,255,255,0.1)',
                 borderColor: 'rgba(255,255,255,0.15)',

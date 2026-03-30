@@ -461,6 +461,14 @@ export function HomePage() {
 
   // Background style based on user settings
   const backgroundStyle = useMemo(() => {
+    if (bgType === 'unsplash' && bgValue) {
+      // User selected a specific photo
+      return {
+        backgroundImage: `url(${bgValue})`,
+        backgroundSize: 'cover' as const,
+        backgroundPosition: 'center',
+      };
+    }
     if (bgType === 'solid' && bgValue) {
       return { backgroundColor: bgValue };
     }
@@ -474,7 +482,7 @@ export function HomePage() {
         backgroundPosition: 'center',
       };
     }
-    // Default: unsplash rotation — handled by BackgroundLayer component
+    // Default: unsplash rotation (bgType=unsplash, bgValue=null)
     return null;
   }, [bgType, bgValue]);
 

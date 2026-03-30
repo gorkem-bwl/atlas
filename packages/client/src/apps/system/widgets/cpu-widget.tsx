@@ -62,7 +62,7 @@ export function CpuWidget(_props: AppWidgetProps) {
 
       {/* Subtitle */}
       {metrics && (
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
           {metrics.cpu.cores} {t('system.cores')}
         </div>
       )}
