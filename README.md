@@ -4,11 +4,19 @@ Self-hosted business platform with CRM, HRM, digital signatures, document editor
 
 ## Quick start (Docker)
 
+**macOS / Linux:**
 ```bash
 git clone https://github.com/bluewave-labs/atlas.git
 cd atlas
 chmod +x setup.sh
 ./setup.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/bluewave-labs/atlas.git
+cd atlas
+powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
 
 This will:
