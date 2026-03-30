@@ -92,7 +92,7 @@ export function CoverPicker({ onSelect, onClose }: CoverPickerProps) {
         style={{
           background: 'var(--color-bg-elevated)',
           border: '1px solid var(--color-border-primary)',
-          borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)',
           padding: 16, width: 520, maxHeight: '80vh', overflow: 'hidden',
           fontFamily: 'var(--font-family)', display: 'flex', flexDirection: 'column',
         }}
@@ -135,13 +135,13 @@ export function CoverPicker({ onSelect, onClose }: CoverPickerProps) {
                   key={gradient}
                   onClick={() => onSelect(gradient)}
                   style={{
-                    width: '100%', height: 64, borderRadius: 6,
+                    width: '100%', height: 64, borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border-primary)',
                     overflow: 'hidden', cursor: 'pointer', padding: 0,
                     background: gradient,
                     transition: 'transform 0.1s ease, box-shadow 0.1s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
                 />
               ))}
@@ -155,13 +155,13 @@ export function CoverPicker({ onSelect, onClose }: CoverPickerProps) {
                   key={url}
                   onClick={() => onSelect(url)}
                   style={{
-                    width: '100%', height: 64, borderRadius: 6,
+                    width: '100%', height: 64, borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--color-border-primary)',
                     overflow: 'hidden', cursor: 'pointer', padding: 0,
                     background: 'var(--color-bg-secondary)',
                     transition: 'transform 0.1s ease, box-shadow 0.1s ease',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
                   <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

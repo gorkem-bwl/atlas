@@ -332,12 +332,52 @@ export function SignPage() {
     }
   }, []);
 
-  // ─── Filtered docs ─────────────────────────────────────────────
+  // ─── Filtered + searched + sorted docs ─────────────────────────
 
-  const filteredDocs = (documents ?? []).filter((doc) => {
-    if (filterStatus === 'all') return true;
-    return doc.status === filterStatus;
-  });
+  const filteredDocs = useMemo(() => {
+    let docs = (documents ?? []).filter((doc) => {
+      if (filterStatus !== 'all' && doc.status !== filterStatus) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = (doc.title || '').toLowerCase().includes(q);
+        const matchFile = (doc.fileName || '').toLowerCase().includes(q);
+        if (!matchTitle && !matchFile) return false;
+      }
+      return true;
+    });
+
+    docs.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case 'title':
+          cmp = (a.title || '').localeCompare(b.title || '');
+          break;
+        case 'status':
+          cmp = (a.status || '').localeCompare(b.status || '');
+          break;
+        case 'updatedAt':
+          cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          break;
+        case 'createdAt':
+        default:
+          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return docs;
+  }, [documents, filterStatus, searchQuery, sortField, sortDir]);
+
+  const handleSort = useCallback((columnKey: string) => {
+    const key = columnKey as typeof sortField;
+    if (sortField === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(key);
+      setSortDir('asc');
+    }
+  }, [sortField]);
 
   // ─── Sidebar counts ───────────────────────────────────────────
 
@@ -430,9 +470,19 @@ export function SignPage() {
               <h2>
                 {filterStatus === 'all' ? t('sign.sidebar.allDocuments') : t(`sign.status.${filterStatus}`)}
               </h2>
-              <Button variant="primary" size="sm" icon={<Upload size={14} />} onClick={handleUpload}>
-                {t('sign.editor.uploadPdf')}
-              </Button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('sign.list.search', 'Search documents...')}
+                  iconLeft={<Search size={14} />}
+                  size="sm"
+                  style={{ width: 220 }}
+                />
+                <Button variant="primary" size="sm" icon={<Upload size={14} />} onClick={handleUpload}>
+                  {t('sign.editor.uploadPdf')}
+                </Button>
+              </div>
             </div>
             <div style={{ flex: 1, overflow: 'auto' }}>
               {docsLoading ? (
@@ -449,9 +499,9 @@ export function SignPage() {
                 <table className="sign-doc-table">
                   <thead>
                     <tr>
-                      <th><ColumnHeader label={t('sign.list.title')} icon={<FileText size={12} />} /></th>
-                      <th><ColumnHeader label={t('sign.list.status')} icon={<Tag size={12} />} /></th>
-                      <th><ColumnHeader label={t('sign.list.created')} icon={<Calendar size={12} />} /></th>
+                      <th><ColumnHeader label={t('sign.list.title')} icon={<FileText size={12} />} sortable columnKey="title" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
+                      <th><ColumnHeader label={t('sign.list.status')} icon={<Tag size={12} />} sortable columnKey="status" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
+                      <th><ColumnHeader label={t('sign.list.created')} icon={<Calendar size={12} />} sortable columnKey="createdAt" sortColumn={sortField} sortDirection={sortDir} onSort={handleSort} /></th>
                       <th><ColumnHeader label={t('sign.list.pages')} icon={<Users size={12} />} /></th>
                       <th style={{ width: 80 }}><ColumnHeader label={t('sign.list.actions')} /></th>
                     </tr>

@@ -1832,6 +1832,7 @@ export function HrPage() {
           <SidebarItem
             label={t('hr.sidebar.settings')}
             icon={<Settings2 size={14} />}
+            iconColor="#6b7280"
             onClick={() => openSettings('hr')}
           />
         }
@@ -1840,12 +1841,14 @@ export function HrPage() {
           <SidebarItem
             label={t('hr.sidebar.dashboard')}
             icon={<LayoutDashboard size={14} />}
+            iconColor="#14b8a6"
             isActive={activeNav === 'dashboard'}
             onClick={() => { setActiveNav('dashboard'); setSelectedEmployeeId(null); }}
           />
           <SidebarItem
             label={t('hr.sidebar.allEmployees')}
             icon={<Users size={14} />}
+            iconColor="#14b8a6"
             isActive={activeNav === 'employees'}
             count={counts.totalEmployees}
             onClick={() => { setActiveNav('employees'); setSelectedEmployeeId(null); }}
@@ -1856,6 +1859,7 @@ export function HrPage() {
           <SidebarItem
             label={t('hr.sidebar.allDepartments')}
             icon={<Building2 size={14} />}
+            iconColor="#06b6d4"
             isActive={activeNav === 'departments'}
             count={counts.departments}
             onClick={() => { setActiveNav('departments'); setSelectedEmployeeId(null); }}
@@ -1876,12 +1880,14 @@ export function HrPage() {
           <SidebarItem
             label={t('hr.sidebar.orgChart')}
             icon={<GitBranch size={14} />}
+            iconColor="#06b6d4"
             isActive={activeNav === 'org-chart'}
             onClick={() => { setActiveNav('org-chart'); setSelectedEmployeeId(null); }}
           />
           <SidebarItem
             label={t('hr.sidebar.timeOff')}
             icon={<CalendarDays size={14} />}
+            iconColor="#f59e0b"
             isActive={activeNav === 'time-off'}
             count={counts.pendingTimeOff}
             onClick={() => { setActiveNav('time-off'); setSelectedEmployeeId(null); }}

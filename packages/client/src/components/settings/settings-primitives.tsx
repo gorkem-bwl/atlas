@@ -149,7 +149,7 @@ export function SettingsToggle({
           width: 18,
           height: 18,
           borderRadius: '50%',
-          background: '#ffffff',
+          background: 'var(--color-bg-primary)',
           transition: 'left var(--transition-normal)',
           boxShadow: 'var(--shadow-sm)',
         }}

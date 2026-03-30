@@ -31,7 +31,7 @@ const GRADIENTS = [
 const swatch: CSSProperties = {
   width: 40,
   height: 40,
-  borderRadius: 8,
+  borderRadius: 'var(--radius-lg)',
   cursor: 'pointer',
   border: '2px solid transparent',
   transition: 'border-color 0.15s, transform 0.15s',
@@ -176,7 +176,7 @@ export function HomeBackgroundPanel() {
                 style={{
                   width: 32,
                   height: 32,
-                  borderRadius: 6,
+                  borderRadius: 'var(--radius-md)',
                   backgroundColor: bgValue || '#000000',
                   border: '1px solid var(--color-border-secondary)',
                   flexShrink: 0,

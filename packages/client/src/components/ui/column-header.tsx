@@ -53,7 +53,7 @@ export function ColumnHeader({
         cursor: sortable ? 'pointer' : 'default',
         userSelect: 'none',
         whiteSpace: 'nowrap',
-        transition: 'color 0.15s',
+        transition: 'color var(--transition-fast)',
         outline: 'none',
         ...style,
       }}

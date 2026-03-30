@@ -63,7 +63,7 @@ export function WidgetGrid() {
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-xl)',
             overflow: 'hidden',
             boxShadow: 'var(--shadow-card)',
             transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s',
