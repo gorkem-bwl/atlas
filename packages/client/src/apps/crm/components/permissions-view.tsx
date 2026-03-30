@@ -72,18 +72,15 @@ function MatrixCell({ allowed }: { allowed: boolean }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      width: 28,
-      height: 28,
-      borderRadius: 'var(--radius-sm)',
-      background: allowed
-        ? 'color-mix(in srgb, var(--color-success) 12%, transparent)'
-        : 'transparent',
+      width: 24,
+      height: 24,
     }}>
-      {allowed ? (
-        <Check size={14} style={{ color: 'var(--color-success)' }} />
-      ) : (
-        <X size={12} style={{ color: 'var(--color-text-tertiary)', opacity: 0.3 }} />
-      )}
+      <div style={{
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: allowed ? 'var(--color-success)' : 'var(--color-border-secondary)',
+      }} />
     </div>
   );
 }

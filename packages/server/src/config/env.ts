@@ -30,7 +30,7 @@ const envSchema = z.object({
   GOOGLE_REDIRECT_URI: z.string().url().optional(),
 
   // ─── CORS ─────────────────────────────────────────────────────────────────
-  CORS_ORIGINS: z.string().default('http://localhost:3001'),
+  CORS_ORIGINS: z.string().default('http://localhost:3001,http://localhost:5180'),
 });
 
 export const env = envSchema.parse(process.env);
