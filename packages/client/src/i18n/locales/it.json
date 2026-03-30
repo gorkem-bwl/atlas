@@ -28,7 +28,10 @@
     "attachment_one": "{{count}} allegato",
     "attachment_other": "{{count}} allegati",
     "file_one": "{{count}} file",
-    "file_other": "{{count}} file"
+    "file_other": "{{count}} file",
+    "previous": "Precedente",
+    "next": "Successivo",
+    "retry": "Riprova"
   },
   "auth": {
     "appName": "Atlas",
@@ -52,7 +55,10 @@
     "lightMode": "Tema chiaro",
     "darkMode": "Tema scuro",
     "systemMode": "Tema di sistema",
-    "themeAriaLabel": "Tema: {{label}}. Clicca per cambiare tema"
+    "themeAriaLabel": "Tema: {{label}}. Clicca per cambiare tema",
+    "allMail": "Tutte le email",
+    "starred": "Speciali",
+    "unread": "Non letti"
   },
   "inbox": {
     "selectConversation": "Seleziona una conversazione",
@@ -159,7 +165,14 @@
     "unsubscribe": "Annulla iscrizione",
     "unsubscribeConfirm": "Annullare l'iscrizione a questa lista di distribuzione?",
     "unsubscribeDescription": "Verrà inviata una richiesta di cancellazione. Potresti ancora ricevere alcune email prima che abbia effetto.",
-    "unsubscribed": "Richiesta di cancellazione inviata"
+    "unsubscribed": "Richiesta di cancellazione inviata",
+    "delete": "Elimina",
+    "groupToday": "Oggi",
+    "groupYesterday": "Ieri",
+    "groupThisWeek": "Questa settimana",
+    "groupLastWeek": "Settimana scorsa",
+    "groupThisMonth": "Questo mese",
+    "groupOlder": "Più vecchi"
   },
   "bulk": {
     "selectAll": "Seleziona tutto",
@@ -283,7 +296,10 @@
     "yahoo": "Yahoo Mail",
     "yahooDesc": "Collegati con il tuo account Yahoo",
     "customImap": "IMAP/SMTP personalizzato",
-    "customImapDesc": "Collega qualsiasi email con le impostazioni del server"
+    "customImapDesc": "Collega qualsiasi email con le impostazioni del server",
+    "ai": "Intelligenza artificiale",
+    "font": "Carattere",
+    "fontDescription": "Scegli il carattere utilizzato nell'applicazione"
   },
   "shortcuts": {
     "nextConversation": "Conversazione successiva",
@@ -1147,7 +1163,8 @@
       "manager": "Responsabile",
       "salary": "Stipendio",
       "currency": "Valuta",
-      "period": "Periodo"
+      "period": "Periodo",
+      "name": "Nome"
     },
     "gender": {
       "male": "Maschio",
@@ -1558,5 +1575,32 @@
     "addWidget": "Aggiungi widget",
     "removeWidget": "Rimuovi widget",
     "noWidgets": "Nessun widget attivo"
+  },
+  "connection": {
+    "lost": "Connessione persa",
+    "reconnecting": "Riconnessione in corso...",
+    "restored": "Connessione ripristinata",
+    "unableToLoad": "Impossibile caricare",
+    "checkAndRetry": "Controlla la connessione e riprova"
+  },
+  "search": {
+    "ariaLabel": "Cerca",
+    "clear": "Cancella",
+    "recentSearches": "Ricerche recenti",
+    "clearRecent": "Cancella ricerche recenti",
+    "searchOperators": "Operatori di ricerca",
+    "opFromDesc": "Filtra per mittente",
+    "opToDesc": "Filtra per destinatario",
+    "opSubjectDesc": "Filtra per oggetto",
+    "opHasAttachmentDesc": "Filtra allegati",
+    "opInInboxDesc": "Cerca nella posta in arrivo",
+    "opInSentDesc": "Cerca negli inviati",
+    "opIsUnreadDesc": "Filtra non letti",
+    "opIsStarredDesc": "Filtra speciali",
+    "opNewerThanDesc": "Più recente di",
+    "opOlderThanDesc": "Più vecchio di",
+    "toNavigate": "Navigare",
+    "toSelect": "Selezionare",
+    "toDismiss": "Chiudere"
   }
 }

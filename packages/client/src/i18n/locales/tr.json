@@ -28,7 +28,10 @@
     "attachment_one": "{{count}} ek",
     "attachment_other": "{{count}} ek",
     "file_one": "{{count}} dosya",
-    "file_other": "{{count}} dosya"
+    "file_other": "{{count}} dosya",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "retry": "Tekrar dene"
   },
   "auth": {
     "appName": "Atlas",
@@ -52,7 +55,10 @@
     "lightMode": "Açık tema",
     "darkMode": "Koyu tema",
     "systemMode": "Sistem teması",
-    "themeAriaLabel": "Tema: {{label}}. Tema değiştirmek için tıklayın"
+    "themeAriaLabel": "Tema: {{label}}. Tema değiştirmek için tıklayın",
+    "allMail": "Tüm postalar",
+    "starred": "Yıldızlı",
+    "unread": "Okunmamış"
   },
   "inbox": {
     "selectConversation": "Bir görüşme seçin",
@@ -159,7 +165,14 @@
     "unsubscribe": "Abonelikten çık",
     "unsubscribeConfirm": "Bu posta listesinden aboneliği iptal edilsin mi?",
     "unsubscribeDescription": "Bu işlem bir abonelik iptali isteği gönderecektir. Geçerli olana kadar birkaç e-posta daha alabilirsiniz.",
-    "unsubscribed": "Abonelik iptali isteği gönderildi"
+    "unsubscribed": "Abonelik iptali isteği gönderildi",
+    "delete": "Sil",
+    "groupToday": "Bugün",
+    "groupYesterday": "Dün",
+    "groupThisWeek": "Bu hafta",
+    "groupLastWeek": "Geçen hafta",
+    "groupThisMonth": "Bu ay",
+    "groupOlder": "Daha eski"
   },
   "bulk": {
     "selectAll": "Tümünü seç",
@@ -283,7 +296,10 @@
     "yahoo": "Yahoo Mail",
     "yahooDesc": "Yahoo hesabınızla bağlanın",
     "customImap": "Özel IMAP/SMTP",
-    "customImapDesc": "Sunucu ayarlarıyla herhangi bir e-postayı bağlayın"
+    "customImapDesc": "Sunucu ayarlarıyla herhangi bir e-postayı bağlayın",
+    "ai": "Yapay Zeka",
+    "font": "Yazı tipi",
+    "fontDescription": "Uygulama genelinde kullanılan yazı tipini seçin"
   },
   "shortcuts": {
     "nextConversation": "Sonraki görüşme",
@@ -1147,7 +1163,8 @@
       "manager": "Yönetici",
       "salary": "Maaş",
       "currency": "Para birimi",
-      "period": "Dönem"
+      "period": "Dönem",
+      "name": "Ad"
     },
     "gender": {
       "male": "Erkek",
@@ -1558,5 +1575,32 @@
     "addWidget": "Widget ekle",
     "removeWidget": "Widget kaldır",
     "noWidgets": "Etkin widget yok"
+  },
+  "connection": {
+    "lost": "Bağlantı kesildi",
+    "reconnecting": "Yeniden bağlanıyor...",
+    "restored": "Bağlantı yeniden kuruldu",
+    "unableToLoad": "Yüklenemiyor",
+    "checkAndRetry": "Bağlantınızı kontrol edip tekrar deneyin"
+  },
+  "search": {
+    "ariaLabel": "Arama",
+    "clear": "Temizle",
+    "recentSearches": "Son aramalar",
+    "clearRecent": "Son aramaları temizle",
+    "searchOperators": "Arama operatörleri",
+    "opFromDesc": "Gönderene göre filtrele",
+    "opToDesc": "Alıcıya göre filtrele",
+    "opSubjectDesc": "Konuya göre filtrele",
+    "opHasAttachmentDesc": "Ekli dosyaları filtrele",
+    "opInInboxDesc": "Gelen kutusunda ara",
+    "opInSentDesc": "Gönderilenlerde ara",
+    "opIsUnreadDesc": "Okunmamışları filtrele",
+    "opIsStarredDesc": "Yıldızlıları filtrele",
+    "opNewerThanDesc": "Belirli tarihten yeni",
+    "opOlderThanDesc": "Belirli tarihten eski",
+    "toNavigate": "Gezinmek için",
+    "toSelect": "Seçmek için",
+    "toDismiss": "Kapatmak için"
   }
 }

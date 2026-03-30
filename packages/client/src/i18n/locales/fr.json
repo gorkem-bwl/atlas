@@ -28,7 +28,10 @@
     "attachment_one": "{{count}} pièce jointe",
     "attachment_other": "{{count}} pièces jointes",
     "file_one": "{{count}} fichier",
-    "file_other": "{{count}} fichiers"
+    "file_other": "{{count}} fichiers",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "retry": "Réessayer"
   },
   "auth": {
     "appName": "Atlas",
@@ -52,7 +55,10 @@
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
     "systemMode": "Mode système",
-    "themeAriaLabel": "Thème : {{label}}. Cliquez pour changer de thème"
+    "themeAriaLabel": "Thème : {{label}}. Cliquez pour changer de thème",
+    "allMail": "Tous les e-mails",
+    "starred": "Favoris",
+    "unread": "Non lus"
   },
   "inbox": {
     "selectConversation": "Sélectionnez une conversation",
@@ -159,7 +165,14 @@
     "unsubscribe": "Se désabonner",
     "unsubscribeConfirm": "Se désabonner de cette liste de diffusion ?",
     "unsubscribeDescription": "Cela enverra une demande de désabonnement. Vous pourriez encore recevoir quelques e-mails avant que cela prenne effet.",
-    "unsubscribed": "Demande de désabonnement envoyée"
+    "unsubscribed": "Demande de désabonnement envoyée",
+    "delete": "Supprimer",
+    "groupToday": "Aujourd'hui",
+    "groupYesterday": "Hier",
+    "groupThisWeek": "Cette semaine",
+    "groupLastWeek": "Semaine dernière",
+    "groupThisMonth": "Ce mois",
+    "groupOlder": "Plus ancien"
   },
   "bulk": {
     "selectAll": "Tout sélectionner",
@@ -283,7 +296,10 @@
     "yahoo": "Yahoo Mail",
     "yahooDesc": "Se connecter avec votre compte Yahoo",
     "customImap": "IMAP/SMTP personnalisé",
-    "customImapDesc": "Connecter n'importe quel e-mail avec les paramètres du serveur"
+    "customImapDesc": "Connecter n'importe quel e-mail avec les paramètres du serveur",
+    "ai": "Intelligence artificielle",
+    "font": "Police",
+    "fontDescription": "Choisissez la police utilisée dans l'application"
   },
   "shortcuts": {
     "nextConversation": "Conversation suivante",
@@ -1147,7 +1163,8 @@
       "manager": "Responsable",
       "salary": "Salaire",
       "currency": "Devise",
-      "period": "Periode"
+      "period": "Periode",
+      "name": "Nom"
     },
     "gender": {
       "male": "Homme",
@@ -1558,5 +1575,32 @@
     "addWidget": "Ajouter un widget",
     "removeWidget": "Supprimer le widget",
     "noWidgets": "Aucun widget activé"
+  },
+  "connection": {
+    "lost": "Connexion perdue",
+    "reconnecting": "Reconnexion en cours...",
+    "restored": "Connexion rétablie",
+    "unableToLoad": "Impossible de charger",
+    "checkAndRetry": "Vérifiez votre connexion et réessayez"
+  },
+  "search": {
+    "ariaLabel": "Recherche",
+    "clear": "Effacer",
+    "recentSearches": "Recherches récentes",
+    "clearRecent": "Effacer les recherches récentes",
+    "searchOperators": "Opérateurs de recherche",
+    "opFromDesc": "Filtrer par expéditeur",
+    "opToDesc": "Filtrer par destinataire",
+    "opSubjectDesc": "Filtrer par sujet",
+    "opHasAttachmentDesc": "Filtrer les pièces jointes",
+    "opInInboxDesc": "Rechercher dans la boîte de réception",
+    "opInSentDesc": "Rechercher dans les envoyés",
+    "opIsUnreadDesc": "Filtrer les non lus",
+    "opIsStarredDesc": "Filtrer les favoris",
+    "opNewerThanDesc": "Plus récent que",
+    "opOlderThanDesc": "Plus ancien que",
+    "toNavigate": "Naviguer",
+    "toSelect": "Sélectionner",
+    "toDismiss": "Fermer"
   }
 }

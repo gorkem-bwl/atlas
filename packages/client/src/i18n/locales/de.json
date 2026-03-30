@@ -28,7 +28,10 @@
     "attachment_one": "{{count}} Anhang",
     "attachment_other": "{{count}} Anhänge",
     "file_one": "{{count}} Datei",
-    "file_other": "{{count}} Dateien"
+    "file_other": "{{count}} Dateien",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "retry": "Wiederholen"
   },
   "auth": {
     "appName": "Atlas",
@@ -52,7 +55,10 @@
     "lightMode": "Helles Design",
     "darkMode": "Dunkles Design",
     "systemMode": "Systemdesign",
-    "themeAriaLabel": "Design: {{label}}. Klicken, um das Design zu wechseln"
+    "themeAriaLabel": "Design: {{label}}. Klicken, um das Design zu wechseln",
+    "allMail": "Alle E-Mails",
+    "starred": "Markiert",
+    "unread": "Ungelesen"
   },
   "inbox": {
     "selectConversation": "Konversation auswählen",
@@ -159,7 +165,14 @@
     "unsubscribe": "Abmelden",
     "unsubscribeConfirm": "Von dieser Mailingliste abmelden?",
     "unsubscribeDescription": "Damit wird eine Abmeldeanfrage gesendet. Sie erhalten möglicherweise noch einige E-Mails, bevor dies wirksam wird.",
-    "unsubscribed": "Abmeldeanfrage gesendet"
+    "unsubscribed": "Abmeldeanfrage gesendet",
+    "delete": "Löschen",
+    "groupToday": "Heute",
+    "groupYesterday": "Gestern",
+    "groupThisWeek": "Diese Woche",
+    "groupLastWeek": "Letzte Woche",
+    "groupThisMonth": "Diesen Monat",
+    "groupOlder": "Älter"
   },
   "bulk": {
     "selectAll": "Alle auswählen",
@@ -283,7 +296,10 @@
     "yahoo": "Yahoo Mail",
     "yahooDesc": "Mit Ihrem Yahoo-Konto verbinden",
     "customImap": "Benutzerdefiniert IMAP/SMTP",
-    "customImapDesc": "Beliebige E-Mail mit Servereinstellungen verbinden"
+    "customImapDesc": "Beliebige E-Mail mit Servereinstellungen verbinden",
+    "ai": "Künstliche Intelligenz",
+    "font": "Schriftart",
+    "fontDescription": "Wählen Sie die Schriftart für die gesamte Anwendung"
   },
   "shortcuts": {
     "nextConversation": "Nächste Konversation",
@@ -1147,7 +1163,8 @@
       "manager": "Vorgesetzter",
       "salary": "Gehalt",
       "currency": "Waehrung",
-      "period": "Zeitraum"
+      "period": "Zeitraum",
+      "name": "Name"
     },
     "gender": {
       "male": "Maennlich",
@@ -1558,5 +1575,32 @@
     "addWidget": "Widget hinzufügen",
     "removeWidget": "Widget entfernen",
     "noWidgets": "Keine Widgets aktiviert"
+  },
+  "connection": {
+    "lost": "Verbindung verloren",
+    "reconnecting": "Verbindung wird wiederhergestellt...",
+    "restored": "Verbindung wiederhergestellt",
+    "unableToLoad": "Laden nicht möglich",
+    "checkAndRetry": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut"
+  },
+  "search": {
+    "ariaLabel": "Suche",
+    "clear": "Löschen",
+    "recentSearches": "Letzte Suchen",
+    "clearRecent": "Letzte Suchen löschen",
+    "searchOperators": "Suchoperatoren",
+    "opFromDesc": "Nach Absender filtern",
+    "opToDesc": "Nach Empfänger filtern",
+    "opSubjectDesc": "Nach Betreff filtern",
+    "opHasAttachmentDesc": "Anhänge filtern",
+    "opInInboxDesc": "Im Posteingang suchen",
+    "opInSentDesc": "In Gesendet suchen",
+    "opIsUnreadDesc": "Ungelesene filtern",
+    "opIsStarredDesc": "Markierte filtern",
+    "opNewerThanDesc": "Neuer als Datum",
+    "opOlderThanDesc": "Älter als Datum",
+    "toNavigate": "Navigieren",
+    "toSelect": "Auswählen",
+    "toDismiss": "Schließen"
   }
 }
