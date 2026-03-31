@@ -225,7 +225,7 @@ function ActivityItemRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontSize: compact ? 'var(--font-size-xs)' : 'var(--font-size-sm)',
+            fontSize: compact ? 'var(--font-size-sm)' : 'var(--font-size-sm)',
             color: compact ? 'rgba(255,255,255,0.85)' : 'var(--color-text-primary)',
             fontFamily: 'var(--font-family)',
             lineHeight: 1.4,
@@ -240,7 +240,7 @@ function ActivityItemRow({
           </span>{' '}
           <span
             style={{
-              color: compact ? 'rgba(255,255,255,0.6)' : 'var(--color-text-secondary)',
+              color: compact ? 'rgba(255,255,255,0.75)' : 'var(--color-text-secondary)',
             }}
           >
             {item.title}
@@ -271,8 +271,8 @@ function ActivityItemRow({
           </Chip>
           <span
             style={{
-              fontSize: compact ? 10 : 'var(--font-size-xs)',
-              color: compact ? 'rgba(255,255,255,0.4)' : 'var(--color-text-tertiary)',
+              fontSize: compact ? 'var(--font-size-xs)' : 'var(--font-size-xs)',
+              color: compact ? 'rgba(255,255,255,0.6)' : 'var(--color-text-tertiary)',
               fontFamily: 'var(--font-family)',
             }}
           >

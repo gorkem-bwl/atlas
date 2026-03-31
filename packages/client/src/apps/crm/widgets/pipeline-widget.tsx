@@ -50,8 +50,8 @@ export function PipelineWidget(_props: AppWidgetProps) {
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-        <Briefcase size={12} style={{ color: 'rgba(255,255,255,0.5)' }} />
-        <span style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.5)' }}>
+        <Briefcase size={12} style={{ color: 'rgba(255,255,255,0.7)' }} />
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.7)' }}>
           {t('crm.widgetTitle', 'Pipeline')}
         </span>
       </div>
@@ -62,7 +62,7 @@ export function PipelineWidget(_props: AppWidgetProps) {
       </div>
 
       {/* Subtitle */}
-      <div style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.6)' }}>
+      <div style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.75)' }}>
         {dealCount} {t('crm.widgetActiveDeals', 'active deals')}
       </div>
 
@@ -71,7 +71,7 @@ export function PipelineWidget(_props: AppWidgetProps) {
         <span style={{ color: '#10b981' }}>
           {wonThisMonth} {t('crm.widgetWon', 'won')}
         </span>
-        <span style={{ color: lostThisMonth > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}>
+        <span style={{ color: lostThisMonth > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.6)' }}>
           {lostThisMonth} {t('crm.widgetLost', 'lost')}
         </span>
       </div>
