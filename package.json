@@ -11,6 +11,7 @@
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@atlasmail/client --filter=@atlasmail/server",
     "dev:desktop": "concurrently --kill-others \"npm run dev:web\" \"wait-on http://localhost:5180 && npm run dev --workspace=@atlasmail/desktop\"",
+    "test": "turbo run test",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
