@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, HardDrive } from 'lucide-react';
+import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard } from 'lucide-react';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Skeleton } from '../../components/ui/skeleton';
 import { useSystemMetrics } from './hooks';
 import { formatBytes } from '../../lib/format';
-
-type View = 'overview' | 'storage';
 
 // ─── Gauge Color Logic ─────────────────────────────────────────────
 
@@ -87,25 +85,70 @@ function GaugeChart({ percent, label, sublabel, size = 140 }: { percent: number;
   );
 }
 
-// ─── KPI Card ──────────────────────────────────────────────────────
+// ─── Stylish KPI Card with background icon ────────────────────────
 
-function KpiCard({ label, value, color }: { label: string; value: string; color?: string }) {
+function KpiCard({ label, value, color, icon: Icon, subtitle }: {
+  label: string;
+  value: string;
+  color?: string;
+  icon?: typeof Cpu;
+  subtitle?: string;
+}) {
   return (
     <div
       style={{
-        padding: 16,
-        background: 'var(--color-bg-secondary)',
+        position: 'relative',
+        padding: '18px 20px',
+        background: 'var(--color-bg-primary)',
         border: '1px solid var(--color-border-secondary)',
         borderRadius: 'var(--radius-lg)',
         flex: 1,
-        minWidth: 160,
+        minWidth: 180,
+        overflow: 'hidden',
       }}
     >
-      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: color ?? 'var(--color-text-primary)' }}>
-        {value}
+      {/* Large subtle background icon */}
+      {Icon && (
+        <Icon
+          size={72}
+          strokeWidth={0.8}
+          style={{
+            position: 'absolute',
+            right: -8,
+            bottom: -8,
+            color: color ?? 'var(--color-text-tertiary)',
+            opacity: 0.06,
+            pointerEvents: 'none',
+            transform: 'rotate(-12deg)',
+          }}
+        />
+      )}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{
+          fontSize: 'var(--font-size-xs)',
+          color: 'var(--color-text-tertiary)',
+          marginBottom: 6,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+        }}>
+          {label}
+        </div>
+        <div style={{
+          fontSize: 'var(--font-size-xl)',
+          fontWeight: 'var(--font-weight-bold)' as CSSProperties['fontWeight'],
+          color: color ?? 'var(--color-text-primary)',
+          fontFamily: 'var(--font-mono)',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.5px',
+        }}>
+          {value}
+        </div>
+        {subtitle && (
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 3 }}>
+            {subtitle}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -113,26 +156,56 @@ function KpiCard({ label, value, color }: { label: string; value: string; color?
 
 // ─── Info Card ─────────────────────────────────────────────────────
 
-function InfoCard({ title, rows }: { title: string; rows: { label: string; value: string }[] }) {
+function InfoCard({ title, rows, icon: Icon }: { title: string; rows: { label: string; value: string }[]; icon?: typeof Cpu }) {
   return (
     <div
       style={{
-        padding: 16,
-        background: 'var(--color-bg-secondary)',
+        position: 'relative',
+        padding: '18px 20px',
+        background: 'var(--color-bg-primary)',
         border: '1px solid var(--color-border-secondary)',
         borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 10 }}>
-        {title}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {rows.map((row) => (
-          <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{row.label}</span>
-            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 500, color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono, monospace)' }}>{row.value}</span>
-          </div>
-        ))}
+      {Icon && (
+        <Icon
+          size={80}
+          strokeWidth={0.6}
+          style={{
+            position: 'absolute',
+            right: -12,
+            top: -12,
+            color: 'var(--color-text-tertiary)',
+            opacity: 0.04,
+            pointerEvents: 'none',
+            transform: 'rotate(10deg)',
+          }}
+        />
+      )}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+          color: 'var(--color-text-primary)',
+          marginBottom: 12,
+        }}>
+          {title}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rows.map((row) => (
+            <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{row.label}</span>
+              <span style={{
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+                color: 'var(--color-text-primary)',
+                fontFamily: 'var(--font-mono)',
+                fontVariantNumeric: 'tabular-nums',
+              }}>{row.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -207,7 +280,6 @@ function RefreshDot() {
 
 export function SystemPage() {
   const { t } = useTranslation();
-  const [view, setView] = useState<View>('overview');
   const { data: metrics, isLoading } = useSystemMetrics();
 
   return (
@@ -222,17 +294,9 @@ export function SystemPage() {
         <SidebarSection>
           <SidebarItem
             label={t('system.sidebar.overview')}
-            icon={<LayoutDashboard size={15} />}
+            icon={<Activity size={15} />}
             iconColor="#3b82f6"
-            isActive={view === 'overview'}
-            onClick={() => setView('overview')}
-          />
-          <SidebarItem
-            label={t('system.sidebar.storage')}
-            icon={<HardDrive size={15} />}
-            iconColor="#f59e0b"
-            isActive={view === 'storage'}
-            onClick={() => setView('storage')}
+            isActive
           />
         </SidebarSection>
       </AppSidebar>
@@ -249,13 +313,11 @@ export function SystemPage() {
             </div>
           </div>
         ) : !metrics ? (
-          <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60 }}>
+          <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60, fontFamily: 'var(--font-family)' }}>
             {t('system.noData')}
           </div>
-        ) : view === 'overview' ? (
-          <OverviewView metrics={metrics} />
         ) : (
-          <StorageView metrics={metrics} />
+          <OverviewView metrics={metrics} />
         )}
       </div>
     </div>
@@ -278,26 +340,34 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
         </span>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      {/* KPI Cards with background icons */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
         <KpiCard
           label={t('system.cpuUsage')}
-          value={`${metrics.cpu.usage}%`}
+          value={`${metrics.cpu.usage.toFixed(1)}%`}
           color={gaugeColor(metrics.cpu.usage)}
+          icon={Cpu}
+          subtitle={`${metrics.cpu.cores} ${t('system.cores')}`}
         />
         <KpiCard
-          label={t('system.memoryUsed')}
-          value={`${formatBytes(metrics.memory.used)} / ${formatBytes(metrics.memory.total)}`}
+          label={t('system.memoryUsage')}
+          value={`${metrics.memory.usagePercent.toFixed(1)}%`}
           color={gaugeColor(metrics.memory.usagePercent)}
+          icon={MemoryStick}
+          subtitle={`${formatBytes(metrics.memory.used)} / ${formatBytes(metrics.memory.total)}`}
         />
         <KpiCard
-          label={t('system.diskUsed')}
-          value={`${formatBytes(metrics.disk.used)} / ${formatBytes(metrics.disk.total)}`}
+          label={t('system.diskUsage')}
+          value={`${metrics.disk.usagePercent.toFixed(1)}%`}
           color={gaugeColor(metrics.disk.usagePercent)}
+          icon={HardDrive}
+          subtitle={`${formatBytes(metrics.disk.used)} / ${formatBytes(metrics.disk.total)}`}
         />
         <KpiCard
           label={t('system.uptime')}
           value={formatUptime(metrics.uptime.system)}
+          icon={Clock}
+          subtitle={t('system.systemUptime', 'System uptime')}
         />
       </div>
 
@@ -323,7 +393,7 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
               {metrics.cpu.model.split(' ').slice(0, 4).join(' ')}
             </div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-              {metrics.cpu.cores} {t('system.cores')} · {metrics.cpu.speed} MHz
+              {metrics.cpu.cores} {t('system.cores')}
             </div>
           </div>
         </div>
@@ -358,6 +428,7 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
         <InfoCard
           title={t('system.osInfo')}
+          icon={Server}
           rows={[
             { label: t('system.hostname'), value: metrics.os.hostname },
             { label: t('system.osType'), value: metrics.os.type },
@@ -367,6 +438,7 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
         />
         <InfoCard
           title={t('system.processInfo')}
+          icon={Activity}
           rows={[
             { label: 'PID', value: String(metrics.process.pid) },
             { label: t('system.heapUsed'), value: formatBytes(metrics.process.memoryUsage.heapUsed) },
@@ -376,6 +448,7 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
         />
         <InfoCard
           title={t('system.nodeInfo')}
+          icon={Globe}
           rows={[
             { label: t('system.nodeVersion'), value: metrics.node.version },
             { label: t('system.platform'), value: metrics.node.platform },
@@ -383,6 +456,9 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
           ]}
         />
       </div>
+
+      {/* Storage */}
+      <DiskBar used={metrics.disk.used} total={metrics.disk.total} usagePercent={metrics.disk.usagePercent} />
     </div>
   );
 }
