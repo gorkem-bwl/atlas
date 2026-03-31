@@ -1865,6 +1865,10 @@
     "complete": "Terminer la configuration",
     "settingUp": "Configuration en cours...",
     "successTitle": "Atlas est prêt",
-    "successSubtitle": "Redirection vers votre tableau de bord..."
+    "successSubtitle": "Redirection vers votre tableau de bord...",
+    "creatingAccount": "Création du compte...",
+    "savingPrefs": "Enregistrement des préférences...",
+    "seedingApp": "Configuration de {{app}}...",
+    "settingUpAtlas": "Configuration d'Atlas"
   }
 }

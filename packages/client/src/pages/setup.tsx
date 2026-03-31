@@ -97,6 +97,8 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [seedingStep, setSeedingStep] = useState('');
+  const [seedingProgress, setSeedingProgress] = useState(0);
 
   // Step 1: Language
   const [language, setLanguage] = useState(i18n.language?.split('-')[0] || 'en');
@@ -165,17 +167,29 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
     setLoading(true);
 
     if (preview) {
-      // Preview mode — just show success, don't create anything
-      setTimeout(() => { setSuccess(true); setLoading(false); }, 1000);
+      // Preview mode — simulate seeding without DB changes
+      const steps = ['CRM', 'HRM', 'Tasks', 'Projects', 'Sign', 'Drive', 'Write'];
+      for (let i = 0; i < steps.length; i++) {
+        setSeedingStep(steps[i]);
+        setSeedingProgress(Math.round(((i + 1) / steps.length) * 100));
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      setSuccess(true);
+      setLoading(false);
       return;
     }
 
     try {
+      // 1. Create account
+      setSeedingStep(t('setup.creatingAccount', 'Creating account...'));
+      setSeedingProgress(5);
       const { data } = await api.post('/auth/setup', { adminName, adminEmail, adminPassword, companyName });
       const { accessToken, refreshToken, account } = data.data;
       addAccount(account as Account, accessToken, refreshToken);
 
-      // Save preferences
+      // 2. Save preferences
+      setSeedingStep(t('setup.savingPrefs', 'Saving preferences...'));
+      setSeedingProgress(15);
       try {
         await api.put('/settings', {
           language,
@@ -186,6 +200,24 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
         });
       } catch { /* non-critical */ }
 
+      // 3. Seed all apps with sample data
+      const seedSteps = [
+        { label: 'CRM', url: '/crm/seed' },
+        { label: 'HRM', url: '/hr/seed' },
+        { label: 'Tasks', url: '/tasks/seed' },
+        { label: 'Projects', url: '/projects/seed' },
+      ];
+
+      for (let i = 0; i < seedSteps.length; i++) {
+        const s = seedSteps[i];
+        setSeedingStep(t('setup.seedingApp', 'Setting up {{app}}...', { app: s.label }));
+        setSeedingProgress(20 + Math.round(((i + 1) / seedSteps.length) * 75));
+        try {
+          await api.post(s.url);
+        } catch { /* non-critical — seed may already exist */ }
+      }
+
+      setSeedingProgress(100);
       setSuccess(true);
       setTimeout(() => navigate(ROUTES.HOME, { replace: true }), 2000);
     } catch (err: any) {
@@ -248,6 +280,25 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 'var(--font-size-sm)', margin: 0 }}>
               {t('setup.successSubtitle', 'Redirecting to your dashboard...')}
+            </p>
+          </div>
+        ) : loading && seedingProgress > 0 ? (
+          /* ── Seeding progress state ── */
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <h2 style={{ color: '#fff', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'], margin: '0 0 16px' }}>
+              {t('setup.settingUpAtlas', 'Setting up Atlas')}
+            </h2>
+            <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden', marginBottom: 14 }}>
+              <div style={{
+                height: '100%',
+                width: `${seedingProgress}%`,
+                background: 'linear-gradient(90deg, #3b82f6, #10b981)',
+                borderRadius: 3,
+                transition: 'width 0.4s ease',
+              }} />
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 'var(--font-size-sm)', margin: 0 }}>
+              {seedingStep}
             </p>
           </div>
         ) : (

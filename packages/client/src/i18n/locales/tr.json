@@ -1865,6 +1865,10 @@
     "complete": "Kurulumu tamamla",
     "settingUp": "Kuruluyor...",
     "successTitle": "Atlas hazır",
-    "successSubtitle": "Panoya yönlendiriliyorsunuz..."
+    "successSubtitle": "Panoya yönlendiriliyorsunuz...",
+    "creatingAccount": "Hesap oluşturuluyor...",
+    "savingPrefs": "Tercihler kaydediliyor...",
+    "seedingApp": "{{app}} kuruluyor...",
+    "settingUpAtlas": "Atlas kuruluyor"
   }
 }

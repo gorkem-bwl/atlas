@@ -1865,6 +1865,10 @@
     "complete": "Complete setup",
     "settingUp": "Setting up...",
     "successTitle": "Atlas is ready",
-    "successSubtitle": "Redirecting to your dashboard..."
+    "successSubtitle": "Redirecting to your dashboard...",
+    "creatingAccount": "Creating account...",
+    "savingPrefs": "Saving preferences...",
+    "seedingApp": "Setting up {{app}}...",
+    "settingUpAtlas": "Setting up Atlas"
   }
 }
