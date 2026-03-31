@@ -23,7 +23,7 @@ COPY packages/client packages/client
 RUN cd packages/shared && npx tsc --skipLibCheck
 
 # Build client (vite build handles its own TS compilation)
-RUN cd packages/client && npx vite build
+RUN cd packages/client && NODE_OPTIONS="--max-old-space-size=4096" npx vite build
 
 # Build server (tsc — increase heap for large type-heavy codebase)
 RUN cd packages/server && NODE_OPTIONS="--max-old-space-size=4096" npx tsc --skipLibCheck
