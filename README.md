@@ -154,6 +154,48 @@ git pull
 docker compose -f docker-compose.production.yml up -d --build
 ```
 
+## System requirements
+
+### Minimum
+
+- 2 GB RAM + 4 GB swap (or 4 GB RAM)
+- 1 vCPU
+- 10 GB disk
+- Docker 20+ with Compose plugin
+
+### Recommended
+
+- 4 GB RAM
+- 2 vCPU
+- 20 GB disk
+
+### Supported platforms
+
+| Platform | Architecture | Status |
+|----------|-------------|--------|
+| Ubuntu / Debian / CentOS | x86_64 (amd64) | Full support |
+| AWS EC2, DigitalOcean, Hetzner, Linode | amd64 | Full support |
+| AWS Graviton, Oracle Cloud Ampere | arm64 | Full support |
+| Apple Silicon Mac (M1–M4) | arm64 | Full support |
+| Raspberry Pi 5 (8 GB) | arm64 | Supported (slower builds) |
+| Raspberry Pi 4 (8 GB) | arm64 | Supported (needs swap, slow builds) |
+| Windows (WSL2 + Docker Desktop) | amd64 | Supported |
+
+### Not supported
+
+| Platform | Reason |
+|----------|--------|
+| Raspberry Pi 3 / Zero / Zero 2 W | 32-bit ARM — Node 20 requires arm64 |
+| Machines with < 2 GB RAM and no swap | Build and runtime will OOM |
+| 32-bit x86 (i386) | Docker images are 64-bit only |
+
+> **Tip:** On 2 GB machines, add swap before building:
+> ```bash
+> sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile
+> sudo mkswap /swapfile && sudo swapon /swapfile
+> echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+> ```
+
 ## License
 
 [Business Source License 1.1](LICENSE) — free for non-production use. Converts to Apache 2.0 after 4 years.
