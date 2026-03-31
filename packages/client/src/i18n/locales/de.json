@@ -1607,7 +1607,21 @@
     "customize": "Anpassen",
     "addWidget": "Widget hinzufügen",
     "removeWidget": "Widget entfernen",
-    "noWidgets": "Keine Widgets aktiviert"
+    "noWidgets": "Keine Widgets aktiviert",
+    "dockPet": "Dock-Haustier",
+    "dockPetDesc": "Wählen Sie ein animiertes Pixel-Haustier für Ihren Startbildschirm",
+    "weather": {
+      "unavailable": "Nicht verfügbar",
+      "days": {
+        "sun": "So",
+        "mon": "Mo",
+        "tue": "Di",
+        "wed": "Mi",
+        "thu": "Do",
+        "fri": "Fr",
+        "sat": "Sa"
+      }
+    }
   },
   "connection": {
     "lost": "Verbindung verloren",

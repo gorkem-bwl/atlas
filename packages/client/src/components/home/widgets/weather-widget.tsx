@@ -1,4 +1,5 @@
 import { useState, useEffect, type ComponentType } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CloudSun, Sun, Cloud, CloudFog, CloudDrizzle, CloudRain,
   CloudSnow, CloudLightning, Snowflake, Wind, CloudHail,
@@ -28,7 +29,7 @@ function getWeatherIcon(code: number): ComponentType<LucideProps> {
   return Sun;
 }
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 // Try browser geolocation first, then fall back to IP-based location
 async function getLocation(): Promise<{ latitude: number; longitude: number }> {
@@ -53,6 +54,7 @@ async function getLocation(): Promise<{ latitude: number; longitude: number }> {
 }
 
 function WeatherWidgetComponent({ width, height }: WidgetProps) {
+  const { t } = useTranslation();
   const [forecast, setForecast] = useState<ForecastDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -78,7 +80,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
         );
         const json = await res.json();
         const days: ForecastDay[] = json.daily.time.map((date: string, i: number) => ({
-          day: DAY_NAMES[new Date(date + 'T12:00:00').getDay()],
+          day: DAY_KEYS[new Date(date + 'T12:00:00').getDay()],
           high: Math.round(json.daily.temperature_2m_max[i]),
           low: Math.round(json.daily.temperature_2m_min[i]),
           code: json.daily.weather_code[i],
@@ -108,7 +110,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
         color: 'rgba(255,255,255,0.5)', fontSize: 'var(--font-size-sm)',
       }}>
         <Cloud size={16} style={{ marginRight: 6, opacity: 0.6 }} />
-        Unavailable
+        {t('widgets.weather.unavailable')}
       </div>
     );
   }
@@ -123,7 +125,7 @@ function WeatherWidgetComponent({ width, height }: WidgetProps) {
         return (
           <div key={d.day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <span style={{ fontSize: 'var(--font-size-md)', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
-              {d.day}
+              {t(`widgets.weather.days.${d.day}`)}
             </span>
             <Icon size={22} color="rgba(255,255,255,0.85)" strokeWidth={1.5} />
             <div style={{ display: 'flex', gap: 4, fontSize: 'var(--font-size-md)', fontWeight: 500 }}>

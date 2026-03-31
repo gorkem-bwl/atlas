@@ -1607,7 +1607,21 @@
     "customize": "Personalizza",
     "addWidget": "Aggiungi widget",
     "removeWidget": "Rimuovi widget",
-    "noWidgets": "Nessun widget attivo"
+    "noWidgets": "Nessun widget attivo",
+    "dockPet": "Animale del dock",
+    "dockPetDesc": "Scegli un piccolo animale pixelato per la tua schermata iniziale",
+    "weather": {
+      "unavailable": "Non disponibile",
+      "days": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Gio",
+        "fri": "Ven",
+        "sat": "Sab"
+      }
+    }
   },
   "connection": {
     "lost": "Connessione persa",
