@@ -1536,7 +1536,8 @@
     "title": "System",
     "sidebar": {
       "overview": "Übersicht",
-      "storage": "Speicher"
+      "storage": "Speicher",
+      "email": "E-Mail"
     },
     "cpuUsage": "CPU-Auslastung",
     "memoryUsage": "Speicherauslastung",
@@ -1564,7 +1565,35 @@
     "usagePercent": "Auslastung",
     "used": "verwendet",
     "noData": "Keine Systemdaten verfügbar",
-    "autoRefresh": "Automatische Aktualisierung alle 10s"
+    "autoRefresh": "Automatische Aktualisierung alle 10s",
+    "email": {
+      "title": "E-Mail-Einstellungen",
+      "adminOnly": "Nur Administratoren können E-Mail-Einstellungen konfigurieren.",
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert",
+      "smtpConfig": "SMTP-Konfiguration",
+      "enable": "E-Mail aktivieren",
+      "enableDesc": "Ausgehende E-Mail-Zustellung über SMTP aktivieren",
+      "host": "SMTP-Host",
+      "hostDesc": "Hostname des Mailservers",
+      "port": "Port",
+      "portDesc": "SMTP-Server-Port",
+      "secure": "SSL/TLS verwenden",
+      "secureDesc": "Für Port 465 aktivieren, für STARTTLS auf 587 deaktivieren",
+      "authentication": "Authentifizierung",
+      "username": "Benutzername",
+      "usernameDesc": "SMTP-Anmeldename oder E-Mail",
+      "password": "Passwort",
+      "passwordDesc": "SMTP-Passwort oder App-Passwort",
+      "fromAddress": "Absenderadresse",
+      "fromAddressDesc": "Absendername und E-Mail für ausgehende Post",
+      "testSection": "Verbindung testen",
+      "sendTest": "Test-E-Mail senden",
+      "sendTestDesc": "SMTP-Einstellungen durch Senden einer Test-E-Mail überprüfen",
+      "sending": "Wird gesendet...",
+      "send": "Senden",
+      "testSuccess": "Test-E-Mail erfolgreich gesendet"
+    }
   },
   "widgets": {
     "homeWidgets": "Start-Widgets",

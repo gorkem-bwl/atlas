@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import * as systemService from './service';
 
 const execFileAsync = promisify(execFile);
 
@@ -145,5 +146,54 @@ export async function getMetrics(_req: Request, res: Response) {
   } catch (error) {
     console.error('Failed to collect system metrics:', error);
     res.status(500).json({ success: false, error: 'Failed to collect system metrics' });
+  }
+}
+
+// ─── Email Settings (admin-only) ──────────────────────────────────
+
+export async function getEmailSettings(req: Request, res: Response) {
+  try {
+    if (!req.auth?.isSuperAdmin) {
+      res.status(403).json({ success: false, error: 'Admin access required' });
+      return;
+    }
+    const data = await systemService.getEmailSettings();
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Failed to get email settings:', error);
+    res.status(500).json({ success: false, error: 'Failed to get email settings' });
+  }
+}
+
+export async function updateEmailSettings(req: Request, res: Response) {
+  try {
+    if (!req.auth?.isSuperAdmin) {
+      res.status(403).json({ success: false, error: 'Admin access required' });
+      return;
+    }
+    const data = await systemService.updateEmailSettings(req.body);
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Failed to update email settings:', error);
+    res.status(500).json({ success: false, error: 'Failed to update email settings' });
+  }
+}
+
+export async function testEmail(req: Request, res: Response) {
+  try {
+    if (!req.auth?.isSuperAdmin) {
+      res.status(403).json({ success: false, error: 'Admin access required' });
+      return;
+    }
+    const { to } = req.body;
+    if (!to) {
+      res.status(400).json({ success: false, error: 'Recipient email is required' });
+      return;
+    }
+    const result = await systemService.testEmailConnection(to);
+    res.json({ success: result.success, error: result.error });
+  } catch (error) {
+    console.error('Failed to test email:', error);
+    res.status(500).json({ success: false, error: 'Failed to test email' });
   }
 }

@@ -45,7 +45,7 @@
     "ioredis": "^5.4.0",
     "jsonwebtoken": "^9.0.0",
     "multer": "^2.1.0",
-    "nodemailer": "^8.0.1",
+    "nodemailer": "^8.0.4",
     "pdf-lib": "^1.17.1",
     "pg": "^8.19.0",
     "pino": "^9.5.0",

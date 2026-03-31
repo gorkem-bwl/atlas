@@ -14,5 +14,5 @@ export const systemServerManifest: ServerAppManifest = {
   version: '1.0.0',
   router: systemRouter,
   routePrefix: '/system',
-  tables: [],
+  tables: ['system_settings'],
 };

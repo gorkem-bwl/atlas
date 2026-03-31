@@ -174,6 +174,7 @@ export const queryKeys = {
   system: {
     all: ['system'] as const,
     metrics: ['system', 'metrics'] as const,
+    emailSettings: ['system', 'email-settings'] as const,
   },
   notifications: {
     all: ['notifications'] as const,

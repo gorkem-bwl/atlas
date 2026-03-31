@@ -1536,7 +1536,8 @@
     "title": "Sistema",
     "sidebar": {
       "overview": "Panoramica",
-      "storage": "Archiviazione"
+      "storage": "Archiviazione",
+      "email": "Email"
     },
     "cpuUsage": "Utilizzo CPU",
     "memoryUsage": "Utilizzo memoria",
@@ -1564,7 +1565,35 @@
     "usagePercent": "Utilizzo",
     "used": "utilizzato",
     "noData": "Nessun dato di sistema disponibile",
-    "autoRefresh": "Aggiornamento automatico ogni 10s"
+    "autoRefresh": "Aggiornamento automatico ogni 10s",
+    "email": {
+      "title": "Impostazioni email",
+      "adminOnly": "Solo gli amministratori possono configurare le impostazioni email.",
+      "enabled": "Abilitato",
+      "disabled": "Disabilitato",
+      "smtpConfig": "Configurazione SMTP",
+      "enable": "Abilita email",
+      "enableDesc": "Abilita la consegna delle email in uscita tramite SMTP",
+      "host": "Host SMTP",
+      "hostDesc": "Indirizzo del server di posta",
+      "port": "Porta",
+      "portDesc": "Porta del server SMTP",
+      "secure": "Usa SSL/TLS",
+      "secureDesc": "Abilita per la porta 465, disabilita per STARTTLS sulla 587",
+      "authentication": "Autenticazione",
+      "username": "Nome utente",
+      "usernameDesc": "Nome utente o email di accesso SMTP",
+      "password": "Password",
+      "passwordDesc": "Password SMTP o password dell'app",
+      "fromAddress": "Indirizzo mittente",
+      "fromAddressDesc": "Nome e email del mittente per la posta in uscita",
+      "testSection": "Test connessione",
+      "sendTest": "Invia email di test",
+      "sendTestDesc": "Verifica le impostazioni SMTP inviando un'email di test",
+      "sending": "Invio in corso...",
+      "send": "Invia",
+      "testSuccess": "Email di test inviata con successo"
+    }
   },
   "widgets": {
     "homeWidgets": "Widget della home",

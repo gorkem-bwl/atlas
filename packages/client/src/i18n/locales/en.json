@@ -1563,7 +1563,8 @@
     "title": "System",
     "sidebar": {
       "overview": "Overview",
-      "storage": "Storage"
+      "storage": "Storage",
+      "email": "Email"
     },
     "cpuUsage": "CPU usage",
     "memoryUsage": "Memory usage",
@@ -1591,7 +1592,35 @@
     "usagePercent": "Usage",
     "used": "used",
     "noData": "No system data available",
-    "autoRefresh": "Auto-refreshing every 10s"
+    "autoRefresh": "Auto-refreshing every 10s",
+    "email": {
+      "title": "Email settings",
+      "adminOnly": "Only administrators can configure email settings.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "smtpConfig": "SMTP configuration",
+      "enable": "Enable email",
+      "enableDesc": "Enable outbound email delivery via SMTP",
+      "host": "SMTP host",
+      "hostDesc": "Your mail server hostname",
+      "port": "Port",
+      "portDesc": "SMTP server port",
+      "secure": "Use SSL/TLS",
+      "secureDesc": "Enable for port 465, disable for STARTTLS on 587",
+      "authentication": "Authentication",
+      "username": "Username",
+      "usernameDesc": "SMTP login username or email",
+      "password": "Password",
+      "passwordDesc": "SMTP login password or app password",
+      "fromAddress": "From address",
+      "fromAddressDesc": "Sender name and email for outgoing mail",
+      "testSection": "Test connection",
+      "sendTest": "Send test email",
+      "sendTestDesc": "Verify your SMTP settings by sending a test email",
+      "sending": "Sending...",
+      "send": "Send",
+      "testSuccess": "Test email sent successfully"
+    }
   },
   "widgets": {
     "homeWidgets": "Home widgets",

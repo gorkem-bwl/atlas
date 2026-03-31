@@ -1501,3 +1501,19 @@ export const projectSettings = pgTable('project_settings', {
   accountIdx: uniqueIndex('idx_project_settings_account').on(table.accountId),
 }));
 
+// ─── System Settings (admin-only, singleton row) ───────────────────
+
+export const systemSettings = pgTable('system_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  // SMTP / Email
+  smtpHost: varchar('smtp_host', { length: 255 }),
+  smtpPort: integer('smtp_port').notNull().default(587),
+  smtpUser: varchar('smtp_user', { length: 255 }),
+  smtpPass: text('smtp_pass'),
+  smtpFrom: varchar('smtp_from', { length: 255 }).notNull().default('Atlas <noreply@atlas.local>'),
+  smtpSecure: boolean('smtp_secure').notNull().default(false),
+  smtpEnabled: boolean('smtp_enabled').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+

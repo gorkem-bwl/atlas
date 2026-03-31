@@ -1536,7 +1536,8 @@
     "title": "Système",
     "sidebar": {
       "overview": "Vue d'ensemble",
-      "storage": "Stockage"
+      "storage": "Stockage",
+      "email": "E-mail"
     },
     "cpuUsage": "Utilisation CPU",
     "memoryUsage": "Utilisation mémoire",
@@ -1564,7 +1565,35 @@
     "usagePercent": "Utilisation",
     "used": "utilisé",
     "noData": "Aucune donnée système disponible",
-    "autoRefresh": "Actualisation automatique toutes les 10s"
+    "autoRefresh": "Actualisation automatique toutes les 10s",
+    "email": {
+      "title": "Paramètres e-mail",
+      "adminOnly": "Seuls les administrateurs peuvent configurer les paramètres e-mail.",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "smtpConfig": "Configuration SMTP",
+      "enable": "Activer l'e-mail",
+      "enableDesc": "Activer l'envoi d'e-mails sortants via SMTP",
+      "host": "Hôte SMTP",
+      "hostDesc": "Nom d'hôte du serveur de messagerie",
+      "port": "Port",
+      "portDesc": "Port du serveur SMTP",
+      "secure": "Utiliser SSL/TLS",
+      "secureDesc": "Activer pour le port 465, désactiver pour STARTTLS sur 587",
+      "authentication": "Authentification",
+      "username": "Nom d'utilisateur",
+      "usernameDesc": "Identifiant SMTP ou e-mail",
+      "password": "Mot de passe",
+      "passwordDesc": "Mot de passe SMTP ou mot de passe d'application",
+      "fromAddress": "Adresse d'expéditeur",
+      "fromAddressDesc": "Nom et e-mail de l'expéditeur pour le courrier sortant",
+      "testSection": "Tester la connexion",
+      "sendTest": "Envoyer un e-mail de test",
+      "sendTestDesc": "Vérifier vos paramètres SMTP en envoyant un e-mail de test",
+      "sending": "Envoi en cours...",
+      "send": "Envoyer",
+      "testSuccess": "E-mail de test envoyé avec succès"
+    }
   },
   "widgets": {
     "homeWidgets": "Widgets d'accueil",

@@ -1582,6 +1582,22 @@ export async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_cal_events_attendees_gin ON calendar_events USING GIN (attendees);
     `);
 
+    // ─── System Settings (singleton row, admin-only) ──────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        smtp_host VARCHAR(255),
+        smtp_port INTEGER NOT NULL DEFAULT 587,
+        smtp_user VARCHAR(255),
+        smtp_pass TEXT,
+        smtp_from VARCHAR(255) NOT NULL DEFAULT 'Atlas <noreply@atlas.local>',
+        smtp_secure BOOLEAN NOT NULL DEFAULT FALSE,
+        smtp_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     logger.info('Database migrations completed');
   } finally {
     await client.end();

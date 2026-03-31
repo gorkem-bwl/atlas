@@ -1,10 +1,18 @@
-import { type CSSProperties } from 'react';
+import { useState, useCallback, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard, Mail, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Skeleton } from '../../components/ui/skeleton';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Select } from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
+import { SettingsSection, SettingsRow, SettingsToggle } from '../../components/settings/settings-primitives';
 import { useSystemMetrics } from './hooks';
 import { formatBytes } from '../../lib/format';
+import { api } from '../../lib/api-client';
+import { queryKeys } from '../../config/query-keys';
 
 // ─── Gauge Color Logic ─────────────────────────────────────────────
 
@@ -278,9 +286,12 @@ function RefreshDot() {
 
 // ─── Main Page ─────────────────────────────────────────────────────
 
+type SystemView = 'overview' | 'email';
+
 export function SystemPage() {
   const { t } = useTranslation();
   const { data: metrics, isLoading } = useSystemMetrics();
+  const [activeView, setActiveView] = useState<SystemView>('overview');
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -296,29 +307,42 @@ export function SystemPage() {
             label={t('system.sidebar.overview')}
             icon={<Activity size={15} />}
             iconColor="#3b82f6"
-            isActive
+            isActive={activeView === 'overview'}
+            onClick={() => setActiveView('overview')}
+          />
+          <SidebarItem
+            label={t('system.sidebar.email')}
+            icon={<Mail size={15} />}
+            iconColor="#f59e0b"
+            isActive={activeView === 'email'}
+            onClick={() => setActiveView('email')}
           />
         </SidebarSection>
       </AppSidebar>
 
       <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
-        {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Skeleton style={{ height: 32, width: 200 }} />
-            <div style={{ display: 'flex', gap: 16 }}>
-              {[1, 2, 3, 4].map((i) => <Skeleton key={i} style={{ height: 80, flex: 1 }} />)}
-            </div>
-            <div style={{ display: 'flex', gap: 16 }}>
-              {[1, 2].map((i) => <Skeleton key={i} style={{ height: 200, flex: 1 }} />)}
-            </div>
-          </div>
-        ) : !metrics ? (
-          <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60, fontFamily: 'var(--font-family)' }}>
-            {t('system.noData')}
-          </div>
-        ) : (
-          <OverviewView metrics={metrics} />
+        {activeView === 'overview' && (
+          <>
+            {isLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <Skeleton style={{ height: 32, width: 200 }} />
+                <div style={{ display: 'flex', gap: 16 }}>
+                  {[1, 2, 3, 4].map((i) => <Skeleton key={i} style={{ height: 80, flex: 1 }} />)}
+                </div>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  {[1, 2].map((i) => <Skeleton key={i} style={{ height: 200, flex: 1 }} />)}
+                </div>
+              </div>
+            ) : !metrics ? (
+              <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60, fontFamily: 'var(--font-family)' }}>
+                {t('system.noData')}
+              </div>
+            ) : (
+              <OverviewView metrics={metrics} />
+            )}
+          </>
         )}
+        {activeView === 'email' && <EmailSettingsView />}
       </div>
     </div>
   );
@@ -484,6 +508,208 @@ function StorageView({ metrics }: { metrics: NonNullable<ReturnType<typeof useSy
           { label: t('system.usagePercent'), value: `${metrics.disk.usagePercent}%` },
         ]}
       />
+    </div>
+  );
+}
+
+// ─── Email Settings View ──────────────────────────────────────────
+
+interface EmailSettings {
+  smtpHost: string | null;
+  smtpPort: number;
+  smtpUser: string | null;
+  smtpPass: string | null;
+  smtpFrom: string;
+  smtpSecure: boolean;
+  smtpEnabled: boolean;
+}
+
+function EmailSettingsView() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const { data: settings, isLoading } = useQuery({
+    queryKey: queryKeys.system.emailSettings,
+    queryFn: async () => {
+      const { data } = await api.get('/system/email-settings');
+      return data.data as EmailSettings;
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (patch: Partial<EmailSettings>) => {
+      const { data } = await api.put('/system/email-settings', patch);
+      return data.data as EmailSettings;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.system.emailSettings, data);
+    },
+  });
+
+  const [testEmail, setTestEmail] = useState('');
+  const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
+
+  const handleTest = useCallback(async () => {
+    if (!testEmail.trim()) return;
+    setTestLoading(true);
+    setTestResult(null);
+    try {
+      const { data } = await api.post('/system/email-test', { to: testEmail.trim() });
+      setTestResult({ success: data.success, error: data.error });
+    } catch (err: any) {
+      setTestResult({ success: false, error: err?.response?.data?.error || 'Test failed' });
+    } finally {
+      setTestLoading(false);
+    }
+  }, [testEmail]);
+
+  const update = (patch: Partial<EmailSettings>) => updateMutation.mutate(patch);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
+        <Skeleton style={{ height: 32, width: 200 }} />
+        {[1, 2, 3, 4].map((i) => <Skeleton key={i} style={{ height: 48, width: '100%' }} />)}
+      </div>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60, fontFamily: 'var(--font-family)' }}>
+        {t('system.email.adminOnly')}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h2 style={{
+          fontSize: 'var(--font-size-xl)',
+          fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+          color: 'var(--color-text-primary)',
+          margin: 0,
+          fontFamily: 'var(--font-family)',
+        }}>
+          {t('system.email.title')}
+        </h2>
+        <Badge variant={settings.smtpEnabled ? 'success' : 'default'}>
+          {settings.smtpEnabled ? t('system.email.enabled') : t('system.email.disabled')}
+        </Badge>
+      </div>
+
+      <SettingsSection title={t('system.email.smtpConfig')}>
+        <SettingsRow label={t('system.email.enable')} description={t('system.email.enableDesc')}>
+          <SettingsToggle
+            checked={settings.smtpEnabled}
+            onChange={(v) => update({ smtpEnabled: v })}
+            label={t('system.email.enable')}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('system.email.host')} description={t('system.email.hostDesc')}>
+          <Input
+            value={settings.smtpHost || ''}
+            onChange={(e) => update({ smtpHost: e.target.value })}
+            placeholder="smtp.gmail.com"
+            size="sm"
+            style={{ width: 220 }}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('system.email.port')} description={t('system.email.portDesc')}>
+          <Select
+            value={String(settings.smtpPort)}
+            onChange={(v) => update({ smtpPort: Number(v) })}
+            options={[
+              { value: '25', label: '25 (SMTP)' },
+              { value: '465', label: '465 (SSL)' },
+              { value: '587', label: '587 (TLS)' },
+              { value: '2525', label: '2525 (Alt)' },
+            ]}
+            size="sm"
+            width={160}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('system.email.secure')} description={t('system.email.secureDesc')}>
+          <SettingsToggle
+            checked={settings.smtpSecure}
+            onChange={(v) => update({ smtpSecure: v })}
+            label="SSL/TLS"
+          />
+        </SettingsRow>
+      </SettingsSection>
+
+      <SettingsSection title={t('system.email.authentication')}>
+        <SettingsRow label={t('system.email.username')} description={t('system.email.usernameDesc')}>
+          <Input
+            value={settings.smtpUser || ''}
+            onChange={(e) => update({ smtpUser: e.target.value })}
+            placeholder="user@example.com"
+            size="sm"
+            style={{ width: 220 }}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('system.email.password')} description={t('system.email.passwordDesc')}>
+          <Input
+            type="password"
+            value={settings.smtpPass || ''}
+            onChange={(e) => update({ smtpPass: e.target.value })}
+            placeholder="••••••••"
+            size="sm"
+            style={{ width: 220 }}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('system.email.fromAddress')} description={t('system.email.fromAddressDesc')}>
+          <Input
+            value={settings.smtpFrom}
+            onChange={(e) => update({ smtpFrom: e.target.value })}
+            placeholder="Atlas <noreply@atlas.local>"
+            size="sm"
+            style={{ width: 260 }}
+          />
+        </SettingsRow>
+      </SettingsSection>
+
+      <SettingsSection title={t('system.email.testSection')}>
+        <SettingsRow label={t('system.email.sendTest')} description={t('system.email.sendTestDesc')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+            <Input
+              value={testEmail}
+              onChange={(e) => { setTestEmail(e.target.value); setTestResult(null); }}
+              placeholder="test@example.com"
+              size="sm"
+              style={{ width: 200 }}
+              onKeyDown={(e) => e.key === 'Enter' && handleTest()}
+            />
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Send size={13} />}
+              onClick={handleTest}
+              disabled={testLoading || !testEmail.trim()}
+            >
+              {testLoading ? t('system.email.sending') : t('system.email.send')}
+            </Button>
+          </div>
+        </SettingsRow>
+        {testResult && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            borderRadius: 'var(--radius-md)',
+            background: testResult.success ? 'color-mix(in srgb, var(--color-success) 10%, transparent)' : 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+            fontSize: 'var(--font-size-sm)',
+            fontFamily: 'var(--font-family)',
+            color: testResult.success ? 'var(--color-success)' : 'var(--color-error)',
+          }}>
+            {testResult.success ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+            {testResult.success ? t('system.email.testSuccess') : testResult.error}
+          </div>
+        )}
+      </SettingsSection>
     </div>
   );
 }
