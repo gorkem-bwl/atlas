@@ -83,7 +83,11 @@ function StepIcon({ icon: Icon, color }: { icon: typeof Globe; color: string }) 
 
 // ─── Main component ──────────────────────────────────────────────────
 
-export function SetupPage() {
+export function SetupPreviewPage() {
+  return <SetupPage preview />;
+}
+
+export function SetupPage({ preview = false }: { preview?: boolean }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const addAccount = useAuthStore((s) => s.addAccount);
@@ -110,8 +114,9 @@ export function SetupPage() {
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [currency, setCurrency] = useState('$');
 
-  // Redirect if already set up
+  // Redirect if already set up (skip in preview mode)
   useEffect(() => {
+    if (preview) { setChecking(false); return; }
     api.get('/auth/setup-status')
       .then(({ data }) => {
         if (!data.data.needsSetup) {
@@ -120,7 +125,7 @@ export function SetupPage() {
       })
       .catch(() => {})
       .finally(() => setChecking(false));
-  }, [navigate]);
+  }, [navigate, preview]);
 
   // Switch language in real time
   useEffect(() => {
@@ -158,6 +163,12 @@ export function SetupPage() {
   async function handleSubmit() {
     setError('');
     setLoading(true);
+
+    if (preview) {
+      // Preview mode — just show success, don't create anything
+      setTimeout(() => { setSuccess(true); setLoading(false); }, 1000);
+      return;
+    }
 
     try {
       const { data } = await api.post('/auth/setup', { adminName, adminEmail, adminPassword, companyName });
