@@ -223,12 +223,14 @@ export function SystemPage() {
           <SidebarItem
             label={t('system.sidebar.overview')}
             icon={<LayoutDashboard size={15} />}
+            iconColor="#3b82f6"
             isActive={view === 'overview'}
             onClick={() => setView('overview')}
           />
           <SidebarItem
             label={t('system.sidebar.storage')}
             icon={<HardDrive size={15} />}
+            iconColor="#f59e0b"
             isActive={view === 'storage'}
             onClick={() => setView('storage')}
           />
@@ -299,28 +301,57 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
         />
       </div>
 
-      {/* Gauge Charts */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 24,
-          justifyContent: 'center',
-          padding: 24,
-          background: 'var(--color-bg-secondary)',
+      {/* Gauge Charts — separate cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 20,
+          padding: 20,
+          background: 'var(--color-bg-primary)',
           border: '1px solid var(--color-border-secondary)',
           borderRadius: 'var(--radius-lg)',
-        }}
-      >
-        <GaugeChart
-          percent={metrics.cpu.usage}
-          label={t('system.cpuUsage')}
-          sublabel={`${metrics.cpu.cores} ${t('system.cores')}`}
-        />
-        <GaugeChart
-          percent={metrics.memory.usagePercent}
-          label={t('system.memoryUsage')}
-          sublabel={formatBytes(metrics.memory.total)}
-        />
+        }}>
+          <GaugeChart
+            percent={metrics.cpu.usage}
+            label=""
+            size={100}
+          />
+          <div>
+            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', marginBottom: 4 }}>
+              {t('system.cpuUsage')}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', lineHeight: 1.5 }}>
+              {metrics.cpu.model.split(' ').slice(0, 4).join(' ')}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+              {metrics.cpu.cores} {t('system.cores')} · {metrics.cpu.speed} MHz
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 20,
+          padding: 20,
+          background: 'var(--color-bg-primary)',
+          border: '1px solid var(--color-border-secondary)',
+          borderRadius: 'var(--radius-lg)',
+        }}>
+          <GaugeChart
+            percent={metrics.memory.usagePercent}
+            label=""
+            size={100}
+          />
+          <div>
+            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', marginBottom: 4 }}>
+              {t('system.memoryUsage')}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', lineHeight: 1.5 }}>
+              {formatBytes(metrics.memory.used)} / {formatBytes(metrics.memory.total)}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+              {formatBytes(metrics.memory.total - metrics.memory.used)} {t('system.available', 'available')}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Info Cards */}
