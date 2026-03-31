@@ -1938,6 +1938,7 @@ export function DrivePage() {
                       <input
                         type="checkbox"
                         className="drive-checkbox"
+                        aria-label={`Select ${item.name}`}
                         checked={isSelected}
                         onChange={(e) => {
                           e.stopPropagation();
@@ -2015,6 +2016,7 @@ export function DrivePage() {
                     <input
                       type="checkbox"
                       className="drive-checkbox drive-grid-checkbox"
+                      aria-label={`Select ${item.name}`}
                       checked={isSelected}
                       onChange={(e) => {
                         e.stopPropagation();

@@ -250,6 +250,7 @@ function TaskItem({
       <button
         className={`task-checkbox${task.status === 'completed' || completing ? ' completed' : ''}`}
         onClick={handleComplete}
+        aria-label={task.status === 'completed' ? 'Mark incomplete' : 'Mark complete'}
       >
         {(task.status === 'completed' || completing) && (
           <Check size={12} color="#fff" strokeWidth={3} className="task-check-icon" />

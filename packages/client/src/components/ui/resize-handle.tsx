@@ -130,6 +130,9 @@ export function ResizeHandle({ orientation, onResize, onResizeEnd }: ResizeHandl
       role="separator"
       aria-orientation={orientation}
       aria-label={isVertical ? 'Resize panes horizontally' : 'Resize panes vertically'}
+      aria-valuenow={50}
+      aria-valuemin={0}
+      aria-valuemax={100}
       tabIndex={0}
       onKeyDown={(e) => {
         // Keyboard accessibility: arrow keys nudge by 20px
