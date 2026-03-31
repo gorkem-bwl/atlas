@@ -23,32 +23,32 @@ async function fetchQuotes(): Promise<StockQuote[]> {
   // Use Yahoo Finance v8 API (no key required, server-side only)
   const results: StockQuote[] = [];
 
-  try {
-    const symbols = SYMBOLS.join(',');
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent`,
-      { headers: { 'User-Agent': 'Atlas/1.0' } }
-    );
-
-    if (!res.ok) throw new Error(`Yahoo API ${res.status}`);
-
-    const json = await res.json() as any;
-    const quotes = json?.quoteResponse?.result || [];
-
-    for (const q of quotes) {
-      results.push({
-        symbol: q.symbol,
-        price: q.regularMarketPrice ?? 0,
-        change: q.regularMarketChange ?? 0,
-        changePercent: q.regularMarketChangePercent ?? 0,
-      });
-    }
-  } catch (err) {
-    logger.debug({ err }, 'Failed to fetch stock quotes from Yahoo');
-
-    // Fallback: try finnhub (free, no key for basic quotes)
+  // Fetch each symbol via Yahoo v8 chart API (still works, no key needed)
+  for (const symbol of SYMBOLS) {
     try {
-      for (const symbol of SYMBOLS.slice(0, 3)) {
+      const res = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`,
+        { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Atlas/1.0)' } }
+      );
+      if (!res.ok) continue;
+      const json = await res.json() as any;
+      const meta = json?.chart?.result?.[0]?.meta;
+      if (meta?.regularMarketPrice) {
+        const price = meta.regularMarketPrice;
+        const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
+        const change = price - prevClose;
+        const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+        results.push({ symbol, price, change, changePercent });
+      }
+    } catch {
+      // Skip this symbol
+    }
+  }
+
+  // If Yahoo failed for all, try finnhub as fallback
+  if (results.length === 0) {
+    for (const symbol of SYMBOLS.slice(0, 3)) {
+      try {
         const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=demo`);
         if (res.ok) {
           const q = await res.json() as any;
@@ -61,9 +61,7 @@ async function fetchQuotes(): Promise<StockQuote[]> {
             });
           }
         }
-      }
-    } catch {
-      // Both APIs failed — return empty
+      } catch { /* skip */ }
     }
   }
 
