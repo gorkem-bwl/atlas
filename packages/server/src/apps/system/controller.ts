@@ -3,6 +3,7 @@ import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as systemService from './service';
+import { logger } from '../../utils/logger';
 
 const execFileAsync = promisify(execFile);
 
@@ -144,7 +145,7 @@ export async function getMetrics(_req: Request, res: Response) {
     const data = await collectMetrics();
     res.json({ success: true, data });
   } catch (error) {
-    console.error('Failed to collect system metrics:', error);
+    logger.error({ error }, 'Failed to collect system metrics');
     res.status(500).json({ success: false, error: 'Failed to collect system metrics' });
   }
 }
@@ -156,7 +157,7 @@ export async function getEmailSettings(req: Request, res: Response) {
     const data = await systemService.getEmailSettings();
     res.json({ success: true, data });
   } catch (error) {
-    console.error('Failed to get email settings:', error);
+    logger.error({ error }, 'Failed to get email settings');
     res.status(500).json({ success: false, error: 'Failed to get email settings' });
   }
 }
@@ -166,7 +167,7 @@ export async function updateEmailSettings(req: Request, res: Response) {
     const data = await systemService.updateEmailSettings(req.body);
     res.json({ success: true, data });
   } catch (error) {
-    console.error('Failed to update email settings:', error);
+    logger.error({ error }, 'Failed to update email settings');
     res.status(500).json({ success: false, error: 'Failed to update email settings' });
   }
 }
@@ -181,7 +182,7 @@ export async function testEmail(req: Request, res: Response) {
     const result = await systemService.testEmailConnection(to);
     res.json({ success: result.success, error: result.error });
   } catch (error) {
-    console.error('Failed to test email:', error);
+    logger.error({ error }, 'Failed to test email');
     res.status(500).json({ success: false, error: 'Failed to test email' });
   }
 }
