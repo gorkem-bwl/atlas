@@ -16,3 +16,4 @@ out/
 .claude/
 packages/server/data/
 packages/server/uploads/
+certs/

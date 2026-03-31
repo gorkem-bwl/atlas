@@ -157,16 +157,16 @@ function DashboardRecentActivity({ recentTimeEntries, recentInvoiceActions }: {
 
   const combined = [
     ...recentTimeEntries.map(e => ({
+      ...e,
       key: `time-${e.id}`,
       type: 'time' as const,
       date: e.createdAt,
-      ...e,
     })),
     ...recentInvoiceActions.map(i => ({
+      ...i,
       key: `inv-${i.id}`,
       type: 'invoice' as const,
       date: i.updatedAt,
-      ...i,
     })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
