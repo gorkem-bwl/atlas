@@ -22,7 +22,20 @@ export interface AppPermissionWithUser {
   updatedAt: string | null;
 }
 
-// ─── My permission (existing) ──────────────────────────────────────
+// ─── Permission action flags (convenience) ─────────────────────────
+
+export function useAppActions(appId: string) {
+  const { data: perm } = useMyAppPermission(appId);
+  return {
+    canView: !perm || perm.role === 'admin' || perm.role === 'editor' || perm.role === 'viewer',
+    canCreate: !perm || perm.role === 'admin' || perm.role === 'editor',
+    canEdit: !perm || perm.role === 'admin' || perm.role === 'editor',
+    canDelete: !perm || perm.role === 'admin',
+    role: perm?.role ?? null,
+  };
+}
+
+// ─── My permission (raw) ───────────────────────────────────────────
 
 export function useMyAppPermission(appId: string) {
   return useQuery({
