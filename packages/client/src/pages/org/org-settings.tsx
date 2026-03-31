@@ -244,24 +244,6 @@ export function OrgSettingsPage() {
         </div>
       </div>
 
-      {/* Plan & billing */}
-      <div style={sectionStyle}>
-        <div style={sectionHeaderStyle}>
-          <CreditCard size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-          <span style={sectionTitleStyle}>Plan & billing</span>
-        </div>
-        <div style={rowStyle}>
-          <span style={labelStyle}>Current plan</span>
-          <div style={valueStyle}>
-            <PlanBadge plan={tenant.plan} />
-          </div>
-        </div>
-        <div style={rowStyle}>
-          <span style={labelStyle}>Team members</span>
-          <span style={valueStyle}>{memberCount}</span>
-        </div>
-      </div>
-
       {/* Infrastructure */}
       <div style={sectionStyle}>
         <div style={sectionHeaderStyle}>
