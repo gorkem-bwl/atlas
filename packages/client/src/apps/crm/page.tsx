@@ -7,7 +7,7 @@ import {
   ChevronRight, Trash2, Phone as PhoneIcon, Mail,
   Trophy, XCircle, LayoutGrid, List,
   PhoneCall, CalendarDays, StickyNote,
-  Download, Upload, BarChart3, Zap, Shield,
+  Download, Upload, BarChart3, Zap, Shield, FileSpreadsheet,
   UserPlus, TrendingUp, Merge,
   DollarSign, Calendar, Globe, Tag, User, Target,
 } from 'lucide-react';
@@ -26,7 +26,7 @@ import {
 import { DealKanban } from './components/deal-kanban';
 import { FilterBar, applyFilters, type CrmFilter, type FilterColumn } from './components/filter-bar';
 import { SavedViews, type SavedView } from './components/saved-views';
-import { CsvImportModal, exportToCsv } from './components/csv-import-modal';
+import { CsvImportModal, exportToCsv, exportToXlsx, exportToJson } from './components/csv-import-modal';
 import { CrmDashboard } from './components/dashboard';
 import { DashboardCharts } from './components/dashboard-charts';
 import { AutomationsView } from './components/automations-view';
@@ -53,6 +53,7 @@ import { StatusDot } from '../../components/ui/status-dot';
 import { DetailPanel } from '../../components/ui/detail-panel';
 import { ListToolbar } from '../../components/ui/list-toolbar';
 import { ContentArea } from '../../components/ui/content-area';
+import { Popover, PopoverTrigger, PopoverContent } from '../../components/ui/popover';
 import { useUIStore } from '../../stores/ui-store';
 import '../../styles/crm.css';
 
@@ -2109,17 +2110,18 @@ export function CrmPage() {
   }, []);
 
   // Export handler
-  const handleExport = useCallback(() => {
+  const handleExport = useCallback((format: 'csv' | 'xlsx' | 'json' = 'csv') => {
     const now = new Date().toISOString().slice(0, 10);
+    const exportFn = format === 'xlsx' ? exportToXlsx : format === 'json' ? exportToJson : exportToCsv;
     switch (activeView) {
       case 'deals':
-        exportToCsv(filteredDeals as unknown as Record<string, unknown>[], getDealsCsvColumns(t), `crm-deals-${now}`);
+        exportFn(filteredDeals as unknown as Record<string, unknown>[], getDealsCsvColumns(t), `crm-deals-${now}`);
         break;
       case 'contacts':
-        exportToCsv(filteredContacts as unknown as Record<string, unknown>[], getContactsCsvColumns(t), `crm-contacts-${now}`);
+        exportFn(filteredContacts as unknown as Record<string, unknown>[], getContactsCsvColumns(t), `crm-contacts-${now}`);
         break;
       case 'companies':
-        exportToCsv(filteredCompanies as unknown as Record<string, unknown>[], getCompaniesCsvColumns(t), `crm-companies-${now}`);
+        exportFn(filteredCompanies as unknown as Record<string, unknown>[], getCompaniesCsvColumns(t), `crm-companies-${now}`);
         break;
     }
   }, [activeView, filteredDeals, filteredContacts, filteredCompanies, t]);
@@ -2424,9 +2426,33 @@ export function CrmPage() {
                 <Button variant="ghost" size="sm" icon={<Upload size={13} />} onClick={() => setShowImportModal(true)}>
                   {t('crm.actions.import')}
                 </Button>
-                <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={handleExport}>
-                  {t('crm.actions.export')}
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" icon={<Download size={13} />}>
+                      {t('crm.actions.export')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" style={{ padding: 'var(--spacing-xs)', minWidth: 130 }}>
+                    {(['csv', 'xlsx', 'json'] as const).map((fmt) => (
+                      <button
+                        key={fmt}
+                        onClick={() => handleExport(fmt)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)',
+                          width: '100%', padding: '6px var(--spacing-sm)',
+                          background: 'transparent', border: 'none', borderRadius: 'var(--radius-sm)',
+                          color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)',
+                          fontFamily: 'var(--font-family)', cursor: 'pointer', textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <FileSpreadsheet size={13} style={{ color: 'var(--color-text-tertiary)' }} />
+                        {fmt.toUpperCase()}
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
               </>
             }
           >

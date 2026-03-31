@@ -161,6 +161,29 @@ export function exportToJson<T extends Record<string, unknown>>(
   URL.revokeObjectURL(url);
 }
 
+// ─── XLSX Export utility ─────────────────────────────────────────
+
+export function exportToXlsx<T extends Record<string, unknown>>(
+  data: T[],
+  columns: { key: string; label: string }[],
+  filename: string,
+) {
+  import('xlsx').then((XLSX) => {
+    const mapped = data.map((row) => {
+      const obj: Record<string, unknown> = {};
+      for (const col of columns) {
+        obj[col.label] = row[col.key] ?? '';
+      }
+      return obj;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(mapped);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, `${filename}.xlsx`);
+  });
+}
+
 // ─── CsvImportModal component ───────────────────────────────────────
 
 export function CsvImportModal({ open, onClose, entityType, fields }: CsvImportModalProps) {
