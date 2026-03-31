@@ -2,8 +2,12 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Atlas — One-line installer
 #
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/gorkem-bwl/Atlas/main/install.sh | bash
+# Interactive usage (recommended):
+#   bash <(curl -fsSL https://raw.githubusercontent.com/gorkem-bwl/Atlas/main/install.sh)
+#
+# Unattended usage (set env vars):
+#   ATLAS_DOMAIN=atlas.example.com ATLAS_EMAIL=admin@example.com \
+#     bash <(curl -fsSL https://raw.githubusercontent.com/gorkem-bwl/Atlas/main/install.sh)
 #
 # Supports: Ubuntu 20.04+, Debian 11+, CentOS 8+, Amazon Linux 2
 # ──────────────────────────────────────────────────────────────────────────────
@@ -89,17 +93,48 @@ if [[ $EUID -eq 0 ]]; then
   warn "Running as root. This works but is not recommended for security."
 fi
 
-# Docker
+# Docker — auto-install if missing
 if command_exists docker; then
-  DOCKER_VERSION=$(docker --version | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "unknown")
+  DOCKER_VERSION=$(docker --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
   success "Docker installed (${DOCKER_VERSION})"
 else
-  fail "Docker is not installed. Install it first: https://docs.docker.com/engine/install/"
+  info "Docker not found. Installing..."
+  if command_exists apt-get; then
+    # Ubuntu/Debian
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq ca-certificates curl gnupg
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    success "Docker installed via apt"
+  elif command_exists yum; then
+    # CentOS/RHEL/Amazon Linux
+    sudo yum install -y -q yum-utils
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    sudo yum install -y -q docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    success "Docker installed via yum"
+  else
+    fail "Cannot auto-install Docker on this system. Install manually: https://docs.docker.com/engine/install/"
+  fi
+  sudo systemctl start docker
+  sudo systemctl enable docker
+  # Add current user to docker group
+  if [[ $EUID -ne 0 ]]; then
+    sudo usermod -aG docker "$USER" 2>/dev/null || true
+  fi
 fi
 
 # Docker daemon running
 if docker info >/dev/null 2>&1; then
   success "Docker daemon is running"
+elif sudo docker info >/dev/null 2>&1; then
+  # Need sudo — user not in docker group yet
+  warn "Docker requires sudo. Run 'newgrp docker' after install or re-login."
+  alias docker='sudo docker'
+  success "Docker daemon is running (via sudo)"
 else
   fail "Docker daemon is not running. Start it with: sudo systemctl start docker"
 fi
@@ -109,9 +144,8 @@ if docker compose version >/dev/null 2>&1; then
   COMPOSE_VERSION=$(docker compose version --short 2>/dev/null || echo "unknown")
   success "Docker Compose installed (${COMPOSE_VERSION})"
 elif command_exists docker-compose; then
-  COMPOSE_VERSION=$(docker-compose --version | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "unknown")
+  COMPOSE_VERSION=$(docker-compose --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || echo "unknown")
   success "Docker Compose installed (${COMPOSE_VERSION})"
-  # Create alias function for the rest of the script
   docker() {
     if [[ "$1" == "compose" ]]; then
       shift
@@ -194,40 +228,91 @@ success "Data directory: ${INSTALL_DIR}/atlas-data"
 
 header "Configuration"
 
-# Domain
-echo ""
-echo -e "  ${BOLD}Domain name${NC}"
-echo -e "  ${DIM}Enter your domain (e.g., atlas.example.com) or press Enter for localhost.${NC}"
-echo -e "  ${DIM}If using a domain, make sure DNS points to this server first.${NC}"
-echo -ne "  ${ARROW} Domain [${DIM}localhost${NC}]: "
-read -r DOMAIN
-DOMAIN="${DOMAIN:-localhost}"
+# Detect if we have a TTY for interactive prompts
+HAS_TTY=false
+if [[ -t 0 ]]; then
+  HAS_TTY=true
+elif [[ -e /dev/tty ]]; then
+  # Piped stdin but terminal available — redirect reads from /dev/tty
+  exec 3</dev/tty 2>/dev/null && HAS_TTY=true || true
+fi
+
+# Read helper — works in both piped and TTY modes
+prompt_read() {
+  local var_name="$1"
+  if [[ "$HAS_TTY" == true ]] && [[ -t 0 ]]; then
+    read -r "$var_name"
+  elif [[ "$HAS_TTY" == true ]]; then
+    read -r "$var_name" <&3
+  else
+    # Non-interactive — use empty (caller provides default)
+    eval "$var_name=''"
+  fi
+}
+
+prompt_read_secret() {
+  local var_name="$1"
+  if [[ "$HAS_TTY" == true ]] && [[ -t 0 ]]; then
+    read -rs "$var_name"
+  elif [[ "$HAS_TTY" == true ]]; then
+    read -rs "$var_name" <&3
+  else
+    eval "$var_name=''"
+  fi
+  echo ""
+}
+
+# Domain — from env or interactive
+DOMAIN="${ATLAS_DOMAIN:-}"
+if [[ -z "$DOMAIN" ]]; then
+  if [[ "$HAS_TTY" == true ]]; then
+    echo ""
+    echo -e "  ${BOLD}Domain name${NC}"
+    echo -e "  ${DIM}Enter your domain (e.g., atlas.example.com) or press Enter for localhost.${NC}"
+    echo -e "  ${DIM}If using a domain, make sure DNS points to this server first.${NC}"
+    echo -ne "  ${ARROW} Domain [${DIM}localhost${NC}]: "
+    prompt_read DOMAIN
+  fi
+  DOMAIN="${DOMAIN:-localhost}"
+fi
 success "Domain: ${DOMAIN}"
 
-# Admin email
-echo ""
-echo -e "  ${BOLD}Admin email${NC}"
-echo -e "  ${DIM}Used for SSL certificates (Let's Encrypt) and as the initial admin account.${NC}"
-echo -ne "  ${ARROW} Email: "
-read -r ADMIN_EMAIL
-while [[ -z "$ADMIN_EMAIL" ]]; do
-  echo -ne "  ${CROSS} Email is required: "
-  read -r ADMIN_EMAIL
-done
+# Admin email — from env or interactive
+ADMIN_EMAIL="${ATLAS_EMAIL:-}"
+if [[ -z "$ADMIN_EMAIL" ]]; then
+  if [[ "$HAS_TTY" == true ]]; then
+    echo ""
+    echo -e "  ${BOLD}Admin email${NC}"
+    echo -e "  ${DIM}Used for SSL certificates and as the initial admin account.${NC}"
+    echo -ne "  ${ARROW} Email: "
+    prompt_read ADMIN_EMAIL
+    while [[ -z "$ADMIN_EMAIL" ]]; do
+      echo -ne "  ${CROSS} Email is required: "
+      prompt_read ADMIN_EMAIL
+    done
+  else
+    fail "Admin email is required. Set ATLAS_EMAIL env var for unattended install.
+  Example: ATLAS_EMAIL=admin@example.com bash <(curl -fsSL ...)"
+  fi
+fi
 success "Admin email: ${ADMIN_EMAIL}"
 
-# Database password
-echo ""
-echo -e "  ${BOLD}Database password${NC}"
-echo -e "  ${DIM}Press Enter to auto-generate a secure password.${NC}"
-echo -ne "  ${ARROW} Password [${DIM}auto-generate${NC}]: "
-read -rs DB_PASSWORD
-echo ""
+# Database password — from env or auto-generate
+DB_PASSWORD="${ATLAS_DB_PASSWORD:-}"
 if [[ -z "$DB_PASSWORD" ]]; then
-  DB_PASSWORD=$(openssl rand -base64 24 2>/dev/null | tr -d '=/+' | head -c 24)
-  success "Database password: auto-generated"
-else
-  success "Database password: (user-provided)"
+  if [[ "$HAS_TTY" == true ]]; then
+    echo ""
+    echo -e "  ${BOLD}Database password${NC}"
+    echo -e "  ${DIM}Press Enter to auto-generate a secure password.${NC}"
+    echo -ne "  ${ARROW} Password [${DIM}auto-generate${NC}]: "
+    prompt_read_secret DB_PASSWORD
+  fi
+  if [[ -z "$DB_PASSWORD" ]]; then
+    DB_PASSWORD=$(openssl rand -base64 24 2>/dev/null | tr -d '=/+' | head -c 24)
+    success "Database password: auto-generated"
+  else
+    success "Database password: (user-provided)"
+  fi
 fi
 
 # Generate secrets
