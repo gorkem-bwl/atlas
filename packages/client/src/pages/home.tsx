@@ -1047,7 +1047,7 @@ export function HomePage() {
         </div>
 
         {/* Dock pet */}
-        <DockPet pet="cat" bottomOffset={105} />
+        <DockPet pet="cat" bottomOffset={82} />
 
         {/* Bottom dock bar */}
         <nav
