@@ -7,18 +7,8 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import type { Account } from '@atlasmail/shared';
 
-const BG_IMAGES = [
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=1920&q=80&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80&auto=format&fit=crop',
-];
-
-function getDailyImageIndex(): number {
-  return Math.floor(Date.now() / 86400000) % BG_IMAGES.length;
-}
+// Mountain range — same wallpaper as setup page
+const BG_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop';
 
 // Glass-morphism overrides for shared components on photo backgrounds
 const glassInputStyle = {
@@ -76,7 +66,7 @@ export function LoginPage() {
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-family)', overflow: 'hidden' }}>
       {/* Background */}
-      <div style={{ position: 'absolute', inset: '-20px', backgroundImage: `url(${BG_IMAGES[getDailyImageIndex()]})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55)', animation: 'loginKenBurns 30s ease-in-out infinite alternate' }} />
+      <div style={{ position: 'absolute', inset: '-20px', backgroundImage: `url(${BG_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.5)', animation: 'loginKenBurns 30s ease-in-out infinite alternate' }} />
 
       {/* Glass card */}
       <div className="glass-card" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 400, padding: 32, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>

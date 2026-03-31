@@ -83,10 +83,6 @@ function StepIcon({ icon: Icon, color }: { icon: typeof Globe; color: string }) 
 
 // ─── Main component ──────────────────────────────────────────────────
 
-export function SetupPreviewPage() {
-  return <SetupPage preview />;
-}
-
 export function SetupPage({ preview = false }: { preview?: boolean }) {
   const navigate = useNavigate();
   const { t } = useTranslation();

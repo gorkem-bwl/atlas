@@ -42,6 +42,20 @@ docker compose -f docker-compose.production.yml up -d --build
 # 3. Open http://localhost:3001
 ```
 
+## HTTPS with Caddy (optional)
+
+```bash
+# 1. Set your domain in .env
+echo 'ATLAS_DOMAIN=atlas.yourdomain.com' >> .env
+
+# 2. Point your domain's DNS A record to your server's IP
+
+# 3. Start with HTTPS
+docker compose -f docker-compose.production.yml -f docker-compose.https.yml up -d --build
+```
+
+Caddy automatically obtains and renews Let's Encrypt SSL certificates. Ports 80 and 443 must be open.
+
 ## Development setup
 
 ```bash

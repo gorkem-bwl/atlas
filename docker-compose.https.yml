@@ -1,0 +1,28 @@
+# Atlas — HTTPS with Caddy (automatic Let's Encrypt)
+#
+# Usage:
+#   1. Set ATLAS_DOMAIN in .env (e.g., atlas.yourdomain.com)
+#   2. Point your domain's DNS A record to this server's IP
+#   3. Run: docker compose -f docker-compose.production.yml -f docker-compose.https.yml up -d
+#
+# Caddy automatically obtains and renews SSL certificates from Let's Encrypt.
+# Port 80 and 443 must be open on your server.
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: atlas-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - atlas-caddy-data:/data
+      - atlas-caddy-config:/config
+    command: caddy reverse-proxy --from ${ATLAS_DOMAIN:-localhost} --to atlas:3001
+    depends_on:
+      - atlas
+
+volumes:
+  atlas-caddy-data:
+  atlas-caddy-config:
