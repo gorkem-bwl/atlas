@@ -12,11 +12,21 @@ import { env } from './config/env';
 export function createApp() {
   const app = express();
 
+  // In production, serve static client files FIRST (no CORS/auth needed)
+  if (env.NODE_ENV === 'production') {
+    const clientDist = path.join(__dirname, '../../client/dist');
+    app.use(express.static(clientDist));
+  }
+
   app.use(helmet({
     frameguard: { action: 'sameorigin' },
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
-    hsts: env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    hsts: env.NODE_ENV === 'production' && env.CLIENT_PUBLIC_URL.startsWith('https')
+      ? { maxAge: 31536000, includeSubDomains: true }
+      : false,
   }));
 
   const allowedOrigins = env.CORS_ORIGINS.split(',').map(o => o.trim());
@@ -57,9 +67,9 @@ export function createApp() {
   app.use('/api/v1', routes);
   app.use(errorHandler);
 
+  // SPA fallback — serve index.html for client-side routes
   if (env.NODE_ENV === 'production') {
     const clientDist = path.join(__dirname, '../../client/dist');
-    app.use(express.static(clientDist));
     app.get('/{*splat}', (_req, res) => {
       res.sendFile(path.join(clientDist, 'index.html'));
     });
