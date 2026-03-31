@@ -87,7 +87,7 @@ export function WidgetGrid() {
               style={{
                 width: WIDGET_W,
                 height: WIDGET_H,
-                background: 'rgba(255,255,255,0.08)',
+                background: 'rgba(0,0,0,0.35)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.12)',
@@ -118,7 +118,7 @@ export function WidgetGrid() {
               style={{
                 width: WIDGET_W,
                 height: WIDGET_H,
-                background: 'rgba(255,255,255,0.08)',
+                background: 'rgba(0,0,0,0.35)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.12)',

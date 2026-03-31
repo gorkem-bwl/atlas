@@ -60,7 +60,7 @@ export function TeamWidget(_props: AppWidgetProps) {
 
       {/* On leave indicator */}
       {onLeaveToday > 0 && (
-        <div style={{ fontSize: 12, color: '#f59e0b', marginTop: 2 }}>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
           {onLeaveToday} {t('hr.widgetOnLeave', 'on leave today')}
         </div>
       )}

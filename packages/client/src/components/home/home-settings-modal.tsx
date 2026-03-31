@@ -14,12 +14,12 @@ type BgType = 'unsplash' | 'solid' | 'gradient' | 'custom';
 // Wallpaper photos (same as home.tsx BG_IMAGES — thumbnail versions)
 const WALLPAPER_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=120&h=80&q=60&fit=crop', label: 'Forest path' },
-  { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=120&h=80&q=60&fit=crop', label: 'Mountain lake' },
+  { url: 'https://images.unsplash.com/photo-1536152470836-b943b246a80c?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1536152470836-b943b246a80c?w=120&h=80&q=60&fit=crop', label: 'Dark ocean' },
   { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=120&h=80&q=60&fit=crop', label: 'Tropical forest' },
   { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=120&h=80&q=60&fit=crop', label: 'Mountain range' },
   { url: 'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=120&h=80&q=60&fit=crop', label: 'Dark forest' },
   { url: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=120&h=80&q=60&fit=crop', label: 'Autumn forest' },
-  { url: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=120&h=80&q=60&fit=crop', label: 'Lavender field' },
+  { url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=120&h=80&q=60&fit=crop', label: 'Night sky' },
   { url: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=120&h=80&q=60&fit=crop', label: 'Northern lights' },
   { url: 'https://images.unsplash.com/photo-1475274047050-1d0c55b0b264?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1475274047050-1d0c55b0b264?w=120&h=80&q=60&fit=crop', label: 'Night mountains' },
 ];

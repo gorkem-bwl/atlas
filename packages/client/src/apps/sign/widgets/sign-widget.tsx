@@ -50,7 +50,7 @@ export function SignWidget(_props: AppWidgetProps) {
       </div>
 
       {/* Big number */}
-      <div style={{ fontSize: 32, fontWeight: 'var(--font-weight-bold)', color: pending > 0 ? '#f59e0b' : 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
+      <div style={{ fontSize: 32, fontWeight: 'var(--font-weight-bold)', color: 'rgba(255,255,255,0.95)', lineHeight: 1 }}>
         {pending}
       </div>
 

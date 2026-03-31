@@ -71,7 +71,7 @@ export function PipelineWidget(_props: AppWidgetProps) {
         <span style={{ color: '#10b981' }}>
           {wonThisMonth} {t('crm.widgetWon', 'won')}
         </span>
-        <span style={{ color: lostThisMonth > 0 ? '#ef4444' : 'rgba(255,255,255,0.4)' }}>
+        <span style={{ color: lostThisMonth > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}>
           {lostThisMonth} {t('crm.widgetLost', 'lost')}
         </span>
       </div>

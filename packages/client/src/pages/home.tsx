@@ -26,8 +26,8 @@ import '../styles/home.css';
 const BG_IMAGES = [
   // Forest path with sunlight filtering through trees
   'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80&auto=format&fit=crop',
-  // Misty mountain lake at dawn
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80&auto=format&fit=crop',
+  // Dark ocean
+  'https://images.unsplash.com/photo-1536152470836-b943b246a80c?w=1920&q=80&auto=format&fit=crop',
   // Serene wooden bridge in tropical forest
   'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&auto=format&fit=crop',
   // Mountain range with golden hour light
@@ -36,8 +36,8 @@ const BG_IMAGES = [
   'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=1920&q=80&auto=format&fit=crop',
   // Autumn forest with golden foliage
   'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80&auto=format&fit=crop',
-  // Lavender field at sunset
-  'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=1920&q=80&auto=format&fit=crop',
+  // Night sky
+  'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920&q=80&auto=format&fit=crop',
   // Northern lights over snowy landscape
   'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=1920&q=80&auto=format&fit=crop',
   // Night mountains
@@ -1067,7 +1067,7 @@ export function HomePage() {
             border: '1px solid rgba(255,255,255,0.25)',
             borderBottom: '1px solid rgba(255,255,255,0.10)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
-            gap: 3,
+            gap: 6,
           }}
         >
           {dockApps.map((app) => {
