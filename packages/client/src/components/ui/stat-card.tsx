@@ -20,7 +20,7 @@ export function StatCard({ label, value, color, icon: Icon, subtitle }: StatCard
         position: 'relative',
         padding: '18px 20px',
         background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-secondary)',
+        border: '1px solid var(--color-border-primary)',
         borderRadius: 'var(--radius-lg)',
         flex: 1,
         minWidth: 180,
@@ -90,7 +90,7 @@ export function InfoCard({ title, rows, icon: Icon }: InfoCardProps) {
         position: 'relative',
         padding: '18px 20px',
         background: 'var(--color-bg-primary)',
-        border: '1px solid var(--color-border-secondary)',
+        border: '1px solid var(--color-border-primary)',
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
       }}
