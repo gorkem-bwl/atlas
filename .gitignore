@@ -12,6 +12,7 @@ dist/
 coverage/
 out/
 *.png
+!packages/client/public/pets/**/*.png
 .playwright-mcp/
 .claude/
 packages/server/data/
