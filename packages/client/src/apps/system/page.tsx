@@ -458,7 +458,9 @@ function OverviewView({ metrics }: { metrics: NonNullable<ReturnType<typeof useS
       </div>
 
       {/* Storage */}
-      <DiskBar used={metrics.disk.used} total={metrics.disk.total} usagePercent={metrics.disk.usagePercent} />
+      <div style={{ maxWidth: 480 }}>
+        <DiskBar used={metrics.disk.used} total={metrics.disk.total} usagePercent={metrics.disk.usagePercent} />
+      </div>
     </div>
   );
 }

@@ -1040,7 +1040,7 @@ export function HomePage() {
               >
                 {t('activity.title')}
               </h3>
-              <ActivityFeed compact limit={8} />
+              <ActivityFeed compact limit={2} />
             </div>
           )}
         </div>
