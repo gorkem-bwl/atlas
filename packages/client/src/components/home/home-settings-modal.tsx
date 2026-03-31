@@ -455,6 +455,19 @@ export function HomeWidgetsPanel() {
         </div>
       </SettingsSection>
 
+      {/* Flying birds toggle */}
+      <SettingsSection title={t('widgets.flyingBirds')} description={t('widgets.flyingBirdsDesc')}>
+        <SettingsToggle
+          checked={settings?.homeFlyingBirds !== false}
+          onChange={(v) => {
+            api.put('/settings', { homeFlyingBirds: v }).then(() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
+            });
+          }}
+          label={t('widgets.flyingBirds')}
+        />
+      </SettingsSection>
+
       {appWidgetsByApp.size > 0 && (
         <SettingsSection title={t('widgets.appWidgets')} description={t('widgets.appWidgetsDesc')}>
           {Array.from(appWidgetsByApp.entries()).map(([appId, widgets]) => (

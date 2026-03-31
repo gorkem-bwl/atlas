@@ -131,6 +131,7 @@ export const settingsSchema = z.object({
   // Home widget settings
   homeEnabledWidgets: z.array(z.string()).nullable().optional(),
   homeDockPet: z.string().max(20).optional(),
+  homeFlyingBirds: z.boolean().optional(),
   // App widget settings
   appWidgets: z.record(z.object({
     enabledIds: z.array(z.string()),

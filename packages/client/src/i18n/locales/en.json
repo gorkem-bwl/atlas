@@ -1645,6 +1645,8 @@
     "noWidgets": "No widgets enabled",
     "dockPet": "Dock pet",
     "dockPetDesc": "Choose an animated pixel pet to wander on your home screen",
+    "flyingBirds": "Flying birds",
+    "flyingBirdsDesc": "Show animated birds flying across the home screen background",
     "weather": {
       "unavailable": "Unavailable"
     }

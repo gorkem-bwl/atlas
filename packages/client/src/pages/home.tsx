@@ -883,10 +883,14 @@ export function HomePage() {
       />
 
       {/* Flying birds */}
-      <div className="bird-container bird-container-one"><div className="bird bird-one" /></div>
-      <div className="bird-container bird-container-two"><div className="bird bird-two" /></div>
-      <div className="bird-container bird-container-three"><div className="bird bird-three" /></div>
-      <div className="bird-container bird-container-four"><div className="bird bird-four" /></div>
+      {userSettings?.homeFlyingBirds !== false && (
+        <>
+          <div className="bird-container bird-container-one"><div className="bird bird-one" /></div>
+          <div className="bird-container bird-container-two"><div className="bird bird-two" /></div>
+          <div className="bird-container bird-container-three"><div className="bird bird-three" /></div>
+          <div className="bird-container bird-container-four"><div className="bird bird-four" /></div>
+        </>
+      )}
 
       {/* Main layout: centered content, dock at bottom */}
       <div
