@@ -1839,5 +1839,32 @@
       "noMatchingInvoices": "No matching invoices",
       "tryDifferentSearch": "Try a different search term"
     }
+  },
+  "setup": {
+    "welcomeTitle": "Welcome to Atlas",
+    "welcomeSubtitle": "Choose your language to get started",
+    "orgTitle": "Your organization",
+    "orgSubtitle": "What is your company called?",
+    "adminTitle": "Admin account",
+    "adminSubtitle": "Create your first admin account",
+    "prefsTitle": "Preferences",
+    "prefsSubtitle": "Configure your defaults",
+    "orgName": "Organization name",
+    "orgPlaceholder": "Acme Corp",
+    "adminName": "Full name",
+    "namePlaceholder": "John Doe",
+    "adminEmail": "Email",
+    "emailPlaceholder": "admin@company.com",
+    "adminPassword": "Password",
+    "passwordPlaceholder": "Minimum 8 characters",
+    "timezone": "Timezone",
+    "dateFormat": "Date format",
+    "currency": "Currency",
+    "back": "Back",
+    "continue": "Continue",
+    "complete": "Complete setup",
+    "settingUp": "Setting up...",
+    "successTitle": "Atlas is ready",
+    "successSubtitle": "Redirecting to your dashboard..."
   }
 }

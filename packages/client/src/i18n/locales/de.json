@@ -1839,5 +1839,32 @@
       "noMatchingInvoices": "Keine passenden Rechnungen",
       "tryDifferentSearch": "Versuchen Sie einen anderen Suchbegriff"
     }
+  },
+  "setup": {
+    "welcomeTitle": "Willkommen bei Atlas",
+    "welcomeSubtitle": "Wählen Sie Ihre Sprache",
+    "orgTitle": "Ihre Organisation",
+    "orgSubtitle": "Wie heißt Ihr Unternehmen?",
+    "adminTitle": "Admin-Konto",
+    "adminSubtitle": "Erstellen Sie Ihr erstes Admin-Konto",
+    "prefsTitle": "Einstellungen",
+    "prefsSubtitle": "Konfigurieren Sie Ihre Standardwerte",
+    "orgName": "Organisationsname",
+    "orgPlaceholder": "Acme GmbH",
+    "adminName": "Vollständiger Name",
+    "namePlaceholder": "Max Mustermann",
+    "adminEmail": "E-Mail",
+    "emailPlaceholder": "admin@firma.de",
+    "adminPassword": "Passwort",
+    "passwordPlaceholder": "Mindestens 8 Zeichen",
+    "timezone": "Zeitzone",
+    "dateFormat": "Datumsformat",
+    "currency": "Währung",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "complete": "Einrichtung abschließen",
+    "settingUp": "Wird eingerichtet...",
+    "successTitle": "Atlas ist bereit",
+    "successSubtitle": "Weiterleitung zum Dashboard..."
   }
 }

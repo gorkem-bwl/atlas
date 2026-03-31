@@ -1825,5 +1825,32 @@
       "timeH3Title": "Ore fatturabili",
       "timeH3Desc": "Segna le voci come fatturabili per la fatturazione"
     }
+  },
+  "setup": {
+    "welcomeTitle": "Benvenuto su Atlas",
+    "welcomeSubtitle": "Scegli la tua lingua per iniziare",
+    "orgTitle": "La tua organizzazione",
+    "orgSubtitle": "Come si chiama la tua azienda?",
+    "adminTitle": "Account amministratore",
+    "adminSubtitle": "Crea il tuo primo account amministratore",
+    "prefsTitle": "Preferenze",
+    "prefsSubtitle": "Configura le tue impostazioni predefinite",
+    "orgName": "Nome organizzazione",
+    "orgPlaceholder": "Acme Srl",
+    "adminName": "Nome completo",
+    "namePlaceholder": "Mario Rossi",
+    "adminEmail": "Email",
+    "emailPlaceholder": "admin@azienda.it",
+    "adminPassword": "Password",
+    "passwordPlaceholder": "Minimo 8 caratteri",
+    "timezone": "Fuso orario",
+    "dateFormat": "Formato data",
+    "currency": "Valuta",
+    "back": "Indietro",
+    "continue": "Continua",
+    "complete": "Completa configurazione",
+    "settingUp": "Configurazione in corso...",
+    "successTitle": "Atlas è pronto",
+    "successSubtitle": "Reindirizzamento alla dashboard..."
   }
 }

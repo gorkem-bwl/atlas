@@ -1839,5 +1839,32 @@
       "noMatchingInvoices": "Eslesen fatura bulunamadi",
       "tryDifferentSearch": "Farkli bir arama terimi deneyin"
     }
+  },
+  "setup": {
+    "welcomeTitle": "Atlas'a hoş geldiniz",
+    "welcomeSubtitle": "Başlamak için dilinizi seçin",
+    "orgTitle": "Organizasyonunuz",
+    "orgSubtitle": "Şirketinizin adı nedir?",
+    "adminTitle": "Yönetici hesabı",
+    "adminSubtitle": "İlk yönetici hesabınızı oluşturun",
+    "prefsTitle": "Tercihler",
+    "prefsSubtitle": "Varsayılan ayarlarınızı yapılandırın",
+    "orgName": "Organizasyon adı",
+    "orgPlaceholder": "Acme Corp",
+    "adminName": "Ad soyad",
+    "namePlaceholder": "Ahmet Yılmaz",
+    "adminEmail": "E-posta",
+    "emailPlaceholder": "admin@sirket.com",
+    "adminPassword": "Şifre",
+    "passwordPlaceholder": "En az 8 karakter",
+    "timezone": "Saat dilimi",
+    "dateFormat": "Tarih formatı",
+    "currency": "Para birimi",
+    "back": "Geri",
+    "continue": "Devam",
+    "complete": "Kurulumu tamamla",
+    "settingUp": "Kuruluyor...",
+    "successTitle": "Atlas hazır",
+    "successSubtitle": "Panoya yönlendiriliyorsunuz..."
   }
 }

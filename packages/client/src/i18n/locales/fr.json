@@ -1839,5 +1839,32 @@
       "noMatchingInvoices": "Aucune facture correspondante",
       "tryDifferentSearch": "Essayez un autre terme de recherche"
     }
+  },
+  "setup": {
+    "welcomeTitle": "Bienvenue sur Atlas",
+    "welcomeSubtitle": "Choisissez votre langue pour commencer",
+    "orgTitle": "Votre organisation",
+    "orgSubtitle": "Comment s'appelle votre entreprise ?",
+    "adminTitle": "Compte administrateur",
+    "adminSubtitle": "Créez votre premier compte administrateur",
+    "prefsTitle": "Préférences",
+    "prefsSubtitle": "Configurez vos valeurs par défaut",
+    "orgName": "Nom de l'organisation",
+    "orgPlaceholder": "Acme SA",
+    "adminName": "Nom complet",
+    "namePlaceholder": "Jean Dupont",
+    "adminEmail": "E-mail",
+    "emailPlaceholder": "admin@entreprise.fr",
+    "adminPassword": "Mot de passe",
+    "passwordPlaceholder": "8 caractères minimum",
+    "timezone": "Fuseau horaire",
+    "dateFormat": "Format de date",
+    "currency": "Devise",
+    "back": "Retour",
+    "continue": "Continuer",
+    "complete": "Terminer la configuration",
+    "settingUp": "Configuration en cours...",
+    "successTitle": "Atlas est prêt",
+    "successSubtitle": "Redirection vers votre tableau de bord..."
   }
 }
