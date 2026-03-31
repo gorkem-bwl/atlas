@@ -18,7 +18,7 @@ interface SelectProps {
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   width?: number | string;
   disabled?: boolean;
   style?: CSSProperties;
@@ -41,8 +41,8 @@ export function Select({
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
+  const height = size === 'sm' ? 28 : size === 'lg' ? 40 : 34;
   const isSm = size === 'sm';
-  const height = isSm ? 24 : 34;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -56,12 +56,12 @@ export function Select({
             justifyContent: 'space-between',
             gap: 'var(--spacing-xs)',
             height,
-            padding: isSm ? '0 6px' : '0 var(--spacing-sm)',
+            padding: '0 var(--spacing-sm)',
             background: 'var(--color-bg-tertiary)',
             border: '1px solid var(--color-border-primary)',
             borderRadius: 'var(--radius-md)',
             color: selected?.color ?? 'var(--color-text-primary)',
-            fontSize: isSm ? 'var(--font-size-xs)' : 'var(--font-size-md)',
+            fontSize: size === 'sm' ? 'var(--font-size-sm)' : size === 'lg' ? 'var(--font-size-lg)' : 'var(--font-size-md)',
             fontWeight: 'var(--font-weight-normal)' as CSSProperties['fontWeight'],
             fontFamily: 'var(--font-family)',
             cursor: disabled ? 'not-allowed' : 'pointer',
