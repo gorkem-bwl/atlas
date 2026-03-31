@@ -1,4 +1,4 @@
-import { useState, useCallback, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard, Mail, Send, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -404,13 +404,25 @@ function EmailSettingsView() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: serverSettings, isLoading } = useQuery({
     queryKey: queryKeys.system.emailSettings,
     queryFn: async () => {
       const { data } = await api.get('/system/email-settings');
       return data.data as EmailSettings;
     },
   });
+
+  // Local form state — only saved when user clicks Save
+  const [form, setForm] = useState<EmailSettings | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Sync form from server on first load
+  useEffect(() => {
+    if (serverSettings && !form) {
+      setForm({ ...serverSettings, smtpPass: '' }); // clear masked password
+    }
+  }, [serverSettings]);
 
   const updateMutation = useMutation({
     mutationFn: async (patch: Partial<EmailSettings>) => {
@@ -419,6 +431,9 @@ function EmailSettingsView() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.system.emailSettings, data);
+      setDirty(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     },
   });
 
@@ -440,9 +455,21 @@ function EmailSettingsView() {
     }
   }, [testEmail]);
 
-  const update = (patch: Partial<EmailSettings>) => updateMutation.mutate(patch);
+  const setField = <K extends keyof EmailSettings>(key: K, value: EmailSettings[K]) => {
+    setForm((prev) => prev ? { ...prev, [key]: value } : prev);
+    setDirty(true);
+    setSaved(false);
+  };
 
-  if (isLoading) {
+  const handleSave = () => {
+    if (!form) return;
+    const patch: Partial<EmailSettings> = { ...form };
+    // Don't send empty password (keep existing)
+    if (!patch.smtpPass) delete patch.smtpPass;
+    updateMutation.mutate(patch);
+  };
+
+  if (isLoading || !form) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
         <Skeleton style={{ height: 32, width: 200 }} />
@@ -451,7 +478,7 @@ function EmailSettingsView() {
     );
   }
 
-  if (!settings) {
+  if (!serverSettings) {
     return (
       <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', marginTop: 60, fontFamily: 'var(--font-family)' }}>
         {t('system.email.adminOnly')}
@@ -471,23 +498,35 @@ function EmailSettingsView() {
         }}>
           {t('system.email.title')}
         </h2>
-        <Badge variant={settings.smtpEnabled ? 'success' : 'default'}>
-          {settings.smtpEnabled ? t('system.email.enabled') : t('system.email.disabled')}
-        </Badge>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <Badge variant={form.smtpEnabled ? 'success' : 'default'}>
+            {form.smtpEnabled ? t('system.email.enabled') : t('system.email.disabled')}
+          </Badge>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={saved ? <CheckCircle2 size={13} /> : undefined}
+            onClick={handleSave}
+            disabled={!dirty || updateMutation.isPending}
+            style={saved ? { background: 'var(--color-success)' } : undefined}
+          >
+            {saved ? t('system.email.saved') : updateMutation.isPending ? t('system.email.saving') : t('system.email.save')}
+          </Button>
+        </div>
       </div>
 
       <SettingsSection title={t('system.email.smtpConfig')}>
         <SettingsRow label={t('system.email.enable')} description={t('system.email.enableDesc')}>
           <SettingsToggle
-            checked={settings.smtpEnabled}
-            onChange={(v) => update({ smtpEnabled: v })}
+            checked={form.smtpEnabled}
+            onChange={(v) => setField('smtpEnabled', v)}
             label={t('system.email.enable')}
           />
         </SettingsRow>
         <SettingsRow label={t('system.email.host')} description={t('system.email.hostDesc')}>
           <Input
-            value={settings.smtpHost || ''}
-            onChange={(e) => update({ smtpHost: e.target.value })}
+            value={form.smtpHost || ''}
+            onChange={(e) => setField('smtpHost', e.target.value)}
             placeholder="smtp.gmail.com"
             size="sm"
             style={{ width: 220 }}
@@ -495,8 +534,8 @@ function EmailSettingsView() {
         </SettingsRow>
         <SettingsRow label={t('system.email.port')} description={t('system.email.portDesc')}>
           <Select
-            value={String(settings.smtpPort)}
-            onChange={(v) => update({ smtpPort: Number(v) })}
+            value={String(form.smtpPort)}
+            onChange={(v) => setField('smtpPort', Number(v) as any)}
             options={[
               { value: '25', label: '25 (SMTP)' },
               { value: '465', label: '465 (SSL)' },
@@ -509,8 +548,8 @@ function EmailSettingsView() {
         </SettingsRow>
         <SettingsRow label={t('system.email.secure')} description={t('system.email.secureDesc')}>
           <SettingsToggle
-            checked={settings.smtpSecure}
-            onChange={(v) => update({ smtpSecure: v })}
+            checked={form.smtpSecure}
+            onChange={(v) => setField('smtpSecure', v)}
             label="SSL/TLS"
           />
         </SettingsRow>
@@ -519,8 +558,8 @@ function EmailSettingsView() {
       <SettingsSection title={t('system.email.authentication')}>
         <SettingsRow label={t('system.email.username')} description={t('system.email.usernameDesc')}>
           <Input
-            value={settings.smtpUser || ''}
-            onChange={(e) => update({ smtpUser: e.target.value })}
+            value={form.smtpUser || ''}
+            onChange={(e) => setField('smtpUser', e.target.value)}
             placeholder="user@example.com"
             size="sm"
             style={{ width: 220 }}
@@ -529,17 +568,17 @@ function EmailSettingsView() {
         <SettingsRow label={t('system.email.password')} description={t('system.email.passwordDesc')}>
           <Input
             type="password"
-            value={settings.smtpPass || ''}
-            onChange={(e) => update({ smtpPass: e.target.value })}
-            placeholder="••••••••"
+            value={form.smtpPass || ''}
+            onChange={(e) => setField('smtpPass', e.target.value)}
+            placeholder={serverSettings.smtpPass ? '••••••••' : ''}
             size="sm"
             style={{ width: 220 }}
           />
         </SettingsRow>
         <SettingsRow label={t('system.email.fromAddress')} description={t('system.email.fromAddressDesc')}>
           <Input
-            value={settings.smtpFrom}
-            onChange={(e) => update({ smtpFrom: e.target.value })}
+            value={form.smtpFrom}
+            onChange={(e) => setField('smtpFrom', e.target.value)}
             placeholder="Atlas <noreply@atlas.local>"
             size="sm"
             style={{ width: 260 }}
@@ -559,16 +598,26 @@ function EmailSettingsView() {
               onKeyDown={(e) => e.key === 'Enter' && handleTest()}
             />
             <Button
-              variant="primary"
+              variant="secondary"
               size="sm"
               icon={<Send size={13} />}
               onClick={handleTest}
-              disabled={testLoading || !testEmail.trim()}
+              disabled={testLoading || !testEmail.trim() || dirty}
             >
               {testLoading ? t('system.email.sending') : t('system.email.send')}
             </Button>
           </div>
         </SettingsRow>
+        {dirty && (
+          <div style={{
+            fontSize: 'var(--font-size-xs)',
+            color: 'var(--color-text-tertiary)',
+            fontFamily: 'var(--font-family)',
+            padding: '0 var(--spacing-md)',
+          }}>
+            {t('system.email.saveBeforeTest')}
+          </div>
+        )}
         {testResult && (
           <div style={{
             display: 'flex',

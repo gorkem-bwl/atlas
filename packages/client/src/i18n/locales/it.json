@@ -1592,7 +1592,11 @@
       "sendTestDesc": "Verifica le impostazioni SMTP inviando un'email di test",
       "sending": "Invio in corso...",
       "send": "Invia",
-      "testSuccess": "Email di test inviata con successo"
+      "testSuccess": "Email di test inviata con successo",
+      "save": "Salva",
+      "saved": "Salvato",
+      "saving": "Salvataggio...",
+      "saveBeforeTest": "Salva le impostazioni prima di inviare un'email di test."
     }
   },
   "widgets": {

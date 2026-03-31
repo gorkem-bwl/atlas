@@ -1592,7 +1592,11 @@
       "sendTestDesc": "SMTP-Einstellungen durch Senden einer Test-E-Mail überprüfen",
       "sending": "Wird gesendet...",
       "send": "Senden",
-      "testSuccess": "Test-E-Mail erfolgreich gesendet"
+      "testSuccess": "Test-E-Mail erfolgreich gesendet",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "saving": "Wird gespeichert...",
+      "saveBeforeTest": "Speichern Sie Ihre Einstellungen, bevor Sie eine Test-E-Mail senden."
     }
   },
   "widgets": {

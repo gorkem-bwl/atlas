@@ -1619,7 +1619,11 @@
       "sendTestDesc": "Verify your SMTP settings by sending a test email",
       "sending": "Sending...",
       "send": "Send",
-      "testSuccess": "Test email sent successfully"
+      "testSuccess": "Test email sent successfully",
+      "save": "Save",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "saveBeforeTest": "Save your settings before sending a test email."
     }
   },
   "widgets": {

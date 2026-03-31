@@ -1592,7 +1592,11 @@
       "sendTestDesc": "SMTP ayarlarınızı test e-postası göndererek doğrulayın",
       "sending": "Gönderiliyor...",
       "send": "Gönder",
-      "testSuccess": "Test e-postası başarıyla gönderildi"
+      "testSuccess": "Test e-postası başarıyla gönderildi",
+      "save": "Kaydet",
+      "saved": "Kaydedildi",
+      "saving": "Kaydediliyor...",
+      "saveBeforeTest": "Test e-postası göndermeden önce ayarları kaydedin."
     }
   },
   "widgets": {
