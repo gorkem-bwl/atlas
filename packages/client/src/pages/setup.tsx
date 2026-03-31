@@ -20,11 +20,11 @@ const glassInputStyle = {
 };
 
 const LANGUAGES = [
-  { value: 'en', label: 'English' },
-  { value: 'tr', label: 'Türkçe' },
-  { value: 'de', label: 'Deutsch' },
-  { value: 'fr', label: 'Français' },
-  { value: 'it', label: 'Italiano' },
+  { value: 'en', label: 'English', flag: '🇬🇧' },
+  { value: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+  { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { value: 'fr', label: 'Français', flag: '🇫🇷' },
+  { value: 'it', label: 'Italiano', flag: '🇮🇹' },
 ];
 
 const DATE_FORMATS = [
@@ -255,8 +255,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
             {/* Step indicator */}
             <StepIndicator current={step} total={4} />
 
-            {/* Step icon + title */}
-            <StepIcon icon={currentStep.icon} color={currentStep.color} />
+            {/* Title */}
             <h1 style={{ color: '#fff', fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'], textAlign: 'center', margin: '0 0 6px' }}>
               {currentStep.title}
             </h1>
@@ -289,13 +288,11 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
                         fontFamily: 'var(--font-family)',
                       }}
                     >
-                      <div style={{
-                        width: 20, height: 20, borderRadius: '50%',
-                        border: language === lang.value ? '6px solid rgba(255,255,255,0.8)' : '2px solid rgba(255,255,255,0.3)',
-                        boxSizing: 'border-box',
-                        transition: 'border 0.15s',
-                      }} />
-                      <span style={{ color: '#fff', fontSize: 'var(--font-size-md)' }}>{lang.label}</span>
+                      <span style={{ fontSize: 20, lineHeight: 1 }}>{lang.flag}</span>
+                      <span style={{ color: '#fff', fontSize: 'var(--font-size-md)', flex: 1 }}>{lang.label}</span>
+                      {language === lang.value && (
+                        <CheckCircle2 size={16} color="rgba(255,255,255,0.8)" />
+                      )}
                     </button>
                   ))}
                 </div>
