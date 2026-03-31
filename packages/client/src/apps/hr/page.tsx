@@ -48,6 +48,7 @@ import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import { StatusDot } from '../../components/ui/status-dot';
 import { ContentArea } from '../../components/ui/content-area';
 import { useUIStore } from '../../stores/ui-store';
+import { useHrSettingsStore } from './settings-store';
 import { formatDate } from '../../lib/format';
 import '../../styles/hr.css';
 
@@ -1498,6 +1499,7 @@ function EmployeesListView({
   onAdd: () => void;
 }) {
   const { t } = useTranslation();
+  const showDept = useHrSettingsStore((s) => s.showDepartmentInList);
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return employees;
     const q = searchQuery.toLowerCase();
@@ -1549,7 +1551,7 @@ function EmployeesListView({
         <span style={{ width: 220, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.name')} icon={<User size={12} />} /></span>
         <span style={{ width: 180, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.email')} icon={<Mail size={12} />} /></span>
         <span style={{ width: 140, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.role')} icon={<Briefcase size={12} />} /></span>
-        <span style={{ width: 120, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.department')} icon={<Building2 size={12} />} /></span>
+        {showDept && <span style={{ width: 120, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.department')} icon={<Building2 size={12} />} /></span>}
         <span style={{ width: 80, flexShrink: 0 }}><ColumnHeader label={t('hr.columns.status')} icon={<Tag size={12} />} /></span>
         <span style={{ flex: 1 }}><ColumnHeader label={t('hr.columns.started')} icon={<CalendarDays size={12} />} /></span>
       </div>
@@ -1570,16 +1572,18 @@ function EmployeesListView({
             <span style={{ width: 140, flexShrink: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {emp.role}
             </span>
-            <span style={{ width: 120, flexShrink: 0 }}>
-              {dept ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)', color: 'var(--color-text-secondary)' }}>
-                  <StatusDot color={dept.color} size={8} />
-                  {dept.name}
-                </span>
-              ) : (
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>-</span>
-              )}
-            </span>
+            {showDept && (
+              <span style={{ width: 120, flexShrink: 0 }}>
+                {dept ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)', color: 'var(--color-text-secondary)' }}>
+                    <StatusDot color={dept.color} size={8} />
+                    {dept.name}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>-</span>
+                )}
+              </span>
+            )}
             <span style={{ width: 80, flexShrink: 0 }}>{getStatusBadge(emp.status, t)}</span>
             <span style={{ flex: 1, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
               {formatDate(emp.startDate)}
@@ -2452,9 +2456,10 @@ export function HrPage() {
   const isDesktop = !!('atlasDesktop' in window);
   const { openSettings } = useUIStore();
 
-  // Navigation state (URL-driven)
+  // Navigation state (URL-driven, falls back to user's preferred default view)
+  const hrDefaultView = useHrSettingsStore((s) => s.defaultView);
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeNav = (searchParams.get('view') || 'dashboard') as NavSection;
+  const activeNav = (searchParams.get('view') || hrDefaultView) as NavSection;
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const setActiveNav = useCallback((nav: NavSection) => {
     setSearchParams({ view: nav });

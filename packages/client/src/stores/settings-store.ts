@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import i18n from '../i18n';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
@@ -8,57 +8,15 @@ import type { ThemeMode, Density, ColorThemeId } from '@atlasmail/shared';
 
 export type FontFamilyId = 'inter' | 'geist' | 'system' | 'roboto' | 'open-sans' | 'lato';
 
-export type AIProvider =
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'openrouter'
-  | 'groq'
-  | 'mistral'
-  | 'deepseek'
-  | 'xai'
-  | 'perplexity'
-  | 'fireworks'
-  | 'together'
-  | 'cohere'
-  | 'custom';
-
-interface CustomAIProvider {
-  name: string;
-  baseUrl: string;
-  apiKey: string;
-}
-
 interface SettingsState {
   theme: ThemeMode;
   density: Density;
   language: string;
   fontFamily: FontFamilyId;
   customShortcuts: Record<string, string>;
-  readingPane: 'right' | 'bottom' | 'hidden';
-  autoAdvance: 'next' | 'previous' | 'list';
-  desktopNotifications: boolean;
-  soundNotifications: boolean;
-  showBadgeCount: boolean;
-  notificationLevel: 'all' | 'smart' | 'priority' | 'none';
-  composeMode: 'plain' | 'rich';
-  signature: string;
-  signatureHtml: string;
-  includeSignatureInReplies: boolean;
-  undoSendDelay: 5 | 10 | 20 | 30;
   sendAnimation: boolean;
   themeTransition: boolean;
   colorTheme: ColorThemeId;
-  trackingEnabled: boolean;
-  // AI settings
-  aiEnabled: boolean;
-  aiProvider: AIProvider;
-  aiApiKeys: Partial<Record<AIProvider, string>>;
-  aiCustomProvider: CustomAIProvider;
-  aiWritingAssistant: boolean;
-  aiQuickReplies: boolean;
-  aiThreadSummary: boolean;
-  aiTranslation: boolean;
   // Format settings
   dateFormat: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
   timezone: string;
@@ -78,30 +36,9 @@ interface SettingsState {
   setDensity: (density: Density) => void;
   setFontFamily: (fontFamily: FontFamilyId) => void;
   setCustomShortcut: (id: string, keys: string) => void;
-  setReadingPane: (pane: 'right' | 'bottom' | 'hidden') => void;
-  setAutoAdvance: (advance: 'next' | 'previous' | 'list') => void;
-  setDesktopNotifications: (value: boolean) => void;
-  setSoundNotifications: (value: boolean) => void;
-  setShowBadgeCount: (value: boolean) => void;
-  setNotificationLevel: (level: 'all' | 'smart' | 'priority' | 'none') => void;
-  setComposeMode: (mode: 'plain' | 'rich') => void;
-  setSignature: (signature: string) => void;
-  setSignatureHtml: (signatureHtml: string) => void;
-  setIncludeSignatureInReplies: (value: boolean) => void;
-  setUndoSendDelay: (delay: 5 | 10 | 20 | 30) => void;
   setSendAnimation: (value: boolean) => void;
   setThemeTransition: (value: boolean) => void;
-  setTrackingEnabled: (value: boolean) => void;
   setLanguage: (language: string) => void;
-  // AI setters
-  setAIEnabled: (value: boolean) => void;
-  setAIProvider: (provider: AIProvider) => void;
-  setAIApiKey: (provider: AIProvider, key: string) => void;
-  setAICustomProvider: (custom: Partial<CustomAIProvider>) => void;
-  setAIWritingAssistant: (value: boolean) => void;
-  setAIQuickReplies: (value: boolean) => void;
-  setAIThreadSummary: (value: boolean) => void;
-  setAITranslation: (value: boolean) => void;
   _hydrateFromServer: (data: Record<string, unknown>) => void;
 }
 
@@ -112,29 +49,9 @@ const TO_SERVER: Record<string, string> = {
   language: 'language',
   fontFamily: 'fontFamily',
   customShortcuts: 'customShortcuts',
-  readingPane: 'readingPane',
-  autoAdvance: 'autoAdvance',
-  desktopNotifications: 'desktopNotifications',
-  soundNotifications: 'notificationSound',
-  showBadgeCount: 'showBadgeCount',
-  notificationLevel: 'notificationLevel',
-  composeMode: 'composeMode',
-  signature: 'signature',
-  signatureHtml: 'signatureHtml',
-  includeSignatureInReplies: 'includeSignatureInReplies',
-  undoSendDelay: 'undoSendDelay',
   sendAnimation: 'sendAnimation',
   themeTransition: 'themeTransition',
   colorTheme: 'colorTheme',
-  trackingEnabled: 'trackingEnabled',
-  aiEnabled: 'aiEnabled',
-  aiProvider: 'aiProvider',
-  aiApiKeys: 'aiApiKeys',
-  aiCustomProvider: 'aiCustomProvider',
-  aiWritingAssistant: 'aiWritingAssistant',
-  aiQuickReplies: 'aiQuickReplies',
-  aiThreadSummary: 'aiThreadSummary',
-  aiTranslation: 'aiTranslation',
   dateFormat: 'dateFormat',
   timezone: 'timezone',
   currencySymbol: 'currencySymbol',
@@ -158,30 +75,9 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
   fontFamily: 'inter',
   language: i18n.language?.split('-')[0] || 'en',
   customShortcuts: {},
-  readingPane: 'right',
-  autoAdvance: 'next',
-  desktopNotifications: true,
-  soundNotifications: false,
-  showBadgeCount: true,
-  notificationLevel: 'smart',
-  composeMode: 'rich',
-  signature: '',
-  signatureHtml: '',
-  includeSignatureInReplies: true,
-  undoSendDelay: 5,
   sendAnimation: true,
   themeTransition: true,
   colorTheme: 'default',
-  trackingEnabled: false,
-  // AI defaults
-  aiEnabled: false,
-  aiProvider: 'openai',
-  aiApiKeys: {},
-  aiCustomProvider: { name: '', baseUrl: '', apiKey: '' },
-  aiWritingAssistant: true,
-  aiQuickReplies: true,
-  aiThreadSummary: true,
-  aiTranslation: true,
   // Format defaults
   dateFormat: 'DD/MM/YYYY',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -200,44 +96,13 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
       persistToServer('customShortcuts', customShortcuts);
       return { customShortcuts };
     }),
-  setReadingPane: (readingPane) => { set({ readingPane }); persistToServer('readingPane', readingPane); },
-  setAutoAdvance: (autoAdvance) => { set({ autoAdvance }); persistToServer('autoAdvance', autoAdvance); },
-  setDesktopNotifications: (desktopNotifications) => { set({ desktopNotifications }); persistToServer('desktopNotifications', desktopNotifications); },
-  setSoundNotifications: (soundNotifications) => { set({ soundNotifications }); persistToServer('notificationSound', soundNotifications); },
-  setShowBadgeCount: (showBadgeCount) => { set({ showBadgeCount }); persistToServer('showBadgeCount', showBadgeCount); },
-  setNotificationLevel: (notificationLevel) => { set({ notificationLevel }); persistToServer('notificationLevel', notificationLevel); },
-  setComposeMode: (composeMode) => { set({ composeMode }); persistToServer('composeMode', composeMode); },
-  setSignature: (signature) => { set({ signature }); persistToServer('signature', signature); },
-  setSignatureHtml: (signatureHtml) => { set({ signatureHtml }); persistToServer('signatureHtml', signatureHtml); },
-  setIncludeSignatureInReplies: (includeSignatureInReplies) => { set({ includeSignatureInReplies }); persistToServer('includeSignatureInReplies', includeSignatureInReplies); },
-  setUndoSendDelay: (undoSendDelay) => { set({ undoSendDelay }); persistToServer('undoSendDelay', undoSendDelay); },
   setSendAnimation: (sendAnimation) => { set({ sendAnimation }); persistToServer('sendAnimation', sendAnimation); },
   setThemeTransition: (themeTransition) => { set({ themeTransition }); persistToServer('themeTransition', themeTransition); },
-  setTrackingEnabled: (trackingEnabled) => { set({ trackingEnabled }); persistToServer('trackingEnabled', trackingEnabled); },
   setLanguage: (language) => {
     i18n.changeLanguage(language);
     set({ language });
     persistToServer('language', language);
   },
-  // AI setters
-  setAIEnabled: (aiEnabled) => { set({ aiEnabled }); persistToServer('aiEnabled', aiEnabled); },
-  setAIProvider: (aiProvider) => { set({ aiProvider }); persistToServer('aiProvider', aiProvider); },
-  setAIApiKey: (provider, key) =>
-    set((s) => {
-      const aiApiKeys = { ...s.aiApiKeys, [provider]: key };
-      persistToServer('aiApiKeys', aiApiKeys);
-      return { aiApiKeys };
-    }),
-  setAICustomProvider: (partial) =>
-    set((s) => {
-      const aiCustomProvider = { ...s.aiCustomProvider, ...partial };
-      persistToServer('aiCustomProvider', aiCustomProvider);
-      return { aiCustomProvider };
-    }),
-  setAIWritingAssistant: (aiWritingAssistant) => { set({ aiWritingAssistant }); persistToServer('aiWritingAssistant', aiWritingAssistant); },
-  setAIQuickReplies: (aiQuickReplies) => { set({ aiQuickReplies }); persistToServer('aiQuickReplies', aiQuickReplies); },
-  setAIThreadSummary: (aiThreadSummary) => { set({ aiThreadSummary }); persistToServer('aiThreadSummary', aiThreadSummary); },
-  setAITranslation: (aiTranslation) => { set({ aiTranslation }); persistToServer('aiTranslation', aiTranslation); },
   // Format setters
   setDateFormat: (dateFormat) => { set({ dateFormat }); persistToServer('dateFormat', dateFormat); },
   setTimezone: (timezone) => { set({ timezone }); persistToServer('timezone', timezone); },
