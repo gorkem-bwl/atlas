@@ -1925,5 +1925,24 @@
     "savingPrefs": "Salvataggio preferenze...",
     "seedingApp": "Configurazione {{app}}...",
     "settingUpAtlas": "Configurazione di Atlas"
+  },
+  "permissions": {
+    "title": "Permessi di {{appName}}",
+    "description": "Gestisci chi può accedere a {{appName}} e cosa può fare.",
+    "permissions": "Permessi",
+    "roleAdmin": "Admin",
+    "roleEditor": "Editor",
+    "roleViewer": "Visualizzatore",
+    "roleDescAdmin": "Accesso completo a tutte le funzionalità e impostazioni",
+    "roleDescEditor": "Creare, modificare ed eliminare record",
+    "roleDescViewer": "Accesso in sola lettura a tutti i record",
+    "teamMembers": "Assegnazioni dei membri",
+    "user": "Utente",
+    "role": "Ruolo",
+    "recordAccess": "Accesso ai dati",
+    "allRecords": "Tutti i record",
+    "ownRecords": "Solo i propri record",
+    "reset": "Ripristina predefinito",
+    "noMembers": "Nessun membro trovato"
   }
 }

@@ -49,6 +49,7 @@ import { StatusDot } from '../../components/ui/status-dot';
 import { ContentArea } from '../../components/ui/content-area';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { useUIStore } from '../../stores/ui-store';
+import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { useHrSettingsStore } from './settings-store';
 import { StatCard } from '../../components/ui/stat-card';
 import { formatDate } from '../../lib/format';
@@ -526,6 +527,9 @@ function LeaveBalanceSection({ employeeId }: { employeeId: string }) {
 
 function OnboardingSection({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canCreate = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   const { data: tasks } = useOnboardingTasks(employeeId);
   const { data: templates } = useOnboardingTemplates();
   const createTask = useCreateOnboardingTask();
@@ -642,7 +646,7 @@ function OnboardingSection({ employeeId }: { employeeId: string }) {
                 {task.title}
               </span>
               {getCategoryBadge(task.category)}
-              <IconButton icon={<Trash2 size={12} />} label={t('common.delete')} size={20} destructive onClick={() => deleteTask.mutate(task.id)} />
+              {canDelete && <IconButton icon={<Trash2 size={12} />} label={t('common.delete')} size={20} destructive onClick={() => deleteTask.mutate(task.id)} />}
             </div>
           ))}
         </div>
@@ -655,6 +659,8 @@ function OnboardingSection({ employeeId }: { employeeId: string }) {
 
 function DocumentsSection({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   const { data: docs } = useEmployeeDocuments(employeeId);
   const uploadDoc = useUploadEmployeeDocument();
   const deleteDoc = useDeleteEmployeeDocument();
@@ -728,7 +734,7 @@ function DocumentsSection({ employeeId }: { employeeId: string }) {
                 {formatDate(doc.createdAt)}
               </span>
               <IconButton icon={<Download size={12} />} label={t('hr.documents.download')} size={20} onClick={() => handleDownload(doc)} />
-              <IconButton icon={<Trash2 size={12} />} label={t('common.delete')} size={20} destructive onClick={() => deleteDoc.mutate(doc.id)} />
+              {canDelete && <IconButton icon={<Trash2 size={12} />} label={t('common.delete')} size={20} destructive onClick={() => deleteDoc.mutate(doc.id)} />}
             </div>
           ))}
         </div>
@@ -753,6 +759,8 @@ function EmployeeDetailPanel({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   const [activeTab, setActiveTab] = useState<'details' | 'onboarding' | 'documents' | 'timeline'>('details');
   const [status, setStatus] = useState(employee.status);
   const [departmentId, setDepartmentId] = useState(employee.departmentId || '');
@@ -805,7 +813,7 @@ function EmployeeDetailPanel({
       }}>
         <span className="hr-section-title" style={{ margin: 0 }}>{t('hr.detail.title')}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconButton icon={<Trash2 size={14} />} label={t('hr.actions.deleteEmployee')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />
+          {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('hr.actions.deleteEmployee')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>
@@ -1603,6 +1611,8 @@ function DepartmentsView({
   onDelete: (id: string) => void;
 }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   if (departments.length === 0) {
     return (
       <div className="hr-empty-state">
@@ -1636,7 +1646,7 @@ function DepartmentsView({
                 </div>
                 <div style={{ display: 'flex', gap: 2 }}>
                   <IconButton icon={<Edit3 size={14} />} label={t('hr.actions.editDepartment')} size={28} onClick={() => onEdit(dept)} />
-                  <IconButton icon={<Trash2 size={14} />} label={t('hr.actions.deleteDepartment')} size={28} destructive onClick={() => onDelete(dept.id)} />
+                  {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('hr.actions.deleteDepartment')} size={28} destructive onClick={() => onDelete(dept.id)} />}
                 </div>
               </div>
 
@@ -1677,6 +1687,8 @@ function TimeOffView({
   onDelete: (id: string) => void;
 }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   if (timeOffRequests.length === 0) {
     return (
       <div className="hr-empty-state">
@@ -1730,7 +1742,7 @@ function TimeOffView({
                 <IconButton icon={<XCircle size={14} />} label={t('hr.actions.reject')} size={26} destructive onClick={() => onReject(req.id)} />
               </>
             ) : (
-              <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => onDelete(req.id)} />
+              canDelete ? <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => onDelete(req.id)} /> : null
             )}
           </div>
         </div>
@@ -1743,6 +1755,8 @@ function TimeOffView({
 
 function LeaveTypesView() {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   const { data: leaveTypes, isLoading } = useLeaveTypes(true);
   const createLeaveType = useCreateLeaveType();
   const updateLeaveType = useUpdateLeaveType();
@@ -1801,7 +1815,7 @@ function LeaveTypesView() {
               size={26}
               onClick={() => updateLeaveType.mutate({ id: lt.id, isActive: !lt.isActive })}
             />
-            <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteLeaveType.mutate(lt.id)} />
+            {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteLeaveType.mutate(lt.id)} />}
           </div>
         ))}
       </div>
@@ -1935,6 +1949,8 @@ function LeavePoliciesView() {
 
 function HolidaysView() {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
   const { data: calendars } = useHolidayCalendars();
   const createCalendar = useCreateHolidayCalendar();
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
@@ -2009,7 +2025,7 @@ function HolidaysView() {
                   {h.name}
                 </span>
                 <Badge variant={h.type === 'public' ? 'error' : h.type === 'company' ? 'primary' : 'warning'}>{h.type}</Badge>
-                <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteHoliday.mutate(h.id)} />
+                {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteHoliday.mutate(h.id)} />}
               </div>
             ))}
           </div>
@@ -2465,6 +2481,11 @@ export function HrPage() {
   const isDesktop = !!('atlasDesktop' in window);
   const { openSettings } = useUIStore();
 
+  // Permission gating
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canCreate = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
+  const canDelete = !hrPerm || hrPerm.role === 'admin';
+
   // Navigation state (URL-driven, falls back to user's preferred default view)
   const hrDefaultView = useHrSettingsStore((s) => s.defaultView);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -2586,7 +2607,7 @@ export function HrPage() {
   const handleDeleteTimeOff = (id: string) => { deleteTimeOff.mutate(id); };
   const handleDeleteDepartment = (id: string) => { deleteDepartment.mutate(id); };
 
-  const showAddButton = activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav.startsWith('dept:');
+  const showAddButton = canCreate && (activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav.startsWith('dept:'));
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>

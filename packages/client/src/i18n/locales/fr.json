@@ -1939,5 +1939,24 @@
     "savingPrefs": "Enregistrement des préférences...",
     "seedingApp": "Configuration de {{app}}...",
     "settingUpAtlas": "Configuration d'Atlas"
+  },
+  "permissions": {
+    "title": "Permissions de {{appName}}",
+    "description": "Gérez qui peut accéder à {{appName}} et ce qu'ils peuvent faire.",
+    "permissions": "Permissions",
+    "roleAdmin": "Admin",
+    "roleEditor": "Éditeur",
+    "roleViewer": "Lecteur",
+    "roleDescAdmin": "Accès complet à toutes les fonctionnalités et paramètres",
+    "roleDescEditor": "Créer, modifier et supprimer des enregistrements",
+    "roleDescViewer": "Accès en lecture seule à tous les enregistrements",
+    "teamMembers": "Attributions des membres",
+    "user": "Utilisateur",
+    "role": "Rôle",
+    "recordAccess": "Accès aux données",
+    "allRecords": "Tous les enregistrements",
+    "ownRecords": "Ses propres enregistrements",
+    "reset": "Réinitialiser",
+    "noMembers": "Aucun membre trouvé"
   }
 }

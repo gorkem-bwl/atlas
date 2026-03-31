@@ -1939,5 +1939,31 @@
     "savingPrefs": "Tercihler kaydediliyor...",
     "seedingApp": "{{app}} kuruluyor...",
     "settingUpAtlas": "Atlas kuruluyor"
+  },
+  "permissions": {
+    "title": "{{appName}} yetkileri",
+    "desc": "Bu uygulamadaki verilere erişimi yönetin",
+    "description": "{{appName}} uygulamasına kimin erişebileceğini ve neler yapabileceğini yönetin.",
+    "permissions": "Yetkiler",
+    "manage": "İzinler",
+    "roleAdmin": "Yönetici",
+    "roleAdminDesc": "Tüm verilere ve ayarlara tam erişim",
+    "roleEditor": "Editör",
+    "roleEditorDesc": "Kayıtları görüntüleme, oluşturma ve düzenleme",
+    "roleViewer": "İzleyici",
+    "roleViewerDesc": "Tüm verilere salt okunur erişim",
+    "roleDescAdmin": "Tüm özellik ve ayarlara tam erişim",
+    "roleDescEditor": "Kayıtları oluşturma, düzenleme ve silme",
+    "roleDescViewer": "Tüm kayıtlara salt okunur erişim",
+    "teamMembers": "Ekip üyesi atamaları",
+    "user": "Kullanıcı",
+    "role": "Rol",
+    "recordAccess": "Kayıt erişimi",
+    "recordAll": "Tüm kayıtlar",
+    "recordOwn": "Yalnızca kendi kayıtları",
+    "allRecords": "Tüm kayıtlar",
+    "ownRecords": "Yalnızca kendi kayıtları",
+    "reset": "Varsayılana sıfırla",
+    "noMembers": "Henüz takım üyesi yok"
   }
 }

@@ -1939,5 +1939,24 @@
     "savingPrefs": "Einstellungen werden gespeichert...",
     "seedingApp": "{{app}} wird eingerichtet...",
     "settingUpAtlas": "Atlas wird eingerichtet"
+  },
+  "permissions": {
+    "title": "{{appName}}-Berechtigungen",
+    "description": "Verwalten Sie, wer auf {{appName}} zugreifen und was sie tun können.",
+    "permissions": "Berechtigungen",
+    "roleAdmin": "Admin",
+    "roleEditor": "Editor",
+    "roleViewer": "Betrachter",
+    "roleDescAdmin": "Vollzugriff auf alle Funktionen und Einstellungen",
+    "roleDescEditor": "Datensätze erstellen, bearbeiten und löschen",
+    "roleDescViewer": "Nur-Lese-Zugriff auf alle Datensätze",
+    "teamMembers": "Teammitglieder-Zuweisungen",
+    "user": "Benutzer",
+    "role": "Rolle",
+    "recordAccess": "Datensatzzugriff",
+    "allRecords": "Alle Datensätze",
+    "ownRecords": "Nur eigene Datensätze",
+    "reset": "Auf Standard zurücksetzen",
+    "noMembers": "Keine Teammitglieder gefunden"
   }
 }

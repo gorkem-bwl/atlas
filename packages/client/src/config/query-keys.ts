@@ -166,6 +166,11 @@ export const queryKeys = {
       byDeal: (id: string) => ['crm', 'events', 'deal', id] as const,
     },
   },
+  permissions: {
+    all: ['permissions'] as const,
+    app: (appId: string) => ['permissions', appId] as const,
+    me: (appId: string) => ['permissions', appId, 'me'] as const,
+  },
   dataModel: {
     all: ['data-model'] as const,
     objects: ['data-model', 'objects'] as const,

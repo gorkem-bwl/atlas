@@ -1949,5 +1949,31 @@
     "savingPrefs": "Saving preferences...",
     "seedingApp": "Setting up {{app}}...",
     "settingUpAtlas": "Setting up Atlas"
+  },
+  "permissions": {
+    "title": "{{appName}} permissions",
+    "desc": "Manage who can access and modify data in this app",
+    "description": "Manage who can access {{appName}} and what they can do.",
+    "permissions": "Permissions",
+    "manage": "Permissions",
+    "roleAdmin": "Admin",
+    "roleAdminDesc": "Full access to all data and settings",
+    "roleEditor": "Editor",
+    "roleEditorDesc": "Can view, create, and edit records",
+    "roleViewer": "Viewer",
+    "roleViewerDesc": "Read-only access to all data",
+    "roleDescAdmin": "Full access to all features and settings",
+    "roleDescEditor": "Create, edit, and delete records",
+    "roleDescViewer": "Read-only access to all records",
+    "teamMembers": "Team member assignments",
+    "user": "User",
+    "role": "Role",
+    "recordAccess": "Record access",
+    "recordAll": "All records",
+    "recordOwn": "Own records only",
+    "allRecords": "All records",
+    "ownRecords": "Own records only",
+    "reset": "Reset to default",
+    "noMembers": "No team members yet"
   }
 }

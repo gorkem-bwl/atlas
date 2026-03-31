@@ -28,6 +28,7 @@ import { TasksSettingsModal } from './components/tasks-settings-modal';
 import { KanbanBoard } from './components/kanban-board';
 import { useTasksSettingsStore } from './settings-store';
 import { useUIStore } from '../../stores/ui-store';
+import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
@@ -385,6 +386,8 @@ function HeadingRow({
   onToggle: () => void;
   onDelete: () => void;
 }) {
+  const { data: tasksPerm } = useMyAppPermission('tasks');
+  const canDelete = !tasksPerm || tasksPerm.role === 'admin';
   return (
     <div className="task-heading-row">
       <button className="task-heading-toggle" onClick={onToggle}>
@@ -392,14 +395,16 @@ function HeadingRow({
       </button>
       <span className="task-heading-title">{task.title}</span>
       <span className="task-heading-count">{childCount}</span>
-      <IconButton
-        icon={<X size={12} />}
-        label="Delete section"
-        size={24}
-        destructive
-        className="task-heading-delete"
-        onClick={onDelete}
-      />
+      {canDelete && (
+        <IconButton
+          icon={<X size={12} />}
+          label="Delete section"
+          size={24}
+          destructive
+          className="task-heading-delete"
+          onClick={onDelete}
+        />
+      )}
     </div>
   );
 }
@@ -530,6 +535,8 @@ function NewHeadingCreator({
 // ─── Subtask Section ─────────────────────────────────────────────────
 
 function SubtaskSection({ taskId }: { taskId: string }) {
+  const { data: tasksPerm } = useMyAppPermission('tasks');
+  const canDelete = !tasksPerm || tasksPerm.role === 'admin';
   const { data: subtasks = [] } = useSubtasks(taskId);
   const createSubtask = useCreateSubtask();
   const updateSubtask = useUpdateSubtask();
@@ -587,15 +594,17 @@ function SubtaskSection({ taskId }: { taskId: string }) {
             <span className={`flex-1 text-sm ${subtask.isCompleted ? 'line-through text-gray-400' : 'text-gray-700'}`}>
               {subtask.title}
             </span>
-            <IconButton
-              icon={<Trash2 size={12} />}
-              label="Delete subtask"
-              size={22}
-              destructive
-              tooltip={false}
-              onClick={() => deleteSubtask.mutate({ subtaskId: subtask.id, taskId })}
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            {canDelete && (
+              <IconButton
+                icon={<Trash2 size={12} />}
+                label="Delete subtask"
+                size={22}
+                destructive
+                tooltip={false}
+                onClick={() => deleteSubtask.mutate({ subtaskId: subtask.id, taskId })}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            )}
           </div>
         ))}
       </div>
@@ -687,6 +696,8 @@ function TaskDetailPanel({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const { data: tasksPerm } = useMyAppPermission('tasks');
+  const canDelete = !tasksPerm || tasksPerm.role === 'admin';
   const [title, setTitle] = useState(task.title);
   const [when, setWhen] = useState(task.when);
   const [priority, setPriority] = useState(task.priority);
@@ -724,13 +735,15 @@ function TaskDetailPanel({
       <div className="task-detail-header">
         <span className="task-detail-header-label">Task detail</span>
         <div className="task-detail-header-actions">
-          <IconButton
-            icon={<Trash2 size={14} />}
-            label="Delete task"
-            size={28}
-            destructive
-            onClick={handleDelete}
-          />
+          {canDelete && (
+            <IconButton
+              icon={<Trash2 size={14} />}
+              label="Delete task"
+              size={28}
+              destructive
+              onClick={handleDelete}
+            />
+          )}
           <IconButton
             icon={<X size={14} />}
             label="Close"
@@ -983,6 +996,11 @@ function ProjectHeader({
 export function TasksPage() {
   const { t } = useTranslation();
   const isDesktop = !!('atlasDesktop' in window);
+
+  // Permission gating
+  const { data: tasksPerm } = useMyAppPermission('tasks');
+  const canCreate = !tasksPerm || tasksPerm.role === 'admin' || tasksPerm.role === 'editor';
+  const canDelete = !tasksPerm || tasksPerm.role === 'admin';
 
   // Settings
   const { openSettings } = useUIStore();
@@ -1449,15 +1467,17 @@ export function TasksPage() {
                 />
                 {projectMenuId === proj.id && (
                   <div className="tasks-project-popover" ref={projectMenuRef}>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      icon={<Trash2 size={13} />}
-                      onClick={() => handleDeleteProject(proj.id)}
-                      style={{ width: '100%', justifyContent: 'flex-start' }}
-                    >
-                      Delete project
-                    </Button>
+                    {canDelete && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 size={13} />}
+                        onClick={() => handleDeleteProject(proj.id)}
+                        style={{ width: '100%', justifyContent: 'flex-start' }}
+                      >
+                        Delete project
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -1583,7 +1603,7 @@ export function TasksPage() {
                 {/* ─── Today view with evening split (feature 2) ─── */}
                 {todayTasks ? (
                   <>
-                    <NewTaskCreator defaultWhen="today" projectId={projectIdForNew} />
+                    {canCreate && <NewTaskCreator defaultWhen="today" projectId={projectIdForNew} />}
 
                     {todayTasks.daytime.length > 0 && (
                       <CollapsibleSection label="Today" icon={Sun} color="#d97706" count={todayTasks.daytime.length}>
@@ -1604,7 +1624,7 @@ export function TasksPage() {
                 ) : projectTaskGroups ? (
                   /* ─── Project view with headings (feature 3 + 4) ─── */
                   <>
-                    <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
+                    {canCreate && <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />}
 
                     {projectTaskGroups.map((group, idx) => (
                       <div key={group.heading?.id || `ungrouped-${idx}`}>
@@ -1628,7 +1648,7 @@ export function TasksPage() {
                       </div>
                     ))}
 
-                    {projectIdForNew && <NewHeadingCreator projectId={projectIdForNew} />}
+                    {canCreate && projectIdForNew && <NewHeadingCreator projectId={projectIdForNew} />}
 
                     {displayTasks.filter(t => t.type !== 'heading').length === 0 && !isLoading && (
                       <EmptyState section={activeSection} seeding={seeding} onSeed={handleSeedSampleData} />
@@ -1637,7 +1657,7 @@ export function TasksPage() {
                 ) : inboxGroups ? (
                   /* ─── Inbox grouped by time periods ─── */
                   <>
-                    <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
+                    {canCreate && <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />}
 
                     {inboxGroups.map((group) => (
                       group.noHeader ? (
@@ -1664,7 +1684,7 @@ export function TasksPage() {
                 ) : (
                   /* ─── Standard list view ─── */
                   <>
-                    {activeSection !== 'logbook' && activeSection !== 'upcoming' && (
+                    {canCreate && activeSection !== 'logbook' && activeSection !== 'upcoming' && (
                       <NewTaskCreator defaultWhen={defaultWhen} projectId={projectIdForNew} />
                     )}
 
