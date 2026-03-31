@@ -54,10 +54,12 @@ export interface ResolvedCrmPermission {
 }
 
 /**
- * Fetch the CRM permission for a user. If none exists, default to 'admin'
- * (backward compatibility: existing users who never had permissions get full access).
+ * Fetch the CRM permission for a user. If none exists, derive from tenant role:
+ * - tenant owner/admin → CRM admin with 'all' record access
+ * - tenant member → CRM viewer with 'own' record access
+ * - no tenant (single-user) → backward compat admin
  */
-export async function getCrmPermission(accountId: string, userId: string): Promise<ResolvedCrmPermission> {
+export async function getCrmPermission(accountId: string, userId: string, tenantId?: string | null): Promise<ResolvedCrmPermission> {
   const [perm] = await db
     .select()
     .from(crmPermissions)
@@ -74,7 +76,29 @@ export async function getCrmPermission(accountId: string, userId: string): Promi
     };
   }
 
-  // Default: full admin access for backward compatibility
+  // No explicit permission — derive from tenant role
+  if (tenantId) {
+    const [member] = await db
+      .select()
+      .from(tenantMembers)
+      .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
+      .limit(1);
+
+    if (member) {
+      const tenantRole = member.role;
+      // owner/admin get CRM admin, member gets viewer
+      const crmRole = (tenantRole === 'owner' || tenantRole === 'admin') ? 'admin' : 'viewer';
+      return {
+        id: null,
+        accountId,
+        userId,
+        role: crmRole as CrmRole,
+        recordAccess: crmRole === 'admin' ? 'all' : 'own',
+      };
+    }
+  }
+
+  // Single-user (no tenant) — backward compat
   return {
     id: null,
     accountId,
@@ -151,12 +175,17 @@ export async function listCrmPermissions(accountId: string, tenantId: string) {
     const acct = accountMap.get(m.userId);
     const perm = permMap.get(m.userId);
 
+    // Derive default role from tenant membership when no explicit CRM perm
+    const tenantRole = m.role;
+    const defaultCrmRole: CrmRole = (tenantRole === 'owner' || tenantRole === 'admin') ? 'admin' : 'viewer';
+    const defaultRecordAccess: CrmRecordAccess = defaultCrmRole === 'admin' ? 'all' : 'own';
+
     return {
       id: perm?.id ?? null,
       accountId,
       userId: m.userId,
-      role: (perm?.role as CrmRole) ?? 'admin', // Default for backward compatibility
-      recordAccess: (perm?.recordAccess as CrmRecordAccess) ?? 'all',
+      role: (perm?.role as CrmRole) ?? defaultCrmRole,
+      recordAccess: (perm?.recordAccess as CrmRecordAccess) ?? defaultRecordAccess,
       userName: acct?.name ?? null,
       userEmail: acct?.email ?? 'unknown',
       createdAt: perm?.createdAt?.toISOString() ?? null,

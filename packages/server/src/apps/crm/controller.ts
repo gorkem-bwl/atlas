@@ -35,7 +35,7 @@ export async function listCompanies(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { search, industry, includeArchived } = req.query;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'view')) {
       res.status(403).json({ success: false, error: 'No access to companies' });
       return;
@@ -61,7 +61,7 @@ export async function getCompany(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'view')) {
       res.status(403).json({ success: false, error: 'No access to companies' });
       return;
@@ -86,7 +86,7 @@ export async function createCompany(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { name, domain, industry, size, address, phone, tags } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create companies' });
       return;
@@ -126,7 +126,7 @@ export async function updateCompany(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, domain, industry, size, address, phone, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update companies' });
       return;
@@ -154,7 +154,7 @@ export async function deleteCompany(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete companies' });
       return;
@@ -176,7 +176,7 @@ export async function listContacts(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { search, companyId, includeArchived } = req.query;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'view')) {
       res.status(403).json({ success: false, error: 'No access to contacts' });
       return;
@@ -202,7 +202,7 @@ export async function getContact(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const contact = await crmService.getContact(userId, accountId, id, perm.recordAccess);
     if (!contact) {
       res.status(404).json({ success: false, error: 'Contact not found' });
@@ -222,7 +222,7 @@ export async function createContact(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { name, email, phone, companyId, position, source, tags } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create contacts' });
       return;
@@ -262,7 +262,7 @@ export async function updateContact(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update contacts' });
       return;
@@ -290,7 +290,7 @@ export async function deleteContact(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete contacts' });
       return;
@@ -417,7 +417,7 @@ export async function listDeals(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { stageId, contactId, companyId, includeArchived } = req.query;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'view')) {
       res.status(403).json({ success: false, error: 'No access to deals' });
       return;
@@ -444,7 +444,7 @@ export async function getDeal(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const deal = await crmService.getDeal(userId, accountId, id, perm.recordAccess);
     if (!deal) {
       res.status(404).json({ success: false, error: 'Deal not found' });
@@ -464,7 +464,7 @@ export async function createDeal(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { title, value, stageId, contactId, companyId, assignedUserId, probability, expectedCloseDate, tags } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create deals' });
       return;
@@ -509,7 +509,7 @@ export async function updateDeal(req: Request, res: Response) {
     const id = req.params.id as string;
     const { title, value, stageId, contactId, companyId, assignedUserId, probability, expectedCloseDate, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -538,7 +538,7 @@ export async function deleteDeal(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete deals' });
       return;
@@ -558,7 +558,7 @@ export async function markDealWon(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -596,7 +596,7 @@ export async function markDealLost(req: Request, res: Response) {
     const id = req.params.id as string;
     const { reason } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'deals', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -632,7 +632,7 @@ export async function countsByStage(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const counts = await crmService.countsByStage(userId, accountId, perm.recordAccess);
     res.json({ success: true, data: counts });
   } catch (error) {
@@ -646,7 +646,7 @@ export async function pipelineValue(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const value = await crmService.pipelineValue(userId, accountId, perm.recordAccess);
     res.json({ success: true, data: value });
   } catch (error) {
@@ -663,7 +663,7 @@ export async function listActivities(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { dealId, contactId, companyId, includeArchived } = req.query;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'activities', 'view')) {
       res.status(403).json({ success: false, error: 'No access to activities' });
       return;
@@ -690,7 +690,7 @@ export async function createActivity(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { type, body, dealId, contactId, companyId, scheduledAt } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'activities', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create activities' });
       return;
@@ -756,7 +756,7 @@ export async function getDashboard(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const dashboard = await crmService.getDashboard(userId, accountId, perm.recordAccess);
     res.json({ success: true, data: dashboard });
   } catch (error) {
@@ -858,7 +858,7 @@ export async function listWorkflows(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'workflows', 'view')) {
       res.status(403).json({ success: false, error: 'No access to workflows' });
       return;
@@ -878,7 +878,7 @@ export async function createWorkflow(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { name, trigger, triggerConfig, action, actionConfig } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'workflows', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create workflows' });
       return;
@@ -988,7 +988,7 @@ export async function listPermissions(req: Request, res: Response) {
     }
 
     // Only admins can list all permissions
-    const myPerm = await crmPermissions.getCrmPermission(accountId, userId);
+    const myPerm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (myPerm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Only CRM admins can manage permissions' });
       return;
@@ -1007,7 +1007,7 @@ export async function getMyPermission(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const userId = req.auth!.userId;
 
-    const permission = await crmPermissions.getCrmPermission(accountId, userId);
+    const permission = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     res.json({ success: true, data: permission });
   } catch (error) {
     logger.error({ error }, 'Failed to get CRM permission');
@@ -1023,7 +1023,7 @@ export async function updatePermission(req: Request, res: Response) {
     const { role, recordAccess } = req.body;
 
     // Only admins can update permissions
-    const myPerm = await crmPermissions.getCrmPermission(accountId, currentUserId);
+    const myPerm = await crmPermissions.getCrmPermission(accountId, currentUserId, req.auth?.tenantId);
     if (myPerm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Only CRM admins can manage permissions' });
       return;
@@ -1063,7 +1063,7 @@ export async function listLeads(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { status, source, search } = req.query;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'view')) {
       res.status(403).json({ success: false, error: 'No access to leads' });
       return;
@@ -1088,7 +1088,7 @@ export async function getLead(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const lead = await crmService.getLead(userId, accountId, id, perm.recordAccess);
     if (!lead) {
       res.status(404).json({ success: false, error: 'Lead not found' });
@@ -1107,7 +1107,7 @@ export async function createLead(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { name, email, phone, companyName, source, notes } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create leads' });
       return;
@@ -1135,7 +1135,7 @@ export async function updateLead(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, email, phone, companyName, source, status, notes, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update leads' });
       return;
@@ -1162,7 +1162,7 @@ export async function deleteLead(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete leads' });
       return;
@@ -1308,7 +1308,7 @@ export async function mergeContacts(req: Request, res: Response) {
       return;
     }
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'contacts', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to merge contacts' });
       return;
@@ -1341,7 +1341,7 @@ export async function mergeCompanies(req: Request, res: Response) {
       return;
     }
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     if (!crmPermissions.canAccess(perm.role, 'companies', 'update')) {
       res.status(403).json({ success: false, error: 'No permission to merge companies' });
       return;
@@ -1366,7 +1366,7 @@ export async function getDashboardCharts(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
-    const perm = await crmPermissions.getCrmPermission(accountId, userId);
+    const perm = await crmPermissions.getCrmPermission(accountId, userId, req.auth?.tenantId);
     const charts = await crmService.getDashboardCharts(userId, accountId, perm.recordAccess);
     res.json({ success: true, data: charts });
   } catch (error) {

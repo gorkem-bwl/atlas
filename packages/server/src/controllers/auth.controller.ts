@@ -1,10 +1,10 @@
 import type { Request, Response } from 'express';
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import * as authService from '../services/auth.service';
 import { db } from '../config/database';
-import { accounts, users, passwordResetTokens } from '../db/schema';
+import { accounts, users, passwordResetTokens, tenantMembers } from '../db/schema';
 import { logger } from '../utils/logger';
 import { hashPassword, verifyPassword, validatePasswordStrength } from '../utils/password';
 import * as tenantService from '../services/platform/tenant.service';
@@ -74,8 +74,8 @@ export async function setup(req: Request, res: Response) {
     // Create the single tenant
     const tenant = await tenantService.createTenant({ slug, name: companyName }, user.id);
 
-    // Generate tokens (with tenant + superAdmin)
-    const jwtTokens = authService.generateTokens(account, tenant.id, true);
+    // Generate tokens (with tenant + superAdmin + tenantRole)
+    const jwtTokens = authService.generateTokens(account, tenant.id, true, 'owner');
 
     logger.info({ userId: user.id, tenantId: tenant.id, email: adminEmail }, 'Atlas initial setup completed');
 
@@ -134,15 +134,22 @@ export async function loginWithPassword(req: Request, res: Response) {
     }
 
     let tenantId: string | undefined;
+    let tenantRole: string | undefined;
     try {
       const tenants = await tenantService.listTenantsForUser(account.userId);
       if (tenants.length > 0) {
         tenantId = tenants[0].id;
+        // Look up tenant member role
+        const [member] = await db.select({ role: tenantMembers.role })
+          .from(tenantMembers)
+          .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, account.userId)))
+          .limit(1);
+        tenantRole = member?.role;
       }
     } catch { /* proceed without tenantId */ }
 
     const isSuperAdmin = await authService.isUserSuperAdmin(account.userId);
-    const jwtTokens = authService.generateTokens(account, tenantId, isSuperAdmin);
+    const jwtTokens = authService.generateTokens(account, tenantId, isSuperAdmin, tenantRole);
 
     res.json({
       success: true,
@@ -193,10 +200,17 @@ export async function refreshToken(req: Request, res: Response) {
     }
 
     let tenantId: string | undefined;
+    let tenantRole: string | undefined;
     try {
       const tenants = await tenantService.listTenantsForUser(userId);
       if (tenants.length > 0) {
         tenantId = tenants[0].id;
+        // Look up tenant member role
+        const [member] = await db.select({ role: tenantMembers.role })
+          .from(tenantMembers)
+          .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
+          .limit(1);
+        tenantRole = member?.role;
       }
     } catch { /* proceed without tenantId */ }
 
@@ -206,7 +220,7 @@ export async function refreshToken(req: Request, res: Response) {
       id: payload.accountId,
       email: payload.email,
       userId,
-    }, tenantId, isSuperAdmin);
+    }, tenantId, isSuperAdmin, tenantRole);
 
     res.json({
       success: true,
@@ -310,7 +324,18 @@ export async function acceptInvitation(req: Request, res: Response) {
     }
 
     const result = await tenantUserService.acceptInvitation(token, { name, password });
-    const jwtTokens = authService.generateTokens(result.account, result.tenantId);
+
+    // Look up tenant member role for the newly accepted user
+    let tenantRole: string | undefined;
+    if (result.tenantId) {
+      const [member] = await db.select({ role: tenantMembers.role })
+        .from(tenantMembers)
+        .where(and(eq(tenantMembers.tenantId, result.tenantId), eq(tenantMembers.userId, result.account.userId)))
+        .limit(1);
+      tenantRole = member?.role;
+    }
+
+    const jwtTokens = authService.generateTokens(result.account, result.tenantId, undefined, tenantRole);
 
     res.json({
       success: true,
