@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button';
 import type { Account } from '@atlasmail/shared';
 
 // Mountain range — same wallpaper as setup page
-const BG_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop';
+const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';
 
 // Glass-morphism overrides for shared components on photo backgrounds
 const glassInputStyle = {

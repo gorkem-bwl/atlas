@@ -25,30 +25,16 @@ import '../styles/home.css';
 // ---------------------------------------------------------------------------
 
 const BG_IMAGES = [
-  // Forest path with sunlight filtering through trees
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80&auto=format&fit=crop',
-  // Misty pines
-  'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80&auto=format&fit=crop',
-  // Serene wooden bridge in tropical forest
-  'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&auto=format&fit=crop',
-  // Mountain range with golden hour light
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop',
-  // Dark forest
-  'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=1920&q=80&auto=format&fit=crop',
-  // Autumn forest with golden foliage
-  'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80&auto=format&fit=crop',
-  // Night sky
-  'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920&q=80&auto=format&fit=crop',
-  // Northern lights over snowy landscape
-  'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=1920&q=80&auto=format&fit=crop',
-  // Mountain sunset
-  'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=1920&q=80&auto=format&fit=crop',
-  // Misty pine forest
-  'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80&auto=format&fit=crop',
-  // Desert landscape
-  '/desert-wallpaper.avif',
-  // Waterfall in lush greenery
-  'https://images.unsplash.com/photo-1432405972618-c6b0c1d50207?w=1920&q=80&auto=format&fit=crop',
+  '/wallpapers/01-forest-sunlight.jpg',
+  '/wallpapers/02-misty-pines.jpg',
+  '/wallpapers/03-tropical-bridge.jpg',
+  '/wallpapers/04-mountain-golden.jpg',
+  '/wallpapers/05-dark-forest.jpg',
+  '/wallpapers/06-autumn-forest.jpg',
+  '/wallpapers/07-night-sky.jpg',
+  '/wallpapers/08-northern-lights.jpg',
+  '/wallpapers/09-mountain-sunset.jpg',
+  '/wallpapers/10-waterfall.jpg',
 ];
 
 function getDailyImageIndex(): number {

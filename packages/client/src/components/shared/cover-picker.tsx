@@ -27,21 +27,16 @@ export const COVER_GRADIENTS = [
 ];
 
 export const COVER_IMAGES = [
-  // Nature & landscape
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=1200&h=300&fit=crop',
-  // Abstract & texture
-  'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=300&fit=crop',
-  // Architecture & urban
-  'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&h=300&fit=crop',
+  '/wallpapers/01-forest-sunlight.jpg',
+  '/wallpapers/02-misty-pines.jpg',
+  '/wallpapers/03-tropical-bridge.jpg',
+  '/wallpapers/04-mountain-golden.jpg',
+  '/wallpapers/05-dark-forest.jpg',
+  '/wallpapers/06-autumn-forest.jpg',
+  '/wallpapers/07-night-sky.jpg',
+  '/wallpapers/08-northern-lights.jpg',
+  '/wallpapers/09-mountain-sunset.jpg',
+  '/wallpapers/10-waterfall.jpg',
 ];
 
 /** Returns true if the cover value is a CSS gradient rather than an image URL */

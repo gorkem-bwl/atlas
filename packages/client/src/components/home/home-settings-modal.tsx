@@ -12,20 +12,18 @@ import { PET_OPTIONS, PetPreview, type PetType } from './dock-pet';
 
 type BgType = 'unsplash' | 'solid' | 'gradient' | 'custom';
 
-// Wallpaper photos (same as home.tsx BG_IMAGES — thumbnail versions)
+// Wallpaper photos — bundled locally for airgapped/offline support
 const WALLPAPER_PHOTOS = [
-  { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=120&h=80&q=60&fit=crop', label: 'Forest path' },
-  { url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=120&h=80&q=60&fit=crop', label: 'Misty pines' },
-  { url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=120&h=80&q=60&fit=crop', label: 'Tropical forest' },
-  { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=120&h=80&q=60&fit=crop', label: 'Mountain range' },
-  { url: 'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1518818419601-72c8673f5852?w=120&h=80&q=60&fit=crop', label: 'Dark forest' },
-  { url: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1507041957456-9c397ce39c97?w=120&h=80&q=60&fit=crop', label: 'Autumn forest' },
-  { url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=120&h=80&q=60&fit=crop', label: 'Night sky' },
-  { url: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=120&h=80&q=60&fit=crop', label: 'Northern lights' },
-  { url: 'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=120&h=80&q=60&fit=crop', label: 'Mountain sunset' },
-  { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=120&h=80&q=60&fit=crop', label: 'Snowy peaks at night' },
-  { url: 'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=120&h=80&q=60&fit=crop', label: 'Starry lake' },
-  { url: 'https://images.unsplash.com/photo-1462275646964-a0e3c11f18a6?w=1920&q=80&auto=format&fit=crop', thumb: 'https://images.unsplash.com/photo-1462275646964-a0e3c11f18a6?w=120&h=80&q=60&fit=crop', label: 'Twilight canyon' },
+  { url: '/wallpapers/01-forest-sunlight.jpg', thumb: '/wallpapers/01-forest-sunlight.jpg', label: 'Forest path' },
+  { url: '/wallpapers/02-misty-pines.jpg', thumb: '/wallpapers/02-misty-pines.jpg', label: 'Misty pines' },
+  { url: '/wallpapers/03-tropical-bridge.jpg', thumb: '/wallpapers/03-tropical-bridge.jpg', label: 'Tropical forest' },
+  { url: '/wallpapers/04-mountain-golden.jpg', thumb: '/wallpapers/04-mountain-golden.jpg', label: 'Mountain range' },
+  { url: '/wallpapers/05-dark-forest.jpg', thumb: '/wallpapers/05-dark-forest.jpg', label: 'Dark forest' },
+  { url: '/wallpapers/06-autumn-forest.jpg', thumb: '/wallpapers/06-autumn-forest.jpg', label: 'Autumn forest' },
+  { url: '/wallpapers/07-night-sky.jpg', thumb: '/wallpapers/07-night-sky.jpg', label: 'Night sky' },
+  { url: '/wallpapers/08-northern-lights.jpg', thumb: '/wallpapers/08-northern-lights.jpg', label: 'Northern lights' },
+  { url: '/wallpapers/09-mountain-sunset.jpg', thumb: '/wallpapers/09-mountain-sunset.jpg', label: 'Mountain sunset' },
+  { url: '/wallpapers/10-waterfall.jpg', thumb: '/wallpapers/10-waterfall.jpg', label: 'Waterfall' },
 ];
 
 // Only dark colors that ensure white text readability

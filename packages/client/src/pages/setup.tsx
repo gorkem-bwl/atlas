@@ -12,7 +12,7 @@ import { CheckCircle2, ArrowRight, ArrowLeft, Globe, Building2, User, Settings }
 import type { Account } from '@atlasmail/shared';
 
 // Wallpaper #4 — Mountain range
-const BG_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80&auto=format&fit=crop';
+const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';
 
 const glassInputStyle = {
   background: 'rgba(255, 255, 255, 0.1)',
