@@ -40,6 +40,8 @@ function ModalRoot({
             position: 'fixed',
             inset: 0,
             background: 'var(--color-bg-overlay)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             zIndex,
             animation: 'fadeIn 150ms ease',
           }}

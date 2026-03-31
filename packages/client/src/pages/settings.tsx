@@ -72,9 +72,9 @@ export function SettingsModal() {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.45)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          background: 'var(--color-bg-overlay)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           zIndex: 200,
           animation: 'fadeIn 150ms ease',
         }}
