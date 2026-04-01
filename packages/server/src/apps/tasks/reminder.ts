@@ -62,7 +62,8 @@ export async function sendDueTaskReminders(): Promise<number> {
         if (!user?.email) continue;
 
         const clientUrl = env.CLIENT_PUBLIC_URL || 'http://localhost:5180';
-        const taskTitle = task.title || 'Untitled task';
+        const rawTitle = task.title || 'Untitled task';
+        const taskTitle = rawTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
         await sendEmail({
           to: user.email,

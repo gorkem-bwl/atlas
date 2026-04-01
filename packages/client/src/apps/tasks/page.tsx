@@ -1098,10 +1098,11 @@ export function TasksPage() {
   // Completed section collapsed state
   const [completedCollapsed, setCompletedCollapsed] = useState(true);
 
-  // Bulk selection state
+  // Bulk selection state — clears on section change
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const deleteTaskMutation = useDeleteTask();
+  useEffect(() => { setSelectedIds(new Set()); }, [activeSection]);
 
   // Data
   const { data: counts } = useTaskCounts();

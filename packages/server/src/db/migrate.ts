@@ -1790,9 +1790,10 @@ export async function runMigrations() {
       logger.info('Skipped CRM permission migration (crm_permissions table may not exist)');
     }
 
-    // Add last_reminder_at column to tasks (idempotent)
+    // Add last_reminder_at column + dueDate index to tasks (idempotent)
     await client.query(`
       ALTER TABLE tasks ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ;
+      CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
     `);
 
     // ─── Marketplace: Installed Apps ──────────────────────────────────
