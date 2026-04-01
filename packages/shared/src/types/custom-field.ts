@@ -25,3 +25,19 @@ export interface CustomFieldDefinition {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CustomFieldValue {
+  id: string;
+  accountId: string;
+  fieldDefinitionId: string;
+  recordId: string;
+  value: unknown;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A field definition merged with its current value for a specific record */
+export interface CustomFieldWithValue extends CustomFieldDefinition {
+  value: unknown;
+  valueId: string | null;
+}

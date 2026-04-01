@@ -46,6 +46,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { IconButton } from '../../components/ui/icon-button';
 import { Badge } from '../../components/ui/badge';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import { CustomFieldsRenderer } from '../../components/shared/custom-fields-renderer';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ColumnHeader } from '../../components/ui/column-header';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
@@ -1005,6 +1006,8 @@ function ContactDetailPanel({
                 </div>
               </div>
             )}
+
+            <CustomFieldsRenderer appId="crm" recordType="contacts" recordId={contact.id} />
 
             {/* Notes */}
             <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>

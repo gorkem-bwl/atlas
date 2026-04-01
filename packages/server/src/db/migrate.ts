@@ -629,6 +629,20 @@ export async function runMigrations() {
         UNIQUE(tenant_id, app_id, record_type, slug)
       );
 
+      CREATE TABLE IF NOT EXISTS custom_field_values (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        field_definition_id UUID NOT NULL REFERENCES custom_field_definitions(id) ON DELETE CASCADE,
+        record_id UUID NOT NULL,
+        value JSONB,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(record_id, field_definition_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_cfv_field ON custom_field_values(field_definition_id);
+      CREATE INDEX IF NOT EXISTS idx_cfv_record ON custom_field_values(record_id);
+      CREATE INDEX IF NOT EXISTS idx_cfv_account ON custom_field_values(account_id);
+
       CREATE TABLE IF NOT EXISTS record_links (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,

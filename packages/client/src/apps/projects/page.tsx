@@ -36,6 +36,7 @@ import { StatusDot } from '../../components/ui/status-dot';
 import { ContentArea } from '../../components/ui/content-area';
 import { ListToolbar } from '../../components/ui/list-toolbar';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import { CustomFieldsRenderer } from '../../components/shared/custom-fields-renderer';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { SettingsSection, SettingsRow } from '../../components/settings/settings-primitives';
 import { useUIStore } from '../../stores/ui-store';
@@ -749,6 +750,8 @@ function ProjectDetailPanel({ project, onClose }: { project: Project; onClose: (
             </Badge>
           </div>
 
+          <CustomFieldsRenderer appId="projects" recordType="projects" recordId={project.id} />
+
           {/* Recent time entries */}
           <div className="projects-detail-field">
             <span className="projects-detail-field-label">{t('projects.dashboard.recentTimeEntries')}</span>
@@ -1111,6 +1114,8 @@ function ClientDetailPanel({ client, onClose, onNavigate }: { client: ProjectCli
               </div>
             )}
           </div>
+
+          <CustomFieldsRenderer appId="projects" recordType="clients" recordId={client.id} />
 
           {/* Recent invoices */}
           <div className="projects-detail-field">

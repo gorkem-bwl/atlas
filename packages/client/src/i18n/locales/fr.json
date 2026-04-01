@@ -2006,6 +2006,15 @@
     "reset": "Réinitialiser",
     "noMembers": "Aucun membre trouvé"
   },
+  "customFields": {
+    "sectionTitle": "Champs personnalisés",
+    "placeholder": {
+      "text": "Saisir du texte...",
+      "textarea": "Saisir du texte...",
+      "number": "Saisir un nombre...",
+      "select": "Sélectionner..."
+    }
+  },
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Déployez et gérez des applications sur votre serveur",

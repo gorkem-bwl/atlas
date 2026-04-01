@@ -781,6 +781,21 @@ export const customFieldDefinitions = pgTable('custom_field_definitions', {
   slugIdx: uniqueIndex('idx_cfd_slug_unique').on(table.tenantId, table.appId, table.recordType, table.slug),
 }));
 
+export const customFieldValues = pgTable('custom_field_values', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  fieldDefinitionId: uuid('field_definition_id').notNull().references(() => customFieldDefinitions.id, { onDelete: 'cascade' }),
+  recordId: uuid('record_id').notNull(),
+  value: jsonb('value').$type<unknown>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  recordFieldIdx: uniqueIndex('idx_cfv_record_field').on(table.recordId, table.fieldDefinitionId),
+  fieldIdx: index('idx_cfv_field').on(table.fieldDefinitionId),
+  recordIdx: index('idx_cfv_record').on(table.recordId),
+  accountIdx: index('idx_cfv_account').on(table.accountId),
+}));
+
 // ─── Cross-App Record Links ────────────────────────────────────────
 
 export const recordLinks = pgTable('record_links', {

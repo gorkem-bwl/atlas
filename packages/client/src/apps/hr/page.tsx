@@ -43,6 +43,7 @@ import { Badge } from '../../components/ui/badge';
 import { Avatar } from '../../components/ui/avatar';
 import { Skeleton } from '../../components/ui/skeleton';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
+import { CustomFieldsRenderer } from '../../components/shared/custom-fields-renderer';
 import { ColumnHeader } from '../../components/ui/column-header';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import { StatusDot } from '../../components/ui/status-dot';
@@ -1139,6 +1140,8 @@ function EmployeeDetailPanel({
                 </div>
               </div>
             )}
+
+            <CustomFieldsRenderer appId="hr" recordType="employees" recordId={employee.id} />
           </>
         )}
 

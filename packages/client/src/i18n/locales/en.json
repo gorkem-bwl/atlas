@@ -2023,6 +2023,15 @@
     "reset": "Reset to default",
     "noMembers": "No team members yet"
   },
+  "customFields": {
+    "sectionTitle": "Custom fields",
+    "placeholder": {
+      "text": "Enter text...",
+      "textarea": "Enter text...",
+      "number": "Enter number...",
+      "select": "Select..."
+    }
+  },
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Deploy and manage apps on your server",

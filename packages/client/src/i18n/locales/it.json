@@ -2017,6 +2017,15 @@
     "reset": "Ripristina predefinito",
     "noMembers": "Nessun membro trovato"
   },
+  "customFields": {
+    "sectionTitle": "Campi personalizzati",
+    "placeholder": {
+      "text": "Inserisci testo...",
+      "textarea": "Inserisci testo...",
+      "number": "Inserisci numero...",
+      "select": "Seleziona..."
+    }
+  },
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Distribuisci e gestisci app sul tuo server",

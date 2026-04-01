@@ -6,6 +6,10 @@ export const queryKeys = {
   account: {
     all: ['account'] as const,
   },
+  customFields: {
+    values: (appId: string, recordType: string, recordId: string) =>
+      ['custom-fields', 'values', appId, recordType, recordId] as const,
+  },
   links: {
     all: ['links'] as const,
     counts: (appId: string, recordId: string) => ['links', 'counts', appId, recordId] as const,

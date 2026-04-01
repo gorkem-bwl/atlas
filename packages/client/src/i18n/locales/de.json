@@ -2006,6 +2006,15 @@
     "reset": "Auf Standard zurücksetzen",
     "noMembers": "Keine Teammitglieder gefunden"
   },
+  "customFields": {
+    "sectionTitle": "Benutzerdefinierte Felder",
+    "placeholder": {
+      "text": "Text eingeben...",
+      "textarea": "Text eingeben...",
+      "number": "Zahl eingeben...",
+      "select": "Auswählen..."
+    }
+  },
   "marketplace": {
     "title": "Marktplatz",
     "subtitle": "Apps auf Ihrem Server bereitstellen und verwalten",
