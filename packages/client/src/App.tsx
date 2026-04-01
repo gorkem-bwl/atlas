@@ -68,6 +68,7 @@ export function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path={ROUTES.SETUP} element={<SetupPage />} />
+                <Route path="/setup-preview" element={<SetupPage preview />} />
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
                 <Route path={ROUTES.INVITATION} element={<InvitationPage />} />
                 <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
