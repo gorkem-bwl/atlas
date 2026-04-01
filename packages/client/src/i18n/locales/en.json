@@ -857,7 +857,8 @@
       "avg": "Avg",
       "changeStage": "Change stage",
       "clearSelection": "Clear selection",
-      "avgProbability": "Avg probability"
+      "avgProbability": "Avg probability",
+      "probabilityPercent": "Probability %"
     },
     "fields": {
       "manageFields": "Manage fields"
@@ -873,7 +874,8 @@
       "fullName": "Full name",
       "addContact": "Add contact",
       "contactDetail": "Contact detail",
-      "deleteContact": "Delete contact"
+      "deleteContact": "Delete contact",
+      "duplicateEmail": "A contact named \"{{name}}\" already uses this email"
     },
     "companies": {
       "name": "Name",
@@ -900,10 +902,13 @@
       "call": "Call",
       "meeting": "Meeting",
       "email": "Email",
-      "noActivities": "No activities yet"
+      "noActivities": "No activities yet",
+      "editActivity": "Edit activity",
+      "deleteActivity": "Delete activity"
     },
     "automations": {
       "title": "Automations",
+      "subtitle": "Automate actions when events happen in your CRM",
       "newAutomation": "New automation",
       "trigger": "Trigger",
       "action": "Action",
@@ -911,7 +916,9 @@
       "inactive": "Inactive",
       "runs": "runs",
       "seedExamples": "Load example automations",
-      "noAutomations": "No automations configured"
+      "noAutomations": "No automations configured",
+      "noAutomationsDesc": "Create rules to automate repetitive tasks",
+      "executionNote": "Active automations run automatically when their trigger events occur."
     },
     "permissions": {
       "title": "Permissions",

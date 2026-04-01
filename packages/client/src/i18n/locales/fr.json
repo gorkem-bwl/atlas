@@ -830,7 +830,8 @@
       "avg": "Moy.",
       "changeStage": "Changer l'étape",
       "clearSelection": "Effacer la sélection",
-      "avgProbability": "Prob. moyenne"
+      "avgProbability": "Prob. moyenne",
+      "probabilityPercent": "Probabilité %"
     },
     "fields": {
       "manageFields": "Gérer les champs"
@@ -846,7 +847,8 @@
       "fullName": "Nom complet",
       "addContact": "Ajouter un contact",
       "contactDetail": "Détail du contact",
-      "deleteContact": "Supprimer le contact"
+      "deleteContact": "Supprimer le contact",
+      "duplicateEmail": "Un contact nommé \"{{name}}\" utilise déjà cet e-mail"
     },
     "companies": {
       "name": "Nom",
@@ -873,10 +875,13 @@
       "call": "Appel",
       "meeting": "Réunion",
       "email": "E-mail",
-      "noActivities": "Pas encore d'activités"
+      "noActivities": "Pas encore d'activités",
+      "editActivity": "Modifier l'activité",
+      "deleteActivity": "Supprimer l'activité"
     },
     "automations": {
       "title": "Automatisations",
+      "subtitle": "Automatisez les actions lorsque des événements se produisent dans votre CRM",
       "newAutomation": "Nouvelle automatisation",
       "trigger": "Déclencheur",
       "action": "Action",
@@ -884,7 +889,9 @@
       "inactive": "Inactif",
       "runs": "exécutions",
       "seedExamples": "Charger des exemples d'automatisations",
-      "noAutomations": "Aucune automatisation configurée"
+      "noAutomations": "Aucune automatisation configurée",
+      "noAutomationsDesc": "Créez des règles pour automatiser les tâches répétitives",
+      "executionNote": "Les automatisations actives s'exécutent automatiquement lorsque leurs événements déclencheurs se produisent."
     },
     "permissions": {
       "title": "Permissions",

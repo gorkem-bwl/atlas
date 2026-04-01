@@ -830,7 +830,8 @@
       "avg": "Media",
       "changeStage": "Cambia fase",
       "clearSelection": "Annulla selezione",
-      "avgProbability": "Prob. media"
+      "avgProbability": "Prob. media",
+      "probabilityPercent": "Probabilità %"
     },
     "fields": {
       "manageFields": "Gestisci campi"
@@ -846,7 +847,8 @@
       "fullName": "Nome completo",
       "addContact": "Aggiungi contatto",
       "contactDetail": "Dettaglio contatto",
-      "deleteContact": "Elimina contatto"
+      "deleteContact": "Elimina contatto",
+      "duplicateEmail": "Un contatto chiamato \"{{name}}\" utilizza già questa email"
     },
     "companies": {
       "name": "Nome",
@@ -873,10 +875,13 @@
       "call": "Chiamata",
       "meeting": "Riunione",
       "email": "E-mail",
-      "noActivities": "Nessuna attività ancora"
+      "noActivities": "Nessuna attività ancora",
+      "editActivity": "Modifica attività",
+      "deleteActivity": "Elimina attività"
     },
     "automations": {
       "title": "Automazioni",
+      "subtitle": "Automatizza le azioni quando si verificano eventi nel tuo CRM",
       "newAutomation": "Nuova automazione",
       "trigger": "Trigger",
       "action": "Azione",
@@ -884,7 +889,9 @@
       "inactive": "Inattivo",
       "runs": "esecuzioni",
       "seedExamples": "Carica automazioni di esempio",
-      "noAutomations": "Nessuna automazione configurata"
+      "noAutomations": "Nessuna automazione configurata",
+      "noAutomationsDesc": "Crea regole per automatizzare attività ripetitive",
+      "executionNote": "Le automazioni attive vengono eseguite automaticamente quando si verificano i loro eventi trigger."
     },
     "permissions": {
       "title": "Permessi",

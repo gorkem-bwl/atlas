@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Zap, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Zap, Sparkles, Info } from 'lucide-react';
 import {
   useWorkflows, useCreateWorkflow, useDeleteWorkflow, useToggleWorkflow,
   useSeedExampleWorkflows,
@@ -438,13 +438,32 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
             color: 'var(--color-text-tertiary)',
             marginTop: 2,
           }}>
-            {t('crm.automations.title')}
+            {t('crm.automations.subtitle')}
           </div>
         </div>
         <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowCreate(true)}>
           {t('crm.automations.newAutomation')}
         </Button>
       </div>
+
+      {/* Automation status info */}
+      {workflows.length > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-sm)',
+          padding: 'var(--spacing-sm) var(--spacing-md)',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--color-bg-secondary)',
+          marginBottom: 'var(--spacing-md)',
+          border: '1px solid var(--color-border-secondary)',
+        }}>
+          <Info size={14} style={{ color: 'var(--color-accent-primary)', flexShrink: 0 }} />
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+            {t('crm.automations.executionNote')}
+          </span>
+        </div>
+      )}
 
       {/* Workflow list */}
       {workflows.length === 0 ? (
@@ -457,8 +476,8 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
           <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
             {t('crm.automations.noAutomations')}
           </div>
-          <div style={{ fontSize: 'var(--font-size-sm)', marginTop: 4 }}>
-            {t('crm.automations.noAutomations')}
+          <div style={{ fontSize: 'var(--font-size-sm)', marginTop: 4, color: 'var(--color-text-tertiary)' }}>
+            {t('crm.automations.noAutomationsDesc')}
           </div>
           <div style={{ marginTop: 'var(--spacing-md)' }}>
             <Button

@@ -830,7 +830,8 @@
       "avg": "Durchschn.",
       "changeStage": "Phase ändern",
       "clearSelection": "Auswahl aufheben",
-      "avgProbability": "Durchschn. Wahrsch."
+      "avgProbability": "Durchschn. Wahrsch.",
+      "probabilityPercent": "Wahrscheinlichkeit %"
     },
     "fields": {
       "manageFields": "Felder verwalten"
@@ -846,7 +847,8 @@
       "fullName": "Vollständiger Name",
       "addContact": "Kontakt hinzufügen",
       "contactDetail": "Kontaktdetail",
-      "deleteContact": "Kontakt löschen"
+      "deleteContact": "Kontakt löschen",
+      "duplicateEmail": "Ein Kontakt namens \"{{name}}\" verwendet bereits diese E-Mail"
     },
     "companies": {
       "name": "Name",
@@ -873,10 +875,13 @@
       "call": "Anruf",
       "meeting": "Besprechung",
       "email": "E-Mail",
-      "noActivities": "Noch keine Aktivitäten"
+      "noActivities": "Noch keine Aktivitäten",
+      "editActivity": "Aktivität bearbeiten",
+      "deleteActivity": "Aktivität löschen"
     },
     "automations": {
       "title": "Automatisierungen",
+      "subtitle": "Aktionen automatisieren, wenn Ereignisse in Ihrem CRM auftreten",
       "newAutomation": "Neue Automatisierung",
       "trigger": "Auslöser",
       "action": "Aktion",
@@ -884,7 +889,9 @@
       "inactive": "Inaktiv",
       "runs": "Ausführungen",
       "seedExamples": "Beispielautomatisierungen laden",
-      "noAutomations": "Keine Automatisierungen konfiguriert"
+      "noAutomations": "Keine Automatisierungen konfiguriert",
+      "noAutomationsDesc": "Erstellen Sie Regeln, um wiederkehrende Aufgaben zu automatisieren",
+      "executionNote": "Aktive Automatisierungen werden automatisch ausgeführt, wenn ihre Auslöserereignisse eintreten."
     },
     "permissions": {
       "title": "Berechtigungen",

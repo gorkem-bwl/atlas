@@ -830,7 +830,8 @@
       "avg": "Ort",
       "changeStage": "Aşama değiştir",
       "clearSelection": "Seçimi temizle",
-      "avgProbability": "Ort olasılık"
+      "avgProbability": "Ort olasılık",
+      "probabilityPercent": "Olasılık %"
     },
     "fields": {
       "manageFields": "Alanları yönet"
@@ -846,7 +847,8 @@
       "fullName": "Tam isim",
       "addContact": "Kişi ekle",
       "contactDetail": "Kişi detayı",
-      "deleteContact": "Kişiyi sil"
+      "deleteContact": "Kişiyi sil",
+      "duplicateEmail": "\"{{name}}\" adlı bir kişi zaten bu e-postayı kullanıyor"
     },
     "companies": {
       "name": "İsim",
@@ -873,10 +875,13 @@
       "call": "Arama",
       "meeting": "Toplantı",
       "email": "E-posta",
-      "noActivities": "Henüz aktivite yok"
+      "noActivities": "Henüz aktivite yok",
+      "editActivity": "Aktiviteyi düzenle",
+      "deleteActivity": "Aktiviteyi sil"
     },
     "automations": {
       "title": "Otomasyonlar",
+      "subtitle": "CRM'de olaylar gerçekleştiğinde eylemleri otomatikleştirin",
       "newAutomation": "Yeni otomasyon",
       "trigger": "Tetikleyici",
       "action": "Aksiyon",
@@ -884,7 +889,9 @@
       "inactive": "Pasif",
       "runs": "çalışma",
       "seedExamples": "Örnek otomasyonları yükle",
-      "noAutomations": "Henüz otomasyon tanımlanmadı"
+      "noAutomations": "Henüz otomasyon tanımlanmadı",
+      "noAutomationsDesc": "Tekrarlayan görevleri otomatikleştirmek için kurallar oluşturun",
+      "executionNote": "Aktif otomasyonlar tetikleme olayları gerçekleştiğinde otomatik olarak çalışır."
     },
     "permissions": {
       "title": "Yetkiler",

@@ -6,7 +6,7 @@ import {
   Briefcase, Users, Building2, Clock, Plus, Search, Settings2, X,
   ChevronRight, Trash2, Phone as PhoneIcon, Mail,
   Trophy, XCircle, LayoutGrid, List,
-  PhoneCall, CalendarDays, StickyNote,
+  PhoneCall, CalendarDays, StickyNote, Pencil, AlertTriangle,
   Download, Upload, BarChart3, Zap, Shield, FileSpreadsheet,
   UserPlus, TrendingUp, Merge,
   DollarSign, Calendar, Globe, Tag, User, Target,
@@ -17,10 +17,9 @@ import {
   useStages, useCreateStage,
   useDeals, useCreateDeal, useUpdateDeal, useDeleteDeal,
   useMarkDealWon, useMarkDealLost,
-  useActivities, useCreateActivity, useDeleteActivity,
+  useActivities, useCreateActivity, useUpdateActivity, useDeleteActivity,
   useSeedCrmData,
   useMyCrmPermission, canAccess,
-  useGoogleSyncStatus,
   type CrmCompany, type CrmContact, type CrmDealStage, type CrmDeal, type CrmActivity,
 } from './hooks';
 import { DealKanban } from './components/deal-kanban';
@@ -35,8 +34,6 @@ import { LeadsView } from './components/leads-view';
 import { ForecastView } from './components/forecast-view';
 import { MergeContactsModal, MergeCompaniesModal } from './components/merge-modal';
 import { NotesSection } from './components/notes-section';
-import { EmailTimeline } from './components/email-timeline';
-import { CalendarEvents } from './components/calendar-events';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -309,6 +306,7 @@ function CreateDealModal({
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [value, setValue] = useState('');
+  const [probability, setProbability] = useState('');
   const [stageId, setStageId] = useState('');
   const [contactId, setContactId] = useState('');
   const [companyId, setCompanyId] = useState('');
@@ -323,13 +321,14 @@ function CreateDealModal({
     }
   }, [open, defaultStage, stageId]);
 
-  const reset = () => { setTitle(''); setValue(''); setStageId(''); setContactId(''); setCompanyId(''); setCloseDate(''); };
+  const reset = () => { setTitle(''); setValue(''); setProbability(''); setStageId(''); setContactId(''); setCompanyId(''); setCloseDate(''); };
 
   const handleSubmit = () => {
     if (!title.trim() || !stageId) return;
     createDeal.mutate({
       title: title.trim(),
       value: Number(value) || 0,
+      probability: probability !== '' ? Math.min(100, Math.max(0, Number(probability))) : undefined,
       stageId,
       contactId: contactId || null,
       companyId: companyId || null,
@@ -347,8 +346,9 @@ function CreateDealModal({
           <Input label={t('crm.deals.dealTitle')} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enterprise license" autoFocus />
           <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
             <Input label={t('crm.deals.valueAmount')} type="number" value={value} onChange={(e) => setValue(e.target.value)} placeholder="0" style={{ flex: 1 }} />
-            <Input label={t('crm.deals.expectedClose')} type="date" value={closeDate} onChange={(e) => setCloseDate(e.target.value)} style={{ flex: 1 }} />
+            <Input label={t('crm.deals.probabilityPercent')} type="number" value={probability} onChange={(e) => setProbability(e.target.value)} placeholder="0-100" style={{ flex: 1 }} />
           </div>
+          <Input label={t('crm.deals.expectedClose')} type="date" value={closeDate} onChange={(e) => setCloseDate(e.target.value)} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>{t('crm.deals.stage')}</label>
             <Select
@@ -391,11 +391,12 @@ function CreateDealModal({
 // ─── Create Contact Modal ──────────────────────────────────────────
 
 function CreateContactModal({
-  open, onClose, companies,
+  open, onClose, companies, contacts: existingContacts,
 }: {
   open: boolean;
   onClose: () => void;
   companies: CrmCompany[];
+  contacts: CrmContact[];
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
@@ -404,6 +405,13 @@ function CreateContactModal({
   const [companyId, setCompanyId] = useState('');
   const [position, setPosition] = useState('');
   const createContact = useCreateContact();
+
+  const duplicateContact = useMemo(() => {
+    if (!email.trim()) return null;
+    return existingContacts.find(
+      (c) => c.email && c.email.toLowerCase() === email.trim().toLowerCase()
+    ) ?? null;
+  }, [email, existingContacts]);
 
   const reset = () => { setName(''); setEmail(''); setPhone(''); setCompanyId(''); setPosition(''); };
 
@@ -426,7 +434,17 @@ function CreateContactModal({
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           <Input label={t('crm.contacts.fullName')} value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" autoFocus />
-          <Input label={t('crm.contacts.email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@company.com" />
+          <div>
+            <Input label={t('crm.contacts.email')} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@company.com" />
+            {duplicateContact && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-xs)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', background: 'var(--color-warning-bg, rgba(245, 158, 11, 0.1))' }}>
+                <AlertTriangle size={13} style={{ color: 'var(--color-warning)', flexShrink: 0 }} />
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-warning)', fontFamily: 'var(--font-family)' }}>
+                  {t('crm.contacts.duplicateEmail', { name: duplicateContact.name })}
+                </span>
+              </div>
+            )}
+          </div>
           <Input label={t('crm.contacts.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1-555-0100" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>{t('crm.deals.company')}</label>
@@ -642,6 +660,31 @@ function MarkLostModal({
 
 function ActivityTimeline({ activities }: { activities: CrmActivity[] }) {
   const { t } = useTranslation();
+  const updateActivity = useUpdateActivity();
+  const deleteActivity = useDeleteActivity();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState('');
+  const [editBody, setEditBody] = useState('');
+
+  const startEdit = (activity: CrmActivity) => {
+    setEditingId(activity.id);
+    setEditType(activity.type);
+    setEditBody(activity.body);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditType('');
+    setEditBody('');
+  };
+
+  const saveEdit = () => {
+    if (!editingId || !editBody.trim()) return;
+    updateActivity.mutate({ id: editingId, type: editType, body: editBody.trim() }, {
+      onSuccess: () => cancelEdit(),
+    });
+  };
+
   if (activities.length === 0) {
     return (
       <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', padding: 'var(--spacing-sm) 0' }}>
@@ -653,16 +696,43 @@ function ActivityTimeline({ activities }: { activities: CrmActivity[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {activities.slice(0, 10).map((activity) => (
-        <div key={activity.id} className="crm-activity-item">
+        <div key={activity.id} className="crm-activity-item" style={{ position: 'relative' }}>
           <div className="crm-activity-icon">
             {getActivityIcon(activity.type)}
           </div>
-          <div className="crm-activity-body">
-            <div className="crm-activity-text">{activity.body}</div>
-            <div className="crm-activity-meta">
-              {getActivityLabel(activity.type, t)} &middot; {formatDate(activity.createdAt)}
+          {editingId === activity.id ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+              <Select
+                value={editType}
+                onChange={setEditType}
+                options={[
+                  { value: 'note', label: t('crm.activities.note') },
+                  { value: 'call', label: t('crm.activities.call') },
+                  { value: 'email', label: t('crm.activities.email') },
+                  { value: 'meeting', label: t('crm.activities.meeting') },
+                ]}
+                size="sm"
+              />
+              <Input value={editBody} onChange={(e) => setEditBody(e.target.value)} size="sm" autoFocus />
+              <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+                <Button variant="primary" size="sm" onClick={saveEdit} disabled={!editBody.trim()}>{t('crm.actions.save')}</Button>
+                <Button variant="ghost" size="sm" onClick={cancelEdit}>{t('crm.actions.cancel')}</Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="crm-activity-body" style={{ flex: 1 }}>
+              <div className="crm-activity-text">{activity.body}</div>
+              <div className="crm-activity-meta">
+                {getActivityLabel(activity.type, t)} &middot; {formatDate(activity.createdAt)}
+              </div>
+            </div>
+          )}
+          {editingId !== activity.id && (
+            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+              <IconButton icon={<Pencil size={12} />} label={t('crm.activities.editActivity')} size={24} onClick={() => startEdit(activity)} />
+              <IconButton icon={<Trash2 size={12} />} label={t('crm.activities.deleteActivity')} size={24} destructive onClick={() => deleteActivity.mutate(activity.id)} />
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -682,26 +752,14 @@ function DealDetailPanel({
 }) {
   const { t } = useTranslation();
   const [stageId, setStageId] = useState(deal.stageId);
-  const [detailTab, setDetailTab] = useState<'details' | 'emails' | 'calendar' | 'activities'>('details');
   const updateDeal = useUpdateDeal();
   const deleteDeal = useDeleteDeal();
   const { data: activitiesData } = useActivities({ dealId: deal.id });
   const activities = activitiesData?.activities ?? [];
-  const { data: googleStatus } = useGoogleSyncStatus();
-  const googleConnected = googleStatus?.connected ?? false;
 
   useEffect(() => {
     setStageId(deal.stageId);
   }, [deal.id, deal.stageId]);
-
-  const availableTabs = useMemo(() => {
-    const tabs: Array<'details' | 'emails' | 'calendar' | 'activities'> = ['details'];
-    if (googleConnected) {
-      tabs.push('emails', 'calendar');
-    }
-    tabs.push('activities');
-    return tabs;
-  }, [googleConnected]);
 
   return (
     <div className="crm-detail-panel">
@@ -721,144 +779,110 @@ function DealDetailPanel({
 
       <SmartButtonBar appId="crm" recordId={deal.id} />
 
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: 2, padding: '0 var(--spacing-md)', borderBottom: '1px solid var(--color-border-secondary)' }}>
-        {availableTabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setDetailTab(tab)}
-            style={{
-              padding: 'var(--spacing-sm) var(--spacing-md)',
-              fontSize: 'var(--font-size-xs)',
-              fontWeight: detailTab === tab ? 'var(--font-weight-semibold)' : 'var(--font-weight-normal)',
-              color: detailTab === tab ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
-              background: 'none',
-              border: 'none',
-              borderBottom: `2px solid ${detailTab === tab ? 'var(--color-accent-primary)' : 'transparent'}`,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-family)',
-              textTransform: 'capitalize',
-              transition: 'color 0.15s, border-color 0.15s',
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
       <div className="crm-detail-body">
-        {detailTab === 'details' && (
-          <>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-              {deal.title}
+        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+          {deal.title}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+          <div className="crm-detail-field">
+            <span className="crm-detail-field-label">{t('crm.deals.value')}</span>
+            <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+              {formatCurrency(deal.value)}
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-              <div className="crm-detail-field">
-                <span className="crm-detail-field-label">{t('crm.deals.value')}</span>
-                <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                  {formatCurrency(deal.value)}
-                </div>
-              </div>
-
-              <div className="crm-detail-field">
-                <span className="crm-detail-field-label">{t('crm.deals.stage')}</span>
-                <Select
-                  value={stageId}
-                  onChange={(v) => {
-                    setStageId(v);
-                    updateDeal.mutate({ id: deal.id, stageId: v });
-                  }}
-                  options={stages.map((s) => ({
-                    value: s.id,
-                    label: s.name,
-                    icon: <StatusDot color={s.color} size={8} />,
-                  }))}
-                  size="sm"
-                />
-              </div>
-
-              {deal.companyName && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                    <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                    {deal.companyName}
-                  </div>
-                </div>
-              )}
-
-              {deal.contactName && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.deals.contact')}</span>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-                    <Users size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                    {deal.contactName}
-                  </div>
-                </div>
-              )}
-
-              <div className="crm-detail-field">
-                <span className="crm-detail-field-label">{t('crm.deals.probability')}</span>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                  {deal.probability}%
-                </div>
-              </div>
-
-              {deal.expectedCloseDate && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.deals.expectedClose')}</span>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                    {formatDate(deal.expectedCloseDate)}
-                  </div>
-                </div>
-              )}
-
-              {deal.wonAt && (
-                <Badge variant="success">{t('crm.deals.wonOn')} {formatDate(deal.wonAt)}</Badge>
-              )}
-              {deal.lostAt && (
-                <div>
-                  <Badge variant="error">{t('crm.deals.lostOn')} {formatDate(deal.lostAt)}</Badge>
-                  {deal.lostReason && (
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', marginTop: 'var(--spacing-xs)' }}>
-                      {deal.lostReason}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!deal.wonAt && !deal.lostAt && (
-                <div className="crm-deal-action-buttons">
-                  <Button variant="primary" size="sm" icon={<Trophy size={14} />} onClick={onMarkWon}>
-                    {t('crm.deals.markWon')}
-                  </Button>
-                  <Button variant="danger" size="sm" icon={<XCircle size={14} />} onClick={onMarkLost}>
-                    {t('crm.deals.markLost')}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Notes */}
-            <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
-              <NotesSection dealId={deal.id} />
-            </div>
-          </>
-        )}
-
-        {detailTab === 'emails' && <EmailTimeline dealId={deal.id} />}
-
-        {detailTab === 'calendar' && <CalendarEvents dealId={deal.id} />}
-
-        {detailTab === 'activities' && (
-          <div style={{ marginTop: 'var(--spacing-sm)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
-              {t('crm.sidebar.activities')}
-            </div>
-            <ActivityTimeline activities={activities} />
           </div>
-        )}
+
+          <div className="crm-detail-field">
+            <span className="crm-detail-field-label">{t('crm.deals.stage')}</span>
+            <Select
+              value={stageId}
+              onChange={(v) => {
+                setStageId(v);
+                updateDeal.mutate({ id: deal.id, stageId: v });
+              }}
+              options={stages.map((s) => ({
+                value: s.id,
+                label: s.name,
+                icon: <StatusDot color={s.color} size={8} />,
+              }))}
+              size="sm"
+            />
+          </div>
+
+          {deal.companyName && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {deal.companyName}
+              </div>
+            </div>
+          )}
+
+          {deal.contactName && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.deals.contact')}</span>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                <Users size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {deal.contactName}
+              </div>
+            </div>
+          )}
+
+          <div className="crm-detail-field">
+            <span className="crm-detail-field-label">{t('crm.deals.probability')}</span>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+              {deal.probability}%
+            </div>
+          </div>
+
+          {deal.expectedCloseDate && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.deals.expectedClose')}</span>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                {formatDate(deal.expectedCloseDate)}
+              </div>
+            </div>
+          )}
+
+          {deal.wonAt && (
+            <Badge variant="success">{t('crm.deals.wonOn')} {formatDate(deal.wonAt)}</Badge>
+          )}
+          {deal.lostAt && (
+            <div>
+              <Badge variant="error">{t('crm.deals.lostOn')} {formatDate(deal.lostAt)}</Badge>
+              {deal.lostReason && (
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', marginTop: 'var(--spacing-xs)' }}>
+                  {deal.lostReason}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!deal.wonAt && !deal.lostAt && (
+            <div className="crm-deal-action-buttons">
+              <Button variant="primary" size="sm" icon={<Trophy size={14} />} onClick={onMarkWon}>
+                {t('crm.deals.markWon')}
+              </Button>
+              <Button variant="danger" size="sm" icon={<XCircle size={14} />} onClick={onMarkLost}>
+                {t('crm.deals.markLost')}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Activities */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
+            {t('crm.sidebar.activities')}
+          </div>
+          <ActivityTimeline activities={activities} />
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <NotesSection dealId={deal.id} />
+        </div>
       </div>
     </div>
   );
@@ -874,23 +898,11 @@ function ContactDetailPanel({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const [detailTab, setDetailTab] = useState<'details' | 'emails' | 'calendar' | 'activities'>('details');
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
   const { data: activitiesData } = useActivities({ contactId: contact.id });
   const activities = activitiesData?.activities ?? [];
   const contactDeals = deals.filter((d) => d.contactId === contact.id);
-  const { data: googleStatus } = useGoogleSyncStatus();
-  const googleConnected = googleStatus?.connected ?? false;
-
-  const availableTabs = useMemo(() => {
-    const tabs: Array<'details' | 'emails' | 'calendar' | 'activities'> = ['details'];
-    if (googleConnected) {
-      tabs.push('emails', 'calendar');
-    }
-    tabs.push('activities');
-    return tabs;
-  }, [googleConnected]);
 
   return (
     <div className="crm-detail-panel">
@@ -910,124 +922,90 @@ function ContactDetailPanel({
 
       <SmartButtonBar appId="crm" recordId={contact.id} />
 
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: 2, padding: '0 var(--spacing-md)', borderBottom: '1px solid var(--color-border-secondary)' }}>
-        {availableTabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setDetailTab(tab)}
-            style={{
-              padding: 'var(--spacing-sm) var(--spacing-md)',
-              fontSize: 'var(--font-size-xs)',
-              fontWeight: detailTab === tab ? 'var(--font-weight-semibold)' : 'var(--font-weight-normal)',
-              color: detailTab === tab ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
-              background: 'none',
-              border: 'none',
-              borderBottom: `2px solid ${detailTab === tab ? 'var(--color-accent-primary)' : 'transparent'}`,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-family)',
-              textTransform: 'capitalize',
-              transition: 'color 0.15s, border-color 0.15s',
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
       <div className="crm-detail-body">
-        {detailTab === 'details' && (
-          <>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-              {contact.name}
-            </div>
-            {contact.position && (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', marginTop: -8 }}>
-                {contact.position}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-              {contact.email && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.contacts.email')}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                    <Mail size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                    {contact.email}
-                  </div>
-                </div>
-              )}
-
-              {contact.phone && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.contacts.phone')}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                    <PhoneIcon size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                    {contact.phone}
-                  </div>
-                </div>
-              )}
-
-              {contact.companyName && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                    <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                    {contact.companyName}
-                  </div>
-                </div>
-              )}
-
-              {contact.source && (
-                <div className="crm-detail-field">
-                  <span className="crm-detail-field-label">{t('crm.contacts.source')}</span>
-                  <Badge variant="default">{contact.source}</Badge>
-                </div>
-              )}
-            </div>
-
-            {/* Linked deals */}
-            {contactDeals.length > 0 && (
-              <div style={{ marginTop: 'var(--spacing-sm)' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
-                  {t('crm.sidebar.deals')}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                  {contactDeals.map((deal) => (
-                    <div key={deal.id} style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '8px var(--spacing-sm)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-secondary)',
-                      fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
-                    }}>
-                      <span style={{ color: 'var(--color-text-primary)' }}>{deal.title}</span>
-                      <span style={{ color: 'var(--color-text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>{formatCurrency(deal.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <CustomFieldsRenderer appId="crm" recordType="contacts" recordId={contact.id} />
-
-            {/* Notes */}
-            <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
-              <NotesSection contactId={contact.id} />
-            </div>
-          </>
-        )}
-
-        {detailTab === 'emails' && <EmailTimeline contactId={contact.id} defaultTo={contact.email ?? undefined} />}
-
-        {detailTab === 'calendar' && <CalendarEvents contactId={contact.id} defaultAttendee={contact.email ?? undefined} />}
-
-        {detailTab === 'activities' && (
-          <div style={{ marginTop: 'var(--spacing-sm)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
-              {t('crm.sidebar.activities')}
-            </div>
-            <ActivityTimeline activities={activities} />
+        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+          {contact.name}
+        </div>
+        {contact.position && (
+          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', marginTop: -8 }}>
+            {contact.position}
           </div>
         )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+          {contact.email && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.contacts.email')}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                <Mail size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {contact.email}
+              </div>
+            </div>
+          )}
+
+          {contact.phone && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.contacts.phone')}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                <PhoneIcon size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {contact.phone}
+              </div>
+            </div>
+          )}
+
+          {contact.companyName && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {contact.companyName}
+              </div>
+            </div>
+          )}
+
+          {contact.source && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.contacts.source')}</span>
+              <Badge variant="default">{contact.source}</Badge>
+            </div>
+          )}
+        </div>
+
+        {/* Linked deals */}
+        {contactDeals.length > 0 && (
+          <div style={{ marginTop: 'var(--spacing-sm)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
+              {t('crm.sidebar.deals')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+              {contactDeals.map((deal) => (
+                <div key={deal.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '8px var(--spacing-sm)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-secondary)',
+                  fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
+                }}>
+                  <span style={{ color: 'var(--color-text-primary)' }}>{deal.title}</span>
+                  <span style={{ color: 'var(--color-text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>{formatCurrency(deal.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <CustomFieldsRenderer appId="crm" recordType="contacts" recordId={contact.id} />
+
+        {/* Activities */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
+            {t('crm.sidebar.activities')}
+          </div>
+          <ActivityTimeline activities={activities} />
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
+          <NotesSection contactId={contact.id} />
+        </div>
       </div>
     </div>
   );
@@ -2673,6 +2651,7 @@ export function CrmPage() {
         open={showCreateContact}
         onClose={() => setShowCreateContact(false)}
         companies={companies}
+        contacts={contacts}
       />
       <CreateCompanyModal
         open={showCreateCompany}
