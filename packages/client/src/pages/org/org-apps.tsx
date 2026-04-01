@@ -12,7 +12,7 @@ import { Modal } from '../../components/ui/modal';
 import { AppPermissionsPanel } from '../../components/shared/app-permissions-panel';
 
 // Apps that support the generic permission management UI
-const APPS_WITH_PERMISSIONS = new Set(['crm', 'hr', 'tasks']);
+const APPS_WITH_PERMISSIONS = new Set(['crm', 'hr', 'tasks', 'drive', 'docs', 'draw', 'tables', 'sign', 'projects']);
 
 // ---------------------------------------------------------------------------
 // App descriptions

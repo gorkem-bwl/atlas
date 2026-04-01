@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as signService from './service';
 import { logger } from '../../utils/logger';
 import { emitAppEvent } from '../../services/event.service';
+import { getAppPermission, canAccess } from '../../services/app-permissions.service';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
 
@@ -11,6 +12,12 @@ const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
 
 export async function getWidgetData(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const data = await signService.getWidgetData(userId, accountId);
@@ -26,6 +33,12 @@ export async function getWidgetData(req: Request, res: Response) {
 // GET /api/sign
 export async function listDocuments(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const docs = await signService.listDocuments(userId, accountId);
@@ -39,6 +52,12 @@ export async function listDocuments(req: Request, res: Response) {
 // POST /api/sign
 export async function createDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { title, fileName, storagePath, pageCount, status, expiresAt, tags } = req.body;
@@ -67,6 +86,12 @@ export async function createDocument(req: Request, res: Response) {
 // POST /api/sign/upload
 export async function uploadPDF(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const file = req.file as Express.Multer.File;
@@ -97,6 +122,12 @@ export async function uploadPDF(req: Request, res: Response) {
 // GET /api/sign/:id
 export async function getDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -116,6 +147,12 @@ export async function getDocument(req: Request, res: Response) {
 // PUT /api/sign/:id
 export async function updateDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
     const { title, status, expiresAt, tags, pageCount } = req.body;
@@ -143,6 +180,12 @@ export async function updateDocument(req: Request, res: Response) {
 // DELETE /api/sign/:id
 export async function deleteDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -157,6 +200,12 @@ export async function deleteDocument(req: Request, res: Response) {
 // GET /api/sign/:id/view
 export async function viewPDF(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -188,6 +237,12 @@ export async function viewPDF(req: Request, res: Response) {
 // GET /api/sign/:id/download
 export async function downloadPDF(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -221,6 +276,12 @@ export async function downloadPDF(req: Request, res: Response) {
 // POST /api/sign/:id/void
 export async function voidDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update sign documents' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -274,6 +335,12 @@ export async function seedSampleData(req: Request, res: Response) {
 // GET /api/sign/:id/fields
 export async function listFields(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
+      return;
+    }
+
     const documentId = req.params.id as string;
     const fields = await signService.listFields(documentId);
     res.json({ success: true, data: { fields } });
@@ -286,6 +353,12 @@ export async function listFields(req: Request, res: Response) {
 // POST /api/sign/:id/fields
 export async function createField(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create sign fields' });
+      return;
+    }
+
     const documentId = req.params.id as string;
     const { type, pageNumber, x, y, width, height, signerEmail, label, required, sortOrder } = req.body;
 
@@ -317,6 +390,12 @@ export async function createField(req: Request, res: Response) {
 // PUT /api/sign/fields/:fieldId
 export async function updateField(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update sign fields' });
+      return;
+    }
+
     const fieldId = req.params.fieldId as string;
     const { type, pageNumber, x, y, width, height, signerEmail, label, required, sortOrder } = req.body;
 
@@ -348,6 +427,12 @@ export async function updateField(req: Request, res: Response) {
 // DELETE /api/sign/fields/:fieldId
 export async function deleteField(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete sign fields' });
+      return;
+    }
+
     const fieldId = req.params.fieldId as string;
     await signService.deleteField(fieldId);
     res.json({ success: true, data: null });
@@ -362,6 +447,12 @@ export async function deleteField(req: Request, res: Response) {
 // POST /api/sign/:id/tokens
 export async function createSigningToken(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create signing tokens' });
+      return;
+    }
+
     const documentId = req.params.id as string;
     const { email, name, expiresInDays } = req.body;
 
@@ -400,6 +491,12 @@ export async function createSigningToken(req: Request, res: Response) {
 // GET /api/sign/:id/tokens
 export async function listSigningTokens(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view signing tokens' });
+      return;
+    }
+
     const documentId = req.params.id as string;
     const tokens = await signService.listSigningTokens(documentId);
     res.json({ success: true, data: { tokens } });

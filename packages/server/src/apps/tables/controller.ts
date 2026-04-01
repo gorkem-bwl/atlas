@@ -1,10 +1,17 @@
 import type { Request, Response } from 'express';
 import * as tableService from './service';
 import { logger } from '../../utils/logger';
+import { getAppPermission, canAccess } from '../../services/app-permissions.service';
 
 // GET /api/tables
 export async function listSpreadsheets(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const includeArchived = req.query.includeArchived === 'true';
@@ -24,6 +31,12 @@ export async function listSpreadsheets(req: Request, res: Response) {
 // POST /api/tables
 export async function createSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { title, columns, rows, viewConfig, color, icon } = req.body;
@@ -47,6 +60,12 @@ export async function createSpreadsheet(req: Request, res: Response) {
 // GET /api/tables/:id
 export async function getSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const spreadsheetId = req.params.id as string;
 
@@ -67,6 +86,12 @@ export async function getSpreadsheet(req: Request, res: Response) {
 // PATCH /api/tables/:id
 export async function updateSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const spreadsheetId = req.params.id as string;
     const { title, columns, rows, viewConfig, isArchived, color, icon, guide } = req.body;
@@ -97,6 +122,12 @@ export async function updateSpreadsheet(req: Request, res: Response) {
 // DELETE /api/tables/:id (soft delete)
 export async function deleteSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const spreadsheetId = req.params.id as string;
 
@@ -117,6 +148,12 @@ export async function deleteSpreadsheet(req: Request, res: Response) {
 // PATCH /api/tables/:id/restore
 export async function restoreSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const spreadsheetId = req.params.id as string;
 
@@ -151,6 +188,12 @@ export async function seedSampleData(req: Request, res: Response) {
 // GET /api/tables/search?q=...
 export async function searchSpreadsheets(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view tables' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 

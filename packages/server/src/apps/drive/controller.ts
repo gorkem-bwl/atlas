@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as driveService from './service';
 import { logger } from '../../utils/logger';
 import { emitAppEvent } from '../../services/event.service';
+import { getAppPermission, canAccess } from '../../services/app-permissions.service';
 import path from 'node:path';
 import { existsSync, createReadStream, readFileSync, statSync } from 'node:fs';
 import archiver from 'archiver';
@@ -11,6 +12,12 @@ const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
 // GET /api/drive/widget
 export async function getWidgetData(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const data = await driveService.getWidgetData(userId);
     res.json({ success: true, data });
@@ -23,6 +30,12 @@ export async function getWidgetData(req: Request, res: Response) {
 // GET /api/drive
 export async function listItems(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const parentId = (req.query.parentId as string) || null;
@@ -43,6 +56,12 @@ export async function listItems(req: Request, res: Response) {
 // POST /api/drive/folder
 export async function createFolder(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { name, parentId } = req.body;
@@ -58,6 +77,12 @@ export async function createFolder(req: Request, res: Response) {
 // POST /api/drive/upload
 export async function uploadFiles(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const parentId = (req.body.parentId as string) || null;
@@ -105,6 +130,12 @@ export async function uploadFiles(req: Request, res: Response) {
 // GET /api/drive/search?q=
 export async function searchItems(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 
@@ -124,6 +155,12 @@ export async function searchItems(req: Request, res: Response) {
 // GET /api/drive/trash
 export async function listTrash(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const items = await driveService.listTrash(userId);
     res.json({ success: true, data: { items } });
@@ -136,6 +173,12 @@ export async function listTrash(req: Request, res: Response) {
 // GET /api/drive/favourites
 export async function listFavourites(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const items = await driveService.listFavourites(userId);
     res.json({ success: true, data: { items } });
@@ -148,6 +191,12 @@ export async function listFavourites(req: Request, res: Response) {
 // GET /api/drive/recent
 export async function listRecent(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const limit = parseInt(req.query.limit as string) || 20;
     const items = await driveService.listRecent(userId, limit);
@@ -161,6 +210,12 @@ export async function listRecent(req: Request, res: Response) {
 // GET /api/drive/folders
 export async function listFolders(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const folders = await driveService.listFolders(userId);
     res.json({ success: true, data: { folders } });
@@ -173,6 +228,12 @@ export async function listFolders(req: Request, res: Response) {
 // GET /api/drive/storage
 export async function getStorageUsage(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const usage = await driveService.getStorageUsage(userId);
     res.json({ success: true, data: usage });
@@ -185,6 +246,12 @@ export async function getStorageUsage(req: Request, res: Response) {
 // GET /api/drive/:id
 export async function getItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -204,6 +271,12 @@ export async function getItem(req: Request, res: Response) {
 // GET /api/drive/:id/breadcrumbs
 export async function getBreadcrumbs(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -218,6 +291,12 @@ export async function getBreadcrumbs(req: Request, res: Response) {
 // PATCH /api/drive/:id
 export async function updateItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
     const { name, parentId, icon, isFavourite, isArchived, tags } = req.body;
@@ -246,6 +325,12 @@ export async function updateItem(req: Request, res: Response) {
 // DELETE /api/drive/:id (soft delete)
 export async function deleteItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -260,6 +345,12 @@ export async function deleteItem(req: Request, res: Response) {
 // PATCH /api/drive/:id/restore
 export async function restoreItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -279,6 +370,12 @@ export async function restoreItem(req: Request, res: Response) {
 // DELETE /api/drive/:id/permanent
 export async function permanentDelete(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -293,6 +390,12 @@ export async function permanentDelete(req: Request, res: Response) {
 // POST /api/drive/:id/duplicate
 export async function duplicateItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -312,6 +415,12 @@ export async function duplicateItem(req: Request, res: Response) {
 // POST /api/drive/:id/copy
 export async function copyItem(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const itemId = req.params.id as string;
@@ -333,6 +442,12 @@ export async function copyItem(req: Request, res: Response) {
 // POST /api/drive/batch/delete
 export async function batchDelete(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const { itemIds } = req.body as { itemIds: string[] };
 
@@ -352,6 +467,12 @@ export async function batchDelete(req: Request, res: Response) {
 // POST /api/drive/batch/move
 export async function batchMove(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const { itemIds, parentId } = req.body as { itemIds: string[]; parentId: string | null };
 
@@ -371,6 +492,12 @@ export async function batchMove(req: Request, res: Response) {
 // POST /api/drive/batch/favourite
 export async function batchFavourite(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const { itemIds, isFavourite } = req.body as { itemIds: string[]; isFavourite: boolean };
 
@@ -390,6 +517,12 @@ export async function batchFavourite(req: Request, res: Response) {
 // GET /api/drive/:id/download-zip
 export async function downloadZip(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -428,6 +561,12 @@ export async function downloadZip(req: Request, res: Response) {
 // GET /api/drive/:id/download
 export async function downloadFile(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -460,6 +599,12 @@ export async function downloadFile(req: Request, res: Response) {
 // GET /api/drive/:id/view — inline view (for PDF/video/audio preview)
 export async function viewFile(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -492,6 +637,12 @@ export async function viewFile(req: Request, res: Response) {
 // GET /api/drive/by-type?type=images|documents|videos|audio
 export async function listItemsByType(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const typeCategory = (req.query.type as string) || '';
 
@@ -511,6 +662,12 @@ export async function listItemsByType(req: Request, res: Response) {
 // GET /api/drive/:id/versions
 export async function listVersions(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -525,6 +682,12 @@ export async function listVersions(req: Request, res: Response) {
 // POST /api/drive/:id/replace — upload new version
 export async function replaceFile(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const itemId = req.params.id as string;
@@ -574,6 +737,12 @@ export async function replaceFile(req: Request, res: Response) {
 // POST /api/drive/:id/versions/:versionId/restore
 export async function restoreVersion(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const itemId = req.params.id as string;
@@ -595,6 +764,12 @@ export async function restoreVersion(req: Request, res: Response) {
 // GET /api/drive/:id/versions/:versionId/download
 export async function downloadVersion(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const versionId = req.params.versionId as string;
 
@@ -627,6 +802,12 @@ export async function downloadVersion(req: Request, res: Response) {
 // POST /api/drive/:id/share — create share link
 export async function createShareLink(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
     const { expiresAt } = req.body as { expiresAt?: string };
@@ -659,6 +840,12 @@ export async function createShareLink(req: Request, res: Response) {
 // GET /api/drive/:id/share — list share links
 export async function listShareLinks(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -673,6 +860,12 @@ export async function listShareLinks(req: Request, res: Response) {
 // DELETE /api/drive/share/:linkId
 export async function deleteShareLink(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const linkId = req.params.linkId as string;
 
@@ -687,6 +880,12 @@ export async function deleteShareLink(req: Request, res: Response) {
 // POST /api/drive/create-document
 export async function createLinkedDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { parentId } = req.body as { parentId?: string };
@@ -702,6 +901,12 @@ export async function createLinkedDocument(req: Request, res: Response) {
 // POST /api/drive/create-drawing
 export async function createLinkedDrawing(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { parentId } = req.body as { parentId?: string };
@@ -717,6 +922,12 @@ export async function createLinkedDrawing(req: Request, res: Response) {
 // POST /api/drive/create-spreadsheet
 export async function createLinkedSpreadsheet(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { parentId } = req.body as { parentId?: string };
@@ -732,6 +943,12 @@ export async function createLinkedSpreadsheet(req: Request, res: Response) {
 // POST /api/drive/:id/shares — share item with a user
 export async function shareWithUser(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
     const { userId: targetUserId, permission } = req.body as { userId?: string; permission?: string };
@@ -750,6 +967,12 @@ export async function shareWithUser(req: Request, res: Response) {
 // GET /api/drive/:id/shares — list shares for an item
 export async function listShares(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const itemId = req.params.id as string;
     const shares = await driveService.listItemShares(itemId);
     res.json({ success: true, data: shares });
@@ -762,6 +985,12 @@ export async function listShares(req: Request, res: Response) {
 // DELETE /api/drive/:id/shares/:userId — revoke share
 export async function revokeShare(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update in drive' });
+      return;
+    }
+
     const itemId = req.params.id as string;
     const targetUserId = req.params.userId as string;
     await driveService.revokeShare(itemId, targetUserId);
@@ -775,6 +1004,12 @@ export async function revokeShare(req: Request, res: Response) {
 // GET /api/drive/shared-with-me — list items shared with current user
 export async function getSharedWithMe(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const items = await driveService.listSharedWithMe(userId, accountId);
@@ -816,6 +1051,12 @@ function isPreviewable(mimeType: string | null, name: string): boolean {
 
 export async function previewFile(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 

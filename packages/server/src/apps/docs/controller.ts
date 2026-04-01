@@ -1,10 +1,17 @@
 import type { Request, Response } from 'express';
 import * as documentService from './service';
 import { logger } from '../../utils/logger';
+import { getAppPermission, canAccess } from '../../services/app-permissions.service';
 
 // GET /api/docs
 export async function listDocuments(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const includeArchived = req.query.includeArchived === 'true';
@@ -25,6 +32,12 @@ export async function listDocuments(req: Request, res: Response) {
 // POST /api/docs
 export async function createDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const { parentId, title, icon, content } = req.body;
@@ -46,6 +59,12 @@ export async function createDocument(req: Request, res: Response) {
 // GET /api/docs/:id
 export async function getDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -66,6 +85,12 @@ export async function getDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id
 export async function updateDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
     const { title, content, icon, coverImage, parentId, isArchived } = req.body;
@@ -94,6 +119,12 @@ export async function updateDocument(req: Request, res: Response) {
 // DELETE /api/docs/:id (soft delete)
 export async function deleteDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -109,6 +140,12 @@ export async function deleteDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id/move
 export async function moveDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
     const { parentId, sortOrder } = req.body;
@@ -142,6 +179,12 @@ export async function moveDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id/restore
 export async function restoreDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -162,6 +205,12 @@ export async function restoreDocument(req: Request, res: Response) {
 // GET /api/docs/search?q=...
 export async function searchDocuments(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 
@@ -181,6 +230,12 @@ export async function searchDocuments(req: Request, res: Response) {
 // GET /api/docs/:id/versions
 export async function listVersions(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -195,6 +250,12 @@ export async function listVersions(req: Request, res: Response) {
 // POST /api/docs/:id/versions (create a snapshot)
 export async function createVersion(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -214,6 +275,12 @@ export async function createVersion(req: Request, res: Response) {
 // POST /api/docs/:id/versions/:versionId/restore
 export async function restoreVersion(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
     const versionId = req.params.versionId as string;
@@ -250,6 +317,12 @@ export async function seedSampleData(req: Request, res: Response) {
 
 export async function listComments(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const comments = await documentService.listComments(req.auth!.userId, req.params.id as string);
     res.json({ success: true, data: comments });
   } catch (error) {
@@ -260,6 +333,12 @@ export async function listComments(req: Request, res: Response) {
 
 export async function createComment(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in docs' });
+      return;
+    }
+
     const comment = await documentService.createComment(req.auth!.userId, req.auth!.accountId, req.params.id as string, req.body);
     res.json({ success: true, data: comment });
   } catch (error) {
@@ -270,6 +349,12 @@ export async function createComment(req: Request, res: Response) {
 
 export async function updateComment(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const comment = await documentService.updateComment(req.auth!.userId, req.params.commentId as string, req.body);
     if (!comment) { res.status(404).json({ success: false, error: 'Comment not found' }); return; }
     res.json({ success: true, data: comment });
@@ -281,6 +366,12 @@ export async function updateComment(req: Request, res: Response) {
 
 export async function deleteComment(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to delete in docs' });
+      return;
+    }
+
     await documentService.deleteComment(req.auth!.userId, req.params.commentId as string);
     res.json({ success: true, data: null });
   } catch (error) {
@@ -291,6 +382,12 @@ export async function deleteComment(req: Request, res: Response) {
 
 export async function resolveComment(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update docs' });
+      return;
+    }
+
     const comment = await documentService.resolveComment(req.auth!.userId, req.params.commentId as string);
     if (!comment) { res.status(404).json({ success: false, error: 'Comment not found' }); return; }
     res.json({ success: true, data: comment });
@@ -304,6 +401,12 @@ export async function resolveComment(req: Request, res: Response) {
 
 export async function getBacklinks(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view docs' });
+      return;
+    }
+
     const backlinks = await documentService.getBacklinks(req.auth!.userId, req.params.id as string);
     res.json({ success: true, data: backlinks });
   } catch (error) {
@@ -316,6 +419,12 @@ export async function getBacklinks(req: Request, res: Response) {
 
 export async function importDocument(req: Request, res: Response) {
   try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create in docs' });
+      return;
+    }
+
     // Simple import: accept { html, title } from client
     // Client handles file conversion (mammoth for docx, marked for md)
     const { html, title } = req.body;
