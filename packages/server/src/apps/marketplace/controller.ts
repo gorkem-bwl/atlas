@@ -170,7 +170,8 @@ export async function deploy(req: Request, res: Response) {
       // Non-critical
     }
 
-    res.status(500).json({ success: false, error: 'Failed to deploy app' });
+    const msg = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ success: false, error: `Failed to deploy app: ${msg}` });
   }
 }
 
