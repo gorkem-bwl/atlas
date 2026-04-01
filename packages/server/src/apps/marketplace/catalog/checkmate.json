@@ -1,0 +1,30 @@
+{
+  "id": "checkmate",
+  "name": "Checkmate",
+  "description": "Open-source uptime monitoring for your websites and APIs",
+  "icon": "Activity",
+  "category": "monitoring",
+  "color": "#4f46e5",
+  "website": "https://github.com/bluewave-labs/checkmate",
+  "license": "AGPL-3.0",
+  "services": {
+    "app": {
+      "image": "bluewave-labs/checkmate:latest",
+      "port": 5000,
+      "healthCheck": "/api/v1/health",
+      "env": {
+        "NODE_ENV": "production",
+        "JWT_SECRET": "$SECRET_JWT_64",
+        "DB_CONNECTION_STRING": "mongodb://mongo:27017/checkmate"
+      },
+      "dependsOn": ["mongo"]
+    },
+    "mongo": {
+      "image": "mongo:7",
+      "volumes": ["data:/data/db"],
+      "healthCheck": "mongosh --eval \"db.adminCommand('ping')\" --quiet"
+    }
+  },
+  "userEnv": [],
+  "resources": { "minRam": "512MB", "estimatedDisk": "500MB" }
+}

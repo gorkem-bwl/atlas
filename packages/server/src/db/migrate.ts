@@ -1691,6 +1691,26 @@ export async function runMigrations() {
       logger.info('Skipped CRM permission migration (crm_permissions table may not exist)');
     }
 
+    // ─── Marketplace: Installed Apps ──────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS marketplace_apps (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        app_id VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'stopped',
+        assigned_port INTEGER NOT NULL,
+        container_ids JSONB,
+        image_digest VARCHAR(255),
+        latest_digest VARCHAR(255),
+        generated_secrets TEXT,
+        env_overrides JSONB,
+        installed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(account_id, app_id)
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_marketplace_apps_unique ON marketplace_apps(account_id, app_id);
+    `);
+
     logger.info('Database migrations completed');
   } finally {
     await client.end();
