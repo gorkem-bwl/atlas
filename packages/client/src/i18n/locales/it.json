@@ -1284,7 +1284,8 @@
       "employees": "dipendenti",
       "unassigned": "Non assegnato",
       "empty": "Nessun dato organigramma",
-      "emptyDesc": "Aggiungi reparti e dipendenti per vedere l'organigramma."
+      "emptyDesc": "Aggiungi reparti e dipendenti per vedere l'organigramma.",
+      "searchPlaceholder": "Cerca per nome o e-mail..."
     },
     "leaveBalance": {
       "title": "Saldo permessi",

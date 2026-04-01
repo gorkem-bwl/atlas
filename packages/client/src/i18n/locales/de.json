@@ -1284,7 +1284,8 @@
       "employees": "Mitarbeiter",
       "unassigned": "Nicht zugewiesen",
       "empty": "Keine Organigramm-Daten",
-      "emptyDesc": "Fuegen Sie Abteilungen und Mitarbeiter hinzu."
+      "emptyDesc": "Fuegen Sie Abteilungen und Mitarbeiter hinzu.",
+      "searchPlaceholder": "Nach Name oder E-Mail suchen..."
     },
     "leaveBalance": {
       "title": "Urlaubskonto",

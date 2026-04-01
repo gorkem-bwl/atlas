@@ -52,6 +52,7 @@
     "@tiptap/react": "^2.10.0",
     "@tiptap/starter-kit": "^2.10.0",
     "@tiptap/suggestion": "^3.20.0",
+    "@xyflow/react": "^12.10.2",
     "axios": "^1.7.0",
     "boring-avatars": "^2.0.4",
     "clsx": "^2.1.0",

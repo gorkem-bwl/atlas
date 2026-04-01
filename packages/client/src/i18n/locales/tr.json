@@ -1284,7 +1284,8 @@
       "employees": "çalışan",
       "unassigned": "Atanmamış",
       "empty": "Org şeması verisi yok",
-      "emptyDesc": "Org şemasını görmek için departman ve çalışan ekleyin."
+      "emptyDesc": "Org şemasını görmek için departman ve çalışan ekleyin.",
+      "searchPlaceholder": "İsim veya e-posta ile ara..."
     },
     "leaveBalance": {
       "title": "İzin bakiyesi",

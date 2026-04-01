@@ -1284,7 +1284,8 @@
       "employees": "employes",
       "unassigned": "Non assigne",
       "empty": "Pas de donnees d'organigramme",
-      "emptyDesc": "Ajoutez des departements et des employes."
+      "emptyDesc": "Ajoutez des departements et des employes.",
+      "searchPlaceholder": "Rechercher par nom ou e-mail..."
     },
     "leaveBalance": {
       "title": "Solde de conges",

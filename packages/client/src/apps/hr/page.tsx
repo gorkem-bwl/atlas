@@ -53,6 +53,7 @@ import { useUIStore } from '../../stores/ui-store';
 import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { useHrSettingsStore } from './settings-store';
 import { StatCard } from '../../components/ui/stat-card';
+import { OrgChartView } from './components/org-chart';
 import { formatDate } from '../../lib/format';
 import '../../styles/hr.css';
 
@@ -1311,172 +1312,6 @@ function DashboardView() {
                   </span>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Org Chart View ───────────────────────────────────────────────
-
-function OrgChartView({
-  departments,
-  employees,
-}: {
-  departments: HrDepartment[];
-  employees: HrEmployee[];
-}) {
-  const { t } = useTranslation();
-
-  // Build tree: departments with employees grouped under them
-  const deptTree = useMemo(() => {
-    return departments.map((dept) => {
-      const head = dept.headEmployeeId ? employees.find((e) => e.id === dept.headEmployeeId) : null;
-      const members = employees.filter((e) => e.departmentId === dept.id && e.id !== dept.headEmployeeId);
-
-      // Group by manager
-      const managerGroups: Record<string, HrEmployee[]> = {};
-      const directMembers: HrEmployee[] = [];
-      for (const m of members) {
-        if (m.managerId && m.managerId !== dept.headEmployeeId) {
-          if (!managerGroups[m.managerId]) managerGroups[m.managerId] = [];
-          managerGroups[m.managerId].push(m);
-        } else {
-          directMembers.push(m);
-        }
-      }
-
-      return { dept, head, directMembers, managerGroups };
-    });
-  }, [departments, employees]);
-
-  const unassigned = employees.filter((e) => !e.departmentId);
-
-  if (departments.length === 0) {
-    return (
-      <div className="hr-empty-state">
-        <GitBranch size={48} className="hr-empty-state-icon" />
-        <div className="hr-empty-state-title">{t('hr.orgChart.empty')}</div>
-        <div className="hr-empty-state-desc">{t('hr.orgChart.emptyDesc')}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding: 'var(--spacing-lg)', overflow: 'auto', flex: 1 }}>
-      {/* Company root */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
-        <div style={{
-          padding: 'var(--spacing-md) var(--spacing-xl)',
-          borderRadius: 'var(--radius-lg)', border: '2px solid var(--color-accent-primary)',
-          background: 'var(--color-bg-primary)', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-            {t('hr.orgChart.organization')}
-          </div>
-          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
-            {employees.length} {t('hr.orgChart.employees')}
-          </div>
-        </div>
-
-        {/* Connector line */}
-        <div style={{ width: 2, height: 24, background: 'var(--color-border-primary)' }} />
-
-        {/* Department level */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xl)', justifyContent: 'center' }}>
-          {deptTree.map(({ dept, head, directMembers, managerGroups }) => (
-            <div key={dept.id} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-sm)',
-              minWidth: 200,
-            }}>
-              {/* Department node */}
-              <div style={{
-                padding: 'var(--spacing-md)', borderRadius: 'var(--radius-lg)',
-                border: `2px solid ${dept.color}`, background: 'var(--color-bg-primary)',
-                textAlign: 'center', width: '100%',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-xs)', marginBottom: 4 }}>
-                  <StatusDot color={dept.color} size={10} />
-                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                    {dept.name}
-                  </span>
-                </div>
-                {head && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-xs)' }}>
-                    <Avatar name={head.name} size={22} />
-                    <div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                        {head.name}
-                      </div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
-                        {head.jobTitle || head.role}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Connector */}
-              {directMembers.length > 0 && (
-                <div style={{ width: 2, height: 12, background: 'var(--color-border-secondary)' }} />
-              )}
-
-              {/* Members */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
-                {directMembers.map((emp) => (
-                  <div key={emp.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)',
-                    padding: '6px var(--spacing-sm)', borderRadius: 'var(--radius-sm)',
-                    background: 'var(--color-bg-secondary)', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)',
-                  }}>
-                    <Avatar name={emp.name} size={20} />
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {emp.name}
-                      </div>
-                      <div style={{ color: 'var(--color-text-tertiary)', fontSize: '10px' }}>
-                        {emp.jobTitle || emp.role}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* Unassigned employees */}
-          {unassigned.length > 0 && (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-sm)',
-              minWidth: 200,
-            }}>
-              <div style={{
-                padding: 'var(--spacing-md)', borderRadius: 'var(--radius-lg)',
-                border: '2px dashed var(--color-border-primary)', background: 'var(--color-bg-primary)',
-                textAlign: 'center', width: '100%',
-              }}>
-                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
-                  {t('hr.orgChart.unassigned')}
-                </span>
-              </div>
-              <div style={{ width: 2, height: 12, background: 'var(--color-border-secondary)' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
-                {unassigned.map((emp) => (
-                  <div key={emp.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)',
-                    padding: '6px var(--spacing-sm)', borderRadius: 'var(--radius-sm)',
-                    background: 'var(--color-bg-secondary)', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)',
-                  }}>
-                    <Avatar name={emp.name} size={20} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{emp.name}</div>
-                      <div style={{ color: 'var(--color-text-tertiary)', fontSize: '10px' }}>{emp.jobTitle || emp.role}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>
@@ -2855,7 +2690,7 @@ export function HrPage() {
         {activeNav === 'dashboard' && <DashboardView />}
 
         {activeNav === 'org-chart' && (
-          <OrgChartView departments={departments} employees={allEmployees} />
+          <OrgChartView departments={departments} employees={allEmployees} onSelectEmployee={(id) => { setActiveNav('employees'); setSelectedEmployeeId(id); }} />
         )}
 
         {(activeNav === 'employees' || activeNav.startsWith('dept:')) && (

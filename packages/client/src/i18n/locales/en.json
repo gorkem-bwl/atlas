@@ -1314,7 +1314,8 @@
       "employees": "employees",
       "unassigned": "Unassigned",
       "empty": "No org chart data",
-      "emptyDesc": "Add departments and employees to see the org chart."
+      "emptyDesc": "Add departments and employees to see the org chart.",
+      "searchPlaceholder": "Search by name or email..."
     },
     "leaveBalance": {
       "title": "Leave balance",
