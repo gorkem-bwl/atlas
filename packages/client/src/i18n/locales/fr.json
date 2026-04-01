@@ -1285,7 +1285,12 @@
       "unassigned": "Non assigne",
       "empty": "Pas de donnees d'organigramme",
       "emptyDesc": "Ajoutez des departements et des employes.",
-      "searchPlaceholder": "Rechercher par nom ou e-mail..."
+      "searchPlaceholder": "Rechercher par nom ou e-mail...",
+      "allDepartments": "Tous les départements",
+      "allStatuses": "Tous les statuts",
+      "dragHint": "Glissez une personne pour changer son responsable",
+      "reassigned": "Ligne hiérarchique mise à jour",
+      "madeRoot": "Employé déplacé au niveau supérieur"
     },
     "leaveBalance": {
       "title": "Solde de conges",

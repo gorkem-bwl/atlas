@@ -1285,7 +1285,12 @@
       "unassigned": "Atanmamış",
       "empty": "Org şeması verisi yok",
       "emptyDesc": "Org şemasını görmek için departman ve çalışan ekleyin.",
-      "searchPlaceholder": "İsim veya e-posta ile ara..."
+      "searchPlaceholder": "İsim veya e-posta ile ara...",
+      "allDepartments": "Tüm departmanlar",
+      "allStatuses": "Tüm durumlar",
+      "dragHint": "Yönetici değiştirmek için sürükleyin",
+      "reassigned": "Raporlama hattı güncellendi",
+      "madeRoot": "Çalışan üst seviyeye taşındı"
     },
     "leaveBalance": {
       "title": "İzin bakiyesi",

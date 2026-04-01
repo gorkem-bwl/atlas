@@ -1285,7 +1285,12 @@
       "unassigned": "Nicht zugewiesen",
       "empty": "Keine Organigramm-Daten",
       "emptyDesc": "Fuegen Sie Abteilungen und Mitarbeiter hinzu.",
-      "searchPlaceholder": "Nach Name oder E-Mail suchen..."
+      "searchPlaceholder": "Nach Name oder E-Mail suchen...",
+      "allDepartments": "Alle Abteilungen",
+      "allStatuses": "Alle Status",
+      "dragHint": "Person ziehen um Vorgesetzten zu ändern",
+      "reassigned": "Berichtslinie aktualisiert",
+      "madeRoot": "Mitarbeiter auf oberste Ebene verschoben"
     },
     "leaveBalance": {
       "title": "Urlaubskonto",

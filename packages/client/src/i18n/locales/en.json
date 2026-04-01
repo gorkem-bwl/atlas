@@ -1315,7 +1315,12 @@
       "unassigned": "Unassigned",
       "empty": "No org chart data",
       "emptyDesc": "Add departments and employees to see the org chart.",
-      "searchPlaceholder": "Search by name or email..."
+      "searchPlaceholder": "Search by name or email...",
+      "allDepartments": "All departments",
+      "allStatuses": "All statuses",
+      "dragHint": "Drag a person to reassign their manager",
+      "reassigned": "Reporting line updated",
+      "madeRoot": "Employee moved to top level"
     },
     "leaveBalance": {
       "title": "Leave balance",

@@ -1285,7 +1285,12 @@
       "unassigned": "Non assegnato",
       "empty": "Nessun dato organigramma",
       "emptyDesc": "Aggiungi reparti e dipendenti per vedere l'organigramma.",
-      "searchPlaceholder": "Cerca per nome o e-mail..."
+      "searchPlaceholder": "Cerca per nome o e-mail...",
+      "allDepartments": "Tutti i reparti",
+      "allStatuses": "Tutti gli stati",
+      "dragHint": "Trascina una persona per cambiare il responsabile",
+      "reassigned": "Linea gerarchica aggiornata",
+      "madeRoot": "Dipendente spostato al livello superiore"
     },
     "leaveBalance": {
       "title": "Saldo permessi",
