@@ -1135,3 +1135,137 @@ export function useCreateEvent() {
     },
   });
 }
+
+// ─── Saved Views ────────────────────────────────────────────────────
+
+export interface CrmSavedView {
+  id: string;
+  accountId: string;
+  userId: string;
+  appSection: string;
+  name: string;
+  filters: Record<string, unknown>;
+  isPinned: boolean;
+  isShared: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useSavedViews(appSection?: string) {
+  return useQuery({
+    queryKey: appSection
+      ? queryKeys.crm.savedViews.bySection(appSection)
+      : queryKeys.crm.savedViews.all,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (appSection) params.set('section', appSection);
+      const qs = params.toString();
+      const { data } = await api.get(`/crm/views${qs ? `?${qs}` : ''}`);
+      return data.data as { views: CrmSavedView[] };
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateSavedView() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { appSection: string; name: string; filters: Record<string, unknown>; isPinned?: boolean; isShared?: boolean }) => {
+      const { data } = await api.post('/crm/views', input);
+      return data.data as CrmSavedView;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.savedViews.all });
+    },
+  });
+}
+
+export function useUpdateSavedView() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; filters: Record<string, unknown>; isPinned: boolean; isShared: boolean; sortOrder: number }>) => {
+      const { data } = await api.patch(`/crm/views/${id}`, input);
+      return data.data as CrmSavedView;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.savedViews.all });
+    },
+  });
+}
+
+export function useDeleteSavedView() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/crm/views/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.savedViews.all });
+    },
+  });
+}
+
+// ─── Lead Forms ─────────────────────────────────────────────────────
+
+export interface CrmLeadForm {
+  id: string;
+  accountId: string;
+  userId: string;
+  name: string;
+  token: string;
+  fields: string[];
+  isActive: boolean;
+  submitCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useLeadForms() {
+  return useQuery({
+    queryKey: queryKeys.crm.leadForms.all,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/forms');
+      return data.data as { forms: CrmLeadForm[] };
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateLeadForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string }) => {
+      const { data } = await api.post('/crm/forms', input);
+      return data.data as CrmLeadForm;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.leadForms.all });
+    },
+  });
+}
+
+export function useUpdateLeadForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; fields: string[]; isActive: boolean }>) => {
+      const { data } = await api.patch(`/crm/forms/${id}`, input);
+      return data.data as CrmLeadForm;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.leadForms.all });
+    },
+  });
+}
+
+export function useDeleteLeadForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/crm/forms/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.crm.leadForms.all });
+    },
+  });
+}

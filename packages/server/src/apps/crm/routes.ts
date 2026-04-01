@@ -3,6 +3,11 @@ import * as crmController from './controller';
 import { authMiddleware } from '../../middleware/auth';
 
 const router = Router();
+
+// ─── Public routes (no auth) — defined BEFORE authMiddleware ────────
+router.post('/forms/public/:token', crmController.submitLeadForm);
+
+// ─── Auth middleware for all routes below ────────────────────────────
 router.use(authMiddleware);
 
 // Widget (lightweight summary for home dashboard)
@@ -93,6 +98,18 @@ router.get('/dashboard/charts', crmController.getDashboardCharts);
 // Seed sample data
 router.post('/seed', crmController.seedSampleData);
 router.post('/leads/seed', crmController.seedSampleLeads);
+
+// Saved Views
+router.get('/views', crmController.listSavedViews);
+router.post('/views', crmController.createSavedView);
+router.patch('/views/:id', crmController.updateSavedView);
+router.delete('/views/:id', crmController.deleteSavedView);
+
+// Lead Forms
+router.get('/forms', crmController.listLeadForms);
+router.post('/forms', crmController.createLeadForm);
+router.patch('/forms/:id', crmController.updateLeadForm);
+router.delete('/forms/:id', crmController.deleteLeadForm);
 
 // Google sync
 router.get('/google/status', crmController.getGoogleSyncStatus);

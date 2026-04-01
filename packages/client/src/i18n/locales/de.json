@@ -781,7 +781,8 @@
       "activities": "Aktivitäten",
       "automations": "Automatisierungen",
       "permissions": "Berechtigungen",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "leadForms": "Lead-Formulare"
     },
     "dashboard": {
       "totalPipeline": "Gesamter Pipeline-Wert",
@@ -1079,6 +1080,40 @@
       "dateRequired": "Datum ist erforderlich",
       "createFailed": "Termin konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
       "titlePlaceholder": "Besprechungstitel"
+    },
+    "savedViews": {
+      "views": "Ansichten",
+      "savedViews": "Gespeicherte Ansichten",
+      "noViews": "Noch keine gespeicherten Ansichten",
+      "saveCurrentView": "Aktuelle Ansicht speichern",
+      "viewName": "Ansichtsname",
+      "viewNamePlaceholder": "Meine benutzerdefinierte Ansicht",
+      "save": "Speichern",
+      "pin": "An Seitenleiste anheften",
+      "unpin": "Von Seitenleiste lösen",
+      "filterCount": "Filter"
+    },
+    "leadForms": {
+      "title": "Lead-Formulare",
+      "subtitle": "Erstellen Sie einbettbare Formulare, um Leads von Ihrer Website zu erfassen",
+      "createForm": "Formular erstellen",
+      "formName": "Formularname",
+      "formNamePlaceholder": "Kontaktformular",
+      "create": "Erstellen",
+      "noForms": "Noch keine Lead-Formulare",
+      "noFormsDesc": "Erstellen Sie ein Formular, um Leads von Ihrer Website zu sammeln",
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "activate": "Aktivieren",
+      "deactivate": "Deaktivieren",
+      "submissions": "{{count}} Einreichung(en)",
+      "embedCode": "Einbettungscode",
+      "embedInstructions": "Kopieren Sie dieses HTML-Snippet und fügen Sie es in Ihre Website ein, um Leads zu sammeln.",
+      "copyCode": "Code kopieren",
+      "copied": "Kopiert!",
+      "codeCopied": "Einbettungscode in Zwischenablage kopiert",
+      "deleteForm": "Formular löschen",
+      "deleteFormDesc": "Dieses Lead-Formular wird dauerhaft gelöscht. Bestehende Leads sind nicht betroffen."
     }
   },
   "drive": {

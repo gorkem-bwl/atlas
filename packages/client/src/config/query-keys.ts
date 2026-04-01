@@ -171,6 +171,13 @@ export const queryKeys = {
       byContact: (id: string) => ['crm', 'events', 'contact', id] as const,
       byDeal: (id: string) => ['crm', 'events', 'deal', id] as const,
     },
+    savedViews: {
+      all: ['crm', 'savedViews'] as const,
+      bySection: (section: string) => ['crm', 'savedViews', section] as const,
+    },
+    leadForms: {
+      all: ['crm', 'leadForms'] as const,
+    },
   },
   permissions: {
     all: ['permissions'] as const,

@@ -1101,6 +1101,37 @@ export async function runMigrations() {
       );
     `);
 
+    // ─── CRM Saved Views & Lead Forms ───────────────────────────────
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS crm_saved_views (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        app_section VARCHAR(50) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        filters JSONB NOT NULL DEFAULT '{}',
+        is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+        is_shared BOOLEAN NOT NULL DEFAULT FALSE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS crm_lead_forms (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        name VARCHAR(255) NOT NULL DEFAULT 'Default Lead Form',
+        token VARCHAR(64) NOT NULL UNIQUE,
+        fields JSONB NOT NULL DEFAULT '["name","email","phone","companyName","message"]',
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        submit_count INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // ─── Projects tables ────────────────────────────────────────────
 
     await client.query(`
@@ -1518,6 +1549,12 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_crm_notes_deal ON crm_notes(deal_id)',
       'CREATE INDEX IF NOT EXISTS idx_crm_notes_contact ON crm_notes(contact_id)',
       'CREATE INDEX IF NOT EXISTS idx_crm_notes_company ON crm_notes(company_id)',
+      // CRM Saved Views
+      'CREATE INDEX IF NOT EXISTS idx_crm_saved_views_account ON crm_saved_views(account_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_saved_views_user ON crm_saved_views(user_id, app_section)',
+      // CRM Lead Forms
+      'CREATE INDEX IF NOT EXISTS idx_crm_lead_forms_token ON crm_lead_forms(token)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_lead_forms_account ON crm_lead_forms(account_id)',
       // Project Clients
       'CREATE INDEX IF NOT EXISTS idx_project_clients_account ON project_clients(account_id)',
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_clients_portal_token ON project_clients(portal_token)',

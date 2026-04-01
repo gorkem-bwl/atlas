@@ -137,6 +137,6 @@ export const crmServerManifest: ServerAppManifest = {
   version: '1.0.0',
   router: crmRouter,
   routePrefix: '/crm',
-  tables: ['crm_companies', 'crm_contacts', 'crm_deal_stages', 'crm_deals', 'crm_activities', 'crm_permissions'],
+  tables: ['crm_companies', 'crm_contacts', 'crm_deal_stages', 'crm_deals', 'crm_activities', 'crm_permissions', 'crm_saved_views', 'crm_lead_forms'],
   objects,
 };

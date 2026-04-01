@@ -1589,3 +1589,173 @@ export async function createCrmEvent(req: Request, res: Response) {
     res.status(500).json({ success: false, error: 'Failed to create calendar event' });
   }
 }
+
+// ─── Saved Views ───────────────────────────────────────────────────
+
+export async function listSavedViews(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const section = req.query.section as string | undefined;
+
+    const views = await crmService.listSavedViews(userId, accountId, section);
+    res.json({ success: true, data: { views } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list CRM saved views');
+    res.status(500).json({ success: false, error: 'Failed to list saved views' });
+  }
+}
+
+export async function createSavedView(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { appSection, name, filters, isPinned, isShared } = req.body;
+
+    if (!name?.trim()) {
+      res.status(400).json({ success: false, error: 'Name is required' });
+      return;
+    }
+    if (!appSection?.trim()) {
+      res.status(400).json({ success: false, error: 'Section is required' });
+      return;
+    }
+
+    const view = await crmService.createSavedView(userId, accountId, {
+      appSection, name: name.trim(), filters: filters ?? {}, isPinned, isShared,
+    });
+    res.json({ success: true, data: view });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create CRM saved view');
+    res.status(500).json({ success: false, error: 'Failed to create saved view' });
+  }
+}
+
+export async function updateSavedView(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+    const { name, filters, isPinned, isShared, sortOrder } = req.body;
+
+    const view = await crmService.updateSavedView(userId, accountId, id, {
+      name, filters, isPinned, isShared, sortOrder,
+    });
+
+    if (!view) {
+      res.status(404).json({ success: false, error: 'View not found' });
+      return;
+    }
+    res.json({ success: true, data: view });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update CRM saved view');
+    res.status(500).json({ success: false, error: 'Failed to update saved view' });
+  }
+}
+
+export async function deleteSavedView(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+
+    await crmService.deleteSavedView(userId, accountId, id);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete CRM saved view');
+    res.status(500).json({ success: false, error: 'Failed to delete saved view' });
+  }
+}
+
+// ─── Lead Forms ────────────────────────────────────────────────────
+
+export async function listLeadForms(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+
+    const forms = await crmService.listLeadForms(userId, accountId);
+    res.json({ success: true, data: { forms } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list CRM lead forms');
+    res.status(500).json({ success: false, error: 'Failed to list lead forms' });
+  }
+}
+
+export async function createLeadForm(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const { name } = req.body;
+
+    const form = await crmService.createLeadForm(userId, accountId, name || 'Default Lead Form');
+    res.json({ success: true, data: form });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create CRM lead form');
+    res.status(500).json({ success: false, error: 'Failed to create lead form' });
+  }
+}
+
+export async function updateLeadForm(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+    const { name, fields, isActive } = req.body;
+
+    const form = await crmService.updateLeadForm(userId, accountId, id, {
+      name, fields, isActive,
+    });
+
+    if (!form) {
+      res.status(404).json({ success: false, error: 'Lead form not found' });
+      return;
+    }
+    res.json({ success: true, data: form });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update CRM lead form');
+    res.status(500).json({ success: false, error: 'Failed to update lead form' });
+  }
+}
+
+export async function deleteLeadForm(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const id = req.params.id as string;
+
+    await crmService.deleteLeadForm(userId, accountId, id);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete CRM lead form');
+    res.status(500).json({ success: false, error: 'Failed to delete lead form' });
+  }
+}
+
+export async function submitLeadForm(req: Request, res: Response) {
+  try {
+    const token = req.params.token as string;
+    const { name, email, phone, companyName, message } = req.body;
+
+    const lead = await crmService.submitLeadForm(token, {
+      name, email, phone, companyName, message,
+    });
+
+    if (!lead) {
+      res.status(404).json({ success: false, error: 'Form not found or inactive' });
+      return;
+    }
+
+    // Return a simple HTML response for browser form submissions
+    const acceptHeader = req.headers.accept || '';
+    if (acceptHeader.includes('text/html')) {
+      res.send('<html><body><h2>Thank you!</h2><p>Your submission has been received.</p></body></html>');
+      return;
+    }
+
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    logger.error({ error }, 'Failed to submit lead form');
+    res.status(500).json({ success: false, error: 'Failed to submit form' });
+  }
+}

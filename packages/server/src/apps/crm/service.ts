@@ -1,8 +1,9 @@
 import { db } from '../../config/database';
-import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities, crmWorkflows, crmLeads, crmNotes } from '../../db/schema';
+import { crmCompanies, crmContacts, crmDealStages, crmDeals, crmActivities, crmWorkflows, crmLeads, crmNotes, crmSavedViews, crmLeadForms } from '../../db/schema';
 import { tasks as tasksTable } from '../../db/schema';
-import { eq, and, asc, desc, sql, gte, lte, isNull } from 'drizzle-orm';
+import { eq, and, or, asc, desc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
+import crypto from 'crypto';
 import type { CrmRecordAccess } from '@atlasmail/shared';
 
 // ─── Input types ────────────────────────────────────────────────────
@@ -2192,4 +2193,177 @@ export async function getWidgetData(userId: string, accountId: string) {
     wonThisMonth: Number(wonAgg?.count ?? 0),
     lostThisMonth: Number(lostAgg?.count ?? 0),
   };
+}
+
+// ─── Saved Views ──────────────────────────────────────────────────
+
+interface CreateSavedViewInput {
+  appSection: string;
+  name: string;
+  filters: Record<string, unknown>;
+  isPinned?: boolean;
+  isShared?: boolean;
+}
+
+interface UpdateSavedViewInput {
+  name?: string;
+  filters?: Record<string, unknown>;
+  isPinned?: boolean;
+  isShared?: boolean;
+  sortOrder?: number;
+}
+
+export async function listSavedViews(userId: string, accountId: string, appSection?: string) {
+  const conditions = [eq(crmSavedViews.accountId, accountId)];
+
+  // Return user's own views + shared views from other users
+  conditions.push(
+    or(
+      eq(crmSavedViews.userId, userId),
+      eq(crmSavedViews.isShared, true),
+    )!,
+  );
+
+  if (appSection) {
+    conditions.push(eq(crmSavedViews.appSection, appSection));
+  }
+
+  return db.select().from(crmSavedViews)
+    .where(and(...conditions))
+    .orderBy(desc(crmSavedViews.isPinned), asc(crmSavedViews.sortOrder), desc(crmSavedViews.createdAt));
+}
+
+export async function createSavedView(userId: string, accountId: string, input: CreateSavedViewInput) {
+  const now = new Date();
+  const [created] = await db.insert(crmSavedViews).values({
+    accountId,
+    userId,
+    appSection: input.appSection,
+    name: input.name,
+    filters: input.filters,
+    isPinned: input.isPinned ?? false,
+    isShared: input.isShared ?? false,
+    createdAt: now,
+    updatedAt: now,
+  }).returning();
+
+  logger.info({ userId, viewId: created.id }, 'CRM saved view created');
+  return created;
+}
+
+export async function updateSavedView(userId: string, accountId: string, id: string, input: UpdateSavedViewInput) {
+  const now = new Date();
+  const updates: Record<string, unknown> = { updatedAt: now };
+
+  if (input.name !== undefined) updates.name = input.name;
+  if (input.filters !== undefined) updates.filters = input.filters;
+  if (input.isPinned !== undefined) updates.isPinned = input.isPinned;
+  if (input.isShared !== undefined) updates.isShared = input.isShared;
+  if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
+
+  await db.update(crmSavedViews).set(updates)
+    .where(and(eq(crmSavedViews.id, id), eq(crmSavedViews.userId, userId), eq(crmSavedViews.accountId, accountId)));
+
+  const [updated] = await db.select().from(crmSavedViews)
+    .where(and(eq(crmSavedViews.id, id), eq(crmSavedViews.accountId, accountId)))
+    .limit(1);
+
+  return updated || null;
+}
+
+export async function deleteSavedView(userId: string, accountId: string, id: string) {
+  await db.delete(crmSavedViews)
+    .where(and(eq(crmSavedViews.id, id), eq(crmSavedViews.userId, userId), eq(crmSavedViews.accountId, accountId)));
+}
+
+// ─── Lead Forms ───────────────────────────────────────────────────
+
+interface CreateLeadFormInput {
+  name: string;
+}
+
+interface UpdateLeadFormInput {
+  name?: string;
+  fields?: string[];
+  isActive?: boolean;
+}
+
+export async function listLeadForms(userId: string, accountId: string) {
+  return db.select().from(crmLeadForms)
+    .where(eq(crmLeadForms.accountId, accountId))
+    .orderBy(desc(crmLeadForms.createdAt));
+}
+
+export async function createLeadForm(userId: string, accountId: string, name: string) {
+  const now = new Date();
+  const token = crypto.randomBytes(32).toString('hex');
+
+  const [created] = await db.insert(crmLeadForms).values({
+    accountId,
+    userId,
+    name,
+    token,
+    createdAt: now,
+    updatedAt: now,
+  }).returning();
+
+  logger.info({ userId, formId: created.id }, 'CRM lead form created');
+  return created;
+}
+
+export async function updateLeadForm(userId: string, accountId: string, id: string, input: UpdateLeadFormInput) {
+  const now = new Date();
+  const updates: Record<string, unknown> = { updatedAt: now };
+
+  if (input.name !== undefined) updates.name = input.name;
+  if (input.fields !== undefined) updates.fields = input.fields;
+  if (input.isActive !== undefined) updates.isActive = input.isActive;
+
+  await db.update(crmLeadForms).set(updates)
+    .where(and(eq(crmLeadForms.id, id), eq(crmLeadForms.accountId, accountId)));
+
+  const [updated] = await db.select().from(crmLeadForms)
+    .where(and(eq(crmLeadForms.id, id), eq(crmLeadForms.accountId, accountId)))
+    .limit(1);
+
+  return updated || null;
+}
+
+export async function deleteLeadForm(userId: string, accountId: string, id: string) {
+  await db.delete(crmLeadForms)
+    .where(and(eq(crmLeadForms.id, id), eq(crmLeadForms.accountId, accountId)));
+}
+
+export async function submitLeadForm(token: string, formData: {
+  name?: string;
+  email?: string;
+  phone?: string;
+  companyName?: string;
+  message?: string;
+}) {
+  // Find form by token
+  const [form] = await db.select().from(crmLeadForms)
+    .where(and(eq(crmLeadForms.token, token), eq(crmLeadForms.isActive, true)))
+    .limit(1);
+
+  if (!form) return null;
+
+  // Create lead using existing createLead function
+  const lead = await createLead(form.userId, form.accountId, {
+    name: formData.name || 'Web form submission',
+    email: formData.email ?? null,
+    phone: formData.phone ?? null,
+    companyName: formData.companyName ?? null,
+    source: 'website',
+    notes: formData.message ?? null,
+  });
+
+  // Increment submit count
+  await db.update(crmLeadForms).set({
+    submitCount: sql`${crmLeadForms.submitCount} + 1`,
+    updatedAt: new Date(),
+  }).where(eq(crmLeadForms.id, form.id));
+
+  logger.info({ formId: form.id, leadId: lead.id }, 'CRM lead form submitted');
+  return lead;
 }

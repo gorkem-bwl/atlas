@@ -9,7 +9,7 @@ import {
   PhoneCall, CalendarDays, StickyNote, Pencil, AlertTriangle,
   Download, Upload, BarChart3, Zap, Shield, FileSpreadsheet,
   UserPlus, TrendingUp, Merge,
-  DollarSign, Calendar, Globe, Tag, User, Target,
+  DollarSign, Calendar, Globe, Tag, User, Target, Eye, FileText,
 } from 'lucide-react';
 import {
   useCompanies, useCreateCompany, useUpdateCompany, useDeleteCompany,
@@ -24,13 +24,14 @@ import {
 } from './hooks';
 import { DealKanban } from './components/deal-kanban';
 import { FilterBar, applyFilters, type CrmFilter, type FilterColumn } from './components/filter-bar';
-import { SavedViews, type SavedView } from './components/saved-views';
+import { SavedViews, usePinnedViews, type SavedView } from './components/saved-views';
 import { CsvImportModal, exportToCsv, exportToXlsx, exportToJson } from './components/csv-import-modal';
 import { CrmDashboard } from './components/dashboard';
 import { DashboardCharts } from './components/dashboard-charts';
 import { AutomationsView } from './components/automations-view';
 import { PermissionsView } from './components/permissions-view';
 import { LeadsView } from './components/leads-view';
+import { LeadFormsView } from './components/lead-forms-view';
 import { ForecastView } from './components/forecast-view';
 import { MergeContactsModal, MergeCompaniesModal } from './components/merge-modal';
 import { NotesSection } from './components/notes-section';
@@ -139,7 +140,7 @@ function InlineSelectCell({
 
 // ─── Types ─────────────────────────────────────────────────────────
 
-type ActiveView = 'dashboard' | 'leads' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions' | 'forecast';
+type ActiveView = 'dashboard' | 'leads' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions' | 'forecast' | 'leadForms';
 
 // ─── Column definitions for filtering ─────────────────────────────
 
@@ -2049,6 +2050,11 @@ export function CrmPage() {
   const { data: activitiesData } = useActivities();
   const activities = activitiesData?.activities ?? [];
 
+  // Pinned saved views for sidebar
+  const pinnedDealViews = usePinnedViews('deals');
+  const pinnedContactViews = usePinnedViews('contacts');
+  const pinnedCompanyViews = usePinnedViews('companies');
+
   const updateDeal = useUpdateDeal();
   const deleteDeal = useDeleteDeal();
   const deleteContact = useDeleteContact();
@@ -2189,6 +2195,7 @@ export function CrmPage() {
       case 'automations': return t('crm.sidebar.automations');
       case 'permissions': return t('crm.sidebar.permissions');
       case 'forecast': return 'Forecast';
+      case 'leadForms': return t('crm.leadForms.title');
     }
   }, [activeView, t]);
 
@@ -2228,6 +2235,7 @@ export function CrmPage() {
       case 'automations':
       case 'leads':
       case 'forecast':
+      case 'leadForms':
         return '';
     }
   }, [activeView, t]);
@@ -2320,6 +2328,19 @@ export function CrmPage() {
             count={deals.length}
             onClick={() => setActiveView('deals')}
           />
+          {pinnedDealViews.map((v) => (
+            <SidebarItem
+              key={v.id}
+              label={v.name}
+              icon={<Eye size={12} />}
+              isActive={false}
+              onClick={() => {
+                setActiveView('deals');
+                handleApplyView(v);
+              }}
+              style={{ paddingLeft: 'var(--spacing-xl)' }}
+            />
+          ))}
         </SidebarSection>
 
         <SidebarSection>
@@ -2331,6 +2352,19 @@ export function CrmPage() {
             count={contacts.length}
             onClick={() => setActiveView('contacts')}
           />
+          {pinnedContactViews.map((v) => (
+            <SidebarItem
+              key={v.id}
+              label={v.name}
+              icon={<Eye size={12} />}
+              isActive={false}
+              onClick={() => {
+                setActiveView('contacts');
+                handleApplyView(v);
+              }}
+              style={{ paddingLeft: 'var(--spacing-xl)' }}
+            />
+          ))}
           <SidebarItem
             label={t('crm.sidebar.companies')}
             icon={<Building2 size={14} />}
@@ -2339,6 +2373,19 @@ export function CrmPage() {
             count={companies.length}
             onClick={() => setActiveView('companies')}
           />
+          {pinnedCompanyViews.map((v) => (
+            <SidebarItem
+              key={v.id}
+              label={v.name}
+              icon={<Eye size={12} />}
+              isActive={false}
+              onClick={() => {
+                setActiveView('companies');
+                handleApplyView(v);
+              }}
+              style={{ paddingLeft: 'var(--spacing-xl)' }}
+            />
+          ))}
         </SidebarSection>
 
         <SidebarSection>
@@ -2376,6 +2423,13 @@ export function CrmPage() {
               onClick={() => setActiveView('permissions')}
             />
           )}
+          <SidebarItem
+            label={t('crm.sidebar.leadForms')}
+            icon={<FileText size={14} />}
+            iconColor="#14b8a6"
+            isActive={activeView === 'leadForms'}
+            onClick={() => setActiveView('leadForms')}
+          />
         </SidebarSection>
       </AppSidebar>
 
@@ -2496,6 +2550,10 @@ export function CrmPage() {
 
             {activeView === 'leads' && (
               <LeadsView />
+            )}
+
+            {activeView === 'leadForms' && (
+              <LeadFormsView />
             )}
 
             {activeView === 'forecast' && (

@@ -1379,6 +1379,41 @@ export const crmNotes = pgTable('crm_notes', {
   companyIdx: index('idx_crm_notes_company').on(table.companyId),
 }));
 
+// ─── CRM: Saved Views ────────────────────────────────────────────
+export const crmSavedViews = pgTable('crm_saved_views', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  appSection: varchar('app_section', { length: 50 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  filters: jsonb('filters').$type<Record<string, unknown>>().notNull().default({}),
+  isPinned: boolean('is_pinned').notNull().default(false),
+  isShared: boolean('is_shared').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  accountIdx: index('idx_crm_saved_views_account').on(table.accountId),
+  userIdx: index('idx_crm_saved_views_user').on(table.userId, table.appSection),
+}));
+
+// ─── CRM: Lead Forms ─────────────────────────────────────────────
+export const crmLeadForms = pgTable('crm_lead_forms', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  name: varchar('name', { length: 255 }).notNull().default('Default Lead Form'),
+  token: varchar('token', { length: 64 }).notNull().unique(),
+  fields: jsonb('fields').$type<string[]>().notNull().default(['name', 'email', 'phone', 'companyName', 'message']),
+  isActive: boolean('is_active').notNull().default(true),
+  submitCount: integer('submit_count').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tokenIdx: index('idx_crm_lead_forms_token').on(table.token),
+  accountIdx: index('idx_crm_lead_forms_account').on(table.accountId),
+}));
+
 // ─── Projects: Clients ────────────────────────────────────────────
 export const projectClients = pgTable('project_clients', {
   id: uuid('id').primaryKey().defaultRandom(),

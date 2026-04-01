@@ -808,7 +808,8 @@
       "activities": "Activities",
       "automations": "Automations",
       "permissions": "Permissions",
-      "settings": "Settings"
+      "settings": "Settings",
+      "leadForms": "Lead forms"
     },
     "dashboard": {
       "totalPipeline": "Total pipeline value",
@@ -1106,6 +1107,40 @@
       "dateRequired": "Date is required",
       "createFailed": "Failed to create event. Please try again.",
       "titlePlaceholder": "Meeting title"
+    },
+    "savedViews": {
+      "views": "Views",
+      "savedViews": "Saved views",
+      "noViews": "No saved views yet",
+      "saveCurrentView": "Save current view",
+      "viewName": "View name",
+      "viewNamePlaceholder": "My custom view",
+      "save": "Save",
+      "pin": "Pin to sidebar",
+      "unpin": "Unpin from sidebar",
+      "filterCount": "filter(s)"
+    },
+    "leadForms": {
+      "title": "Lead forms",
+      "subtitle": "Create embeddable forms to capture leads from your website",
+      "createForm": "Create form",
+      "formName": "Form name",
+      "formNamePlaceholder": "Contact us form",
+      "create": "Create",
+      "noForms": "No lead forms yet",
+      "noFormsDesc": "Create a form to start collecting leads from your website",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "submissions": "{{count}} submission(s)",
+      "embedCode": "Embed code",
+      "embedInstructions": "Copy this HTML snippet and paste it into your website to start collecting leads.",
+      "copyCode": "Copy code",
+      "copied": "Copied!",
+      "codeCopied": "Embed code copied to clipboard",
+      "deleteForm": "Delete form",
+      "deleteFormDesc": "This will permanently delete this lead form. Existing leads will not be affected."
     }
   },
   "drive": {

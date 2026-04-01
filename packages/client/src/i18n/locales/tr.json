@@ -781,7 +781,8 @@
       "activities": "Aktiviteler",
       "automations": "Otomasyonlar",
       "permissions": "Yetkiler",
-      "settings": "Ayarlar"
+      "settings": "Ayarlar",
+      "leadForms": "Potansiyel formları"
     },
     "dashboard": {
       "totalPipeline": "Toplam pipeline değeri",
@@ -1079,6 +1080,40 @@
       "dateRequired": "Tarih gereklidir",
       "createFailed": "Etkinlik oluşturulamadı. Lütfen tekrar deneyin.",
       "titlePlaceholder": "Toplantı başlığı"
+    },
+    "savedViews": {
+      "views": "Görünümler",
+      "savedViews": "Kaydedilmiş görünümler",
+      "noViews": "Henüz kaydedilmiş görünüm yok",
+      "saveCurrentView": "Mevcut görünümü kaydet",
+      "viewName": "Görünüm adı",
+      "viewNamePlaceholder": "Özel görünümüm",
+      "save": "Kaydet",
+      "pin": "Kenar çubuğuna sabitle",
+      "unpin": "Sabitlemeyi kaldır",
+      "filterCount": "filtre"
+    },
+    "leadForms": {
+      "title": "Potansiyel formları",
+      "subtitle": "Web sitenizden potansiyel müşteri toplamak için gömülebilir formlar oluşturun",
+      "createForm": "Form oluştur",
+      "formName": "Form adı",
+      "formNamePlaceholder": "İletişim formu",
+      "create": "Oluştur",
+      "noForms": "Henüz potansiyel formu yok",
+      "noFormsDesc": "Web sitenizden potansiyel müşteri toplamaya başlamak için bir form oluşturun",
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "activate": "Aktifleştir",
+      "deactivate": "Pasifleştir",
+      "submissions": "{{count}} gönderim",
+      "embedCode": "Gömme kodu",
+      "embedInstructions": "Bu HTML parçacığını kopyalayıp web sitenize yapıştırarak potansiyel müşteri toplamaya başlayın.",
+      "copyCode": "Kodu kopyala",
+      "copied": "Kopyalandı!",
+      "codeCopied": "Gömme kodu panoya kopyalandı",
+      "deleteForm": "Formu sil",
+      "deleteFormDesc": "Bu potansiyel formu kalıcı olarak silinecektir. Mevcut potansiyel müşteriler etkilenmeyecektir."
     }
   },
   "drive": {

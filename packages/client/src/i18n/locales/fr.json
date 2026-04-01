@@ -781,7 +781,8 @@
       "activities": "Activités",
       "automations": "Automatisations",
       "permissions": "Permissions",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "leadForms": "Formulaires de prospects"
     },
     "dashboard": {
       "totalPipeline": "Valeur totale du pipeline",
@@ -1079,6 +1080,40 @@
       "dateRequired": "La date est requise",
       "createFailed": "Échec de la création de l'événement. Veuillez réessayer.",
       "titlePlaceholder": "Titre de la réunion"
+    },
+    "savedViews": {
+      "views": "Vues",
+      "savedViews": "Vues enregistrées",
+      "noViews": "Aucune vue enregistrée",
+      "saveCurrentView": "Enregistrer la vue actuelle",
+      "viewName": "Nom de la vue",
+      "viewNamePlaceholder": "Ma vue personnalisée",
+      "save": "Enregistrer",
+      "pin": "Épingler à la barre latérale",
+      "unpin": "Désépingler de la barre latérale",
+      "filterCount": "filtre(s)"
+    },
+    "leadForms": {
+      "title": "Formulaires de prospects",
+      "subtitle": "Créez des formulaires intégrables pour capturer des prospects depuis votre site web",
+      "createForm": "Créer un formulaire",
+      "formName": "Nom du formulaire",
+      "formNamePlaceholder": "Formulaire de contact",
+      "create": "Créer",
+      "noForms": "Aucun formulaire de prospects",
+      "noFormsDesc": "Créez un formulaire pour commencer à collecter des prospects depuis votre site web",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "submissions": "{{count}} soumission(s)",
+      "embedCode": "Code d'intégration",
+      "embedInstructions": "Copiez ce code HTML et collez-le dans votre site web pour commencer à collecter des prospects.",
+      "copyCode": "Copier le code",
+      "copied": "Copié !",
+      "codeCopied": "Code d'intégration copié dans le presse-papiers",
+      "deleteForm": "Supprimer le formulaire",
+      "deleteFormDesc": "Ce formulaire de prospects sera définitivement supprimé. Les prospects existants ne seront pas affectés."
     }
   },
   "drive": {

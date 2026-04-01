@@ -781,7 +781,8 @@
       "activities": "Attività",
       "automations": "Automazioni",
       "permissions": "Permessi",
-      "settings": "Impostazioni"
+      "settings": "Impostazioni",
+      "leadForms": "Moduli lead"
     },
     "dashboard": {
       "totalPipeline": "Valore totale della pipeline",
@@ -1079,6 +1080,40 @@
       "dateRequired": "La data è obbligatoria",
       "createFailed": "Creazione evento non riuscita. Riprova.",
       "titlePlaceholder": "Titolo della riunione"
+    },
+    "savedViews": {
+      "views": "Viste",
+      "savedViews": "Viste salvate",
+      "noViews": "Nessuna vista salvata",
+      "saveCurrentView": "Salva vista corrente",
+      "viewName": "Nome vista",
+      "viewNamePlaceholder": "La mia vista personalizzata",
+      "save": "Salva",
+      "pin": "Fissa nella barra laterale",
+      "unpin": "Rimuovi dalla barra laterale",
+      "filterCount": "filtro/i"
+    },
+    "leadForms": {
+      "title": "Moduli lead",
+      "subtitle": "Crea moduli incorporabili per acquisire lead dal tuo sito web",
+      "createForm": "Crea modulo",
+      "formName": "Nome modulo",
+      "formNamePlaceholder": "Modulo di contatto",
+      "create": "Crea",
+      "noForms": "Nessun modulo lead",
+      "noFormsDesc": "Crea un modulo per iniziare a raccogliere lead dal tuo sito web",
+      "active": "Attivo",
+      "inactive": "Inattivo",
+      "activate": "Attiva",
+      "deactivate": "Disattiva",
+      "submissions": "{{count}} invio/i",
+      "embedCode": "Codice di incorporamento",
+      "embedInstructions": "Copia questo frammento HTML e incollalo nel tuo sito web per iniziare a raccogliere lead.",
+      "copyCode": "Copia codice",
+      "copied": "Copiato!",
+      "codeCopied": "Codice di incorporamento copiato negli appunti",
+      "deleteForm": "Elimina modulo",
+      "deleteFormDesc": "Questo modulo lead verrà eliminato definitivamente. I lead esistenti non saranno interessati."
     }
   },
   "drive": {
