@@ -295,8 +295,13 @@ export async function remove(req: Request, res: Response) {
       return;
     }
 
-    const appDir = service.getAppDir(appId);
-    await dockerService.remove(appId, appDir);
+    // Try Docker cleanup — don't fail if containers don't exist
+    try {
+      const appDir = service.getAppDir(appId);
+      await dockerService.remove(appId, appDir);
+    } catch (dockerErr) {
+      logger.warn({ error: dockerErr, appId }, 'Docker cleanup failed during remove (non-critical)');
+    }
     await service.removeInstallation(accountId, appId);
 
     res.json({ success: true, data: { appId, removed: true } });
