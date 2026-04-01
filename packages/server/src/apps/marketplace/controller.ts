@@ -130,6 +130,10 @@ export async function deploy(req: Request, res: Response) {
     const port = await service.allocatePort(accountId);
     const secrets = service.generateSecrets(manifest);
 
+    // Save installation record FIRST with "installing" status
+    await service.saveInstallation(accountId, appId, port, secrets, []);
+    await service.updateStatus(accountId, appId, 'installing');
+
     // Generate compose file
     const composeContent = generateComposeFile(manifest, port, secrets);
 
@@ -139,11 +143,10 @@ export async function deploy(req: Request, res: Response) {
     // Deploy via docker compose
     await dockerService.deploy(appId, composeContent, appDir);
 
-    // Get container IDs
+    // Get container IDs and update record
     const containerIds = await dockerService.listAppContainers(appId);
-
-    // Save installation record
-    await service.saveInstallation(accountId, appId, port, secrets, containerIds);
+    await service.updateContainerIds(accountId, appId, containerIds);
+    await service.updateStatus(accountId, appId, 'running');
 
     // Store env overrides if provided
     if (envOverrides && Object.keys(envOverrides).length > 0) {
