@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DollarSign } from 'lucide-react';
 import type { CrmDeal, CrmDealStage } from '../hooks';
-import { formatCurrencyCompact, formatNumber } from '../../../lib/format';
+import { formatCurrency, formatCurrencyCompact, formatNumber } from '../../../lib/format';
 import { StatusDot } from '../../../components/ui/status-dot';
 
 interface DealKanbanProps {
@@ -21,6 +22,7 @@ function getInitials(name: string): string {
 }
 
 export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanbanProps) {
+  const { t } = useTranslation();
   const [draggedDealId, setDraggedDealId] = useState<string | null>(null);
   const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
   const dragCounterRef = useRef<Record<string, number>>({});
@@ -118,28 +120,15 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanba
                 }}>
                   {stage.name}
                 </span>
-                <span style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-tertiary)',
-                  fontFamily: 'var(--font-family)',
-                  background: 'var(--color-bg-tertiary)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '1px 6px',
-                  fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {stageDeals.length}
-                </span>
               </div>
-              {totalValue > 0 && (
-                <span style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-tertiary)',
-                  fontFamily: 'var(--font-family)',
-                  fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {formatCurrencyCompact(totalValue)}
-                </span>
-              )}
+              <span style={{
+                fontSize: 'var(--font-size-xs)',
+                color: 'var(--color-text-tertiary)',
+                fontFamily: 'var(--font-family)',
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {stageDeals.length} {stageDeals.length === 1 ? t('crm.deals.deal') : t('crm.sidebar.deals').toLowerCase()}{totalValue > 0 ? ` \u00B7 ${formatCurrencyCompact(totalValue)}` : ''}
+              </span>
             </div>
 
             {/* Cards */}
@@ -158,11 +147,23 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanba
                     fontWeight: 'var(--font-weight-medium)',
                     color: 'var(--color-text-primary)',
                     fontFamily: 'var(--font-family)',
-                    marginBottom: 'var(--spacing-xs)',
+                    marginBottom: 2,
                     lineHeight: 1.3,
                   }}>
                     {deal.title}
                   </div>
+                  {deal.value > 0 && (
+                    <div style={{
+                      fontSize: 'var(--font-size-xs)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      color: 'var(--color-text-secondary)',
+                      fontFamily: 'var(--font-family)',
+                      fontVariantNumeric: 'tabular-nums',
+                      marginBottom: 'var(--spacing-xs)',
+                    }}>
+                      {formatCurrency(deal.value)}
+                    </div>
+                  )}
                   {deal.companyName && (
                     <div style={{
                       fontSize: 'var(--font-size-xs)',
@@ -220,7 +221,7 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick }: DealKanba
                   color: 'var(--color-text-tertiary)',
                   fontFamily: 'var(--font-family)',
                 }}>
-                  No deals
+                  {t('crm.empty.noDeals')}
                 </div>
               )}
             </div>

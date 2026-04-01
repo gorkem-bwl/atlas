@@ -742,13 +742,15 @@ function ActivityTimeline({ activities }: { activities: CrmActivity[] }) {
 // ─── Deal Detail Panel ─────────────────────────────────────────────
 
 function DealDetailPanel({
-  deal, stages, onClose, onMarkWon, onMarkLost,
+  deal, stages, onClose, onMarkWon, onMarkLost, onContactClick, onCompanyClick,
 }: {
   deal: CrmDeal;
   stages: CrmDealStage[];
   onClose: () => void;
   onMarkWon: () => void;
   onMarkLost: () => void;
+  onContactClick?: (contactId: string) => void;
+  onCompanyClick?: (companyId: string) => void;
 }) {
   const { t } = useTranslation();
   const [stageId, setStageId] = useState(deal.stageId);
@@ -812,7 +814,10 @@ function DealDetailPanel({
           {deal.companyName && (
             <div className="crm-detail-field">
               <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+              <div
+                style={{ fontSize: 'var(--font-size-sm)', color: deal.companyId && onCompanyClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', cursor: deal.companyId && onCompanyClick ? 'pointer' : 'default' }}
+                onClick={() => { if (deal.companyId && onCompanyClick) onCompanyClick(deal.companyId); }}
+              >
                 <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
                 {deal.companyName}
               </div>
@@ -822,7 +827,10 @@ function DealDetailPanel({
           {deal.contactName && (
             <div className="crm-detail-field">
               <span className="crm-detail-field-label">{t('crm.deals.contact')}</span>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+              <div
+                style={{ fontSize: 'var(--font-size-sm)', color: deal.contactId && onContactClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', cursor: deal.contactId && onContactClick ? 'pointer' : 'default' }}
+                onClick={() => { if (deal.contactId && onContactClick) onContactClick(deal.contactId); }}
+              >
                 <Users size={14} style={{ color: 'var(--color-text-tertiary)' }} />
                 {deal.contactName}
               </div>
@@ -891,11 +899,13 @@ function DealDetailPanel({
 // ─── Contact Detail Panel ──────────────────────────────────────────
 
 function ContactDetailPanel({
-  contact, deals, onClose,
+  contact, deals, onClose, onCompanyClick, onDealClick,
 }: {
   contact: CrmContact;
   deals: CrmDeal[];
   onClose: () => void;
+  onCompanyClick?: (companyId: string) => void;
+  onDealClick?: (dealId: string) => void;
 }) {
   const { t } = useTranslation();
   const updateContact = useUpdateContact();
@@ -956,7 +966,10 @@ function ContactDetailPanel({
           {contact.companyName && (
             <div className="crm-detail-field">
               <span className="crm-detail-field-label">{t('crm.deals.company')}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)', color: contact.companyId && onCompanyClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)', fontFamily: 'var(--font-family)', cursor: contact.companyId && onCompanyClick ? 'pointer' : 'default' }}
+                onClick={() => { if (contact.companyId && onCompanyClick) onCompanyClick(contact.companyId); }}
+              >
                 <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
                 {contact.companyName}
               </div>
@@ -975,7 +988,7 @@ function ContactDetailPanel({
         {contactDeals.length > 0 && (
           <div style={{ marginTop: 'var(--spacing-sm)' }}>
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
-              {t('crm.sidebar.deals')}
+              {t('crm.sidebar.deals')} ({contactDeals.length})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
               {contactDeals.map((deal) => (
@@ -983,8 +996,11 @@ function ContactDetailPanel({
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px var(--spacing-sm)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-secondary)',
                   fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
-                }}>
-                  <span style={{ color: 'var(--color-text-primary)' }}>{deal.title}</span>
+                  cursor: onDealClick ? 'pointer' : 'default',
+                }}
+                  onClick={() => { if (onDealClick) onDealClick(deal.id); }}
+                >
+                  <span style={{ color: onDealClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)' }}>{deal.title}</span>
                   <span style={{ color: 'var(--color-text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>{formatCurrency(deal.value)}</span>
                 </div>
               ))}
@@ -1014,12 +1030,14 @@ function ContactDetailPanel({
 // ─── Company Detail Panel ──────────────────────────────────────────
 
 function CompanyDetailPanel({
-  company, contacts, deals, onClose,
+  company, contacts, deals, onClose, onContactClick, onDealClick,
 }: {
   company: CrmCompany;
   contacts: CrmContact[];
   deals: CrmDeal[];
   onClose: () => void;
+  onContactClick?: (contactId: string) => void;
+  onDealClick?: (dealId: string) => void;
 }) {
   const { t } = useTranslation();
   const deleteCompany = useDeleteCompany();
@@ -1109,8 +1127,11 @@ function CompanyDetailPanel({
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px var(--spacing-sm)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-secondary)',
                   fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
-                }}>
-                  <span style={{ color: 'var(--color-text-primary)' }}>{contact.name}</span>
+                  cursor: onContactClick ? 'pointer' : 'default',
+                }}
+                  onClick={() => { if (onContactClick) onContactClick(contact.id); }}
+                >
+                  <span style={{ color: onContactClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)' }}>{contact.name}</span>
                   <span style={{ color: 'var(--color-text-tertiary)' }}>{contact.position || ''}</span>
                 </div>
               ))}
@@ -1130,8 +1151,11 @@ function CompanyDetailPanel({
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px var(--spacing-sm)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-secondary)',
                   fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
-                }}>
-                  <span style={{ color: 'var(--color-text-primary)' }}>{deal.title}</span>
+                  cursor: onDealClick ? 'pointer' : 'default',
+                }}
+                  onClick={() => { if (onDealClick) onDealClick(deal.id); }}
+                >
+                  <span style={{ color: onDealClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)' }}>{deal.title}</span>
                   <span style={{ color: 'var(--color-text-tertiary)', fontVariantNumeric: 'tabular-nums' }}>{formatCurrency(deal.value)}</span>
                 </div>
               ))}
@@ -2570,6 +2594,8 @@ export function CrmPage() {
                   onClose={() => setSelectedDealId(null)}
                   onMarkWon={() => markWon.mutate(selectedDeal.id)}
                   onMarkLost={() => setMarkLostDealId(selectedDeal.id)}
+                  onContactClick={(contactId) => { setActiveView('contacts'); setSelectedContactId(contactId); setSelectedDealId(null); setSelectedCompanyId(null); }}
+                  onCompanyClick={(companyId) => { setActiveView('companies'); setSelectedCompanyId(companyId); setSelectedDealId(null); setSelectedContactId(null); }}
                 />
               )}
               {activeView === 'contacts' && selectedContact && (
@@ -2577,6 +2603,8 @@ export function CrmPage() {
                   contact={selectedContact}
                   deals={deals}
                   onClose={() => setSelectedContactId(null)}
+                  onCompanyClick={(companyId) => { setActiveView('companies'); setSelectedCompanyId(companyId); setSelectedContactId(null); setSelectedDealId(null); }}
+                  onDealClick={(dealId) => { setActiveView('deals'); setSelectedDealId(dealId); setSelectedContactId(null); setSelectedCompanyId(null); }}
                 />
               )}
               {activeView === 'companies' && selectedCompany && (
@@ -2585,6 +2613,8 @@ export function CrmPage() {
                   contacts={contacts}
                   deals={deals}
                   onClose={() => setSelectedCompanyId(null)}
+                  onContactClick={(contactId) => { setActiveView('contacts'); setSelectedContactId(contactId); setSelectedCompanyId(null); setSelectedDealId(null); }}
+                  onDealClick={(dealId) => { setActiveView('deals'); setSelectedDealId(dealId); setSelectedCompanyId(null); setSelectedContactId(null); }}
                 />
               )}
             </div>
