@@ -2013,6 +2013,14 @@
     "updateAvailable": "Aggiornamento disponibile",
     "noApps": "Nessuna app disponibile",
     "loadError": "Impossibile caricare il catalogo",
-    "adminRequired": "Accesso amministratore richiesto per la distribuzione"
+    "adminRequired": "Accesso amministratore richiesto per la distribuzione",
+    "startupWaiting": "Avvio di {{name}}...",
+    "startupWaitingDesc": "L'app si sta avviando. Di solito ci vogliono 30–60 secondi.",
+    "startupReady": "{{name}} è pronto!",
+    "startupRedirecting": "Apertura in una nuova scheda...",
+    "startupTimeout": "{{name}} sta impiegando troppo tempo",
+    "startupTimeoutDesc": "L'app non ha ancora risposto. Puoi provare ad aprirla comunque o controllare i registri.",
+    "backToMarketplace": "Indietro",
+    "openAnyway": "Apri comunque"
   }
 }

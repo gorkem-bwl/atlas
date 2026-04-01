@@ -396,6 +396,7 @@ function AppCard({
   isAdmin: boolean;
   t: (key: string, opts?: Record<string, string>) => string;
 }) {
+  const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
   const [deployModalOpen, setDeployModalOpen] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
@@ -555,18 +556,14 @@ function AppCard({
           {/* Running: Open + Stop + overflow */}
           {isRunning && (
             <>
-              <Tooltip content={t('marketplace.open')}>
-                <a
-                  href={`http://localhost:${app.assignedPort}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <Button variant="primary" size="sm" icon={<ExternalLink size={14} />}>
-                    {t('marketplace.open')}
-                  </Button>
-                </a>
-              </Tooltip>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<ExternalLink size={14} />}
+                onClick={() => navigate(`/marketplace/startup/${app.id}`)}
+              >
+                {t('marketplace.open')}
+              </Button>
               {isAdmin && (
                 <Button
                   variant="secondary"

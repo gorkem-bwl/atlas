@@ -2027,6 +2027,14 @@
     "updateAvailable": "Mise à jour disponible",
     "noApps": "Aucune application disponible",
     "loadError": "Impossible de charger le catalogue",
-    "adminRequired": "Accès administrateur requis pour déployer"
+    "adminRequired": "Accès administrateur requis pour déployer",
+    "startupWaiting": "Démarrage de {{name}}...",
+    "startupWaitingDesc": "L'application démarre. Cela prend généralement 30 à 60 secondes.",
+    "startupReady": "{{name}} est prêt !",
+    "startupRedirecting": "Ouverture dans un nouvel onglet...",
+    "startupTimeout": "{{name}} prend trop de temps",
+    "startupTimeoutDesc": "L'application n'a pas encore répondu. Vous pouvez essayer de l'ouvrir quand même ou vérifier les journaux.",
+    "backToMarketplace": "Retour",
+    "openAnyway": "Ouvrir quand même"
   }
 }

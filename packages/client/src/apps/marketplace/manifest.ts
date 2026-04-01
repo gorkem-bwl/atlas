@@ -1,6 +1,7 @@
 import { Store } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
 import { MarketplacePage } from './page';
+import { MarketplaceStartupPage } from './startup-page';
 
 export const marketplaceManifest: ClientAppManifest = {
   id: 'marketplace',
@@ -15,5 +16,8 @@ export const marketplaceManifest: ClientAppManifest = {
   defaultEnabled: true,
   version: '1.0.0',
   sidebarOrder: 85,
-  routes: [{ path: '/marketplace', component: MarketplacePage }],
+  routes: [
+    { path: '/marketplace', component: MarketplacePage },
+    { path: '/marketplace/startup/:appId', component: MarketplaceStartupPage },
+  ],
 };

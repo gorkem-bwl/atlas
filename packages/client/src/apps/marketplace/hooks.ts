@@ -38,7 +38,7 @@ export function useMarketplaceInstalled() {
 
 // ─── App Status ───────────────────────────────────────────────────
 
-export function useMarketplaceStatus(appId: string, enabled = true) {
+export function useMarketplaceStatus(appId: string, enabled = true, refetchInterval = 10_000) {
   return useQuery({
     queryKey: queryKeys.marketplace.status(appId),
     queryFn: async () => {
@@ -46,7 +46,7 @@ export function useMarketplaceStatus(appId: string, enabled = true) {
       return data.data as MarketplaceAppStatus;
     },
     enabled,
-    refetchInterval: 10_000,
+    refetchInterval,
     staleTime: 5_000,
   });
 }

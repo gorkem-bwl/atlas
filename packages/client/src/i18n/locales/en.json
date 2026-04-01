@@ -2044,6 +2044,14 @@
     "updateAvailable": "Update available",
     "noApps": "No apps available",
     "loadError": "Failed to load marketplace catalog",
-    "adminRequired": "Admin access required to deploy"
+    "adminRequired": "Admin access required to deploy",
+    "startupWaiting": "Starting {{name}}...",
+    "startupWaitingDesc": "The app is booting up. This usually takes 30–60 seconds.",
+    "startupReady": "{{name}} is ready!",
+    "startupRedirecting": "Opening in a new tab...",
+    "startupTimeout": "{{name}} is taking too long",
+    "startupTimeoutDesc": "The app hasn't responded yet. You can try opening it anyway or check the logs.",
+    "backToMarketplace": "Back",
+    "openAnyway": "Open anyway"
   }
 }

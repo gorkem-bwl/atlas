@@ -2034,6 +2034,14 @@
     "updateAvailable": "Güncelleme mevcut",
     "noApps": "Mevcut uygulama yok",
     "loadError": "Mağaza kataloğu yüklenemedi",
-    "adminRequired": "Dağıtım için yönetici erişimi gerekli"
+    "adminRequired": "Dağıtım için yönetici erişimi gerekli",
+    "startupWaiting": "{{name}} başlatılıyor...",
+    "startupWaitingDesc": "Uygulama başlatılıyor. Bu genellikle 30–60 saniye sürer.",
+    "startupReady": "{{name}} hazır!",
+    "startupRedirecting": "Yeni sekmede açılıyor...",
+    "startupTimeout": "{{name}} çok uzun sürüyor",
+    "startupTimeoutDesc": "Uygulama henüz yanıt vermedi. Yine de açmayı deneyebilir veya günlükleri kontrol edebilirsiniz.",
+    "backToMarketplace": "Geri",
+    "openAnyway": "Yine de aç"
   }
 }

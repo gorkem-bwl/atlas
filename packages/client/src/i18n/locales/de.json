@@ -2027,6 +2027,14 @@
     "updateAvailable": "Update verfügbar",
     "noApps": "Keine Apps verfügbar",
     "loadError": "Marktplatz-Katalog konnte nicht geladen werden",
-    "adminRequired": "Administratorzugriff zum Bereitstellen erforderlich"
+    "adminRequired": "Administratorzugriff zum Bereitstellen erforderlich",
+    "startupWaiting": "{{name}} wird gestartet...",
+    "startupWaitingDesc": "Die App wird hochgefahren. Dies dauert normalerweise 30–60 Sekunden.",
+    "startupReady": "{{name}} ist bereit!",
+    "startupRedirecting": "Wird in neuem Tab geöffnet...",
+    "startupTimeout": "{{name}} braucht zu lange",
+    "startupTimeoutDesc": "Die App hat noch nicht geantwortet. Sie können versuchen, sie trotzdem zu öffnen oder die Protokolle zu überprüfen.",
+    "backToMarketplace": "Zurück",
+    "openAnyway": "Trotzdem öffnen"
   }
 }
