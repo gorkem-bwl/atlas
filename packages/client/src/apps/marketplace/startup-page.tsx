@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, type CSSProperties } from 'react';
+import { useEffect, useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Loader2, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
@@ -7,6 +7,25 @@ import { useMarketplaceStatus, useMarketplaceCatalog } from './hooks';
 
 const MAX_WAIT_SECONDS = 120;
 const POLL_INTERVAL = 3_000;
+
+const circleStyle = (bg: string): CSSProperties => ({
+  width: 64,
+  height: 64,
+  borderRadius: '50%',
+  background: bg,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+function StatusCircle({ bg, children }: { bg: string; children: ReactNode }) {
+  return <div style={circleStyle(bg)}>{children}</div>;
+}
+
+function getAppUrl(port: number): string {
+  const host = window.location.hostname;
+  return `http://${host}:${port}`;
+}
 
 export function MarketplaceStartupPage() {
   const { appId } = useParams<{ appId: string }>();
@@ -24,24 +43,26 @@ export function MarketplaceStartupPage() {
   const { data: status } = useMarketplaceStatus(appId ?? '', !!appId && !!port && !redirecting, POLL_INTERVAL);
   const isHealthy = status?.health?.ok === true;
   const timedOut = elapsed >= MAX_WAIT_SECONDS;
+  const done = redirecting || timedOut;
 
-  // Tick elapsed time
+  // Tick elapsed time — stops after redirect or timeout
   useEffect(() => {
+    if (done) return;
     const interval = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTime.current) / 1000));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [done]);
 
   // Auto-redirect when healthy
   useEffect(() => {
     if (isHealthy && port && !redirecting) {
       setRedirecting(true);
-      // Small delay so the user sees the "Ready!" state
-      setTimeout(() => {
-        window.open(`http://localhost:${port}`, '_blank');
+      const id = setTimeout(() => {
+        window.open(getAppUrl(port), '_blank');
         navigate('/marketplace');
       }, 800);
+      return () => clearTimeout(id);
     }
   }, [isHealthy, port, redirecting, navigate]);
 
@@ -71,47 +92,17 @@ export function MarketplaceStartupPage() {
       >
         {/* Status icon */}
         {timedOut ? (
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <StatusCircle bg="color-mix(in srgb, var(--color-error) 10%, transparent)">
             <XCircle size={32} style={{ color: 'var(--color-error)' }} />
-          </div>
+          </StatusCircle>
         ) : redirecting ? (
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: 'color-mix(in srgb, var(--color-success) 10%, transparent)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <StatusCircle bg="color-mix(in srgb, var(--color-success) 10%, transparent)">
             <CheckCircle2 size={32} style={{ color: 'var(--color-success)' }} />
-          </div>
+          </StatusCircle>
         ) : (
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: 'var(--color-bg-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <StatusCircle bg="var(--color-bg-secondary)">
             <Loader2 size={32} style={{ color: 'var(--color-accent-primary)', animation: 'spin 1s linear infinite' }} />
-          </div>
+          </StatusCircle>
         )}
 
         {/* Title */}
@@ -148,7 +139,7 @@ export function MarketplaceStartupPage() {
         </div>
 
         {/* Progress bar */}
-        {!timedOut && !redirecting && (
+        {!done && (
           <div style={{ width: '100%' }}>
             <div
               style={{
@@ -196,20 +187,13 @@ export function MarketplaceStartupPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.open(`http://localhost:${port}`, '_blank')}
+              onClick={() => window.open(getAppUrl(port), '_blank')}
             >
               {t('marketplace.openAnyway')}
             </Button>
           )}
         </div>
       </div>
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
