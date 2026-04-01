@@ -9,7 +9,7 @@
   "license": "AGPL-3.0",
   "services": {
     "app": {
-      "image": "ghcr.io/bluewave-labs/checkmate:latest",
+      "image": "ghcr.io/bluewave-labs/checkmate-backend-mono-multiarch:latest",
       "port": 5000,
       "healthCheck": "/api/v1/health",
       "env": {
