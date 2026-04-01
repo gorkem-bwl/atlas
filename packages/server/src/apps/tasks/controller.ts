@@ -340,6 +340,13 @@ export async function seedSampleTasks(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
 
+    // Idempotency guard — skip if tasks already exist
+    const existing = await taskService.listTasks(userId, {});
+    if (existing.length > 0) {
+      res.json({ success: true, data: { skipped: true } });
+      return;
+    }
+
     // Create projects
     const work = await taskService.createProject(userId, accountId, { title: 'Work', color: '#3b82f6' });
     const personal = await taskService.createProject(userId, accountId, { title: 'Personal', color: '#10b981' });
