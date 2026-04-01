@@ -82,7 +82,7 @@
   --color-surface-primary: #181a1e;
   --color-surface-hover: #2e323c;
   --color-surface-active: #363b47;
-  --color-surface-selected: #1e2a3d;
+  --color-surface-selected: color-mix(in srgb, var(--color-accent-primary) 10%, var(--color-bg-primary));
   --color-text-primary: #f0f1f4;
   --color-text-secondary: #adb4c2;
   --color-text-tertiary: #8e96a8;

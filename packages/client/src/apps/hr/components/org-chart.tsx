@@ -478,7 +478,7 @@ function OrgChartInner({ employees, departments, onSelectEmployee }: OrgChartPro
         display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)',
         padding: 'var(--spacing-sm) var(--spacing-lg)',
         borderBottom: '1px solid var(--color-border-secondary)',
-        flexShrink: 0, flexWrap: 'wrap',
+        flexShrink: 0, flexWrap: 'nowrap',
       }}>
         <Input
           value={searchQuery}
@@ -486,10 +486,10 @@ function OrgChartInner({ employees, departments, onSelectEmployee }: OrgChartPro
           placeholder={t('hr.orgChart.searchPlaceholder')}
           iconLeft={<Search size={14} />}
           size="sm"
-          style={{ width: 220 }}
+          style={{ width: 220, minWidth: 220, flexShrink: 0 }}
         />
-        <Select value={filterDept} onChange={setFilterDept} options={deptOptions} size="sm" width={160} />
-        <Select value={filterStatus} onChange={setFilterStatus} options={statusOptions} size="sm" width={140} />
+        <Select value={filterDept} onChange={setFilterDept} options={deptOptions} size="sm" width={150} />
+        <Select value={filterStatus} onChange={setFilterStatus} options={statusOptions} size="sm" width={150} />
         <div style={{ flex: 1 }} />
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
           {t('hr.orgChart.dragHint')}

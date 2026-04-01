@@ -1,5 +1,5 @@
 import { useState, useMemo, type CSSProperties } from 'react';
-import { Shield, Users, Check, X, Eye, Plus, Pencil, Trash2, Info } from 'lucide-react';
+import { Shield, Users, Check, X, Eye, Plus, Pencil, Trash2, Info, Crown, Briefcase, TrendingUp, EyeIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   useCrmPermissions,
@@ -17,6 +17,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 import { Avatar } from '../../../components/ui/avatar';
 import { Tooltip } from '../../../components/ui/tooltip';
 import { StatusDot } from '../../../components/ui/status-dot';
+import { StatCard } from '../../../components/ui/stat-card';
 
 // ─── Constants ──────────────────────────────────────────────────────
 
@@ -62,6 +63,13 @@ const ROLE_DESCRIPTIONS: Record<CrmRole, string> = {
   manager: 'Full CRUD on all entities, view-only on automations',
   sales: 'Manage deals, contacts, and activities. View-only on companies',
   viewer: 'Read-only access to all entities',
+};
+
+const ROLE_ICONS: Record<CrmRole, typeof Crown> = {
+  admin: Crown,
+  manager: Briefcase,
+  sales: TrendingUp,
+  viewer: EyeIcon,
 };
 
 // ─── Permission Matrix Cell ─────────────────────────────────────────
@@ -339,32 +347,14 @@ export function PermissionsView() {
         marginBottom: 'var(--spacing-xl)',
       }}>
         {ROLES.map((role) => (
-          <div
+          <StatCard
             key={role}
-            style={{
-              padding: 'var(--spacing-md)',
-              background: 'var(--color-bg-tertiary)',
-              borderRadius: 'var(--radius-md)',
-              borderLeft: `3px solid ${ROLE_COLORS[role]}`,
-            }}
-          >
-            <div style={{
-              fontSize: 'var(--font-size-sm)',
-              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-              color: 'var(--color-text-primary)',
-              textTransform: 'capitalize',
-              marginBottom: 4,
-            }}>
-              {role}
-            </div>
-            <div style={{
-              fontSize: 'var(--font-size-xs)',
-              color: 'var(--color-text-tertiary)',
-              lineHeight: 'var(--line-height-normal)',
-            }}>
-              {ROLE_DESCRIPTIONS[role]}
-            </div>
-          </div>
+            label={role}
+            value={role.charAt(0).toUpperCase() + role.slice(1)}
+            subtitle={ROLE_DESCRIPTIONS[role]}
+            color={ROLE_COLORS[role]}
+            icon={ROLE_ICONS[role]}
+          />
         ))}
       </div>
 

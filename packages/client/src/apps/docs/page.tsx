@@ -1562,8 +1562,9 @@ function DocumentView({
               size="sm"
               onClick={() => setShowCoverPicker(true)}
               style={{
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none',
+                background: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-secondary)',
                 fontSize: 12,
               }}
             >
@@ -1575,7 +1576,9 @@ function DocumentView({
               size={26}
               onClick={() => onCoverChange(null)}
               style={{
-                background: 'rgba(255,255,255,0.9)',
+                background: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-secondary)',
               }}
             />
           </div>

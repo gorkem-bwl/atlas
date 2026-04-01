@@ -51,20 +51,52 @@ export function CommentSidebar({ docId, isOpen, onClose }: CommentSidebarProps) 
   if (!isOpen) return null;
 
   return (
-    <div className="w-72 border-l border-gray-200 bg-white flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100">
-        <div className="flex items-center gap-1.5">
-          <MessageSquare className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-semibold text-gray-900">Comments</span>
+    <div style={{
+      width: 288,
+      borderLeft: '1px solid var(--color-border-primary)',
+      background: 'var(--color-bg-primary)',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      overflow: 'hidden',
+      fontFamily: 'var(--font-family)',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 'var(--spacing-md) var(--spacing-lg)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <MessageSquare size={16} style={{ color: 'var(--color-text-tertiary)' }} />
+          <span style={{
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 'var(--font-weight-semibold)',
+            color: 'var(--color-text-primary)',
+          }}>
+            Comments
+          </span>
           {activeComments.length > 0 && (
-            <span className="text-xs text-gray-400">({activeComments.length})</span>
+            <span style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-tertiary)',
+            }}>
+              ({activeComments.length})
+            </span>
           )}
         </div>
-        <IconButton icon={<X className="w-4 h-4" />} label="Close" size={24} onClick={onClose} />
+        <IconButton icon={<X size={16} />} label="Close" size={24} onClick={onClose} />
       </div>
 
       {/* New comment input */}
-      <div className="px-3 py-2 border-b border-gray-100">
+      <div style={{
+        padding: 'var(--spacing-md) var(--spacing-lg)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        flexShrink: 0,
+      }}>
         <Textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
@@ -76,7 +108,7 @@ export function CommentSidebar({ docId, isOpen, onClose }: CommentSidebarProps) 
           }}
         />
         {newComment.trim() && (
-          <div className="flex justify-end mt-1.5">
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-sm)' }}>
             <Button variant="primary" size="sm" onClick={handleSubmit}>
               Comment
             </Button>
@@ -85,51 +117,93 @@ export function CommentSidebar({ docId, isOpen, onClose }: CommentSidebarProps) 
       </div>
 
       {/* Comment list */}
-      <div className="flex-1 overflow-y-auto">
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         {displayComments.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-400">
+          <div style={{
+            padding: 'var(--spacing-2xl) var(--spacing-lg)',
+            textAlign: 'center',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-text-tertiary)',
+          }}>
             No comments yet
           </div>
         ) : (
-          displayComments.map((comment: DocumentComment) => (
-            <div
-              key={comment.id}
-              className={`px-3 py-2.5 border-b border-gray-50 ${comment.isResolved ? 'opacity-50' : ''}`}
-            >
-              {comment.selectionText && (
-                <div className="text-xs text-gray-400 bg-yellow-50 px-2 py-1 rounded mb-1.5 italic border-l-2 border-yellow-300">
-                  &ldquo;{comment.selectionText}&rdquo;
-                </div>
-              )}
-              <p className="text-sm text-gray-700">{comment.content}</p>
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="text-[10px] text-gray-400">{getRelativeTime(comment.createdAt)}</span>
-                <div className="flex items-center gap-1">
-                  {!comment.isResolved && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            {displayComments.map((comment: DocumentComment) => (
+              <div
+                key={comment.id}
+                style={{
+                  padding: 'var(--spacing-md) var(--spacing-lg)',
+                  borderBottom: '1px solid var(--color-border-secondary)',
+                  opacity: comment.isResolved ? 0.5 : 1,
+                  transition: 'opacity var(--transition-fast)',
+                }}
+              >
+                {comment.selectionText && (
+                  <div style={{
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-tertiary)',
+                    background: 'color-mix(in srgb, var(--color-warning) 10%, var(--color-bg-secondary))',
+                    padding: 'var(--spacing-xs) var(--spacing-sm)',
+                    borderRadius: 'var(--radius-sm)',
+                    marginBottom: 'var(--spacing-sm)',
+                    fontStyle: 'italic',
+                    borderLeft: '2px solid var(--color-warning)',
+                  }}>
+                    &ldquo;{comment.selectionText}&rdquo;
+                  </div>
+                )}
+                <p style={{
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--color-text-secondary)',
+                  margin: 0,
+                  lineHeight: 'var(--line-height-normal)',
+                }}>
+                  {comment.content}
+                </p>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 'var(--spacing-sm)',
+                }}>
+                  <span style={{
+                    fontSize: 10,
+                    color: 'var(--color-text-tertiary)',
+                  }}>
+                    {getRelativeTime(comment.createdAt)}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                    {!comment.isResolved && (
+                      <IconButton
+                        icon={<Check size={14} />}
+                        label="Resolve"
+                        size={22}
+                        onClick={() => resolveComment.mutate({ commentId: comment.id, docId })}
+                      />
+                    )}
                     <IconButton
-                      icon={<Check className="w-3.5 h-3.5" />}
-                      label="Resolve"
+                      icon={<Trash2 size={14} />}
+                      label="Delete"
                       size={22}
-                      onClick={() => resolveComment.mutate({ commentId: comment.id, docId })}
+                      destructive
+                      onClick={() => deleteComment.mutate({ commentId: comment.id, docId })}
                     />
-                  )}
-                  <IconButton
-                    icon={<Trash2 className="w-3.5 h-3.5" />}
-                    label="Delete"
-                    size={22}
-                    destructive
-                    onClick={() => deleteComment.mutate({ commentId: comment.id, docId })}
-                  />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
       {/* Show resolved toggle */}
       {resolvedComments.length > 0 && (
-        <div className="px-3 py-2 border-t border-gray-100">
+        <div style={{
+          padding: 'var(--spacing-sm) var(--spacing-lg)',
+          borderTop: '1px solid var(--color-border-secondary)',
+          flexShrink: 0,
+        }}>
           <Button
             variant="ghost"
             size="sm"
