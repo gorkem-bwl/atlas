@@ -172,6 +172,10 @@ export async function updateItem(userId: string, itemId: string, input: UpdateDr
 
 export async function deleteItem(userId: string, itemId: string) {
   await updateItem(userId, itemId, { isArchived: true });
+  // Also archive all children (folders cascade to subfolders and files)
+  await db.update(driveItems)
+    .set({ isArchived: true, updatedAt: new Date() })
+    .where(and(eq(driveItems.parentId, itemId), eq(driveItems.userId, userId)));
 }
 
 // ─── Restore from trash ──────────────────────────────────────────────
@@ -183,6 +187,11 @@ export async function restoreItem(userId: string, itemId: string) {
     .update(driveItems)
     .set({ isArchived: false, updatedAt: now })
     .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)));
+
+  // Also restore children that were cascade-archived
+  await db.update(driveItems)
+    .set({ isArchived: false, updatedAt: now })
+    .where(and(eq(driveItems.parentId, itemId), eq(driveItems.userId, userId)));
 
   const [restored] = await db
     .select()
