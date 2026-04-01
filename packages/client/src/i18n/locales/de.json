@@ -1181,7 +1181,20 @@
       "passwordPlaceholder": "Passwort eingeben...",
       "passwordRequired": "Diese Datei ist passwortgeschützt",
       "enterPassword": "Passwort eingeben zum Herunterladen",
-      "wrongPassword": "Falsches Passwort"
+      "wrongPassword": "Falsches Passwort",
+      "createLink": "Link erstellen",
+      "copyLink": "Link kopieren",
+      "deleteLink": "Link löschen",
+      "linkCopied": "Link kopiert",
+      "linkDeleted": "Link gelöscht",
+      "linkCreated": "Erstellt {{date}}",
+      "linkExpires": "Läuft ab {{date}}",
+      "linkNoExpiry": "Kein Ablauf",
+      "protected": "Geschützt",
+      "expiryNever": "Läuft nie ab",
+      "expiry1Day": "Läuft in 1 Tag ab",
+      "expiry7Days": "Läuft in 7 Tagen ab",
+      "expiry30Days": "Läuft in 30 Tagen ab"
     },
     "activity": {
       "title": "Aktivität",
@@ -1200,6 +1213,10 @@
       "placeholder": "Kommentar schreiben...",
       "add": "Hinzufügen",
       "delete": "Kommentar löschen"
+    },
+    "storage": {
+      "usage": "{{used}} von {{total}} verwendet",
+      "fileCount": "{{count}} Dateien"
     }
   },
   "hr": {

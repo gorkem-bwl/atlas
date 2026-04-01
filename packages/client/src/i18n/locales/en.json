@@ -1208,7 +1208,20 @@
       "passwordPlaceholder": "Enter password...",
       "passwordRequired": "This file is password protected",
       "enterPassword": "Enter password to download",
-      "wrongPassword": "Incorrect password"
+      "wrongPassword": "Incorrect password",
+      "createLink": "Create link",
+      "copyLink": "Copy link",
+      "deleteLink": "Delete link",
+      "linkCopied": "Link copied",
+      "linkDeleted": "Link deleted",
+      "linkCreated": "Created {{date}}",
+      "linkExpires": "Expires {{date}}",
+      "linkNoExpiry": "No expiry",
+      "protected": "Protected",
+      "expiryNever": "Never expires",
+      "expiry1Day": "Expires in 1 day",
+      "expiry7Days": "Expires in 7 days",
+      "expiry30Days": "Expires in 30 days"
     },
     "activity": {
       "title": "Activity",
@@ -1227,6 +1240,10 @@
       "placeholder": "Write a comment...",
       "add": "Add",
       "delete": "Delete comment"
+    },
+    "storage": {
+      "usage": "{{used}} of {{total}} used",
+      "fileCount": "{{count}} files"
     }
   },
   "hr": {

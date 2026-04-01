@@ -1181,7 +1181,20 @@
       "passwordPlaceholder": "Parola girin...",
       "passwordRequired": "Bu dosya parola korumalıdır",
       "enterPassword": "İndirmek için parola girin",
-      "wrongPassword": "Yanlış parola"
+      "wrongPassword": "Yanlış parola",
+      "createLink": "Bağlantı oluştur",
+      "copyLink": "Bağlantıyı kopyala",
+      "deleteLink": "Bağlantıyı sil",
+      "linkCopied": "Bağlantı kopyalandı",
+      "linkDeleted": "Bağlantı silindi",
+      "linkCreated": "Oluşturulma: {{date}}",
+      "linkExpires": "Bitiş: {{date}}",
+      "linkNoExpiry": "Süresiz",
+      "protected": "Korumalı",
+      "expiryNever": "Süresiz",
+      "expiry1Day": "1 gün sonra sona erer",
+      "expiry7Days": "7 gün sonra sona erer",
+      "expiry30Days": "30 gün sonra sona erer"
     },
     "activity": {
       "title": "Etkinlik",
@@ -1200,6 +1213,10 @@
       "placeholder": "Bir yorum yazın...",
       "add": "Ekle",
       "delete": "Yorumu sil"
+    },
+    "storage": {
+      "usage": "{{total}} alanından {{used}} kullanıldı",
+      "fileCount": "{{count}} dosya"
     }
   },
   "hr": {

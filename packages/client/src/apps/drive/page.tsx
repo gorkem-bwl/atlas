@@ -14,6 +14,10 @@ import { AppSidebar } from '../../components/layout/app-sidebar';
 import { ListToolbar } from '../../components/ui/list-toolbar';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
+import { Avatar } from '../../components/ui/avatar';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { Tooltip } from '../../components/ui/tooltip';
 import {
   useDriveItems, useDriveBreadcrumbs, useDriveFavourites, useDriveRecent,
   useDriveTrash, useDriveSearch, useCreateFolder, useUploadFiles,
@@ -1585,14 +1589,31 @@ export function DrivePage() {
             </Button>
           </div>
         }
-        footer={storageData ? (
-          <div className="drive-storage">
-            <span className="drive-storage-label">{formatBytes(storageData.totalBytes)} used</span>
-            <div className="drive-storage-bar">
-              <div className="drive-storage-fill" style={{ width: `${Math.min(100, (storageData.totalBytes / (1024 * 1024 * 1024)) * 100)}%` }} />
+        footer={storageData ? (() => {
+          const totalQuota = 10 * 1024 * 1024 * 1024; // 10 GB
+          const usagePercent = Math.min(100, (storageData.totalBytes / totalQuota) * 100);
+          return (
+            <div className="drive-storage">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xs)' }}>
+                <span className="drive-storage-label">
+                  {t('drive.storage.usage', { used: formatBytes(storageData.totalBytes), total: formatBytes(totalQuota) })}
+                </span>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+                  {t('drive.storage.fileCount', { count: storageData.fileCount })}
+                </span>
+              </div>
+              <div className="drive-storage-bar">
+                <div
+                  className="drive-storage-fill"
+                  style={{
+                    width: `${usagePercent}%`,
+                    background: usagePercent > 90 ? 'var(--color-error)' : usagePercent > 75 ? 'var(--color-warning)' : 'var(--color-accent-primary)',
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        ) : undefined}
+          );
+        })() : undefined}
       >
         <nav className="drive-sidebar-nav">
           <button
@@ -2021,6 +2042,27 @@ export function DrivePage() {
                       )}
                       {renderTags(item)}
                     </div>
+                    {sidebarView === 'shared' && (() => {
+                      const sharedItem = item as DriveItem & { sharePermission?: string; sharedBy?: string };
+                      const sharer = (tenantUsersData ?? []).find((u) => u.userId === sharedItem.sharedBy);
+                      return (
+                        <div className="drive-list-shared-info" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', minWidth: 140 }}>
+                          {sharer && (
+                            <Tooltip content={sharer.name || sharer.email}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                                <Avatar name={sharer.name || null} email={sharer.email} size={18} />
+                                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {sharer.name || sharer.email}
+                                </span>
+                              </span>
+                            </Tooltip>
+                          )}
+                          <Badge variant={sharedItem.sharePermission === 'edit' ? 'primary' : 'default'}>
+                            {sharedItem.sharePermission === 'edit' ? t('drive.sharing.shareEdit') : t('drive.sharing.shareView')}
+                          </Badge>
+                        </div>
+                      );
+                    })()}
                     <span className="drive-list-size">
                       {item.type === 'file' ? formatBytes(item.size) : '—'}
                     </span>
@@ -2107,6 +2149,18 @@ export function DrivePage() {
                     <span className="drive-grid-card-meta">
                       {item.type === 'file' ? formatBytes(item.size) : `${formatRelativeDate(item.updatedAt)}`}
                     </span>
+                    {sidebarView === 'shared' && (() => {
+                      const sharedItem = item as DriveItem & { sharePermission?: string; sharedBy?: string };
+                      const sharer = (tenantUsersData ?? []).find((u) => u.userId === sharedItem.sharedBy);
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', justifyContent: 'center', marginTop: 2 }}>
+                          {sharer && <Avatar name={sharer.name || null} email={sharer.email} size={14} />}
+                          <Badge variant={sharedItem.sharePermission === 'edit' ? 'primary' : 'default'}>
+                            {sharedItem.sharePermission === 'edit' ? t('drive.sharing.shareEdit') : t('drive.sharing.shareView')}
+                          </Badge>
+                        </div>
+                      );
+                    })()}
                     {renderTags(item)}
                     {item.isFavourite && (
                       <Star size={12} fill="var(--color-star, #f59e0b)" color="var(--color-star, #f59e0b)" style={{ position: 'absolute', top: 8, right: 8 }} />
@@ -2436,33 +2490,29 @@ export function DrivePage() {
                 <ChevronDown size={12} style={{ marginLeft: 'auto', transform: commentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
               </Button>
               {commentsOpen && (
-                <div style={{ marginTop: 4 }}>
+                <div style={{ marginTop: 'var(--spacing-xs)' }}>
                   {/* Comment input */}
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                    <input
-                      type="text"
-                      value={commentBody}
-                      onChange={(e) => setCommentBody(e.target.value)}
-                      placeholder={t('drive.comments.placeholder')}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && commentBody.trim() && previewItem) {
-                          createFileComment.mutate({ itemId: previewItem.id, body: commentBody.trim() }, {
-                            onSuccess: () => setCommentBody(''),
-                          });
-                        }
-                      }}
-                      style={{
-                        flex: 1, padding: '4px 8px', border: '1px solid var(--color-border-secondary)',
-                        borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
-                        color: 'var(--color-text-primary)', fontSize: 11, fontFamily: 'var(--font-family)',
-                        outline: 'none',
-                      }}
-                    />
-                    <IconButton
+                  <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1 }}>
+                      <Input
+                        size="sm"
+                        value={commentBody}
+                        onChange={(e) => setCommentBody(e.target.value)}
+                        placeholder={t('drive.comments.placeholder')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && commentBody.trim() && previewItem) {
+                            createFileComment.mutate({ itemId: previewItem.id, body: commentBody.trim() }, {
+                              onSuccess: () => setCommentBody(''),
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
                       icon={<Send size={12} />}
-                      label={t('drive.comments.add')}
-                      size={24}
-                      tooltip={false}
+                      disabled={!commentBody.trim()}
                       onClick={() => {
                         if (commentBody.trim() && previewItem) {
                           createFileComment.mutate({ itemId: previewItem.id, body: commentBody.trim() }, {
@@ -2470,33 +2520,40 @@ export function DrivePage() {
                           });
                         }
                       }}
-                    />
+                    >
+                      {t('drive.comments.add')}
+                    </Button>
                   </div>
                   {/* Comment list */}
                   {commentsData && commentsData.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', maxHeight: 220, overflowY: 'auto' }}>
                       {commentsData.map((c) => (
-                        <div key={c.id} style={{ display: 'flex', gap: 6, padding: '4px 0' }}>
+                        <div key={c.id} style={{ display: 'flex', gap: 'var(--spacing-sm)', padding: 'var(--spacing-xs) 0', alignItems: 'flex-start' }}>
+                          <Avatar name={c.userName} size={22} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--color-text-primary)' }}>{c.userName}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                              <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>{c.userName}</span>
                               <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>{formatRelativeDate(c.createdAt)}</span>
                             </div>
-                            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2, wordBreak: 'break-word' }}>{c.body}</div>
+                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 2, wordBreak: 'break-word' }}>{c.body}</div>
                           </div>
-                          <IconButton
-                            icon={<Trash2 size={10} />}
-                            label={t('drive.comments.delete')}
-                            size={18}
-                            tooltip={false}
-                            destructive
-                            onClick={() => deleteFileComment.mutate(c.id)}
-                          />
+                          <Tooltip content={t('drive.comments.delete')}>
+                            <span>
+                              <IconButton
+                                icon={<Trash2 size={10} />}
+                                label={t('drive.comments.delete')}
+                                size={18}
+                                tooltip={false}
+                                destructive
+                                onClick={() => deleteFileComment.mutate(c.id)}
+                              />
+                            </span>
+                          </Tooltip>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>{t('drive.comments.empty')}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', padding: 'var(--spacing-xs) 0', display: 'block' }}>{t('drive.comments.empty')}</span>
                   )}
                 </div>
               )}
@@ -2515,31 +2572,45 @@ export function DrivePage() {
                 <ChevronDown size={12} style={{ marginLeft: 'auto', transform: activityOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
               </Button>
               {activityOpen && (
-                <div style={{ marginTop: 4, maxHeight: 200, overflowY: 'auto' }}>
+                <div style={{ marginTop: 'var(--spacing-xs)', maxHeight: 220, overflowY: 'auto' }}>
                   {activityData && activityData.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      {activityData.map((a) => (
-                        <div key={a.id} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 11 }}>
-                          <Activity size={11} style={{ color: 'var(--color-text-tertiary)', marginTop: 2, flexShrink: 0 }} />
-                          <div style={{ minWidth: 0 }}>
-                            <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{a.userName}</span>
-                            {' '}
-                            <span style={{ color: 'var(--color-text-secondary)' }}>
-                              {a.action === 'file.uploaded' && t('drive.activity.fileUploaded')}
-                              {a.action === 'folder.created' && t('drive.activity.folderCreated')}
-                              {a.action === 'file.renamed' && t('drive.activity.fileRenamed')}
-                              {a.action === 'file.deleted' && t('drive.activity.fileDeleted')}
-                              {a.action === 'file.restored' && t('drive.activity.fileRestored')}
-                              {a.action === 'file.shared' && t('drive.activity.fileShared', { name: (a.metadata as Record<string, unknown>)?.sharedWith || '' })}
-                              {a.action === 'share_link.created' && t('drive.activity.shareLinkCreated')}
-                            </span>
-                            <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 1 }}>{formatRelativeDate(a.createdAt)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                      {activityData.map((a) => {
+                        const actionIcon = a.action === 'file.uploaded' ? <Upload size={11} />
+                          : a.action === 'folder.created' ? <FolderPlus size={11} />
+                          : a.action === 'file.renamed' ? <Pencil size={11} />
+                          : a.action === 'file.deleted' ? <Trash2 size={11} />
+                          : a.action === 'file.restored' ? <RotateCcw size={11} />
+                          : a.action === 'file.shared' ? <Share2 size={11} />
+                          : a.action === 'share_link.created' ? <Link2 size={11} />
+                          : <Activity size={11} />;
+                        return (
+                          <div key={a.id} style={{ display: 'flex', gap: 'var(--spacing-sm)', padding: 'var(--spacing-xs) 0', fontSize: 'var(--font-size-xs)', alignItems: 'flex-start' }}>
+                            <Avatar name={a.userName} size={20} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>{a.userName}</span>
+                                <span style={{ color: 'var(--color-text-secondary)' }}>
+                                  {a.action === 'file.uploaded' && t('drive.activity.fileUploaded')}
+                                  {a.action === 'folder.created' && t('drive.activity.folderCreated')}
+                                  {a.action === 'file.renamed' && t('drive.activity.fileRenamed')}
+                                  {a.action === 'file.deleted' && t('drive.activity.fileDeleted')}
+                                  {a.action === 'file.restored' && t('drive.activity.fileRestored')}
+                                  {a.action === 'file.shared' && t('drive.activity.fileShared', { name: (a.metadata as Record<string, unknown>)?.sharedWith || '' })}
+                                  {a.action === 'share_link.created' && t('drive.activity.shareLinkCreated')}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginTop: 2 }}>
+                                <span style={{ color: 'var(--color-text-tertiary)', display: 'inline-flex', alignItems: 'center' }}>{actionIcon}</span>
+                                <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>{formatRelativeDate(a.createdAt)}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
-                    <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>{t('drive.activity.empty')}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', padding: 'var(--spacing-xs) 0', display: 'block' }}>{t('drive.activity.empty')}</span>
                   )}
                 </div>
               )}
@@ -2950,8 +3021,8 @@ export function DrivePage() {
                         background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-secondary)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
-                        <Users size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', minWidth: 0, flex: 1 }}>
+                        <Avatar name={user?.name || user?.email || null} email={user?.email} size={24} />
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {user?.name || user?.email || share.sharedWithUserId}
                         </span>
@@ -3002,10 +3073,10 @@ export function DrivePage() {
               value={shareExpiry}
               onChange={(v) => setShareExpiry(v)}
               options={[
-                { value: 'never', label: 'Never expires' },
-                { value: '1', label: 'Expires in 1 day' },
-                { value: '7', label: 'Expires in 7 days' },
-                { value: '30', label: 'Expires in 30 days' },
+                { value: 'never', label: t('drive.sharing.expiryNever') },
+                { value: '1', label: t('drive.sharing.expiry1Day') },
+                { value: '7', label: t('drive.sharing.expiry7Days') },
+                { value: '30', label: t('drive.sharing.expiry30Days') },
               ]}
               style={{ flex: 1 }}
             />
@@ -3030,7 +3101,7 @@ export function DrivePage() {
               }}
               style={{ whiteSpace: 'nowrap' }}
             >
-              Create link
+              {t('drive.sharing.createLink')}
             </Button>
           </div>
           {/* Password protection */}
@@ -3046,18 +3117,16 @@ export function DrivePage() {
               {t('drive.sharing.passwordProtect')}
             </label>
             {sharePasswordEnabled && (
-              <input
-                type="password"
-                value={sharePassword}
-                onChange={(e) => setSharePassword(e.target.value)}
-                placeholder={t('drive.sharing.passwordPlaceholder')}
-                style={{
-                  width: '100%', marginTop: 6, padding: '6px 8px', border: '1px solid var(--color-border-secondary)',
-                  borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
-                  outline: 'none',
-                }}
-              />
+              <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                <Input
+                  type="password"
+                  size="sm"
+                  value={sharePassword}
+                  onChange={(e) => setSharePassword(e.target.value)}
+                  placeholder={t('drive.sharing.passwordPlaceholder')}
+                  iconLeft={<Lock size={12} />}
+                />
+              </div>
             )}
           </div>
           {shareLinksData && shareLinksData.links.length > 0 && (
@@ -3067,39 +3136,48 @@ export function DrivePage() {
                 return (
                   <div key={link.id} className="drive-share-link-row">
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <input
+                      <Input
+                        size="sm"
                         readOnly
                         value={shareUrl}
                         onClick={(e) => (e.target as HTMLInputElement).select()}
-                        style={{
-                          width: '100%', padding: '4px 8px', border: '1px solid var(--color-border-secondary)',
-                          borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
-                          color: 'var(--color-text-primary)', fontSize: 11, fontFamily: 'var(--font-family)',
-                          outline: 'none',
-                        }}
+                        iconLeft={<Link2 size={12} />}
+                        style={{ fontSize: 'var(--font-size-xs)' }}
                       />
-                      <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 2 }}>
-                        Created {formatRelativeDate(link.createdAt)}
-                        {link.expiresAt ? ` · Expires ${formatRelativeDate(link.expiresAt)}` : ' · No expiry'}
-                        {link.passwordHash && <span style={{ marginLeft: 4 }}><Lock size={9} style={{ display: 'inline', verticalAlign: 'middle' }} /> Protected</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 'var(--spacing-xs)' }}>
+                        <span>{t('drive.sharing.linkCreated', { date: formatRelativeDate(link.createdAt) })}</span>
+                        <span>{link.expiresAt ? t('drive.sharing.linkExpires', { date: formatRelativeDate(link.expiresAt) }) : t('drive.sharing.linkNoExpiry')}</span>
+                        {link.passwordHash && (
+                          <Badge variant="warning">
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 10 }}><Lock size={8} /> {t('drive.sharing.protected')}</span>
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <IconButton
-                        icon={<Copy size={13} />}
-                        label="Copy link"
-                        size={22}
-                        tooltip={false}
-                        onClick={() => { navigator.clipboard.writeText(shareUrl); addToast({ type: 'success', message: 'Link copied' }); }}
-                      />
-                      <IconButton
-                        icon={<Trash2 size={13} />}
-                        label="Delete link"
-                        size={22}
-                        tooltip={false}
-                        destructive
-                        onClick={() => deleteShareLink.mutate(link.id, { onSuccess: () => addToast({ type: 'success', message: 'Link deleted' }) })}
-                      />
+                    <div style={{ display: 'flex', gap: 'var(--spacing-xs)', flexShrink: 0 }}>
+                      <Tooltip content={t('drive.sharing.copyLink')}>
+                        <span>
+                          <IconButton
+                            icon={<Copy size={13} />}
+                            label={t('drive.sharing.copyLink')}
+                            size={22}
+                            tooltip={false}
+                            onClick={() => { navigator.clipboard.writeText(shareUrl); addToast({ type: 'success', message: t('drive.sharing.linkCopied') }); }}
+                          />
+                        </span>
+                      </Tooltip>
+                      <Tooltip content={t('drive.sharing.deleteLink')}>
+                        <span>
+                          <IconButton
+                            icon={<Trash2 size={13} />}
+                            label={t('drive.sharing.deleteLink')}
+                            size={22}
+                            tooltip={false}
+                            destructive
+                            onClick={() => deleteShareLink.mutate(link.id, { onSuccess: () => addToast({ type: 'success', message: t('drive.sharing.linkDeleted') }) })}
+                          />
+                        </span>
+                      </Tooltip>
                     </div>
                   </div>
                 );

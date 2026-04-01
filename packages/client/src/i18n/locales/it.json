@@ -1181,7 +1181,20 @@
       "passwordPlaceholder": "Inserisci password...",
       "passwordRequired": "Questo file è protetto da password",
       "enterPassword": "Inserisci la password per scaricare",
-      "wrongPassword": "Password errata"
+      "wrongPassword": "Password errata",
+      "createLink": "Crea link",
+      "copyLink": "Copia link",
+      "deleteLink": "Elimina link",
+      "linkCopied": "Link copiato",
+      "linkDeleted": "Link eliminato",
+      "linkCreated": "Creato {{date}}",
+      "linkExpires": "Scade {{date}}",
+      "linkNoExpiry": "Nessuna scadenza",
+      "protected": "Protetto",
+      "expiryNever": "Non scade mai",
+      "expiry1Day": "Scade in 1 giorno",
+      "expiry7Days": "Scade in 7 giorni",
+      "expiry30Days": "Scade in 30 giorni"
     },
     "activity": {
       "title": "Attività",
@@ -1200,6 +1213,10 @@
       "placeholder": "Scrivi un commento...",
       "add": "Aggiungi",
       "delete": "Elimina commento"
+    },
+    "storage": {
+      "usage": "{{used}} di {{total}} utilizzati",
+      "fileCount": "{{count}} file"
     }
   },
   "hr": {
