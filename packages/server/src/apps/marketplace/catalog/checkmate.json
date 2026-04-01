@@ -5,7 +5,7 @@
   "icon": "Activity",
   "category": "monitoring",
   "color": "#4f46e5",
-  "website": "https://github.com/bluewave-labs/checkmate",
+  "website": "https://checkmate.so",
   "license": "AGPL-3.0",
   "services": {
     "app": {

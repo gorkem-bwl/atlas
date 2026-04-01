@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Store,
@@ -15,8 +16,10 @@ import {
   AlertTriangle,
   Info,
   Download,
+  MemoryStick,
+  HardDrive,
+  ArrowLeft,
 } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import type { MarketplaceCatalogItem } from '@atlasmail/shared';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -37,11 +40,6 @@ import {
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
-function getLucideIcon(name: string): LucideIcons.LucideIcon {
-  const icon = (LucideIcons as Record<string, unknown>)[name];
-  if (typeof icon === 'function') return icon as LucideIcons.LucideIcon;
-  return Store;
-}
 
 function getStatusVariant(status: string | null | undefined): 'default' | 'success' | 'warning' | 'error' {
   switch (status) {
@@ -410,7 +408,6 @@ function AppCard({
   const updateMutation = useUpdateApp();
   const removeMutation = useRemoveApp();
 
-  const Icon = getLucideIcon(app.icon);
   const status = app.status;
   const isInstalled = app.installed;
   const isRunning = status === 'running';
@@ -438,45 +435,28 @@ function AppCard({
         onMouseLeave={() => setHovered(false)}
         style={{
           position: 'relative',
-          background: 'var(--color-bg-elevated)',
+          background: 'var(--color-bg-primary)',
           border: '1px solid var(--color-border-primary)',
           borderRadius: 'var(--radius-lg)',
-          borderLeft: `3px solid ${app.color}`,
           padding: 'var(--spacing-xl)',
           display: 'flex',
           flexDirection: 'column',
           gap: 'var(--spacing-md)',
-          transition: 'box-shadow var(--transition-normal), border-color var(--transition-normal)',
-          boxShadow: hovered ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+          transition: 'background var(--transition-normal)',
+          ...(hovered ? { background: 'var(--color-surface-hover)' } : {}),
         }}
       >
-        {/* Header row: icon + name + status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+        {/* Header row: name + status */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 'var(--radius-lg)',
-              background: `color-mix(in srgb, ${app.color} 12%, transparent)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              fontSize: 'var(--font-size-lg)',
+              fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+              color: 'var(--color-text-primary)',
+              fontFamily: 'var(--font-family)',
             }}
           >
-            <Icon size={20} style={{ color: app.color }} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 'var(--font-size-lg)',
-                fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                color: 'var(--color-text-primary)',
-                fontFamily: 'var(--font-family)',
-              }}
-            >
-              {app.name}
-            </div>
+            {app.name}
           </div>
           <StatusBadge status={status} t={t} />
         </div>
@@ -495,10 +475,15 @@ function AppCard({
           {app.description}
         </p>
 
-        {/* Meta badges row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+        {/* Meta row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexWrap: 'wrap', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <MemoryStick size={12} /> {app.resources.minRam}
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <HardDrive size={12} /> {app.resources.estimatedDisk}
+          </span>
           <Badge>{app.license}</Badge>
-          <Badge>{app.resources.minRam}</Badge>
           {app.updateAvailable && (
             <Badge variant="warning">{t('marketplace.updateAvailable')}</Badge>
           )}
@@ -829,6 +814,7 @@ function DockerUnavailableBanner({ t }: { t: (key: string) => string }) {
 
 export function MarketplacePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data, isLoading, error } = useMarketplaceCatalog();
   const isSuperAdmin = useAuthStore(s => s.isSuperAdmin);
   const tenantRole = useAuthStore(s => s.tenantRole);
@@ -863,7 +849,19 @@ export function MarketplacePage() {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xs)' }}>
-              <Store size={24} style={{ color: 'var(--color-text-primary)' }} />
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 28, height: 28, borderRadius: 'var(--radius-sm)',
+                  border: 'none', background: 'transparent', color: 'var(--color-text-tertiary)',
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
+              >
+                <ArrowLeft size={16} />
+              </button>
               <h1
                 style={{
                   margin: 0,
