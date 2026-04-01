@@ -54,6 +54,25 @@ export interface DriveShareLink {
   driveItemId: string;
   userId: string;
   shareToken: string;
+  passwordHash: string | null;
   expiresAt: string | null;
   createdAt: string;
+}
+
+export interface DriveActivityEntry {
+  id: string;
+  action: string;
+  metadata: Record<string, unknown>;
+  userId: string;
+  userName: string;
+  createdAt: string;
+}
+
+export interface DriveComment {
+  id: string;
+  body: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
+  updatedAt: string;
 }

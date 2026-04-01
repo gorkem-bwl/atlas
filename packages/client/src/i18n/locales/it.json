@@ -1175,7 +1175,31 @@
       "shareAction": "Condividi",
       "shareSuccess": "Condiviso con successo",
       "revokeSuccess": "Condivisione revocata",
-      "publicLink": "Link pubblico"
+      "publicLink": "Link pubblico",
+      "changePermission": "Modifica permesso",
+      "passwordProtect": "Protezione con password",
+      "passwordPlaceholder": "Inserisci password...",
+      "passwordRequired": "Questo file è protetto da password",
+      "enterPassword": "Inserisci la password per scaricare",
+      "wrongPassword": "Password errata"
+    },
+    "activity": {
+      "title": "Attività",
+      "empty": "Nessuna attività",
+      "fileUploaded": "ha caricato questo file",
+      "folderCreated": "ha creato questa cartella",
+      "fileRenamed": "ha rinominato questo file",
+      "fileDeleted": "spostato nel cestino",
+      "fileRestored": "ripristinato dal cestino",
+      "fileShared": "condiviso con {{name}}",
+      "shareLinkCreated": "ha creato un link di condivisione"
+    },
+    "comments": {
+      "title": "Commenti",
+      "empty": "Nessun commento",
+      "placeholder": "Scrivi un commento...",
+      "add": "Aggiungi",
+      "delete": "Elimina commento"
     }
   },
   "hr": {

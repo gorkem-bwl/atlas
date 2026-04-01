@@ -532,6 +532,7 @@ export const driveShareLinks = pgTable('drive_share_links', {
   driveItemId: uuid('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   shareToken: text('share_token').notNull().unique(),
+  passwordHash: text('password_hash'),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
@@ -551,6 +552,34 @@ export const driveItemShares = pgTable('drive_item_shares', {
 }, (table) => ({
   uniqueIdx: uniqueIndex('idx_drive_shares_unique').on(table.driveItemId, table.sharedWithUserId),
   sharedWithIdx: index('idx_drive_shares_user').on(table.sharedWithUserId),
+}));
+
+// ─── Drive activity log ────────────────────────────────────────────
+
+export const driveActivityLog = pgTable('drive_activity_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  driveItemId: uuid('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  action: varchar('action', { length: 100 }).notNull(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  itemIdx: index('idx_drive_activity_item').on(table.driveItemId),
+}));
+
+// ─── Drive comments ────────────────────────────────────────────────
+
+export const driveComments = pgTable('drive_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  driveItemId: uuid('drive_item_id').notNull().references(() => driveItems.id, { onDelete: 'cascade' }),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  itemIdx: index('idx_drive_comments_item').on(table.driveItemId),
 }));
 
 export const drawings = pgTable('drawings', {

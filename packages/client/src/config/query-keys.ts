@@ -107,6 +107,8 @@ export const queryKeys = {
     sharedWithMe: ['drive', 'shared-with-me'] as const,
     shares: (id: string) => ['drive', 'shares', id] as const,
     byType: (type: string) => ['drive', 'byType', type] as const,
+    activity: (id: string) => ['drive', 'activity', id] as const,
+    comments: (id: string) => ['drive', 'comments', id] as const,
   },
   admin: {
     all: ['admin'] as const,

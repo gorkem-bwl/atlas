@@ -455,6 +455,26 @@ export async function runMigrations() {
         CONSTRAINT idx_drive_shares_unique UNIQUE (drive_item_id, shared_with_user_id)
       );
 
+      CREATE TABLE IF NOT EXISTS drive_activity_log (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        drive_item_id UUID NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        action VARCHAR(100) NOT NULL,
+        metadata JSONB NOT NULL DEFAULT '{}',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS drive_comments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        drive_item_id UUID NOT NULL REFERENCES drive_items(id) ON DELETE CASCADE,
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        body TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS drawings (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -1498,6 +1518,10 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_share_links_item ON drive_share_links(drive_item_id)',
       // Drive item shares
       'CREATE INDEX IF NOT EXISTS idx_drive_shares_user ON drive_item_shares(shared_with_user_id)',
+      // Drive activity log
+      'CREATE INDEX IF NOT EXISTS idx_drive_activity_item ON drive_activity_log(drive_item_id)',
+      // Drive comments
+      'CREATE INDEX IF NOT EXISTS idx_drive_comments_item ON drive_comments(drive_item_id)',
       // Drawings
       'CREATE INDEX IF NOT EXISTS idx_drawings_account ON drawings(account_id, is_archived)',
       'CREATE INDEX IF NOT EXISTS idx_drawings_user ON drawings(user_id, is_archived)',
@@ -1795,6 +1819,11 @@ export async function runMigrations() {
       ALTER TABLE tasks ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ;
       ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignee_id UUID;
       CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+    `);
+
+    // Add password_hash column to drive_share_links (idempotent)
+    await client.query(`
+      ALTER TABLE drive_share_links ADD COLUMN IF NOT EXISTS password_hash TEXT;
     `);
 
     // ─── Task Comments ──────────────────────────────────────────────

@@ -1175,7 +1175,31 @@
       "shareAction": "Teilen",
       "shareSuccess": "Erfolgreich geteilt",
       "revokeSuccess": "Freigabe widerrufen",
-      "publicLink": "Öffentlicher Link"
+      "publicLink": "Öffentlicher Link",
+      "changePermission": "Berechtigung ändern",
+      "passwordProtect": "Passwortschutz",
+      "passwordPlaceholder": "Passwort eingeben...",
+      "passwordRequired": "Diese Datei ist passwortgeschützt",
+      "enterPassword": "Passwort eingeben zum Herunterladen",
+      "wrongPassword": "Falsches Passwort"
+    },
+    "activity": {
+      "title": "Aktivität",
+      "empty": "Noch keine Aktivität",
+      "fileUploaded": "hat diese Datei hochgeladen",
+      "folderCreated": "hat diesen Ordner erstellt",
+      "fileRenamed": "hat diese Datei umbenannt",
+      "fileDeleted": "in den Papierkorb verschoben",
+      "fileRestored": "aus dem Papierkorb wiederhergestellt",
+      "fileShared": "mit {{name}} geteilt",
+      "shareLinkCreated": "hat einen Freigabelink erstellt"
+    },
+    "comments": {
+      "title": "Kommentare",
+      "empty": "Noch keine Kommentare",
+      "placeholder": "Kommentar schreiben...",
+      "add": "Hinzufügen",
+      "delete": "Kommentar löschen"
     }
   },
   "hr": {

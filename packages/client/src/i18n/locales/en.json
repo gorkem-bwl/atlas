@@ -1202,7 +1202,31 @@
       "shareAction": "Share",
       "shareSuccess": "Shared successfully",
       "revokeSuccess": "Share revoked",
-      "publicLink": "Public link"
+      "publicLink": "Public link",
+      "changePermission": "Change permission",
+      "passwordProtect": "Password protect",
+      "passwordPlaceholder": "Enter password...",
+      "passwordRequired": "This file is password protected",
+      "enterPassword": "Enter password to download",
+      "wrongPassword": "Incorrect password"
+    },
+    "activity": {
+      "title": "Activity",
+      "empty": "No activity yet",
+      "fileUploaded": "uploaded this file",
+      "folderCreated": "created this folder",
+      "fileRenamed": "renamed this file",
+      "fileDeleted": "moved to trash",
+      "fileRestored": "restored from trash",
+      "fileShared": "shared with {{name}}",
+      "shareLinkCreated": "created a share link"
+    },
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments yet",
+      "placeholder": "Write a comment...",
+      "add": "Add",
+      "delete": "Delete comment"
     }
   },
   "hr": {

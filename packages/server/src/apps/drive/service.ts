@@ -1,11 +1,12 @@
 import { db } from '../../config/database';
-import { driveItems, driveItemVersions, driveShareLinks, driveItemShares } from '../../db/schema';
+import { driveItems, driveItemVersions, driveShareLinks, driveItemShares, driveActivityLog, driveComments, users } from '../../db/schema';
 import { eq, and, asc, desc, sql, isNull, inArray } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import { unlinkSync, existsSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { CreateDriveItemInput, UpdateDriveItemInput } from '@atlasmail/shared';
+import { hashPassword, verifyPassword } from '../../utils/password';
 
 const UPLOADS_DIR = path.join(__dirname, '../../../uploads');
 
@@ -25,18 +26,6 @@ function normalizeAll(items: any[]) {
 // ─── List items in a folder ──────────────────────────────────────────
 
 export async function listItems(userId: string, parentId: string | null, includeArchived = false, sortBy?: string, sortOrder?: string) {
-  const conditions = [eq(driveItems.userId, userId)];
-
-  if (parentId) {
-    conditions.push(eq(driveItems.parentId, parentId));
-  } else {
-    conditions.push(isNull(driveItems.parentId));
-  }
-
-  if (!includeArchived) {
-    conditions.push(eq(driveItems.isArchived, false));
-  }
-
   const foldersFirst = desc(sql`CASE WHEN ${driveItems.type} = 'folder' THEN 0 ELSE 1 END`);
   const dir = sortOrder === 'desc' ? desc : asc;
 
@@ -58,11 +47,40 @@ export async function listItems(userId: string, parentId: string | null, include
       sortClauses = [foldersFirst, asc(driveItems.sortOrder), asc(driveItems.name)];
   }
 
+  // Normal owner query
+  const conditions = [eq(driveItems.userId, userId)];
+  if (parentId) {
+    conditions.push(eq(driveItems.parentId, parentId));
+  } else {
+    conditions.push(isNull(driveItems.parentId));
+  }
+  if (!includeArchived) {
+    conditions.push(eq(driveItems.isArchived, false));
+  }
+
   const items = await db
     .select()
     .from(driveItems)
     .where(and(...conditions))
     .orderBy(...sortClauses);
+
+  // If parentId specified and no results, check if user has shared access to this folder
+  if (parentId && items.length === 0) {
+    const access = await hasSharedAccess(userId, parentId);
+    if (access.hasAccess) {
+      const sharedConditions = [eq(driveItems.parentId, parentId)];
+      if (!includeArchived) {
+        sharedConditions.push(eq(driveItems.isArchived, false));
+      }
+      const sharedItems = await db
+        .select()
+        .from(driveItems)
+        .where(and(...sharedConditions))
+        .orderBy(...sortClauses);
+      return normalizeAll(sharedItems);
+    }
+  }
+
   return normalizeAll(items);
 }
 
@@ -75,7 +93,20 @@ export async function getItem(userId: string, itemId: string) {
     .where(and(eq(driveItems.id, itemId), eq(driveItems.userId, userId)))
     .limit(1);
 
-  return normalizeTags(item) || null;
+  if (item) return normalizeTags(item);
+
+  // Fallback: check shared access (Feature 5 — folder sharing)
+  const access = await hasSharedAccess(userId, itemId);
+  if (access.hasAccess) {
+    const [sharedItem] = await db
+      .select()
+      .from(driveItems)
+      .where(eq(driveItems.id, itemId))
+      .limit(1);
+    return normalizeTags(sharedItem) || null;
+  }
+
+  return null;
 }
 
 // ─── Create a folder ─────────────────────────────────────────────────
@@ -143,16 +174,32 @@ export async function uploadFile(userId: string, accountId: string, input: Creat
 
 // ─── Update an item (rename, move, favourite, archive) ───────────────
 
-export async function updateItem(userId: string, itemId: string, input: UpdateDriveItemInput) {
+export async function updateItem(userId: string, itemId: string, input: UpdateDriveItemInput, isSharedEdit = false) {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.name !== undefined) updates.name = input.name;
-  if (input.parentId !== undefined) updates.parentId = input.parentId;
-  if (input.icon !== undefined) updates.icon = input.icon;
-  if (input.isFavourite !== undefined) updates.isFavourite = input.isFavourite;
-  if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
+  if (!isSharedEdit && input.parentId !== undefined) updates.parentId = input.parentId;
+  if (!isSharedEdit && input.icon !== undefined) updates.icon = input.icon;
+  if (!isSharedEdit && input.isFavourite !== undefined) updates.isFavourite = input.isFavourite;
+  if (!isSharedEdit && input.isArchived !== undefined) updates.isArchived = input.isArchived;
   if (input.tags !== undefined) updates.tags = JSON.stringify(input.tags);
+
+  if (isSharedEdit) {
+    // Shared edit: update by item id only (user is not the owner)
+    await db
+      .update(driveItems)
+      .set(updates)
+      .where(eq(driveItems.id, itemId));
+
+    const [updated] = await db
+      .select()
+      .from(driveItems)
+      .where(eq(driveItems.id, itemId))
+      .limit(1);
+
+    return normalizeTags(updated) || null;
+  }
 
   await db
     .update(driveItems)
@@ -300,6 +347,15 @@ export async function getBreadcrumbs(userId: string, itemId: string) {
     const item = await getItem(userId, currentId);
     if (!item) break;
     crumbs.unshift({ id: item.id, name: item.name });
+
+    // For shared folders, stop at the first directly shared ancestor
+    if (item.userId !== userId) {
+      const [directShare] = await db.select().from(driveItemShares)
+        .where(and(eq(driveItemShares.driveItemId, item.id), eq(driveItemShares.sharedWithUserId, userId)))
+        .limit(1);
+      if (directShare) break; // Stop here — don't show parent hierarchy above shared item
+    }
+
     currentId = item.parentId;
   }
 
@@ -627,17 +683,19 @@ export async function getVersion(userId: string, versionId: string) {
 
 // ─── Link sharing ────────────────────────────────────────────────────
 
-export async function createShareLink(userId: string, itemId: string, expiresAt?: string | null) {
+export async function createShareLink(userId: string, itemId: string, expiresAt?: string | null, password?: string | null) {
   const item = await getItem(userId, itemId);
   if (!item) return null;
 
   const shareToken = crypto.randomUUID();
+  const passwordHashValue = password ? await hashPassword(password) : null;
   const [link] = await db
     .insert(driveShareLinks)
     .values({
       driveItemId: itemId,
       userId,
       shareToken,
+      passwordHash: passwordHashValue,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       createdAt: new Date(),
     })
@@ -679,7 +737,33 @@ export async function getItemByShareToken(token: string) {
     .where(eq(driveItems.id, link.driveItemId))
     .limit(1);
 
-  return normalizeTags(item) || null;
+  const normalizedItem = normalizeTags(item);
+  if (!normalizedItem) return null;
+
+  return {
+    ...normalizedItem,
+    hasPassword: !!link.passwordHash,
+  };
+}
+
+export async function verifyShareLinkPassword(token: string, password: string): Promise<boolean> {
+  const [link] = await db
+    .select()
+    .from(driveShareLinks)
+    .where(eq(driveShareLinks.shareToken, token))
+    .limit(1);
+
+  if (!link || !link.passwordHash) return false;
+  return verifyPassword(password, link.passwordHash);
+}
+
+export async function getShareLinkByToken(token: string) {
+  const [link] = await db
+    .select()
+    .from(driveShareLinks)
+    .where(eq(driveShareLinks.shareToken, token))
+    .limit(1);
+  return link || null;
 }
 
 // ─── File type filtering ─────────────────────────────────────────────
@@ -877,4 +961,135 @@ export async function listSharedWithMe(userId: string, _accountId: string) {
       eq(driveItems.isArchived, false),
     ));
   return shares.map(s => ({ ...s.item, sharePermission: s.share.permission, sharedBy: s.share.sharedByUserId }));
+}
+
+// ─── Check share permission for a user on an item ───────────────────
+
+export async function checkSharePermission(userId: string, itemId: string): Promise<'view' | 'edit' | null> {
+  const [share] = await db.select().from(driveItemShares)
+    .where(and(
+      eq(driveItemShares.driveItemId, itemId),
+      eq(driveItemShares.sharedWithUserId, userId),
+    ))
+    .limit(1);
+  if (share) return share.permission as 'view' | 'edit';
+
+  // Also check ancestor shares (recursive)
+  const access = await hasSharedAccess(userId, itemId);
+  return access.permission as 'view' | 'edit' | null;
+}
+
+// ─── Recursive shared access check (Feature 5) ─────────────────────
+
+export async function hasSharedAccess(userId: string, itemId: string): Promise<{ hasAccess: boolean; permission: string | null }> {
+  try {
+    const result = await db.execute(sql`
+      WITH RECURSIVE ancestors AS (
+        SELECT id, parent_id, 0 as depth FROM drive_items WHERE id = ${itemId}
+        UNION ALL
+        SELECT di.id, di.parent_id, a.depth + 1 FROM drive_items di
+        JOIN ancestors a ON di.id = a.parent_id
+        WHERE a.depth < 10
+      )
+      SELECT dis.permission FROM drive_item_shares dis
+      JOIN ancestors a ON dis.drive_item_id = a.id
+      WHERE dis.shared_with_user_id = ${userId}
+      LIMIT 1
+    `);
+    const rows = result.rows as Array<{ permission: string }>;
+    if (rows.length > 0) {
+      return { hasAccess: true, permission: rows[0].permission };
+    }
+    return { hasAccess: false, permission: null };
+  } catch (err) {
+    logger.error({ err, userId, itemId }, 'Failed to check shared access');
+    return { hasAccess: false, permission: null };
+  }
+}
+
+// ─── Activity log (Feature 1) ──────────────────────────────────────
+
+export async function logDriveActivity(data: {
+  driveItemId: string;
+  accountId: string;
+  userId: string;
+  action: string;
+  metadata?: Record<string, unknown>;
+}) {
+  await db.insert(driveActivityLog).values({
+    driveItemId: data.driveItemId,
+    accountId: data.accountId,
+    userId: data.userId,
+    action: data.action,
+    metadata: data.metadata || {},
+    createdAt: new Date(),
+  });
+}
+
+export async function getActivityLog(itemId: string) {
+  const rows = await db.select({
+    activity: driveActivityLog,
+    userName: users.name,
+    userEmail: users.email,
+  }).from(driveActivityLog)
+    .leftJoin(users, eq(users.id, driveActivityLog.userId))
+    .where(eq(driveActivityLog.driveItemId, itemId))
+    .orderBy(desc(driveActivityLog.createdAt))
+    .limit(50);
+
+  return rows.map(r => ({
+    id: r.activity.id,
+    action: r.activity.action,
+    metadata: r.activity.metadata,
+    userId: r.activity.userId,
+    userName: r.userName || r.userEmail || 'Unknown',
+    createdAt: r.activity.createdAt,
+  }));
+}
+
+// ─── Comments (Feature 2) ──────────────────────────────────────────
+
+export async function listComments(itemId: string) {
+  const rows = await db.select({
+    comment: driveComments,
+    userName: users.name,
+    userEmail: users.email,
+  }).from(driveComments)
+    .leftJoin(users, eq(users.id, driveComments.userId))
+    .where(eq(driveComments.driveItemId, itemId))
+    .orderBy(desc(driveComments.createdAt));
+
+  return rows.map(r => ({
+    id: r.comment.id,
+    body: r.comment.body,
+    userId: r.comment.userId,
+    userName: r.userName || r.userEmail || 'Unknown',
+    createdAt: r.comment.createdAt,
+    updatedAt: r.comment.updatedAt,
+  }));
+}
+
+export async function createComment(userId: string, accountId: string, itemId: string, body: string) {
+  const now = new Date();
+  const [comment] = await db.insert(driveComments).values({
+    driveItemId: itemId,
+    accountId,
+    userId,
+    body,
+    createdAt: now,
+    updatedAt: now,
+  }).returning();
+  return comment;
+}
+
+export async function deleteComment(userId: string, commentId: string) {
+  // Author-only delete
+  const [comment] = await db.select().from(driveComments)
+    .where(and(eq(driveComments.id, commentId), eq(driveComments.userId, userId)))
+    .limit(1);
+  if (!comment) return null;
+
+  await db.delete(driveComments)
+    .where(and(eq(driveComments.id, commentId), eq(driveComments.userId, userId)));
+  return comment;
 }

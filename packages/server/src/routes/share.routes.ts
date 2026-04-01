@@ -27,6 +27,7 @@ router.get('/:token', async (req: Request, res: Response) => {
         type: item.type,
         mimeType: item.mimeType,
         size: item.size,
+        passwordRequired: item.hasPassword,
       },
     });
   } catch (error) {
@@ -44,6 +45,20 @@ router.get('/:token/download', async (req: Request, res: Response) => {
     if (!item || item.type !== 'file' || !item.storagePath) {
       res.status(404).json({ success: false, error: 'Link expired or not found' });
       return;
+    }
+
+    // Password protection check
+    if (item.hasPassword) {
+      const password = req.query.password as string | undefined;
+      if (!password) {
+        res.status(401).json({ success: false, error: 'Password required', passwordRequired: true });
+        return;
+      }
+      const valid = await driveService.verifyShareLinkPassword(token, password);
+      if (!valid) {
+        res.status(401).json({ success: false, error: 'Incorrect password', passwordRequired: true });
+        return;
+      }
     }
 
     const filePath = path.join(UPLOADS_DIR, item.storagePath);

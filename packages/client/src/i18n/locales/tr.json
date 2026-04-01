@@ -1175,7 +1175,31 @@
       "shareAction": "Paylaş",
       "shareSuccess": "Başarıyla paylaşıldı",
       "revokeSuccess": "Paylaşım iptal edildi",
-      "publicLink": "Herkese açık bağlantı"
+      "publicLink": "Herkese açık bağlantı",
+      "changePermission": "İzni değiştir",
+      "passwordProtect": "Parola koruması",
+      "passwordPlaceholder": "Parola girin...",
+      "passwordRequired": "Bu dosya parola korumalıdır",
+      "enterPassword": "İndirmek için parola girin",
+      "wrongPassword": "Yanlış parola"
+    },
+    "activity": {
+      "title": "Etkinlik",
+      "empty": "Henüz etkinlik yok",
+      "fileUploaded": "bu dosyayı yükledi",
+      "folderCreated": "bu klasörü oluşturdu",
+      "fileRenamed": "bu dosyayı yeniden adlandırdı",
+      "fileDeleted": "çöp kutusuna taşıdı",
+      "fileRestored": "çöp kutusundan geri yükledi",
+      "fileShared": "{{name}} ile paylaştı",
+      "shareLinkCreated": "paylaşım bağlantısı oluşturdu"
+    },
+    "comments": {
+      "title": "Yorumlar",
+      "empty": "Henüz yorum yok",
+      "placeholder": "Bir yorum yazın...",
+      "add": "Ekle",
+      "delete": "Yorumu sil"
     }
   },
   "hr": {

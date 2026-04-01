@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
-import type { DriveItem, DriveItemVersion, DriveShareLink, UpdateDriveItemInput } from '@atlasmail/shared';
+import type { DriveItem, DriveItemVersion, DriveShareLink, UpdateDriveItemInput, DriveActivityEntry, DriveComment } from '@atlasmail/shared';
 
 // ─── Queries ─────────────────────────────────────────────────────────
 
@@ -491,8 +491,8 @@ export function useCreateShareLink() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ itemId, expiresAt }: { itemId: string; expiresAt?: string }) => {
-      const { data } = await api.post(`/drive/${itemId}/share`, { expiresAt });
+    mutationFn: async ({ itemId, expiresAt, password }: { itemId: string; expiresAt?: string; password?: string }) => {
+      const { data } = await api.post(`/drive/${itemId}/share`, { expiresAt, password });
       return data.data as DriveShareLink;
     },
     onSuccess: () => {
@@ -507,6 +507,61 @@ export function useDeleteShareLink() {
   return useMutation({
     mutationFn: async (linkId: string) => {
       await api.delete(`/drive/share/${linkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+// ─── Activity log queries (Feature 1) ──────────────────────────────
+
+export function useFileActivity(itemId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.drive.activity(itemId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/${itemId}/activity`);
+      return data.data as DriveActivityEntry[];
+    },
+    enabled: !!itemId,
+    staleTime: 30_000,
+  });
+}
+
+// ─── Comment queries (Feature 2) ───────────────────────────────────
+
+export function useFileComments(itemId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.drive.comments(itemId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/drive/${itemId}/comments`);
+      return data.data as DriveComment[];
+    },
+    enabled: !!itemId,
+    staleTime: 10_000,
+  });
+}
+
+export function useCreateFileComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ itemId, body }: { itemId: string; body: string }) => {
+      const { data } = await api.post(`/drive/${itemId}/comments`, { body });
+      return data.data as DriveComment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });
+    },
+  });
+}
+
+export function useDeleteFileComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (commentId: string) => {
+      await api.delete(`/drive/comments/${commentId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.drive.all });

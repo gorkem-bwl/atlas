@@ -35,6 +35,6 @@ export const driveServerManifest: ServerAppManifest = {
   version: '1.0.0',
   router: driveRouter,
   routePrefix: '/drive',
-  tables: ['drive_items', 'drive_versions', 'drive_share_links'],
+  tables: ['drive_items', 'drive_versions', 'drive_share_links', 'drive_activity_log', 'drive_comments'],
   objects,
 };

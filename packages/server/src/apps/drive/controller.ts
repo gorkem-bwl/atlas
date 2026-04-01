@@ -67,6 +67,7 @@ export async function createFolder(req: Request, res: Response) {
     const { name, parentId } = req.body;
 
     const folder = await driveService.createFolder(userId, accountId, { name, parentId });
+    driveService.logDriveActivity({ driveItemId: folder.id, accountId, userId, action: 'folder.created', metadata: { name: folder.name } }).catch(() => {});
     res.json({ success: true, data: folder });
   } catch (error) {
     logger.error({ error }, 'Failed to create folder');
@@ -118,6 +119,11 @@ export async function uploadFiles(req: Request, res: Response) {
         title: `uploaded ${created.length === 1 ? names : `${created.length} files`}`,
         metadata: { itemIds: created.map((i) => i.id) },
       }).catch(() => {});
+    }
+
+    // Activity log — fire-and-forget
+    for (const item of created) {
+      driveService.logDriveActivity({ driveItemId: item.id, accountId, userId, action: 'file.uploaded', metadata: { name: item.name } }).catch(() => {});
     }
 
     res.json({ success: true, data: { items: created } });
@@ -298,10 +304,11 @@ export async function updateItem(req: Request, res: Response) {
     }
 
     const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
     const itemId = req.params.id as string;
     const { name, parentId, icon, isFavourite, isArchived, tags } = req.body;
 
-    const item = await driveService.updateItem(userId, itemId, {
+    let item = await driveService.updateItem(userId, itemId, {
       name,
       parentId,
       icon,
@@ -310,9 +317,22 @@ export async function updateItem(req: Request, res: Response) {
       tags,
     });
 
+    // If owner update returns null, check if user has edit share permission
     if (!item) {
-      res.status(404).json({ success: false, error: 'Item not found' });
-      return;
+      const sharePerm = await driveService.checkSharePermission(userId, itemId);
+      if (sharePerm === 'edit') {
+        // Allow limited updates: name and tags only
+        item = await driveService.updateItem(userId, itemId, { name, tags }, true);
+      }
+      if (!item) {
+        res.status(403).json({ success: false, error: 'Item not found or no edit permission' });
+        return;
+      }
+    }
+
+    // Activity log for rename
+    if (name !== undefined) {
+      driveService.logDriveActivity({ driveItemId: itemId, accountId, userId, action: 'file.renamed', metadata: { name } }).catch(() => {});
     }
 
     res.json({ success: true, data: item });
@@ -335,6 +355,7 @@ export async function deleteItem(req: Request, res: Response) {
     const itemId = req.params.id as string;
 
     await driveService.deleteItem(userId, itemId);
+    driveService.logDriveActivity({ driveItemId: itemId, accountId: req.auth!.accountId, userId, action: 'file.deleted' }).catch(() => {});
     res.json({ success: true, data: null });
   } catch (error) {
     logger.error({ error }, 'Failed to delete drive item');
@@ -360,6 +381,7 @@ export async function restoreItem(req: Request, res: Response) {
       return;
     }
 
+    driveService.logDriveActivity({ driveItemId: itemId, accountId: req.auth!.accountId, userId, action: 'file.restored' }).catch(() => {});
     res.json({ success: true, data: item });
   } catch (error) {
     logger.error({ error }, 'Failed to restore drive item');
@@ -809,10 +831,11 @@ export async function createShareLink(req: Request, res: Response) {
     }
 
     const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
     const itemId = req.params.id as string;
-    const { expiresAt } = req.body as { expiresAt?: string };
+    const { expiresAt, password } = req.body as { expiresAt?: string; password?: string };
 
-    const link = await driveService.createShareLink(userId, itemId, expiresAt);
+    const link = await driveService.createShareLink(userId, itemId, expiresAt, password);
     if (!link) {
       res.status(404).json({ success: false, error: 'Item not found' });
       return;
@@ -830,6 +853,7 @@ export async function createShareLink(req: Request, res: Response) {
       }).catch(() => {});
     }
 
+    driveService.logDriveActivity({ driveItemId: itemId, accountId, userId, action: 'share_link.created' }).catch(() => {});
     res.json({ success: true, data: link });
   } catch (error) {
     logger.error({ error }, 'Failed to create share link');
@@ -957,6 +981,7 @@ export async function shareWithUser(req: Request, res: Response) {
       return;
     }
     const share = await driveService.shareItem(itemId, targetUserId, permission || 'view', userId);
+    driveService.logDriveActivity({ driveItemId: itemId, accountId: req.auth!.accountId, userId, action: 'file.shared', metadata: { sharedWith: targetUserId, permission: permission || 'view' } }).catch(() => {});
     res.json({ success: true, data: share });
   } catch (error) {
     logger.error({ error }, 'Failed to share item');
@@ -1031,6 +1056,88 @@ export async function seedSampleData(req: Request, res: Response) {
   } catch (error) {
     logger.error({ error }, 'Failed to seed drive sample data');
     res.status(500).json({ success: false, error: 'Failed to seed drive sample data' });
+  }
+}
+
+// GET /api/drive/:id/activity — file activity log
+export async function getActivityLog(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
+    const itemId = req.params.id as string;
+    const activities = await driveService.getActivityLog(itemId);
+    res.json({ success: true, data: activities });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get activity log');
+    res.status(500).json({ success: false, error: 'Failed to get activity log' });
+  }
+}
+
+// GET /api/drive/:id/comments — list comments
+export async function listComments(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view drive' });
+      return;
+    }
+
+    const itemId = req.params.id as string;
+    const comments = await driveService.listComments(itemId);
+    res.json({ success: true, data: comments });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list comments');
+    res.status(500).json({ success: false, error: 'Failed to list comments' });
+  }
+}
+
+// POST /api/drive/:id/comments — create comment
+export async function createComment(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const itemId = req.params.id as string;
+    const { body } = req.body as { body?: string };
+
+    if (!body || !body.trim()) {
+      res.status(400).json({ success: false, error: 'Comment body is required' });
+      return;
+    }
+
+    const comment = await driveService.createComment(userId, accountId, itemId, body.trim());
+    res.json({ success: true, data: comment });
+  } catch (error) {
+    logger.error({ error }, 'Failed to create comment');
+    res.status(500).json({ success: false, error: 'Failed to create comment' });
+  }
+}
+
+// DELETE /api/drive/comments/:commentId — delete comment (author-only)
+export async function deleteComment(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const commentId = req.params.commentId as string;
+
+    const deleted = await driveService.deleteComment(userId, commentId);
+    if (!deleted) {
+      res.status(404).json({ success: false, error: 'Comment not found or not authorized' });
+      return;
+    }
+
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete comment');
+    res.status(500).json({ success: false, error: 'Failed to delete comment' });
   }
 }
 

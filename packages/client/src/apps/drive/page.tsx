@@ -7,7 +7,7 @@ import {
   LayoutGrid, LayoutList, Home, Clock, Heart, HardDrive, Upload as UploadIcon,
   Copy, X, Check, ChevronDown, Tag, FileArchive, Share2, History,
   FileImage, FileText, FileVideo, FileAudio, Link2, Trash, Music, Settings,
-  ExternalLink, Table2, File, Clipboard, Users, UserX,
+  ExternalLink, Table2, File, Clipboard, Users, UserX, MessageSquare, Activity, Lock, Send,
 } from 'lucide-react';
 import { ColumnHeader } from '../../components/ui/column-header';
 import { AppSidebar } from '../../components/layout/app-sidebar';
@@ -25,6 +25,7 @@ import {
   useCreateShareLink, useDeleteShareLink, useDriveItemsByType,
   useCreateLinkedDocument, useCreateLinkedDrawing, useCreateLinkedSpreadsheet,
   useSharedWithMe, useItemShares, useShareItem, useRevokeShare,
+  useFileActivity, useFileComments, useCreateFileComment, useDeleteFileComment,
 } from './hooks';
 import { api } from '../../lib/api-client';
 import { useToastStore } from '../../stores/toast-store';
@@ -525,7 +526,12 @@ export function DrivePage() {
   const [batchMoveTargetId, setBatchMoveTargetId] = useState<string | null>(null);
   const [shareModalItem, setShareModalItem] = useState<DriveItem | null>(null);
   const [shareExpiry, setShareExpiry] = useState<string>(() => driveSettings.shareDefaultExpiry || 'never');
+  const [sharePassword, setSharePassword] = useState('');
+  const [sharePasswordEnabled, setSharePasswordEnabled] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentBody, setCommentBody] = useState('');
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
@@ -615,6 +621,14 @@ export function DrivePage() {
   const createLinkedSpreadsheet = useCreateLinkedSpreadsheet();
   const shareItem = useShareItem();
   const revokeShare = useRevokeShare();
+  const createFileComment = useCreateFileComment();
+  const deleteFileComment = useDeleteFileComment();
+
+  // Activity & comments queries
+  const activityItemId = activityOpen && previewItem ? previewItem.id : undefined;
+  const { data: activityData } = useFileActivity(activityItemId);
+  const commentsItemId = commentsOpen && previewItem ? previewItem.id : undefined;
+  const { data: commentsData } = useFileComments(commentsItemId);
 
   // Share with user state
   const [shareUserId, setShareUserId] = useState<string>('');
@@ -2408,6 +2422,128 @@ export function DrivePage() {
                 )}
               </div>
             )}
+
+            {/* ── Comments section (Feature 2) ────────────────── */}
+            <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 8 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<MessageSquare size={13} />}
+                onClick={() => setCommentsOpen(!commentsOpen)}
+                style={{ width: '100%', justifyContent: 'flex-start', padding: '4px 0', height: 'auto' }}
+              >
+                {t('drive.comments.title')}
+                <ChevronDown size={12} style={{ marginLeft: 'auto', transform: commentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              </Button>
+              {commentsOpen && (
+                <div style={{ marginTop: 4 }}>
+                  {/* Comment input */}
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                    <input
+                      type="text"
+                      value={commentBody}
+                      onChange={(e) => setCommentBody(e.target.value)}
+                      placeholder={t('drive.comments.placeholder')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && commentBody.trim() && previewItem) {
+                          createFileComment.mutate({ itemId: previewItem.id, body: commentBody.trim() }, {
+                            onSuccess: () => setCommentBody(''),
+                          });
+                        }
+                      }}
+                      style={{
+                        flex: 1, padding: '4px 8px', border: '1px solid var(--color-border-secondary)',
+                        borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)', fontSize: 11, fontFamily: 'var(--font-family)',
+                        outline: 'none',
+                      }}
+                    />
+                    <IconButton
+                      icon={<Send size={12} />}
+                      label={t('drive.comments.add')}
+                      size={24}
+                      tooltip={false}
+                      onClick={() => {
+                        if (commentBody.trim() && previewItem) {
+                          createFileComment.mutate({ itemId: previewItem.id, body: commentBody.trim() }, {
+                            onSuccess: () => setCommentBody(''),
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  {/* Comment list */}
+                  {commentsData && commentsData.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
+                      {commentsData.map((c) => (
+                        <div key={c.id} style={{ display: 'flex', gap: 6, padding: '4px 0' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--color-text-primary)' }}>{c.userName}</span>
+                              <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>{formatRelativeDate(c.createdAt)}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2, wordBreak: 'break-word' }}>{c.body}</div>
+                          </div>
+                          <IconButton
+                            icon={<Trash2 size={10} />}
+                            label={t('drive.comments.delete')}
+                            size={18}
+                            tooltip={false}
+                            destructive
+                            onClick={() => deleteFileComment.mutate(c.id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>{t('drive.comments.empty')}</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* ── Activity section (Feature 1) ────────────────── */}
+            <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 8 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Activity size={13} />}
+                onClick={() => setActivityOpen(!activityOpen)}
+                style={{ width: '100%', justifyContent: 'flex-start', padding: '4px 0', height: 'auto' }}
+              >
+                {t('drive.activity.title')}
+                <ChevronDown size={12} style={{ marginLeft: 'auto', transform: activityOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+              </Button>
+              {activityOpen && (
+                <div style={{ marginTop: 4, maxHeight: 200, overflowY: 'auto' }}>
+                  {activityData && activityData.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {activityData.map((a) => (
+                        <div key={a.id} style={{ display: 'flex', gap: 6, padding: '3px 0', fontSize: 11 }}>
+                          <Activity size={11} style={{ color: 'var(--color-text-tertiary)', marginTop: 2, flexShrink: 0 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <span style={{ fontWeight: 500, color: 'var(--color-text-primary)' }}>{a.userName}</span>
+                            {' '}
+                            <span style={{ color: 'var(--color-text-secondary)' }}>
+                              {a.action === 'file.uploaded' && t('drive.activity.fileUploaded')}
+                              {a.action === 'folder.created' && t('drive.activity.folderCreated')}
+                              {a.action === 'file.renamed' && t('drive.activity.fileRenamed')}
+                              {a.action === 'file.deleted' && t('drive.activity.fileDeleted')}
+                              {a.action === 'file.restored' && t('drive.activity.fileRestored')}
+                              {a.action === 'file.shared' && t('drive.activity.fileShared', { name: (a.metadata as Record<string, unknown>)?.sharedWith || '' })}
+                              {a.action === 'share_link.created' && t('drive.activity.shareLinkCreated')}
+                            </span>
+                            <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 1 }}>{formatRelativeDate(a.createdAt)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', padding: '4px 0' }}>{t('drive.activity.empty')}</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -2747,7 +2883,7 @@ export function DrivePage() {
       </Modal>
 
       {/* ─── Share modal ──────────────────────────────────────────── */}
-      <Modal open={!!shareModalItem} onOpenChange={() => { setShareModalItem(null); setShareUserId(''); setSharePermission('view'); }} width={480} title={`Share "${shareModalItem?.name || ''}"`}>
+      <Modal open={!!shareModalItem} onOpenChange={() => { setShareModalItem(null); setShareUserId(''); setSharePermission('view'); setSharePassword(''); setSharePasswordEnabled(false); }} width={480} title={`Share "${shareModalItem?.name || ''}"`}>
         <div style={{ padding: 'var(--spacing-xl)' }}>
           {/* ── Share with team member section ─────────────────── */}
           <div style={{ marginBottom: 20 }}>
@@ -2814,14 +2950,24 @@ export function DrivePage() {
                         background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-secondary)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
                         <Users size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {user?.name || user?.email || share.sharedWithUserId}
                         </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
-                          {share.permission === 'edit' ? t('drive.sharing.shareEdit') : t('drive.sharing.shareView')}
-                        </span>
+                        <Select
+                          value={share.permission}
+                          onChange={(v) => {
+                            if (shareModalItem) {
+                              shareItem.mutate({ itemId: shareModalItem.id, userId: share.sharedWithUserId, permission: v });
+                            }
+                          }}
+                          options={[
+                            { value: 'view', label: t('drive.sharing.shareView') },
+                            { value: 'edit', label: t('drive.sharing.shareEdit') },
+                          ]}
+                          style={{ width: 110, flexShrink: 0 }}
+                        />
                       </div>
                       <IconButton
                         icon={<UserX size={13} />}
@@ -2851,7 +2997,7 @@ export function DrivePage() {
           <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 8 }}>
             {t('drive.sharing.publicLink')}
           </div>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <Select
               value={shareExpiry}
               onChange={(v) => setShareExpiry(v)}
@@ -2870,14 +3016,49 @@ export function DrivePage() {
               onClick={() => {
                 if (!shareModalItem) return;
                 const expiresAt = shareExpiry === 'never' ? undefined : new Date(Date.now() + parseInt(shareExpiry) * 86400000).toISOString();
-                createShareLink.mutate({ itemId: shareModalItem.id, expiresAt }, {
-                  onSuccess: () => addToast({ type: 'success', message: 'Share link created' }),
+                createShareLink.mutate({
+                  itemId: shareModalItem.id,
+                  expiresAt,
+                  password: sharePasswordEnabled && sharePassword ? sharePassword : undefined,
+                }, {
+                  onSuccess: () => {
+                    addToast({ type: 'success', message: 'Share link created' });
+                    setSharePassword('');
+                    setSharePasswordEnabled(false);
+                  },
                 });
               }}
               style={{ whiteSpace: 'nowrap' }}
             >
               Create link
             </Button>
+          </div>
+          {/* Password protection */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+              <input
+                type="checkbox"
+                checked={sharePasswordEnabled}
+                onChange={(e) => { setSharePasswordEnabled(e.target.checked); if (!e.target.checked) setSharePassword(''); }}
+                style={{ accentColor: 'var(--color-accent-primary)' }}
+              />
+              <Lock size={12} />
+              {t('drive.sharing.passwordProtect')}
+            </label>
+            {sharePasswordEnabled && (
+              <input
+                type="password"
+                value={sharePassword}
+                onChange={(e) => setSharePassword(e.target.value)}
+                placeholder={t('drive.sharing.passwordPlaceholder')}
+                style={{
+                  width: '100%', marginTop: 6, padding: '6px 8px', border: '1px solid var(--color-border-secondary)',
+                  borderRadius: 'var(--radius-sm)', background: 'var(--color-bg-secondary)',
+                  color: 'var(--color-text-primary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)',
+                  outline: 'none',
+                }}
+              />
+            )}
           </div>
           {shareLinksData && shareLinksData.links.length > 0 && (
             <div className="drive-share-links-list">
@@ -2900,6 +3081,7 @@ export function DrivePage() {
                       <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 2 }}>
                         Created {formatRelativeDate(link.createdAt)}
                         {link.expiresAt ? ` · Expires ${formatRelativeDate(link.expiresAt)}` : ' · No expiry'}
+                        {link.passwordHash && <span style={{ marginLeft: 4 }}><Lock size={9} style={{ display: 'inline', verticalAlign: 'middle' }} /> Protected</span>}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
