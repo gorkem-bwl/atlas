@@ -1,6 +1,10 @@
 import { sendEmail } from '../../services/email.service';
 import { env } from '../../config/env';
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /**
  * Send an email inviting a signer to review and sign a document.
  */
@@ -37,7 +41,7 @@ export async function sendSigningInviteEmail(data: {
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 0;">
       <p style="color: #374151; font-size: 15px; line-height: 1.6;">${greeting},</p>
       <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-        You've been invited to sign <strong>"${data.documentTitle}"</strong> by <strong>${data.senderName}</strong>.
+        You've been invited to sign <strong>"${escapeHtml(data.documentTitle)}"</strong> by <strong>${escapeHtml(data.senderName)}</strong>.
       </p>
       <div style="margin: 24px 0; text-align: center;">
         <a href="${data.signingLink}" style="display: inline-block; background: #8b5cf6; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 15px;">
@@ -84,7 +88,7 @@ export async function sendDocumentCompletedEmail(data: {
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 0;">
       <p style="color: #374151; font-size: 15px; line-height: 1.6;">Hello,</p>
       <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-        <strong>"${data.documentTitle}"</strong> has been signed by all parties. The document is now complete.
+        <strong>"${escapeHtml(data.documentTitle)}"</strong> has been signed by all parties. The document is now complete.
       </p>
       <div style="margin: 24px 0; text-align: center;">
         <a href="${clientUrl}/sign-app" style="display: inline-block; background: #10b981; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 15px;">

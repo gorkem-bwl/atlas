@@ -48,22 +48,21 @@ export async function getAuditLog(documentId: string) {
 
 // ─── Helper: get user name by userId ─────────────────────────────────
 
-async function getUserName(userId: string): Promise<string> {
+async function getUser(userId: string): Promise<{ name: string; email: string }> {
   const [user] = await db
     .select({ name: users.name, email: users.email })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return user?.name || user?.email || 'Unknown';
+  return { name: user?.name || user?.email || 'Unknown', email: user?.email || '' };
+}
+
+async function getUserName(userId: string): Promise<string> {
+  return (await getUser(userId)).name;
 }
 
 async function getUserEmail(userId: string): Promise<string> {
-  const [user] = await db
-    .select({ email: users.email })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  return user?.email || '';
+  return (await getUser(userId)).email;
 }
 
 // ─── Documents ──────────────────────────────────────────────────────
@@ -175,13 +174,12 @@ export async function createDocument(
   logger.info({ userId, documentId: created.id }, 'Signature document created');
 
   // Audit: document.created
-  const creatorEmail = await getUserEmail(userId);
-  const creatorName = await getUserName(userId);
+  const creator = await getUser(userId);
   logAuditEvent({
     documentId: created.id,
     action: 'document.created',
-    actorEmail: creatorEmail,
-    actorName: creatorName,
+    actorEmail: creator.email,
+    actorName: creator.name,
     metadata: { title: data.title },
   }).catch(() => {});
 
@@ -539,13 +537,12 @@ export async function voidDocument(userId: string, documentId: string) {
   logger.info({ userId, documentId }, 'Signature document voided');
 
   // Audit: document.voided
-  const voiderEmail = await getUserEmail(userId);
-  const voiderName = await getUserName(userId);
+  const voider = await getUser(userId);
   logAuditEvent({
     documentId,
     action: 'document.voided',
-    actorEmail: voiderEmail,
-    actorName: voiderName,
+    actorEmail: voider.email,
+    actorName: voider.name,
   }).catch(() => {});
 
   return getDocument(userId, documentId);
@@ -757,7 +754,7 @@ export async function saveAsTemplate(
 
   // Copy the file
   const ext = path.extname(doc.storagePath);
-  const newFileName = `tpl_${userId}_${Date.now()}${ext}`;
+  const newFileName = `tpl_${userId}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
   const srcPath = path.join(UPLOADS_DIR, doc.storagePath);
   const dstPath = path.join(UPLOADS_DIR, newFileName);
 
@@ -801,6 +798,7 @@ export async function createDocumentFromTemplate(
       and(
         eq(signTemplates.id, templateId),
         eq(signTemplates.accountId, accountId),
+        eq(signTemplates.isArchived, false),
       ),
     )
     .limit(1);
@@ -809,7 +807,7 @@ export async function createDocumentFromTemplate(
 
   // Copy the file
   const ext = path.extname(tpl.storagePath);
-  const newFileName = `sign_${userId}_${Date.now()}${ext}`;
+  const newFileName = `sign_${userId}_${Date.now()}_${crypto.randomBytes(4).toString('hex')}${ext}`;
   const srcPath = path.join(UPLOADS_DIR, tpl.storagePath);
   const dstPath = path.join(UPLOADS_DIR, newFileName);
 
