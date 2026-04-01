@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, ArrowLeft, ExternalLink } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { useMarketplaceStatus, useMarketplaceCatalog } from './hooks';
 
@@ -32,7 +32,6 @@ export function MarketplaceStartupPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [elapsed, setElapsed] = useState(0);
-  const [redirecting, setRedirecting] = useState(false);
   const startTime = useRef(Date.now());
 
   const { data: catalog } = useMarketplaceCatalog();
@@ -40,30 +39,21 @@ export function MarketplaceStartupPage() {
   const appName = app?.name ?? appId ?? '';
   const port = app?.assignedPort;
 
-  const { data: status } = useMarketplaceStatus(appId ?? '', !!appId && !!port && !redirecting, POLL_INTERVAL);
-  const isHealthy = status?.health?.ok === true;
-  const timedOut = elapsed >= MAX_WAIT_SECONDS;
-  const done = redirecting || timedOut;
+  const isHealthy = useRef(false);
+  const { data: status } = useMarketplaceStatus(appId ?? '', !!appId && !!port && !isHealthy.current, POLL_INTERVAL);
+  if (status?.health?.ok === true) isHealthy.current = true;
 
-  // Tick elapsed time — stops after redirect or timeout
+  const ready = isHealthy.current;
+  const timedOut = !ready && elapsed >= MAX_WAIT_SECONDS;
+
+  // Tick elapsed time — stops when ready or timed out
   useEffect(() => {
-    if (done) return;
+    if (ready || timedOut) return;
     const interval = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTime.current) / 1000));
     }, 1000);
     return () => clearInterval(interval);
-  }, [done]);
-
-  // Auto-redirect when healthy
-  useEffect(() => {
-    if (isHealthy && port && !redirecting) {
-      setRedirecting(true);
-      const id = setTimeout(() => {
-        window.location.href = getAppUrl(port);
-      }, 800);
-      return () => clearTimeout(id);
-    }
-  }, [isHealthy, port, redirecting]);
+  }, [ready, timedOut]);
 
   const progressPercent = Math.min((elapsed / MAX_WAIT_SECONDS) * 100, 100);
 
@@ -94,7 +84,7 @@ export function MarketplaceStartupPage() {
           <StatusCircle bg="color-mix(in srgb, var(--color-error) 10%, transparent)">
             <XCircle size={32} style={{ color: 'var(--color-error)' }} />
           </StatusCircle>
-        ) : redirecting ? (
+        ) : ready ? (
           <StatusCircle bg="color-mix(in srgb, var(--color-success) 10%, transparent)">
             <CheckCircle2 size={32} style={{ color: 'var(--color-success)' }} />
           </StatusCircle>
@@ -117,7 +107,7 @@ export function MarketplaceStartupPage() {
           >
             {timedOut
               ? t('marketplace.startupTimeout', { name: appName })
-              : redirecting
+              : ready
                 ? t('marketplace.startupReady', { name: appName })
                 : t('marketplace.startupWaiting', { name: appName })}
           </h2>
@@ -131,14 +121,14 @@ export function MarketplaceStartupPage() {
           >
             {timedOut
               ? t('marketplace.startupTimeoutDesc')
-              : redirecting
+              : ready
                 ? t('marketplace.startupRedirecting')
                 : t('marketplace.startupWaitingDesc')}
           </p>
         </div>
 
         {/* Progress bar */}
-        {!done && (
+        {!ready && !timedOut && (
           <div style={{ width: '100%' }}>
             <div
               style={{
@@ -174,23 +164,31 @@ export function MarketplaceStartupPage() {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+          {ready && port ? (
+            <a href={getAppUrl(port)} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <Button variant="primary" size="md" icon={<ExternalLink size={14} />}>
+                {t('marketplace.open')} {appName}
+              </Button>
+            </a>
+          ) : (
+            <>
+              {port && (
+                <a href={getAppUrl(port)} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <Button variant="ghost" size="sm">
+                    {t('marketplace.openAnyway')}
+                  </Button>
+                </a>
+              )}
+            </>
+          )}
           <Button
             variant="secondary"
-            size="sm"
+            size={ready ? 'md' : 'sm'}
             icon={<ArrowLeft size={14} />}
             onClick={() => navigate('/marketplace')}
           >
             {t('marketplace.backToMarketplace')}
           </Button>
-          {(timedOut || !redirecting) && port && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => window.open(getAppUrl(port), '_blank')}
-            >
-              {t('marketplace.openAnyway')}
-            </Button>
-          )}
         </div>
       </div>
     </div>
