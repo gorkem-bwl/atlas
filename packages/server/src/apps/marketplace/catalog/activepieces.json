@@ -10,7 +10,7 @@
   "services": {
     "app": {
       "image": "activepieces/activepieces:latest",
-      "port": 8080,
+      "port": 3000,
       "healthCheck": "/api/v1/flags",
       "env": {
         "AP_ENGINE_EXECUTABLE_PATH": "dist/packages/engine/main.js",
