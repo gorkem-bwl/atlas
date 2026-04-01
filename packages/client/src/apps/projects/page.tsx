@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatRelativeDate, formatCurrency, formatNumber } from '../../lib/format';
+import { StatCard } from '../../components/ui/stat-card';
 import {
   LayoutDashboard, Clock, FolderKanban, Users, FileText, BarChart3, Settings2,
   Plus, Search, X, ChevronRight, Trash2, Copy, ExternalLink,
@@ -66,26 +67,7 @@ function getProjectStatusColor(status: string): string {
   }
 }
 
-// ─── KPI Card ─────────────────────────────────────────────────────
-
-function KpiCard({ icon, label, value, subtitle, iconColor }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  subtitle: string;
-  iconColor?: string;
-}) {
-  return (
-    <div className="projects-kpi-card">
-      <div className="projects-kpi-card-icon" style={{ color: iconColor }}>{icon}</div>
-      <div className="projects-kpi-card-content">
-        <span className="projects-kpi-card-label">{label}</span>
-        <span className="projects-kpi-card-value">{value}</span>
-        <span className="projects-kpi-card-subtitle">{subtitle}</span>
-      </div>
-    </div>
-  );
-}
+// KPI cards use the shared StatCard component from components/ui/stat-card.tsx
 
 // ─── Dashboard View ───────────────────────────────────────────────
 
@@ -292,41 +274,41 @@ function DashboardView() {
   return (
     <div style={{ overflow: 'auto', flex: 1, padding: 'var(--spacing-lg)' }}>
       {/* KPI Cards — responsive grid */}
-      <div className="projects-dashboard-kpi-grid">
-        <KpiCard
-          icon={<Clock size={18} />}
+      <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
+        <StatCard
           label={t('projects.dashboard.hoursThisWeek')}
           value={formatNumber(data?.hoursThisWeek ?? 0, 1) + 'h'}
           subtitle={t('projects.dashboard.tracked')}
-          iconColor="#f59e0b"
+          color="#f59e0b"
+          icon={Clock}
         />
-        <KpiCard
-          icon={<FolderKanban size={18} />}
+        <StatCard
           label={t('projects.dashboard.activeProjects')}
           value={String(data?.activeProjects ?? 0)}
           subtitle={t('projects.dashboard.inProgress')}
-          iconColor="#8b5cf6"
+          color="#8b5cf6"
+          icon={FolderKanban}
         />
-        <KpiCard
-          icon={<FileText size={18} />}
+        <StatCard
           label={t('projects.dashboard.outstandingInvoices')}
           value={String(data?.outstandingInvoices ?? 0)}
           subtitle={formatCurrency(data?.totalOutstandingAmount ?? 0)}
-          iconColor="#3b82f6"
+          color="#3b82f6"
+          icon={FileText}
         />
-        <KpiCard
-          icon={<DollarSign size={18} />}
+        <StatCard
           label={t('projects.dashboard.overdue')}
           value={String(data?.overdueInvoices ?? 0)}
           subtitle={formatCurrency(data?.totalOverdueAmount ?? 0)}
-          iconColor="var(--color-error)"
+          color="var(--color-error)"
+          icon={DollarSign}
         />
-        <KpiCard
-          icon={<AlertCircle size={18} />}
+        <StatCard
           label={t('projects.dashboard.unbilledHours')}
           value={formatNumber(data?.unbilledHours ?? 0, 1) + 'h'}
           subtitle={t('projects.dashboard.needsInvoicing')}
-          iconColor="#ef4444"
+          color="#ef4444"
+          icon={AlertCircle}
         />
       </div>
 
