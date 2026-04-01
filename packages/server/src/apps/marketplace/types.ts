@@ -9,6 +9,8 @@ export interface MarketplaceServiceDef {
   env?: Record<string, string>;
   volumes?: string[];
   dependsOn?: string[];
+  command?: string[];
+  entrypoint?: string;
 }
 
 export interface MarketplaceManifest {

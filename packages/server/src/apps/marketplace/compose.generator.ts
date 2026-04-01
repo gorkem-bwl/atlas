@@ -29,6 +29,16 @@ export function generateComposeFile(
     lines.push(`  ${serviceName}:`);
     lines.push(`    image: ${service.image}`);
 
+    // Custom entrypoint
+    if (service.entrypoint) {
+      lines.push(`    entrypoint: ${yamlQuote(service.entrypoint)}`);
+    }
+
+    // Custom command
+    if (service.command && service.command.length > 0) {
+      lines.push(`    command: ${JSON.stringify(service.command)}`);
+    }
+
     // Only the "app" service gets the external port mapping
     if (service.port) {
       lines.push(`    ports:`);
