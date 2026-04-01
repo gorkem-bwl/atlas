@@ -571,11 +571,11 @@ function AppCard({
                 <Button
                   variant="secondary"
                   size="sm"
-                  icon={<Square size={12} />}
+                  icon={stopMutation.isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Square size={12} />}
                   onClick={handleStop}
                   disabled={stopMutation.isPending}
                 >
-                  {t('marketplace.stop')}
+                  {stopMutation.isPending ? t('marketplace.stopping') : t('marketplace.stop')}
                 </Button>
               )}
             </>
@@ -586,11 +586,11 @@ function AppCard({
             <Button
               variant="primary"
               size="sm"
-              icon={<Play size={14} />}
+              icon={startMutation.isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={14} />}
               onClick={handleStart}
               disabled={startMutation.isPending}
             >
-              {t('marketplace.start')}
+              {startMutation.isPending ? t('marketplace.starting') : t('marketplace.start')}
             </Button>
           )}
 
@@ -599,11 +599,11 @@ function AppCard({
             <Button
               variant="secondary"
               size="sm"
-              icon={<RefreshCw size={14} />}
+              icon={startMutation.isPending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
               onClick={handleStart}
               disabled={startMutation.isPending}
             >
-              {t('common.retry')}
+              {startMutation.isPending ? t('marketplace.starting') : t('common.retry')}
             </Button>
           )}
 
