@@ -467,7 +467,9 @@ function AppCard({
         style={{
           position: 'relative',
           background: 'var(--gradient-card-subtle)',
-          border: `1px solid ${isInstalled ? app.color + '33' : 'var(--color-border-primary)'}`,
+          border: '1px solid',
+          borderColor: hovered ? app.color + '55' : (isInstalled ? app.color + '33' : 'var(--color-border-primary)'),
+          boxShadow: hovered ? `0 0 0 1px ${app.color}22` : 'none',
           borderRadius: 'var(--radius-lg)',
           padding: 'var(--spacing-xl)',
           display: 'flex',
@@ -475,7 +477,6 @@ function AppCard({
           gap: 'var(--spacing-md)',
           overflow: 'hidden',
           transition: 'border-color 0.2s, box-shadow 0.2s',
-          ...(hovered ? { borderColor: app.color + '55', boxShadow: `0 0 0 1px ${app.color}22` } : {}),
         }}
       >
         {/* Background icon */}
