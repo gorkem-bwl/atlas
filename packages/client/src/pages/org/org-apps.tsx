@@ -1,9 +1,11 @@
 import { useState, type CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants } from '../../hooks/use-platform';
 import { useTenantAppsAdmin, useToggleTenantApp } from '../../hooks/use-tenant-app-admin';
 import { appRegistry } from '../../apps';
-import { LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Store, ArrowRight } from 'lucide-react';
+import { Button } from '../../components/ui/button';
 import { Chip } from '../../components/ui/chip';
 import { Skeleton } from '../../components/ui/skeleton';
 
@@ -56,20 +58,33 @@ export function OrgAppsPage() {
     );
   }
 
+  const navigate = useNavigate();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 900 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
-        <LayoutGrid size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-        <span style={{
-          fontSize: 'var(--font-size-md)',
-          fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-          color: 'var(--color-text-primary)',
-        }}>
-          Apps
-        </span>
-        <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
-          {enabledSet.size}
-        </Chip>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
+          <LayoutGrid size={15} style={{ color: 'var(--color-text-tertiary)' }} />
+          <span style={{
+            fontSize: 'var(--font-size-md)',
+            fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
+            color: 'var(--color-text-primary)',
+          }}>
+            Atlas apps
+          </span>
+          <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
+            {enabledSet.size}
+          </Chip>
+        </div>
+        <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-normal)' }}>
+          Enable or disable built-in Atlas apps for your organization. Need more? Deploy third-party apps from the{' '}
+          <button
+            onClick={() => navigate('/marketplace')}
+            style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-accent-primary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}
+          >
+            Marketplace
+          </button>.
+        </p>
       </div>
 
       <div style={{
@@ -90,6 +105,35 @@ export function OrgAppsPage() {
             />
           );
         })}
+      </div>
+
+      {/* Marketplace section */}
+      <div style={{
+        padding: 'var(--spacing-xl)',
+        background: 'var(--gradient-card-subtle)',
+        border: '1px solid var(--color-border-primary)',
+        borderRadius: 'var(--radius-lg)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--spacing-lg)',
+      }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 'var(--radius-lg)',
+          background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <Store size={22} color="#fff" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'], color: 'var(--color-text-primary)', marginBottom: 2 }}>
+            Marketplace
+          </div>
+          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-normal)' }}>
+            Deploy third-party apps like Metabase, Mattermost, Vaultwarden, and more with one click. Apps run as Docker containers on your server.
+          </div>
+        </div>
+        <Button variant="secondary" size="sm" icon={<ArrowRight size={14} />} onClick={() => navigate('/marketplace')}>
+          Marketplace
+        </Button>
       </div>
     </div>
   );
