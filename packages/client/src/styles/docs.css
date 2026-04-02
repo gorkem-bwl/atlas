@@ -347,8 +347,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 5px;
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-primary);
+  color: var(--color-text-primary);
   flex-shrink: 0;
   font-size: 16px;
 }
@@ -543,9 +544,9 @@
 
 /* Info variant */
 .doc-editor .tiptap .callout-info {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
+  background: color-mix(in srgb, var(--color-info) 10%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-info) 25%, transparent);
+  color: var(--color-text-primary);
 }
 
 .doc-editor .tiptap .callout-info::before {
@@ -554,9 +555,9 @@
 
 /* Warning variant */
 .doc-editor .tiptap .callout-warning {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #92400e;
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
+  color: var(--color-text-primary);
 }
 
 .doc-editor .tiptap .callout-warning::before {
@@ -565,9 +566,9 @@
 
 /* Success variant */
 .doc-editor .tiptap .callout-success {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+  color: var(--color-text-primary);
 }
 
 .doc-editor .tiptap .callout-success::before {
@@ -576,9 +577,9 @@
 
 /* Error variant */
 .doc-editor .tiptap .callout-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  background: color-mix(in srgb, var(--color-error) 10%, var(--color-bg-primary));
+  border: 1px solid color-mix(in srgb, var(--color-error) 25%, transparent);
+  color: var(--color-text-primary);
 }
 
 .doc-editor .tiptap .callout-error::before {
