@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import SignatureCanvas from 'react-signature-canvas';
+import { Upload } from 'lucide-react';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
@@ -15,7 +16,7 @@ interface SignatureModalProps {
   fieldType: SignatureFieldType;
 }
 
-type TabId = 'draw' | 'type';
+type TabId = 'draw' | 'type' | 'upload';
 
 const FONTS = [
   { label: 'Caveat', family: 'Caveat, cursive' },
@@ -30,7 +31,9 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
   const [activeTab, setActiveTab] = useState<TabId>('draw');
   const [typedName, setTypedName] = useState('');
   const [selectedFont, setSelectedFont] = useState(0);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const sigCanvasRef = useRef<SignatureCanvas | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -38,6 +41,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
       setActiveTab('draw');
       setTypedName('');
       setSelectedFont(0);
+      setUploadedImage(null);
     }
   }, [open]);
 
@@ -83,6 +87,42 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
     sigCanvasRef.current?.clear();
   }, []);
 
+  const handleUploadFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    // Reset input so re-selecting the same file triggers change
+    e.target.value = '';
+  }, []);
+
+  const handleApplyUpload = useCallback(() => {
+    if (!uploadedImage) return;
+    // Resize uploaded image to max 400x100 using offscreen canvas
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 400;
+      const maxH = 100;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      if (h > maxH) { w = w * (maxH / h); h = maxH; }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w);
+      canvas.height = Math.round(h);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      onApply(dataUrl);
+      onOpenChange(false);
+    };
+    img.src = uploadedImage;
+  }, [uploadedImage, onApply, onOpenChange]);
+
   return (
     <Modal open={open} onOpenChange={onOpenChange} width={480} title={labelMap[fieldType]}>
       <Modal.Header title={labelMap[fieldType]} />
@@ -96,7 +136,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
             marginBottom: 16,
           }}
         >
-          {(['draw', 'type'] as TabId[]).map((tab) => (
+          {(['draw', 'type', 'upload'] as TabId[]).map((tab) => (
             <Button
               key={tab}
               variant="ghost"
@@ -115,10 +155,9 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
                 fontWeight: activeTab === tab ? 600 : 400,
                 cursor: 'pointer',
                 transition: 'color 0.15s, border-color 0.15s',
-                textTransform: 'capitalize',
               }}
             >
-              {tab}
+              {tab === 'upload' ? t('sign.modal.uploadSignature') : tab === 'draw' ? t('sign.modal.draw') : t('sign.modal.type')}
             </Button>
           ))}
         </div>
