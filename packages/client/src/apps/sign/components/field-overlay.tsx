@@ -166,7 +166,7 @@ function FieldBox({
         cursor: editable ? 'move' : isInteractive ? 'pointer' : 'default',
         display: 'flex',
         alignItems: 'center',
-        overflow: 'hidden',
+        overflow: 'visible',
         boxSizing: 'border-box',
         transition: 'border-color 0.15s, background 0.15s, box-shadow 0.15s',
         boxShadow: isHighlighted

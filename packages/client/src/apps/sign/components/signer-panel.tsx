@@ -1,6 +1,6 @@
 import { useCallback, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, GripVertical, Users } from 'lucide-react';
+import { X, Plus, ChevronUp, Users } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import { IconButton } from '../../../components/ui/icon-button';
@@ -157,7 +157,7 @@ export function SignerPanel({
               <div style={{ display: 'flex', gap: 0, alignItems: 'center' }}>
                 {idx > 0 && (
                   <IconButton
-                    icon={<GripVertical size={12} />}
+                    icon={<ChevronUp size={12} />}
                     label={t('sign.signerPanel.moveUp')}
                     size={20}
                     onClick={(e) => {

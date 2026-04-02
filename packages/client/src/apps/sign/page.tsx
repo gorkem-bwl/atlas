@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo, type CSSProperties, type DragEvent } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect, type CSSProperties, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FileText,
@@ -380,6 +380,24 @@ export function SignPage() {
     },
     [],
   );
+
+  // Delete selected field with Delete/Backspace key
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (!selectedFieldId) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        handleFieldDelete(selectedFieldId);
+      }
+      if (e.key === 'Escape') {
+        setSelectedFieldId(undefined);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedFieldId, handleFieldDelete]);
 
   // Sign now: click a field to apply a signature
   const handleSignNowClick = useCallback(
