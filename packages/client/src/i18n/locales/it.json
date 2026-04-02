@@ -644,6 +644,27 @@
       "placeholder": "Scrivi un commento...",
       "empty": "Nessun commento",
       "delete": "Elimina commento"
+    },
+    "attachments": {
+      "title": "Allegati",
+      "upload": "Carica file",
+      "empty": "Nessun allegato",
+      "delete": "Elimina allegato"
+    },
+    "calendar": {
+      "title": "Calendario",
+      "today": "Oggi",
+      "more": "+{{count}} in più"
+    },
+    "dependencies": {
+      "title": "Bloccato da",
+      "add": "Aggiungi bloccante",
+      "empty": "Nessun bloccante",
+      "blocked": "Bloccato",
+      "remove": "Rimuovi"
+    },
+    "sidebar": {
+      "calendar": "Calendario"
     }
   },
   "errors": {

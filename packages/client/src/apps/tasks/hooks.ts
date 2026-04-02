@@ -7,6 +7,7 @@ import type {
   CreateProjectInput, UpdateProjectInput,
   Subtask, TaskActivity, TaskTemplate, TaskComment,
   CreateTaskTemplateInput, UpdateTaskTemplateInput,
+  TaskAttachment, TaskDependency,
 } from '@atlasmail/shared';
 
 // ─── Task Queries ───────────────────────────────────────────────────
@@ -388,5 +389,102 @@ export function useUpdateProjectVisibility() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     },
+  });
+}
+
+// ─── Attachment Hooks ──────────────────────────────────────────────
+
+export function useTaskAttachments(taskId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.tasks.attachments(taskId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/tasks/${taskId}/attachments`);
+      return data.data as TaskAttachment[];
+    },
+    enabled: !!taskId,
+    staleTime: 10_000,
+  });
+}
+
+export function useAddAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, file }: { taskId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post(`/tasks/${taskId}/attachments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data.data as TaskAttachment;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.attachments(vars.taskId) });
+    },
+  });
+}
+
+export function useDeleteAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ attachmentId, taskId }: { attachmentId: string; taskId: string }) => {
+      await api.delete(`/tasks/attachments/${attachmentId}`);
+      return taskId;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.attachments(vars.taskId) });
+    },
+  });
+}
+
+// ─── Dependency Hooks ──────────────────────────────────────────────
+
+export function useTaskDependencies(taskId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.tasks.dependencies(taskId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/tasks/${taskId}/dependencies`);
+      return data.data as TaskDependency[];
+    },
+    enabled: !!taskId,
+    staleTime: 10_000,
+  });
+}
+
+export function useAddDependency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, blockedByTaskId }: { taskId: string; blockedByTaskId: string }) => {
+      const { data } = await api.post(`/tasks/${taskId}/dependencies`, { blockedByTaskId });
+      return data.data as TaskDependency;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.dependencies(vars.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.blockedIds });
+    },
+  });
+}
+
+export function useRemoveDependency() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, blockerTaskId }: { taskId: string; blockerTaskId: string }) => {
+      await api.delete(`/tasks/${taskId}/dependencies/${blockerTaskId}`);
+      return taskId;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.dependencies(vars.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.blockedIds });
+    },
+  });
+}
+
+export function useBlockedTaskIds() {
+  return useQuery({
+    queryKey: queryKeys.tasks.blockedIds,
+    queryFn: async () => {
+      const { data } = await api.get('/tasks/blocked-ids');
+      return data.data as string[];
+    },
+    staleTime: 15_000,
   });
 }

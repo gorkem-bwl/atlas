@@ -732,6 +732,35 @@ export const taskComments = pgTable('task_comments', {
   taskIdx: index('idx_task_comments_task').on(table.taskId),
 }));
 
+// ─── Task Attachments ──────────────────────────────────────────────
+
+export const taskAttachments = pgTable('task_attachments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  taskId: uuid('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
+  accountId: uuid('account_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  fileName: varchar('file_name', { length: 500 }).notNull(),
+  storagePath: text('storage_path').notNull(),
+  mimeType: varchar('mime_type', { length: 255 }),
+  size: integer('size').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  taskIdx: index('idx_task_attachments_task').on(table.taskId),
+}));
+
+// ─── Task Dependencies ─────────────────────────────────────────────
+
+export const taskDependencies = pgTable('task_dependencies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  taskId: uuid('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
+  blockedByTaskId: uuid('blocked_by_task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  taskIdx: index('idx_task_deps_task').on(table.taskId),
+  blockerIdx: index('idx_task_deps_blocker').on(table.blockedByTaskId),
+  uniqueDep: uniqueIndex('idx_task_deps_unique').on(table.taskId, table.blockedByTaskId),
+}));
+
 // ��── Document Comments ────────���─────────────────────────────────────
 
 export const documentComments = pgTable('document_comments', {

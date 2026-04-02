@@ -5,6 +5,7 @@ import {
   Hash, CircleDot, MoreHorizontal, Moon, Sun, GripVertical,
   Clock, FileText, Filter, Tag, CheckCircle2, Settings2,
   Repeat, LayoutList, LayoutGrid, User, MessageSquare, Send,
+  Paperclip, Download, CalendarDays, AlertTriangle, Link2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,6 +18,9 @@ import {
   useTaskActivities,
   useTaskComments, useCreateComment, useDeleteComment,
   useUpdateTaskVisibility, useUpdateProjectVisibility,
+  useTaskAttachments, useAddAttachment, useDeleteAttachment,
+  useTaskDependencies, useAddDependency, useRemoveDependency,
+  useBlockedTaskIds,
 } from './hooks';
 import { TaskNotesEditor } from './components/task-notes-editor';
 import { queryKeys } from '../../config/query-keys';
@@ -41,6 +45,7 @@ import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
 import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import { StatusDot } from '../../components/ui/status-dot';
@@ -49,7 +54,7 @@ import '../../styles/tasks.css';
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
 
-type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | 'assignedToMe' | `project:${string}` | `tag:${string}`;
+type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | 'calendar' | 'assignedToMe' | `project:${string}` | `tag:${string}`;
 
 interface NavItem {
   id: NavSection;
@@ -173,6 +178,7 @@ function TaskItem({
   isChecked,
   onCheckToggle,
   showCheckbox,
+  isBlocked,
 }: {
   task: Task;
   isSelected: boolean;
@@ -193,6 +199,7 @@ function TaskItem({
   isChecked?: boolean;
   onCheckToggle?: (taskId: string) => void;
   showCheckbox?: boolean;
+  isBlocked?: boolean;
 }) {
   const tasksSettings = useTasksSettingsStore();
   const [completing, setCompleting] = useState(false);
@@ -320,6 +327,7 @@ function TaskItem({
             </span>
           )}
           <WhenBadge when={task.when} dueDate={task.dueDate} showBadge={showWhenBadge} />
+          {isBlocked && <Badge variant="warning">Blocked</Badge>}
         </div>
 
         {((showDueDate && task.dueDate) || (showProject && project) || task.tags.length > 0 || task.recurrenceRule) && (
@@ -917,17 +925,553 @@ function CommentSection({ taskId }: { taskId: string }) {
   );
 }
 
+// ─── Attachment Section ─────────────────────────────────────────────
+
+function AttachmentSection({ taskId }: { taskId: string }) {
+  const { t } = useTranslation();
+  const { account } = useAuthStore();
+  const { data: attachments = [] } = useTaskAttachments(taskId);
+  const addAttachment = useAddAttachment();
+  const deleteAttachment = useDeleteAttachment();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (let i = 0; i < files.length; i++) {
+      addAttachment.mutate({ taskId, file: files[i] });
+    }
+    // Reset input so same file can be re-uploaded
+    e.target.value = '';
+  };
+
+  return (
+    <div style={{
+      padding: 'var(--spacing-lg)',
+      borderTop: '1px solid var(--color-border-secondary)',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 'var(--spacing-md)',
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+        }}>
+          <Paperclip size={13} color="var(--color-text-tertiary)" />
+          <span style={{
+            fontSize: 'var(--font-size-xs)',
+            fontWeight: 'var(--font-weight-medium)' as any,
+            color: 'var(--color-text-tertiary)',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+          }}>
+            {t('tasks.attachments.title')} {attachments.length > 0 && `(${attachments.length})`}
+          </span>
+        </div>
+        <IconButton
+          icon={<Plus size={14} />}
+          label={t('tasks.attachments.upload')}
+          size={24}
+          onClick={() => fileInputRef.current?.click()}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleUpload}
+        />
+      </div>
+
+      {attachments.length === 0 && (
+        <div style={{
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--color-text-tertiary)',
+          padding: 'var(--spacing-sm) 0',
+        }}>
+          {t('tasks.attachments.empty')}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+        {attachments.map((att) => (
+          <div key={att.id} className="group" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-xs) var(--spacing-sm)',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--color-bg-secondary)',
+          }}>
+            <Paperclip size={13} color="var(--color-text-tertiary)" style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--color-text-primary)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {att.fileName}
+              </div>
+              <div style={{
+                fontSize: 'var(--font-size-xs)',
+                color: 'var(--color-text-tertiary)',
+              }}>
+                {formatFileSize(att.size)}
+              </div>
+            </div>
+            <IconButton
+              icon={<Download size={12} />}
+              label="Download"
+              size={22}
+              tooltip={false}
+              onClick={() => {
+                window.open(`${api.defaults.baseURL}/tasks/attachments/${att.id}/download`, '_blank');
+              }}
+            />
+            {account && att.userId === account.userId && (
+              <IconButton
+                icon={<Trash2 size={12} />}
+                label={t('tasks.attachments.delete')}
+                size={22}
+                destructive
+                tooltip={false}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => deleteAttachment.mutate({ attachmentId: att.id, taskId })}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Dependency Section ─────────────────────────────────────────────
+
+function DependencySection({ taskId, allTasks }: { taskId: string; allTasks: Task[] }) {
+  const { t } = useTranslation();
+  const { data: dependencies = [] } = useTaskDependencies(taskId);
+  const addDependency = useAddDependency();
+  const removeDependency = useRemoveDependency();
+  const [isAdding, setIsAdding] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAdding && searchInputRef.current) searchInputRef.current.focus();
+  }, [isAdding]);
+
+  // Filter available tasks for adding as blockers
+  const availableTasks = useMemo(() => {
+    const existingBlockerIds = new Set(dependencies.map(d => d.blockedByTaskId));
+    existingBlockerIds.add(taskId); // Can't block itself
+    return allTasks
+      .filter(t => !existingBlockerIds.has(t.id) && t.type !== 'heading' && !t.isArchived)
+      .filter(t => !searchQuery.trim() || t.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 10);
+  }, [allTasks, dependencies, taskId, searchQuery]);
+
+  return (
+    <div style={{
+      padding: 'var(--spacing-lg)',
+      borderTop: '1px solid var(--color-border-secondary)',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 'var(--spacing-md)',
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+        }}>
+          <Link2 size={13} color="var(--color-text-tertiary)" />
+          <span style={{
+            fontSize: 'var(--font-size-xs)',
+            fontWeight: 'var(--font-weight-medium)' as any,
+            color: 'var(--color-text-tertiary)',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+          }}>
+            {t('tasks.dependencies.title')} {dependencies.length > 0 && `(${dependencies.length})`}
+          </span>
+        </div>
+        <IconButton
+          icon={<Plus size={14} />}
+          label={t('tasks.dependencies.add')}
+          size={24}
+          onClick={() => setIsAdding(!isAdding)}
+        />
+      </div>
+
+      {dependencies.length === 0 && !isAdding && (
+        <div style={{
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--color-text-tertiary)',
+          padding: 'var(--spacing-sm) 0',
+        }}>
+          {t('tasks.dependencies.empty')}
+        </div>
+      )}
+
+      {/* Dependency list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+        {dependencies.map((dep) => (
+          <div key={dep.id} className="group" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            padding: 'var(--spacing-xs) var(--spacing-sm)',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--color-bg-secondary)',
+          }}>
+            {dep.blockerStatus !== 'completed' ? (
+              <AlertTriangle size={13} color="var(--color-warning)" style={{ flexShrink: 0 }} />
+            ) : (
+              <CheckCircle2 size={13} color="var(--color-success)" style={{ flexShrink: 0 }} />
+            )}
+            <span style={{
+              flex: 1,
+              fontSize: 'var(--font-size-sm)',
+              color: 'var(--color-text-primary)',
+              textDecoration: dep.blockerStatus === 'completed' ? 'line-through' : 'none',
+              opacity: dep.blockerStatus === 'completed' ? 0.6 : 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {dep.blockerTitle || 'Untitled'}
+            </span>
+            <IconButton
+              icon={<X size={12} />}
+              label={t('tasks.dependencies.remove')}
+              size={22}
+              tooltip={false}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => removeDependency.mutate({ taskId, blockerTaskId: dep.blockedByTaskId })}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Add blocker search */}
+      {isAdding && (
+        <div style={{ marginTop: 'var(--spacing-sm)' }}>
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setIsAdding(false); setSearchQuery(''); } }}
+            placeholder={t('tasks.dependencies.add') + '...'}
+            style={{
+              width: '100%',
+              fontSize: 'var(--font-size-sm)',
+              padding: 'var(--spacing-xs) var(--spacing-sm)',
+              border: '1px solid var(--color-border-primary)',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-bg-tertiary)',
+              color: 'var(--color-text-primary)',
+              outline: 'none',
+              fontFamily: 'var(--font-family)',
+            }}
+          />
+          {availableTasks.length > 0 && (
+            <div style={{
+              marginTop: 'var(--spacing-xs)',
+              border: '1px solid var(--color-border-secondary)',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-bg-elevated)',
+              maxHeight: 200,
+              overflowY: 'auto',
+            }}>
+              {availableTasks.map((task) => (
+                <button
+                  key={task.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-sm)',
+                    width: '100%',
+                    padding: 'var(--spacing-xs) var(--spacing-sm)',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontSize: 'var(--font-size-sm)',
+                    color: 'var(--color-text-primary)',
+                    fontFamily: 'var(--font-family)',
+                    textAlign: 'left',
+                  }}
+                  className="hover-bg-surface"
+                  onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
+                  onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  onClick={() => {
+                    addDependency.mutate({ taskId, blockedByTaskId: task.id });
+                    setSearchQuery('');
+                    setIsAdding(false);
+                  }}
+                >
+                  {task.status === 'completed' ? (
+                    <CheckCircle2 size={12} color="var(--color-success)" />
+                  ) : (
+                    <CircleDot size={12} color="var(--color-text-tertiary)" />
+                  )}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {task.title || 'Untitled'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Calendar View ──────────────────────────────────────────────────
+
+function CalendarView({
+  tasks,
+  onSelectTask,
+}: {
+  tasks: Task[];
+  onSelectTask: (taskId: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  const daysInMonth = lastDayOfMonth.getDate();
+
+  // Build calendar grid
+  const calendarDays: (number | null)[] = [];
+  // Pad with nulls for days before the first
+  for (let i = 0; i < startDayOfWeek; i++) calendarDays.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calendarDays.push(d);
+  // Pad remaining cells to fill the grid
+  while (calendarDays.length % 7 !== 0) calendarDays.push(null);
+
+  const todayStr = getTodayStr();
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Group tasks by due date
+  const tasksByDate = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const task of tasks) {
+      if (task.dueDate && task.status !== 'completed' && task.status !== 'cancelled') {
+        const dateKey = task.dueDate.slice(0, 10);
+        if (!map.has(dateKey)) map.set(dateKey, []);
+        map.get(dateKey)!.push(task);
+      }
+    }
+    return map;
+  }, [tasks]);
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const goToday = () => setCurrentDate(new Date());
+
+  const MAX_TASKS_PER_CELL = 3;
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      overflow: 'hidden',
+    }}>
+      {/* Calendar header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 'var(--spacing-lg)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+          <h2 style={{
+            fontSize: 'var(--font-size-lg)',
+            fontWeight: 'var(--font-weight-semibold)' as any,
+            color: 'var(--color-text-primary)',
+            margin: 0,
+            fontFamily: 'var(--font-family)',
+          }}>
+            {monthNames[month]} {year}
+          </h2>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+          <Button variant="ghost" size="sm" onClick={prevMonth}>
+            <ChevronRight size={14} style={{ transform: 'rotate(180deg)' }} />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={goToday}>
+            {t('tasks.calendar.today')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={nextMonth}>
+            <ChevronRight size={14} />
+          </Button>
+        </div>
+      </div>
+
+      {/* Day headers */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        flexShrink: 0,
+      }}>
+        {dayNames.map((day) => (
+          <div key={day} style={{
+            padding: 'var(--spacing-sm) var(--spacing-xs)',
+            textAlign: 'center',
+            fontSize: 'var(--font-size-xs)',
+            fontWeight: 'var(--font-weight-medium)' as any,
+            color: 'var(--color-text-tertiary)',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+            fontFamily: 'var(--font-family)',
+          }}>
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gridAutoRows: '1fr',
+        flex: 1,
+        overflow: 'auto',
+      }}>
+        {calendarDays.map((day, idx) => {
+          if (day === null) {
+            return (
+              <div key={`empty-${idx}`} style={{
+                borderRight: '1px solid var(--color-border-secondary)',
+                borderBottom: '1px solid var(--color-border-secondary)',
+                background: 'var(--color-bg-secondary)',
+                minHeight: 80,
+              }} />
+            );
+          }
+
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dayTasks = tasksByDate.get(dateStr) || [];
+          const isCurrentDay = dateStr === todayStr;
+          const isPast = dateStr < todayStr;
+
+          return (
+            <div key={dateStr} style={{
+              borderRight: '1px solid var(--color-border-secondary)',
+              borderBottom: '1px solid var(--color-border-secondary)',
+              padding: 'var(--spacing-xs)',
+              minHeight: 80,
+              background: isCurrentDay ? 'var(--color-surface-selected)' : 'transparent',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                fontSize: 'var(--font-size-xs)',
+                fontWeight: isCurrentDay ? 'var(--font-weight-bold)' as any : 'var(--font-weight-normal)' as any,
+                color: isCurrentDay ? 'var(--color-accent-primary)' : isPast ? 'var(--color-text-tertiary)' : 'var(--color-text-secondary)',
+                marginBottom: 'var(--spacing-xs)',
+                fontFamily: 'var(--font-family)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 22,
+                height: 22,
+                borderRadius: '50%',
+                background: isCurrentDay ? 'var(--color-accent-primary)' : 'transparent',
+                ...(isCurrentDay ? { color: '#fff' } : {}),
+              }}>
+                {day}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {dayTasks.slice(0, MAX_TASKS_PER_CELL).map((task) => (
+                  <button
+                    key={task.id}
+                    onClick={() => onSelectTask(task.id)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '2px 4px',
+                      fontSize: 10,
+                      lineHeight: '14px',
+                      color: 'var(--color-text-primary)',
+                      background: task.priority === 'high' ? 'rgba(239, 68, 68, 0.12)' :
+                        task.priority === 'medium' ? 'rgba(245, 158, 11, 0.12)' :
+                        'var(--color-bg-tertiary)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontFamily: 'var(--font-family)',
+                    }}
+                    title={task.title}
+                  >
+                    {task.title || 'Untitled'}
+                  </button>
+                ))}
+                {dayTasks.length > MAX_TASKS_PER_CELL && (
+                  <span style={{
+                    fontSize: 10,
+                    color: 'var(--color-text-tertiary)',
+                    paddingLeft: 4,
+                    fontFamily: 'var(--font-family)',
+                  }}>
+                    {t('tasks.calendar.more', { count: dayTasks.length - MAX_TASKS_PER_CELL })}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Task Detail Panel ──────────────────────────────────────────────
 
 function TaskDetailPanel({
   task,
   projects,
   members,
+  allTasks,
   onClose,
 }: {
   task: Task;
   projects: TaskProject[];
   members?: TenantUser[];
+  allTasks: Task[];
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -1177,6 +1721,12 @@ function TaskDetailPanel({
         {/* Subtasks */}
         <SubtaskSection taskId={task.id} />
 
+        {/* Dependencies (blocked by) */}
+        <DependencySection taskId={task.id} allTasks={allTasks} />
+
+        {/* Attachments */}
+        <AttachmentSection taskId={task.id} />
+
         {/* Rich notes editor (below details) */}
         <div style={{ paddingTop: 16 }}>
           <TaskNotesEditor
@@ -1326,6 +1876,7 @@ export function TasksPage() {
   // Data
   const { data: counts } = useTaskCounts();
   const { data: projectsData } = useProjectList();
+  const { data: blockedTaskIds = [] } = useBlockedTaskIds();
   const projects = projectsData?.projects ?? [];
 
   // Determine filters based on active section
@@ -1336,6 +1887,7 @@ export function TasksPage() {
     if (activeSection === 'someday') return { when: 'someday', status: 'todo' };
     if (activeSection === 'logbook') return { status: 'completed' };
     if (activeSection === 'upcoming') return { status: 'todo' };
+    if (activeSection === 'calendar') return { status: 'todo' }; // fetch all todo tasks for calendar
     if (activeSection === 'assignedToMe' && currentUserId) {
       return { status: 'todo', assigneeId: currentUserId };
     }
@@ -1678,6 +2230,9 @@ export function TasksPage() {
     if (activeSection === 'assignedToMe') {
       return t('tasks.assignedToMe');
     }
+    if (activeSection === 'calendar') {
+      return t('tasks.calendar.title');
+    }
     const nav = NAV_ITEMS.find(n => n.id === activeSection);
     return nav ? t(nav.labelKey) : '';
   }, [activeSection, t]);
@@ -1716,6 +2271,9 @@ export function TasksPage() {
   const someVisibleSelected = selectedIds.size > 0 && !allVisibleSelected;
 
   // Render task items helper
+  // Blocked task IDs set for O(1) lookup
+  const blockedTaskIdSet = useMemo(() => new Set(blockedTaskIds), [blockedTaskIds]);
+
   const renderTaskItem = (task: Task) => (
     <TaskItem
       key={task.id}
@@ -1738,6 +2296,7 @@ export function TasksPage() {
       showCheckbox={selectedIds.size > 0}
       isChecked={selectedIds.has(task.id)}
       onCheckToggle={toggleSelectOne}
+      isBlocked={blockedTaskIdSet.has(task.id)}
     />
   );
 
@@ -1777,6 +2336,14 @@ export function TasksPage() {
                 {navCounts.assignedToMe}
               </span>
             )}
+          </button>
+          {/* Calendar */}
+          <button
+            className={`task-nav-item${activeSection === 'calendar' ? ' active' : ''}`}
+            onClick={() => { setActiveSection('calendar'); setSelectedTaskId(null); }}
+          >
+            <CalendarDays size={16} color="#10b981" strokeWidth={1.8} />
+            <span style={{ flex: 1 }}>{t('tasks.sidebar.calendar')}</span>
           </button>
         </div>
 
@@ -1979,7 +2546,27 @@ export function TasksPage() {
 
         {/* Task list + detail */}
         <div className="tasks-content">
-          {viewMode === 'board' && canShowBoard ? (
+          {activeSection === 'calendar' ? (
+            /* ─── Calendar view ─── */
+            <>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <CalendarView
+                  tasks={allTasks}
+                  onSelectTask={(id) => setSelectedTaskId(id)}
+                />
+              </div>
+              {/* Detail panel in calendar view */}
+              {selectedTask && selectedTask.type !== 'heading' && (
+                <TaskDetailPanel
+                  task={selectedTask}
+                  projects={projects}
+                  members={tenantMembers}
+                  allTasks={allTasks}
+                  onClose={() => setSelectedTaskId(null)}
+                />
+              )}
+            </>
+          ) : viewMode === 'board' && canShowBoard ? (
             /* ─── Kanban board view ─── */
             <>
               <KanbanBoard
@@ -1994,6 +2581,7 @@ export function TasksPage() {
                   task={selectedTask}
                   projects={projects}
                   members={tenantMembers}
+                  allTasks={allTasks}
                   onClose={() => setSelectedTaskId(null)}
                 />
               )}
@@ -2143,6 +2731,7 @@ export function TasksPage() {
                   task={selectedTask}
                   projects={projects}
                   members={tenantMembers}
+                  allTasks={allTasks}
                   onClose={() => setSelectedTaskId(null)}
                 />
               )}

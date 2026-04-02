@@ -644,6 +644,27 @@
       "placeholder": "Kommentar schreiben...",
       "empty": "Noch keine Kommentare",
       "delete": "Kommentar löschen"
+    },
+    "attachments": {
+      "title": "Anhänge",
+      "upload": "Datei hochladen",
+      "empty": "Keine Anhänge",
+      "delete": "Anhang löschen"
+    },
+    "calendar": {
+      "title": "Kalender",
+      "today": "Heute",
+      "more": "+{{count}} weitere"
+    },
+    "dependencies": {
+      "title": "Blockiert durch",
+      "add": "Blocker hinzufügen",
+      "empty": "Keine Blocker",
+      "blocked": "Blockiert",
+      "remove": "Entfernen"
+    },
+    "sidebar": {
+      "calendar": "Kalender"
     }
   },
   "errors": {

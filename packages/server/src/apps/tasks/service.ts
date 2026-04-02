@@ -1,6 +1,8 @@
 import { db } from '../../config/database';
-import { tasks, taskProjects, subtasks, taskActivities, taskTemplates, taskComments, users } from '../../db/schema';
-import { eq, and, asc, desc, sql, isNull, gte, lte, or } from 'drizzle-orm';
+import { tasks, taskProjects, subtasks, taskActivities, taskTemplates, taskComments, taskAttachments, taskDependencies, users } from '../../db/schema';
+import { eq, and, asc, desc, sql, isNull, gte, lte, or, ne } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 import { logger } from '../../utils/logger';
 import type {
   CreateTaskInput, UpdateTaskInput,
@@ -715,4 +717,154 @@ export async function updateProjectVisibility(userId: string, projectId: string,
   if (visibility === 'team' && !tenantId) throw new Error('Tenant required for team visibility');
   await db.update(taskProjects).set({ visibility, tenantId: visibility === 'team' ? tenantId : null, updatedAt: new Date() })
     .where(and(eq(taskProjects.id, projectId), eq(taskProjects.userId, userId)));
+}
+
+// ─── Task Attachments ──────────────────────────────────────────────
+
+export async function listAttachments(taskId: string) {
+  return db.select().from(taskAttachments)
+    .where(eq(taskAttachments.taskId, taskId))
+    .orderBy(asc(taskAttachments.createdAt));
+}
+
+export async function addAttachment(
+  userId: string,
+  accountId: string,
+  taskId: string,
+  file: { originalname: string; path: string; mimetype: string; size: number; filename: string },
+) {
+  const [created] = await db.insert(taskAttachments).values({
+    taskId,
+    accountId,
+    userId,
+    fileName: file.originalname,
+    storagePath: file.filename,
+    mimeType: file.mimetype || null,
+    size: file.size,
+    createdAt: new Date(),
+  }).returning();
+
+  logger.info({ userId, taskId, attachmentId: created.id }, 'Task attachment added');
+  return created;
+}
+
+export async function deleteAttachment(userId: string, attachmentId: string) {
+  const [attachment] = await db.select().from(taskAttachments)
+    .where(eq(taskAttachments.id, attachmentId)).limit(1);
+
+  if (!attachment) return false;
+  if (attachment.userId !== userId) return false;
+
+  // Delete file from disk
+  const uploadsDir = path.join(__dirname, '../../../uploads');
+  const filePath = path.join(uploadsDir, attachment.storagePath);
+  try {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch (err) {
+    logger.error({ err, filePath }, 'Failed to delete attachment file');
+  }
+
+  await db.delete(taskAttachments).where(eq(taskAttachments.id, attachmentId));
+  return true;
+}
+
+export async function getAttachment(attachmentId: string) {
+  const [attachment] = await db.select().from(taskAttachments)
+    .where(eq(taskAttachments.id, attachmentId)).limit(1);
+  return attachment || null;
+}
+
+// ─── Task Dependencies ─────────────────────────────────────────────
+
+export async function listDependencies(taskId: string) {
+  const deps = await db
+    .select({
+      id: taskDependencies.id,
+      taskId: taskDependencies.taskId,
+      blockedByTaskId: taskDependencies.blockedByTaskId,
+      blockerTitle: tasks.title,
+      blockerStatus: tasks.status,
+      createdAt: taskDependencies.createdAt,
+    })
+    .from(taskDependencies)
+    .innerJoin(tasks, eq(taskDependencies.blockedByTaskId, tasks.id))
+    .where(eq(taskDependencies.taskId, taskId))
+    .orderBy(asc(taskDependencies.createdAt));
+
+  return deps;
+}
+
+export async function addDependency(taskId: string, blockedByTaskId: string) {
+  // Prevent self-dependency
+  if (taskId === blockedByTaskId) {
+    throw new Error('A task cannot block itself');
+  }
+
+  // Prevent circular dependency (A blocks B blocks A)
+  const reverse = await db.select().from(taskDependencies)
+    .where(and(
+      eq(taskDependencies.taskId, blockedByTaskId),
+      eq(taskDependencies.blockedByTaskId, taskId),
+    )).limit(1);
+
+  if (reverse.length > 0) {
+    throw new Error('Circular dependency: the blocker task is already blocked by this task');
+  }
+
+  // Also check transitive circular deps (A -> B -> C -> A)
+  // We do a simple BFS from blockedByTaskId to see if we can reach taskId
+  const visited = new Set<string>();
+  const queue = [blockedByTaskId];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const blockers = await db.select({ blockedBy: taskDependencies.blockedByTaskId })
+      .from(taskDependencies)
+      .where(eq(taskDependencies.taskId, current));
+
+    for (const b of blockers) {
+      if (b.blockedBy === taskId) {
+        throw new Error('Circular dependency detected');
+      }
+      queue.push(b.blockedBy);
+    }
+  }
+
+  const [created] = await db.insert(taskDependencies).values({
+    taskId,
+    blockedByTaskId,
+    createdAt: new Date(),
+  }).returning();
+
+  return created;
+}
+
+export async function removeDependency(taskId: string, blockedByTaskId: string) {
+  await db.delete(taskDependencies).where(
+    and(
+      eq(taskDependencies.taskId, taskId),
+      eq(taskDependencies.blockedByTaskId, blockedByTaskId),
+    ),
+  );
+}
+
+export async function getBlockedTaskIds(userId: string): Promise<string[]> {
+  // Returns task IDs that have at least one incomplete blocker
+  const allDeps = await db
+    .select({
+      taskId: taskDependencies.taskId,
+      blockerStatus: tasks.status,
+    })
+    .from(taskDependencies)
+    .innerJoin(tasks, eq(taskDependencies.blockedByTaskId, tasks.id));
+
+  const blocked = new Set<string>();
+  for (const dep of allDeps) {
+    if (dep.blockerStatus !== 'completed') {
+      blocked.add(dep.taskId);
+    }
+  }
+  return Array.from(blocked);
 }

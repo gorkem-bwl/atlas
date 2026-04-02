@@ -1907,6 +1907,35 @@ export async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_table_row_comments_row ON table_row_comments(spreadsheet_id, row_id);
     `);
 
+    // ─── Task Attachments ────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS task_attachments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        account_id UUID NOT NULL,
+        user_id UUID NOT NULL,
+        file_name VARCHAR(500) NOT NULL,
+        storage_path TEXT NOT NULL,
+        mime_type VARCHAR(255),
+        size INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_task_attachments_task ON task_attachments(task_id);
+    `);
+
+    // ─── Task Dependencies ─────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS task_dependencies (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        blocked_by_task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_task_deps_task ON task_dependencies(task_id);
+      CREATE INDEX IF NOT EXISTS idx_task_deps_blocker ON task_dependencies(blocked_by_task_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_task_deps_unique ON task_dependencies(task_id, blocked_by_task_id);
+    `);
+
     logger.info('Database migrations completed');
   } finally {
     await client.end();

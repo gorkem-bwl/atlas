@@ -671,6 +671,27 @@
       "placeholder": "Write a comment...",
       "empty": "No comments yet",
       "delete": "Delete comment"
+    },
+    "attachments": {
+      "title": "Attachments",
+      "upload": "Upload file",
+      "empty": "No attachments",
+      "delete": "Delete attachment"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "today": "Today",
+      "more": "+{{count}} more"
+    },
+    "dependencies": {
+      "title": "Blocked by",
+      "add": "Add blocker",
+      "empty": "No blockers",
+      "blocked": "Blocked",
+      "remove": "Remove"
+    },
+    "sidebar": {
+      "calendar": "Calendar"
     }
   },
   "errors": {

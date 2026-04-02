@@ -644,6 +644,27 @@
       "placeholder": "Bir yorum yaz...",
       "empty": "Henüz yorum yok",
       "delete": "Yorumu sil"
+    },
+    "attachments": {
+      "title": "Ekler",
+      "upload": "Dosya yükle",
+      "empty": "Ek yok",
+      "delete": "Eki sil"
+    },
+    "calendar": {
+      "title": "Takvim",
+      "today": "Bugün",
+      "more": "+{{count}} daha"
+    },
+    "dependencies": {
+      "title": "Engelleyen",
+      "add": "Engelleyici ekle",
+      "empty": "Engelleyici yok",
+      "blocked": "Engellendi",
+      "remove": "Kaldır"
+    },
+    "sidebar": {
+      "calendar": "Takvim"
     }
   },
   "errors": {

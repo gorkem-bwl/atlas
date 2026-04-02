@@ -726,3 +726,188 @@ export async function updateProjectVisibility(req: Request, res: Response) {
     res.status(500).json({ success: false, error: 'Failed to update project visibility' });
   }
 }
+
+// ─── Task Attachments ─────────────────────────────────────────────
+
+export async function listAttachments(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view attachments' });
+      return;
+    }
+
+    const taskId = req.params.taskId as string;
+    const attachments = await taskService.listAttachments(taskId);
+    res.json({ success: true, data: attachments });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list task attachments');
+    res.status(500).json({ success: false, error: 'Failed to list task attachments' });
+  }
+}
+
+export async function uploadAttachment(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to upload attachments' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+    const accountId = req.auth!.accountId;
+    const taskId = req.params.taskId as string;
+    const file = req.file;
+
+    if (!file) {
+      res.status(400).json({ success: false, error: 'No file provided' });
+      return;
+    }
+
+    const attachment = await taskService.addAttachment(userId, accountId, taskId, file as any);
+    res.json({ success: true, data: attachment });
+  } catch (error) {
+    logger.error({ error }, 'Failed to upload task attachment');
+    res.status(500).json({ success: false, error: 'Failed to upload task attachment' });
+  }
+}
+
+export async function deleteAttachment(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+    const attachmentId = req.params.attachmentId as string;
+
+    const deleted = await taskService.deleteAttachment(userId, attachmentId);
+    if (!deleted) {
+      res.status(403).json({ success: false, error: 'Attachment not found or not authorized to delete' });
+      return;
+    }
+
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to delete task attachment');
+    res.status(500).json({ success: false, error: 'Failed to delete task attachment' });
+  }
+}
+
+export async function downloadAttachment(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const attachmentId = req.params.attachmentId as string;
+    const attachment = await taskService.getAttachment(attachmentId);
+
+    if (!attachment) {
+      res.status(404).json({ success: false, error: 'Attachment not found' });
+      return;
+    }
+
+    const filePath = require('path').join(__dirname, '../../../uploads', attachment.storagePath);
+    if (!require('fs').existsSync(filePath)) {
+      res.status(404).json({ success: false, error: 'File not found on disk' });
+      return;
+    }
+
+    res.download(filePath, attachment.fileName);
+  } catch (error) {
+    logger.error({ error }, 'Failed to download task attachment');
+    res.status(500).json({ success: false, error: 'Failed to download task attachment' });
+  }
+}
+
+// ─── Task Dependencies ────────────────────────────────────────────
+
+export async function listDependencies(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view dependencies' });
+      return;
+    }
+
+    const taskId = req.params.taskId as string;
+    const deps = await taskService.listDependencies(taskId);
+    res.json({ success: true, data: deps });
+  } catch (error) {
+    logger.error({ error }, 'Failed to list task dependencies');
+    res.status(500).json({ success: false, error: 'Failed to list task dependencies' });
+  }
+}
+
+export async function addDependency(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to add dependencies' });
+      return;
+    }
+
+    const taskId = req.params.taskId as string;
+    const { blockedByTaskId } = req.body;
+
+    if (!blockedByTaskId) {
+      res.status(400).json({ success: false, error: 'blockedByTaskId is required' });
+      return;
+    }
+
+    const dep = await taskService.addDependency(taskId, blockedByTaskId);
+    res.json({ success: true, data: dep });
+  } catch (error: any) {
+    if (error.message?.includes('Circular dependency') || error.message?.includes('cannot block itself')) {
+      res.status(400).json({ success: false, error: error.message });
+      return;
+    }
+    // Handle unique constraint violation (duplicate dependency)
+    if (error.code === '23505') {
+      res.status(409).json({ success: false, error: 'This dependency already exists' });
+      return;
+    }
+    logger.error({ error }, 'Failed to add task dependency');
+    res.status(500).json({ success: false, error: 'Failed to add task dependency' });
+  }
+}
+
+export async function removeDependency(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to remove dependencies' });
+      return;
+    }
+
+    const taskId = req.params.taskId as string;
+    const blockerTaskId = req.params.blockerTaskId as string;
+
+    await taskService.removeDependency(taskId, blockerTaskId);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to remove task dependency');
+    res.status(500).json({ success: false, error: 'Failed to remove task dependency' });
+  }
+}
+
+export async function getBlockedTaskIds(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const ids = await taskService.getBlockedTaskIds(req.auth!.userId);
+    res.json({ success: true, data: ids });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get blocked task IDs');
+    res.status(500).json({ success: false, error: 'Failed to get blocked task IDs' });
+  }
+}

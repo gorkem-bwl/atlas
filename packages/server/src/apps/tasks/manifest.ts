@@ -72,6 +72,6 @@ export const tasksServerManifest: ServerAppManifest = {
   version: '1.0.0',
   router: tasksRouter,
   routePrefix: '/tasks',
-  tables: ['tasks', 'task_activities', 'task_projects', 'task_comments'],
+  tables: ['tasks', 'task_activities', 'task_projects', 'task_comments', 'task_attachments', 'task_dependencies'],
   objects,
 };

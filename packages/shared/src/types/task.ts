@@ -174,3 +174,27 @@ export interface UpdateProjectInput {
   sortOrder?: number;
   isArchived?: boolean;
 }
+
+// ─── Task Attachments ──────────────────────────────────────────────
+
+export interface TaskAttachment {
+  id: string;
+  taskId: string;
+  userId: string;
+  fileName: string;
+  storagePath: string;
+  mimeType: string | null;
+  size: number;
+  createdAt: string;
+}
+
+// ─── Task Dependencies ─────────────────────────────────────────────
+
+export interface TaskDependency {
+  id: string;
+  taskId: string;
+  blockedByTaskId: string;
+  blockerTitle: string;
+  blockerStatus: string;
+  createdAt: string;
+}

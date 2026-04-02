@@ -42,6 +42,9 @@ export const queryKeys = {
     activities: (taskId: string) => ['tasks', 'activities', taskId] as const,
     comments: (taskId: string) => ['tasks', 'comments', taskId] as const,
     templates: ['tasks', 'templates'] as const,
+    attachments: (taskId: string) => ['tasks', 'attachments', taskId] as const,
+    dependencies: (taskId: string) => ['tasks', 'dependencies', taskId] as const,
+    blockedIds: ['tasks', 'blocked-ids'] as const,
   },
   hr: {
     all: ['hr'] as const,
