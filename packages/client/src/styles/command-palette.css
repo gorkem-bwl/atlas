@@ -125,3 +125,89 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
 }
+
+/* Clear button */
+.cmd-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+
+.cmd-clear-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+/* Recent search remove button */
+.cmd-recent-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s, background 0.1s;
+  flex-shrink: 0;
+}
+
+.cmd-item:hover .cmd-recent-remove,
+.cmd-item[data-selected='true'] .cmd-recent-remove {
+  opacity: 1;
+}
+
+.cmd-recent-remove:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-error);
+}
+
+/* Result count bar */
+.cmd-result-count {
+  padding: 4px var(--spacing-lg);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+/* Footer with keyboard hints */
+.cmd-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: 6px var(--spacing-lg);
+  border-top: 1px solid var(--color-border-secondary);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family);
+}
+
+.cmd-footer kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: var(--font-family);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
+/* Spin animation for loader */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
