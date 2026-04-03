@@ -23,10 +23,12 @@ export function ForecastView() {
   const { t } = useTranslation();
   const { data: forecast, isLoading } = useForecast();
 
+  const months = forecast?.months ?? [];
+
   const maxValue = useMemo(() => {
-    if (!forecast) return 1;
-    return Math.max(...forecast.months.map((m) => m.weightedValue), 1);
-  }, [forecast]);
+    if (!months.length) return 1;
+    return Math.max(...months.map((m) => m.weightedValue ?? 0), 1);
+  }, [months]);
 
   if (isLoading || !forecast) return <ForecastSkeleton />;
 
@@ -36,19 +38,19 @@ export function ForecastView() {
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
         <StatCard
           label={t('crm.forecast.weightedForecast')}
-          value={formatCurrencyCompact(forecast.totalWeighted)}
+          value={formatCurrencyCompact(forecast.totalWeighted ?? 0)}
           color="var(--color-accent-primary)"
           icon={TrendingUp}
         />
         <StatCard
           label={t('crm.forecast.bestCase')}
-          value={formatCurrencyCompact(forecast.bestCase)}
+          value={formatCurrencyCompact(forecast.bestCase ?? 0)}
           color="#3b82f6"
           icon={DollarSign}
         />
         <StatCard
           label={t('crm.forecast.committed')}
-          value={formatCurrencyCompact(forecast.committed)}
+          value={formatCurrencyCompact(forecast.committed ?? 0)}
           color="var(--color-success)"
           icon={Trophy}
         />
@@ -57,23 +59,27 @@ export function ForecastView() {
       {/* Monthly bar chart */}
       <div className="crm-dashboard-card">
         <h3 className="crm-dashboard-card-title">{t('crm.forecast.monthlyForecast')}</h3>
-        <div className="crm-bar-chart">
-          {forecast.months.map((month) => (
-            <div key={month.month} className="crm-bar-row">
-              <span className="crm-bar-label" style={{ minWidth: 80 }}>{month.month}</span>
-              <div className="crm-bar-track">
-                <div
-                  className="crm-bar"
-                  style={{
-                    width: `${Math.max((month.weightedValue / maxValue) * 100, 2)}%`,
-                    backgroundColor: 'var(--color-accent-primary)',
-                  }}
-                />
+        {months.length === 0 ? (
+          <div className="crm-dashboard-empty">{t('crm.forecast.noData', 'No forecast data available')}</div>
+        ) : (
+          <div className="crm-bar-chart">
+            {months.map((month) => (
+              <div key={month.month} className="crm-bar-row">
+                <span className="crm-bar-label" style={{ minWidth: 80 }}>{month.month ?? '--'}</span>
+                <div className="crm-bar-track">
+                  <div
+                    className="crm-bar"
+                    style={{
+                      width: `${Math.max(((month.weightedValue ?? 0) / maxValue) * 100, 2)}%`,
+                      backgroundColor: 'var(--color-accent-primary)',
+                    }}
+                  />
+                </div>
+                <span className="crm-bar-value">{formatCurrencyCompact(month.weightedValue ?? 0)}</span>
               </div>
-              <span className="crm-bar-value">{formatCurrencyCompact(month.weightedValue)}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

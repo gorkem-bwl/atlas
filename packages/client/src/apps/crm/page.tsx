@@ -1197,7 +1197,7 @@ function DealsListView({
   deals, stages, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
-  companies, onAdd,
+  companies, onAdd, canEdit = true,
 }: {
   deals: CrmDeal[];
   stages: CrmDealStage[];
@@ -1214,6 +1214,7 @@ function DealsListView({
   onSortChange: (sort: SortState | null) => void;
   companies: CrmCompany[];
   onAdd: () => void;
+  canEdit?: boolean;
 }) {
   const { t } = useTranslation();
   const updateDeal = useUpdateDeal();
@@ -1286,6 +1287,7 @@ function DealsListView({
 
   const handleCellClick = (rowId: string, column: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canEdit) return;
     onEditingCellChange({ rowId, column });
   };
 
@@ -1463,7 +1465,7 @@ function ContactsListView({
   contacts, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
-  companies, onAdd,
+  companies, onAdd, canEdit = true,
 }: {
   contacts: CrmContact[];
   selectedId: string | null;
@@ -1479,6 +1481,7 @@ function ContactsListView({
   onSortChange: (sort: SortState | null) => void;
   companies: CrmCompany[];
   onAdd: () => void;
+  canEdit?: boolean;
 }) {
   const { t } = useTranslation();
   const updateContact = useUpdateContact();
@@ -1546,6 +1549,7 @@ function ContactsListView({
 
   const handleCellClick = (rowId: string, column: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canEdit) return;
     onEditingCellChange({ rowId, column });
   };
 
@@ -1702,7 +1706,7 @@ function CompaniesListView({
   companies, selectedId, onSelect, searchQuery,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
-  onAdd,
+  onAdd, canEdit = true,
 }: {
   companies: CrmCompany[];
   selectedId: string | null;
@@ -1717,6 +1721,7 @@ function CompaniesListView({
   sort: SortState | null;
   onSortChange: (sort: SortState | null) => void;
   onAdd: () => void;
+  canEdit?: boolean;
 }) {
   const { t } = useTranslation();
   const updateCompany = useUpdateCompany();
@@ -1783,6 +1788,7 @@ function CompaniesListView({
 
   const handleCellClick = (rowId: string, column: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canEdit) return;
     onEditingCellChange({ rowId, column });
   };
 
@@ -2614,6 +2620,7 @@ export function CrmPage() {
                 onSortChange={setSort}
                 companies={companies}
                 onAdd={() => setShowCreateDeal(true)}
+                canEdit={canAccess(myRole, 'deals', 'update')}
               />
             )}
 
@@ -2633,6 +2640,7 @@ export function CrmPage() {
                 onSortChange={setSort}
                 companies={companies}
                 onAdd={() => setShowCreateContact(true)}
+                canEdit={canAccess(myRole, 'contacts', 'update')}
               />
             )}
 
@@ -2651,6 +2659,7 @@ export function CrmPage() {
                 sort={sort}
                 onSortChange={setSort}
                 onAdd={() => setShowCreateCompany(true)}
+                canEdit={canAccess(myRole, 'companies', 'update')}
               />
             )}
 

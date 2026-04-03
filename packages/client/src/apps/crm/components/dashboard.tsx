@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import {
   DollarSign, Trophy, Target, TrendingUp, XCircle,
   CalendarDays, PhoneCall, Mail, StickyNote, Users as UsersIcon,
-  Briefcase, Building2, Tag,
+  Briefcase, Building2, Tag, AlertTriangle, RefreshCw,
 } from 'lucide-react';
 import { useDashboard, type CrmDashboard, type CrmDeal, type CrmActivity } from '../hooks';
 import { formatCurrencyCompact, formatDate } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { StatCard } from '../../../components/ui/stat-card';
 import { ColumnHeader } from '../../../components/ui/column-header';
+import { Button } from '../../../components/ui/button';
 
 function getActivityIcon(type: string) {
   switch (type) {
@@ -239,7 +240,21 @@ function DashboardSkeleton() {
 // ─── Main Dashboard ───────────────────────────────────────────────
 
 export function CrmDashboard() {
-  const { data: dashboard, isLoading } = useDashboard();
+  const { data: dashboard, isLoading, error, refetch } = useDashboard();
+
+  if (error) {
+    return (
+      <div className="crm-dashboard" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-2xl)', minHeight: 300 }}>
+        <AlertTriangle size={32} style={{ color: 'var(--color-error)' }} />
+        <span style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>Failed to load dashboard</span>
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)' }}>Something went wrong while fetching dashboard data.</span>
+        <Button variant="secondary" size="sm" onClick={() => refetch()}>
+          <RefreshCw size={14} style={{ marginRight: 6 }} />
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading || !dashboard) {
     return <DashboardSkeleton />;

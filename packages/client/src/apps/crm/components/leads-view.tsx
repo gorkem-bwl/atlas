@@ -15,6 +15,7 @@ import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { ColumnHeader } from '../../../components/ui/column-header';
 import { formatDate } from '../../../lib/format';
+import { useToastStore } from '../../../stores/toast-store';
 
 const AVATAR_COLORS = ['#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#ec4899','#14b8a6'];
 function getAvatarColor(name: string): string {
@@ -121,6 +122,7 @@ function ConvertLeadModal({
 }: { open: boolean; onClose: () => void; lead: CrmLead | null }) {
   const { t } = useTranslation();
   const convertLead = useConvertLead();
+  const { addToast } = useToastStore();
   const { data: stagesData } = useStages();
   const stages = stagesData?.stages ?? [];
   const [dealTitle, setDealTitle] = useState('');
@@ -128,18 +130,23 @@ function ConvertLeadModal({
   const [dealValue, setDealValue] = useState('0');
 
   const defaultStage = stages.find((s) => s.isDefault) ?? stages[0];
+  const resolvedStageId = dealStageId || defaultStage?.id || '';
+  const canSubmit = !!lead && dealTitle.trim().length > 0 && resolvedStageId.length > 0 && !convertLead.isPending;
 
   const handleSubmit = () => {
-    if (!lead || !dealTitle.trim()) return;
-    const stageId = dealStageId || defaultStage?.id;
-    if (!stageId) return;
+    if (!canSubmit) return;
 
     convertLead.mutate({
-      leadId: lead.id,
+      leadId: lead!.id,
       dealTitle: dealTitle.trim(),
-      dealStageId: stageId,
+      dealStageId: resolvedStageId,
       dealValue: Number(dealValue) || 0,
-    }, { onSuccess: () => { onClose(); } });
+    }, {
+      onSuccess: () => { onClose(); },
+      onError: () => {
+        addToast({ type: 'error', message: t('crm.leads.convertError', 'Failed to convert lead. Please try again.') });
+      },
+    });
   };
 
   return (
@@ -154,12 +161,18 @@ function ConvertLeadModal({
             <Input label={t('crm.leads.dealTitle')} value={dealTitle} onChange={(e) => setDealTitle(e.target.value)} size="md" />
             <div>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 4 }}>{t('crm.leads.selectStage')}</div>
-              <Select
-                value={dealStageId || defaultStage?.id || ''}
-                onChange={(v) => setDealStageId(v)}
-                options={stages.map((s) => ({ value: s.id, label: s.name }))}
-                size="md"
-              />
+              {stages.length === 0 ? (
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-error)', padding: 'var(--spacing-sm)' }}>
+                  {t('crm.leads.noStagesAvailable', 'No deal stages available. Please create a stage first.')}
+                </div>
+              ) : (
+                <Select
+                  value={resolvedStageId}
+                  onChange={(v) => setDealStageId(v)}
+                  options={stages.map((s) => ({ value: s.id, label: s.name }))}
+                  size="md"
+                />
+              )}
             </div>
             <Input label={t('crm.deals.value')} type="number" value={dealValue} onChange={(e) => setDealValue(e.target.value)} size="md" />
           </div>
@@ -167,7 +180,7 @@ function ConvertLeadModal({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onClose} size="md">{t('common.cancel')}</Button>
-        <Button variant="primary" onClick={handleSubmit} size="md" disabled={!dealTitle.trim() || convertLead.isPending}>
+        <Button variant="primary" onClick={handleSubmit} size="md" disabled={!canSubmit}>
           {convertLead.isPending ? t('common.loading') : t('crm.leads.convert')}
         </Button>
       </Modal.Footer>
