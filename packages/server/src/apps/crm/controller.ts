@@ -1746,10 +1746,18 @@ export async function submitLeadForm(req: Request, res: Response) {
       return;
     }
 
-    // Return a simple HTML response for browser form submissions
+    // HTML form submissions send urlencoded content-type; return a "thank you" page
+    const contentType = req.headers['content-type'] || '';
     const acceptHeader = req.headers.accept || '';
-    if (acceptHeader.includes('text/html')) {
-      res.send('<html><body><h2>Thank you!</h2><p>Your submission has been received.</p></body></html>');
+    if (contentType.includes('application/x-www-form-urlencoded') || acceptHeader.includes('text/html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thank you</title>
+<style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb}
+.card{background:#fff;border-radius:12px;padding:40px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+h2{margin:0 0 8px;color:#111827}p{margin:0;color:#6b7280}</style>
+</head><body><div class="card"><h2>Thank you!</h2><p>Your submission has been received.</p></div></body></html>`);
       return;
     }
 

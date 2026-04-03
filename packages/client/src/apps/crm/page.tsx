@@ -2024,6 +2024,7 @@ export function CrmPage() {
 
   // Filters
   const [filters, setFilters] = useState<CrmFilter[]>([]);
+  const pendingViewRef = useRef<SavedView | null>(null);
 
   // Import/export modals
   const [showImportModal, setShowImportModal] = useState(false);
@@ -2086,7 +2087,7 @@ export function CrmPage() {
   const selectedContact = selectedContactId ? contacts.find((c) => c.id === selectedContactId) : null;
   const selectedCompany = selectedCompanyId ? companies.find((c) => c.id === selectedCompanyId) : null;
 
-  // Close selection on view change
+  // Close selection on view change — but if a saved view is pending, apply its filters instead of clearing
   useEffect(() => {
     setSelectedDealId(null);
     setSelectedContactId(null);
@@ -2096,8 +2097,20 @@ export function CrmPage() {
     setSelectedIds(new Set());
     setFocusedIndex(null);
     setEditingCell(null);
-    setSort(null);
-    setFilters([]);
+
+    const pending = pendingViewRef.current;
+    if (pending) {
+      setFilters(pending.filters);
+      if (pending.sortColumn) {
+        setSort({ column: pending.sortColumn, direction: pending.sortDirection });
+      } else {
+        setSort(null);
+      }
+      pendingViewRef.current = null;
+    } else {
+      setSort(null);
+      setFilters([]);
+    }
   }, [activeView]);
 
   // Filter column definitions (memoized)
@@ -2338,8 +2351,12 @@ export function CrmPage() {
               icon={<Eye size={12} />}
               isActive={false}
               onClick={() => {
-                setActiveView('deals');
-                handleApplyView(v);
+                if (activeView === 'deals') {
+                  handleApplyView(v);
+                } else {
+                  pendingViewRef.current = v;
+                  setActiveView('deals');
+                }
               }}
               style={{ paddingLeft: 'var(--spacing-xl)' }}
             />
@@ -2362,8 +2379,12 @@ export function CrmPage() {
               icon={<Eye size={12} />}
               isActive={false}
               onClick={() => {
-                setActiveView('contacts');
-                handleApplyView(v);
+                if (activeView === 'contacts') {
+                  handleApplyView(v);
+                } else {
+                  pendingViewRef.current = v;
+                  setActiveView('contacts');
+                }
               }}
               style={{ paddingLeft: 'var(--spacing-xl)' }}
             />
@@ -2383,8 +2404,12 @@ export function CrmPage() {
               icon={<Eye size={12} />}
               isActive={false}
               onClick={() => {
-                setActiveView('companies');
-                handleApplyView(v);
+                if (activeView === 'companies') {
+                  handleApplyView(v);
+                } else {
+                  pendingViewRef.current = v;
+                  setActiveView('companies');
+                }
               }}
               style={{ paddingLeft: 'var(--spacing-xl)' }}
             />
