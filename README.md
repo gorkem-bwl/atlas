@@ -31,17 +31,29 @@ Then open **http://localhost:3001** and create your admin account.
 ## Manual Docker setup
 
 ```bash
-# 1. Copy environment file and generate secrets
-cp .env.example .env
+# 1. Download compose file
+curl -O https://raw.githubusercontent.com/bluewave-labs/atlas/main/docker-compose.production.yml
 
-# Generate and replace the three CHANGE_ME values:
-# JWT_SECRET, JWT_REFRESH_SECRET, TOKEN_ENCRYPTION_KEY
-# Each: openssl rand -hex 32
+# 2. Create environment file and generate secrets
+cat > .env << 'EOF'
+JWT_SECRET=$(openssl rand -hex 32)
+JWT_REFRESH_SECRET=$(openssl rand -hex 32)
+TOKEN_ENCRYPTION_KEY=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 16)
+SERVER_PUBLIC_URL=http://localhost:3001
+CLIENT_PUBLIC_URL=http://localhost:3001
+CORS_ORIGINS=http://localhost:3001
+EOF
 
-# 2. Build and start
-docker compose -f docker-compose.production.yml up -d --build
+# 3. Pull and start (pre-built image from GitHub Container Registry)
+docker compose -f docker-compose.production.yml up -d
 
-# 3. Open http://localhost:3001
+# 4. Open http://localhost:3001
+```
+
+To pin a specific version:
+```bash
+IMAGE_TAG=1.3.2 docker compose -f docker-compose.production.yml up -d
 ```
 
 ## HTTPS with Caddy (optional)
@@ -53,7 +65,7 @@ echo 'ATLAS_DOMAIN=atlas.yourdomain.com' >> .env
 # 2. Point your domain's DNS A record to your server's IP
 
 # 3. Start with HTTPS
-docker compose -f docker-compose.production.yml -f docker-compose.https.yml up -d --build
+docker compose -f docker-compose.production.yml -f docker-compose.https.yml up -d
 ```
 
 Caddy automatically obtains and renews Let's Encrypt SSL certificates. Ports 80 and 443 must be open.
@@ -86,14 +98,17 @@ npm run dev
 
 | App | Description |
 |-----|-------------|
-| CRM | Pipeline, contacts, companies, deals, dashboard, workflow automations |
-| HRM | Employees, departments, leave management, attendance, org chart |
-| Sign | PDF digital signatures with multi-signer support and field placement |
-| Drive | File storage with folders, versioning, sharing, and file preview |
-| Tables | Spreadsheets with rich field types and multiple views |
-| Tasks | Task management with projects, kanban, and recurring tasks |
-| Write | Document editor with templates and version history |
-| Draw | Collaborative drawing canvas |
+| CRM | Pipeline, contacts, companies, deals, leads, forecasting, saved views, web-to-lead forms |
+| HRM | Employees, departments, org chart (React Flow), leave management, attendance |
+| Calendar | Month/week/day/year/agenda views with Google Calendar sync |
+| Projects | Time tracking, invoicing, clients, reports, budgets |
+| Sign | PDF e-signatures with templates, sequential signing, audit trail, reminders |
+| Drive | File storage with versioning, sharing, comments, activity log, password-protected links |
+| Tables | Spreadsheets with linked records, CSV import, row comments, multiple views |
+| Tasks | Task management with calendar, dependencies, attachments, assignees, comments |
+| Write | Rich text editor with cover images, comments, templates |
+| Draw | Excalidraw-based canvas with PDF export, image insertion, presentation mode |
+| Marketplace | One-click deploy of 10 Docker apps (Metabase, Mattermost, Vaultwarden, etc.) |
 
 ## Tech stack
 
@@ -123,21 +138,10 @@ npm run dev
 
 ## Troubleshooting
 
-**Build fails with "JavaScript heap out of memory"**
-
-Docker Desktop needs at least 4GB memory. Go to Docker Desktop > Settings > Resources > Memory and increase it.
-
 **"network ... not found" error**
 
 ```bash
 docker compose -f docker-compose.production.yml down
-docker compose -f docker-compose.production.yml up -d --build
-```
-
-**Build uses cached old Dockerfile after `git pull`**
-
-```bash
-docker compose -f docker-compose.production.yml build --no-cache atlas
 docker compose -f docker-compose.production.yml up -d
 ```
 
@@ -148,12 +152,18 @@ Stop the process using port 3001, or set a different port in `.env`:
 PORT=3002
 ```
 
-**Blank page after login (no UI)**
+**Update to latest version**
 
-This was fixed in recent versions. Pull the latest code and rebuild:
 ```bash
-git pull
-docker compose -f docker-compose.production.yml up -d --build
+docker compose -f docker-compose.production.yml pull
+docker compose -f docker-compose.production.yml up -d
+```
+
+**Reset everything (fresh start)**
+
+```bash
+docker compose -f docker-compose.production.yml down -v
+docker compose -f docker-compose.production.yml up -d
 ```
 
 ## System requirements
