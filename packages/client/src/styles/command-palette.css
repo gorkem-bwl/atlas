@@ -1,7 +1,6 @@
-/* ─── Command Palette (cmdk) ──────────────────────────────────────── */
+/* ─── Command Palette (cmdk + radix dialog) ──────────────────────── */
 
-/* Overlay backdrop */
-.cmd-palette [cmdk-overlay] {
+.cmd-overlay {
   position: fixed;
   inset: 0;
   z-index: 9998;
@@ -9,23 +8,21 @@
   animation: cmd-fade-in 0.15s ease;
 }
 
-/* Dialog container */
-.cmd-palette [cmdk-root] {
+.cmd-content {
   position: fixed;
   top: 20vh;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
   width: 560px;
-  max-height: 420px;
+  max-width: calc(100vw - 32px);
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-xl);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   animation: cmd-slide-in 0.15s ease;
+  outline: none;
 }
 
 @keyframes cmd-fade-in {
@@ -38,7 +35,7 @@
   to { opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
-.cmd-palette-header {
+.cmd-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -46,12 +43,7 @@
   border-bottom: 1px solid var(--color-border-secondary);
 }
 
-.cmd-palette-search-icon {
-  color: var(--color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.cmd-palette-input[cmdk-input] {
+.cmd-input[cmdk-input] {
   flex: 1;
   border: none;
   outline: none;
@@ -60,20 +52,19 @@
   font-family: var(--font-family);
   color: var(--color-text-primary);
   padding: 0;
-  height: 24px;
 }
 
-.cmd-palette-input[cmdk-input]::placeholder {
+.cmd-input[cmdk-input]::placeholder {
   color: var(--color-text-tertiary);
 }
 
-[cmdk-list] {
+.cmd-list[cmdk-list] {
   overflow-y: auto;
-  max-height: 340px;
+  max-height: 360px;
   padding: var(--spacing-xs);
 }
 
-.cmd-palette-empty[cmdk-empty] {
+.cmd-empty[cmdk-empty] {
   padding: var(--spacing-xl);
   text-align: center;
   font-size: var(--font-size-sm);
@@ -91,26 +82,22 @@
   font-family: var(--font-family);
 }
 
-.cmd-palette-item[cmdk-item] {
+.cmd-item[cmdk-item] {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 6px var(--spacing-md);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-family: var(--font-family);
-  transition: background 0.1s;
+  transition: background 0.08s;
 }
 
-.cmd-palette-item[cmdk-item][data-selected='true'] {
+.cmd-item[cmdk-item][data-selected='true'] {
   background: var(--color-surface-hover);
 }
 
-.cmd-palette-item[cmdk-item]:active {
-  background: var(--color-surface-active);
-}
-
-.cmd-palette-item-icon {
+.cmd-item-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,25 +109,19 @@
   flex-shrink: 0;
 }
 
-.cmd-palette-item-text {
+.cmd-item-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.cmd-palette-item-title {
+.cmd-item-title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.cmd-palette-item-desc {
+.cmd-item-desc {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
