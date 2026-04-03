@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { getSettingsCategories } from '../config/settings-registry';
 import { appRegistry } from '../apps';
@@ -9,7 +10,42 @@ import { useUIStore } from '../stores/ui-store';
 // Settings modal — two-level navigation overlay
 // ---------------------------------------------------------------------------
 
+// Map panel IDs to i18n keys
+const PANEL_KEY_MAP: Record<string, string> = {
+  general: 'settingsPanel.panels.general',
+  appearance: 'settingsPanel.panels.appearance',
+  formats: 'settingsPanel.panels.formats',
+  'data-model': 'settingsPanel.panels.dataModel',
+  'home-background': 'settingsPanel.panels.homeBackground',
+  'home-widgets': 'settingsPanel.panels.widgets',
+  about: 'settingsPanel.panels.about',
+  stages: 'settingsPanel.panels.pipelineStages',
+  integrations: 'settingsPanel.panels.integrations',
+  editor: 'settingsPanel.panels.editor',
+  startup: 'settingsPanel.panels.startup',
+  canvas: 'settingsPanel.panels.canvas',
+  export: 'settingsPanel.panels.export',
+  display: 'settingsPanel.panels.display',
+  files: 'settingsPanel.panels.files',
+  regional: 'settingsPanel.panels.regional',
+  behavior: 'settingsPanel.panels.behavior',
+};
+
+// Map category IDs to i18n keys
+const CATEGORY_KEY_MAP: Record<string, string> = {
+  global: 'settingsPanel.categories.global',
+  crm: 'settingsPanel.categories.crm',
+  hr: 'settingsPanel.categories.hr',
+  documents: 'settingsPanel.categories.documents',
+  draw: 'settingsPanel.categories.draw',
+  drive: 'settingsPanel.categories.drive',
+  tables: 'settingsPanel.categories.tables',
+  tasks: 'settingsPanel.categories.tasks',
+  projects: 'settingsPanel.categories.projects',
+};
+
 export function SettingsModal() {
+  const { t } = useTranslation();
   const { settingsOpen, settingsApp, settingsPanel, closeSettings } = useUIStore();
   const settingsCategories = useMemo(
     () => getSettingsCategories(appRegistry.getSettingsCategories()),
@@ -130,7 +166,7 @@ export function SettingsModal() {
                 fontFamily: 'var(--font-family)',
               }}
             >
-              Settings
+              {t('settingsPanel.title')}
             </span>
           </div>
 
@@ -143,7 +179,7 @@ export function SettingsModal() {
                 key={cat.id}
                 isActive={isActive}
                 onClick={() => handleCategoryClick(cat.id)}
-                label={cat.label}
+                label={CATEGORY_KEY_MAP[cat.id] ? t(CATEGORY_KEY_MAP[cat.id]) : cat.label}
                 icon={<Icon size={16} />}
                 color={cat.color}
               />
@@ -182,7 +218,7 @@ export function SettingsModal() {
                 letterSpacing: '0.06em',
               }}
             >
-              {currentCategory.label}
+              {CATEGORY_KEY_MAP[currentCategory.id] ? t(CATEGORY_KEY_MAP[currentCategory.id]) : currentCategory.label}
             </span>
           </div>
 
@@ -193,7 +229,7 @@ export function SettingsModal() {
                 key={panel.id}
                 isActive={activePanelId === panel.id}
                 onClick={() => handlePanelClick(panel.id)}
-                label={panel.label}
+                label={PANEL_KEY_MAP[panel.id] ? t(PANEL_KEY_MAP[panel.id]) : panel.label}
                 icon={<PanelIcon size={16} />}
               />
             );

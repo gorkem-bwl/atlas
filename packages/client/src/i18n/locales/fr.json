@@ -495,7 +495,11 @@
     "slash": {
       "drawing": "Dessin",
       "drawingDesc": "Intégrer un dessin Excalidraw"
-    }
+    },
+    "saving": "Enregistrement...",
+    "saveSnapshot": "Enregistrer un instantané",
+    "noVersionsYet": "Aucune version pour le moment. Cliquez sur \"Enregistrer un instantané\" pour en créer une.",
+    "addIcon": "Ajouter une icône"
   },
   "draw": {
     "title": "Draw",
@@ -671,6 +675,18 @@
     },
     "sidebar": {
       "calendar": "Calendrier"
+    },
+    "activity": {
+      "title": "Activité",
+      "created": "A créé cette tâche",
+      "completed": "A terminé cette tâche",
+      "changedField": "{{field}} modifié",
+      "subtaskAdded": "Sous-tâche ajoutée",
+      "subtaskCompleted": "Sous-tâche terminée",
+      "justNow": "à l'instant",
+      "minutesAgo": "il y a {{count}}min",
+      "hoursAgo": "il y a {{count}}h",
+      "daysAgo": "il y a {{count}}j"
     }
   },
   "errors": {
@@ -1218,12 +1234,20 @@
       "copied": "Copie",
       "copiedToClipboard": "Copie dans le presse-papiers",
       "pasted": "Colle",
-      "dropFilesToUpload": "Deposez les fichiers ici pour les telecharger"
+      "dropFilesToUpload": "Deposez les fichiers ici pour les telecharger",
+      "addedToFavourites": "Ajouté aux favoris",
+      "removedFromFavourites": "Retiré des favoris"
     },
     "context": {
       "duplicate": "Dupliquer",
       "makeACopy": "Faire une copie",
-      "moveTo": "Deplacer vers..."
+      "moveTo": "Deplacer vers...",
+      "changeIcon": "Changer l'icône",
+      "addIcon": "Ajouter une icône",
+      "removeFromFavourites": "Retirer des favoris",
+      "addToFavourites": "Ajouter aux favoris",
+      "addTag": "Ajouter un tag",
+      "share": "Partager"
     },
     "sidebar": {
       "sharedWithMe": "Partagé avec moi"
@@ -2233,7 +2257,22 @@
     "defaultAccess": "Les membres ont un accès complet à toutes les apps activées par défaut.",
     "defaultRole": "Par défaut",
     "defaultRoleDesc": "Accès complet basé sur le rôle du locataire",
-    "appAccess": "Accès aux apps"
+    "appAccess": "Accès aux apps",
+    "atlasApps": "Applications Atlas",
+    "appsDescription": "Activez ou désactivez les applications Atlas intégrées pour votre organisation. Besoin de plus ? Déployez des applications tierces depuis le",
+    "marketplace": "Marketplace",
+    "marketplaceDesc": "Déployez des applications tierces comme Metabase, Mattermost, Vaultwarden et plus en un clic. Les applications fonctionnent comme des conteneurs Docker sur votre serveur.",
+    "apps": {
+      "crmDesc": "Gérez les deals, contacts et entreprises. Suivez votre pipeline de ventes et concluez plus d'affaires.",
+      "hrDesc": "Gestion des employés, départements, organigrammes, suivi des congés et présences.",
+      "signDesc": "Créez, envoyez et suivez des documents pour signature électronique. Collectez les signatures en toute sécurité.",
+      "driveDesc": "Stockez, organisez et partagez des fichiers. Prévisualisez documents, images et médias.",
+      "tablesDesc": "Tableurs avec formules, tri, filtrage et import/export de données.",
+      "tasksDesc": "Gestion des tâches avec projets, échéances, priorités et vues multiples.",
+      "docsDesc": "Documents texte enrichi avec édition en temps réel, modèles et collaboration.",
+      "drawDesc": "Tableau blanc et outil de diagramme pour croquis, organigrammes et idées visuelles.",
+      "projectsDesc": "Suivi du temps, facturation et gestion de projet pour le travail client."
+    }
   },
   "permissions": {
     "title": "Permissions de {{appName}}",
@@ -2323,5 +2362,39 @@
   "mentions": {
     "mentionedYou": "{{name}} vous a mentionné",
     "typeToMention": "Tapez @ pour mentionner"
+  },
+  "settingsPanel": {
+    "title": "Paramètres",
+    "categories": {
+      "global": "Global",
+      "crm": "CRM",
+      "hr": "RH",
+      "write": "Rédaction",
+      "draw": "Dessin",
+      "drive": "Lecteur",
+      "tables": "Tableaux",
+      "tasks": "Tâches",
+      "documents": "Rédaction",
+      "projects": "Projets"
+    },
+    "panels": {
+      "general": "Général",
+      "appearance": "Apparence",
+      "formats": "Formats",
+      "dataModel": "Modèle de données",
+      "homeBackground": "Arrière-plan d'accueil",
+      "widgets": "Widgets",
+      "about": "À propos",
+      "pipelineStages": "Étapes du pipeline",
+      "integrations": "Intégrations",
+      "editor": "Éditeur",
+      "startup": "Démarrage",
+      "canvas": "Canevas",
+      "export": "Exporter",
+      "display": "Affichage",
+      "files": "Fichiers",
+      "regional": "Régional",
+      "behavior": "Comportement"
+    }
   }
 }

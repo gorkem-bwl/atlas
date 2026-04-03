@@ -1249,6 +1249,7 @@ function TopBar({
   onVisibilityToggle: (v: 'private' | 'team') => void;
   isOwner: boolean;
 }) {
+  const { t } = useTranslation();
   const [showExport, setShowExport] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -1420,7 +1421,7 @@ function TopBar({
             flexShrink: 0,
           }}
         >
-          Saving...
+          {t('docs.saving')}
         </span>
       )}
 
@@ -1557,6 +1558,7 @@ function DocumentView({
   allDrawings,
   allTables,
 }: DocumentViewProps) {
+  const { t } = useTranslation();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -1646,7 +1648,7 @@ function DocumentView({
             <div style={{ position: 'relative' }}>
               <button className="doc-meta-action-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                 <SmilePlus size={14} />
-                Add icon
+                {t('docs.addIcon')}
               </button>
               {showEmojiPicker && (
                 <EmojiPicker
@@ -1684,7 +1686,7 @@ function DocumentView({
         />
 
         <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 8, visibility: isSaving ? 'visible' : 'hidden' }}>
-          Saving...
+          {t('docs.saving')}
         </div>
       </div>
 
@@ -1944,6 +1946,7 @@ function VersionHistoryPanel({
   onClose: () => void;
   onRestore: (versionId: string) => void;
 }) {
+  const { t } = useTranslation();
   const { data: versions, isLoading } = useDocumentVersions(documentId);
   const createVersion = useCreateVersion();
 
@@ -1994,7 +1997,7 @@ function VersionHistoryPanel({
           disabled={createVersion.isPending}
           style={{ width: '100%', opacity: createVersion.isPending ? 0.6 : 1 }}
         >
-          {createVersion.isPending ? 'Saving...' : 'Save snapshot'}
+          {createVersion.isPending ? t('docs.saving') : t('docs.saveSnapshot')}
         </Button>
       </div>
 
@@ -2006,7 +2009,7 @@ function VersionHistoryPanel({
           </div>
         ) : !versions || versions.length === 0 ? (
           <div style={{ padding: 16, textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 12 }}>
-            No versions yet. Click "Save snapshot" to create one.
+            {t('docs.noVersionsYet')}
           </div>
         ) : (
           versions.map((v) => (

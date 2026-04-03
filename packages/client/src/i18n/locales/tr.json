@@ -495,7 +495,11 @@
     "slash": {
       "drawing": "Çizim",
       "drawingDesc": "Excalidraw çizimi yerleştir"
-    }
+    },
+    "saving": "Kaydediliyor...",
+    "saveSnapshot": "Anlık görüntü kaydet",
+    "noVersionsYet": "Henüz sürüm yok. Oluşturmak için \"Anlık görüntü kaydet\"e tıklayın.",
+    "addIcon": "Simge ekle"
   },
   "draw": {
     "title": "Draw",
@@ -671,6 +675,18 @@
     },
     "sidebar": {
       "calendar": "Takvim"
+    },
+    "activity": {
+      "title": "Etkinlik",
+      "created": "Bu görevi oluşturdu",
+      "completed": "Bu görevi tamamladı",
+      "changedField": "{{field}} değiştirildi",
+      "subtaskAdded": "Alt görev eklendi",
+      "subtaskCompleted": "Alt görev tamamlandı",
+      "justNow": "az önce",
+      "minutesAgo": "{{count}}dk önce",
+      "hoursAgo": "{{count}}sa önce",
+      "daysAgo": "{{count}}g önce"
     }
   },
   "errors": {
@@ -1218,12 +1234,20 @@
       "copied": "Kopyalandı",
       "copiedToClipboard": "Panoya kopyalandı",
       "pasted": "Yapıştırıldı",
-      "dropFilesToUpload": "Yüklemek için dosyaları buraya bırakın"
+      "dropFilesToUpload": "Yüklemek için dosyaları buraya bırakın",
+      "addedToFavourites": "Favorilere eklendi",
+      "removedFromFavourites": "Favorilerden kaldırıldı"
     },
     "context": {
       "duplicate": "Çoğalt",
       "makeACopy": "Kopya oluştur",
-      "moveTo": "Taşı..."
+      "moveTo": "Taşı...",
+      "changeIcon": "Simge değiştir",
+      "addIcon": "Simge ekle",
+      "removeFromFavourites": "Favorilerden kaldır",
+      "addToFavourites": "Favorilere ekle",
+      "addTag": "Etiket ekle",
+      "share": "Paylaş"
     },
     "sidebar": {
       "sharedWithMe": "Benimle paylaşılan"
@@ -2233,7 +2257,22 @@
     "defaultAccess": "Üyeler varsayılan olarak tüm etkin uygulamalara tam erişime sahiptir.",
     "defaultRole": "Varsayılan",
     "defaultRoleDesc": "Kiracı rolüne dayalı tam erişim",
-    "appAccess": "Uygulama erişimi"
+    "appAccess": "Uygulama erişimi",
+    "atlasApps": "Atlas uygulamaları",
+    "appsDescription": "Kuruluşunuz için yerleşik Atlas uygulamalarını etkinleştirin veya devre dışı bırakın. Daha fazlasına mı ihtiyacınız var? Üçüncü taraf uygulamaları",
+    "marketplace": "Mağaza",
+    "marketplaceDesc": "Metabase, Mattermost, Vaultwarden ve daha fazlasını tek tıkla dağıtın. Uygulamalar sunucunuzda Docker konteynerleri olarak çalışır.",
+    "apps": {
+      "crmDesc": "Anlaşmaları, kişileri ve şirketleri yönetin. Satış hattınızı takip edin ve daha fazla iş kapatın.",
+      "hrDesc": "Çalışan yönetimi, departmanlar, organizasyon şemaları, izin takibi ve devam.",
+      "signDesc": "E-imza için belgeler oluşturun, gönderin ve takip edin. İmzaları güvenle toplayın.",
+      "driveDesc": "Dosyaları depolayın, düzenleyin ve paylaşın. Belgeleri, resimleri ve medyayı önizleyin.",
+      "tablesDesc": "Formüller, sıralama, filtreleme ve veri içe/dışa aktarma ile elektronik tablolar.",
+      "tasksDesc": "Projeler, son tarihler, öncelikler ve çoklu görünümlerle görev yönetimi.",
+      "docsDesc": "Gerçek zamanlı düzenleme, şablonlar ve iş birliği ile zengin metin belgeleri.",
+      "drawDesc": "Eskizler, akış şemaları ve görsel fikirler için beyaz tahta ve diyagram aracı.",
+      "projectsDesc": "Müşteri çalışmaları için zaman takibi, faturalandırma ve proje yönetimi."
+    }
   },
   "permissions": {
     "title": "{{appName}} yetkileri",
@@ -2323,5 +2362,39 @@
   "mentions": {
     "mentionedYou": "{{name}} sizden bahsetti",
     "typeToMention": "Bahsetmek için @ yazın"
+  },
+  "settingsPanel": {
+    "title": "Ayarlar",
+    "categories": {
+      "global": "Genel",
+      "crm": "CRM",
+      "hr": "İK",
+      "write": "Yazı",
+      "draw": "Çizim",
+      "drive": "Sürücü",
+      "tables": "Tablolar",
+      "tasks": "Görevler",
+      "documents": "Yazı",
+      "projects": "Projeler"
+    },
+    "panels": {
+      "general": "Genel",
+      "appearance": "Görünüm",
+      "formats": "Biçimler",
+      "dataModel": "Veri modeli",
+      "homeBackground": "Ana sayfa arka planı",
+      "widgets": "Bileşenler",
+      "about": "Hakkında",
+      "pipelineStages": "Satış hattı aşamaları",
+      "integrations": "Entegrasyonlar",
+      "editor": "Düzenleyici",
+      "startup": "Başlangıç",
+      "canvas": "Tuval",
+      "export": "Dışa aktar",
+      "display": "G��rüntüleme",
+      "files": "Dosyalar",
+      "regional": "Bölgesel",
+      "behavior": "Davranış"
+    }
   }
 }

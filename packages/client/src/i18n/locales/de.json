@@ -495,7 +495,11 @@
     "slash": {
       "drawing": "Zeichnung",
       "drawingDesc": "Eine Excalidraw-Zeichnung einbetten"
-    }
+    },
+    "saving": "Speichern...",
+    "saveSnapshot": "Snapshot speichern",
+    "noVersionsYet": "Noch keine Versionen. Klicken Sie auf \"Snapshot speichern\", um eine zu erstellen.",
+    "addIcon": "Symbol hinzufügen"
   },
   "draw": {
     "title": "Draw",
@@ -671,6 +675,18 @@
     },
     "sidebar": {
       "calendar": "Kalender"
+    },
+    "activity": {
+      "title": "Aktivität",
+      "created": "Aufgabe erstellt",
+      "completed": "Aufgabe abgeschlossen",
+      "changedField": "{{field}} geändert",
+      "subtaskAdded": "Unteraufgabe hinzugefügt",
+      "subtaskCompleted": "Unteraufgabe abgeschlossen",
+      "justNow": "gerade eben",
+      "minutesAgo": "vor {{count}}Min",
+      "hoursAgo": "vor {{count}}Std",
+      "daysAgo": "vor {{count}}T"
     }
   },
   "errors": {
@@ -1218,12 +1234,20 @@
       "copied": "Kopiert",
       "copiedToClipboard": "In die Zwischenablage kopiert",
       "pasted": "Eingefugt",
-      "dropFilesToUpload": "Dateien hierher ziehen zum Hochladen"
+      "dropFilesToUpload": "Dateien hierher ziehen zum Hochladen",
+      "addedToFavourites": "Zu Favoriten hinzugefügt",
+      "removedFromFavourites": "Aus Favoriten entfernt"
     },
     "context": {
       "duplicate": "Duplizieren",
       "makeACopy": "Kopie erstellen",
-      "moveTo": "Verschieben nach..."
+      "moveTo": "Verschieben nach...",
+      "changeIcon": "Symbol ändern",
+      "addIcon": "Symbol hinzufügen",
+      "removeFromFavourites": "Aus Favoriten entfernen",
+      "addToFavourites": "Zu Favoriten hinzufügen",
+      "addTag": "Tag hinzufügen",
+      "share": "Teilen"
     },
     "sidebar": {
       "sharedWithMe": "Mit mir geteilt"
@@ -2233,7 +2257,22 @@
     "defaultAccess": "Mitglieder haben standardmäßig vollen Zugriff auf alle aktivierten Apps.",
     "defaultRole": "Standard",
     "defaultRoleDesc": "Voller Zugriff basierend auf Mandantenrolle",
-    "appAccess": "App-Zugriff"
+    "appAccess": "App-Zugriff",
+    "atlasApps": "Atlas-Apps",
+    "appsDescription": "Aktivieren oder deaktivieren Sie integrierte Atlas-Apps für Ihre Organisation. Mehr benötigt? Stellen Sie Drittanbieter-Apps aus dem",
+    "marketplace": "Marktplatz",
+    "marketplaceDesc": "Stellen Sie Drittanbieter-Apps wie Metabase, Mattermost, Vaultwarden und mehr mit einem Klick bereit. Apps laufen als Docker-Container auf Ihrem Server.",
+    "apps": {
+      "crmDesc": "Verwalten Sie Deals, Kontakte und Unternehmen. Verfolgen Sie Ihre Vertriebspipeline und schließen Sie mehr Geschäfte ab.",
+      "hrDesc": "Mitarbeiterverwaltung, Abteilungen, Organigramme, Urlaubsverfolgung und Anwesenheit.",
+      "signDesc": "Erstellen, senden und verfolgen Sie Dokumente zur E-Signatur. Sammeln Sie Unterschriften sicher.",
+      "driveDesc": "Speichern, organisieren und teilen Sie Dateien. Vorschau von Dokumenten, Bildern und Medien.",
+      "tablesDesc": "Tabellenkalkulationen mit Formeln, Sortierung, Filterung und Datenimport/-export.",
+      "tasksDesc": "Aufgabenverwaltung mit Projekten, Fälligkeiten, Prioritäten und mehreren Ansichten.",
+      "docsDesc": "Rich-Text-Dokumente mit Echtzeit-Bearbeitung, Vorlagen und Zusammenarbeit.",
+      "drawDesc": "Whiteboard- und Diagrammwerkzeug für Skizzen, Flussdiagramme und visuelle Ideen.",
+      "projectsDesc": "Zeiterfassung, Rechnungsstellung und Projektmanagement für Kundenarbeit."
+    }
   },
   "permissions": {
     "title": "{{appName}}-Berechtigungen",
@@ -2323,5 +2362,39 @@
   "mentions": {
     "mentionedYou": "{{name}} hat Sie erwähnt",
     "typeToMention": "@ eingeben zum Erwähnen"
+  },
+  "settingsPanel": {
+    "title": "Einstellungen",
+    "categories": {
+      "global": "Allgemein",
+      "crm": "CRM",
+      "hr": "HR",
+      "write": "Schreiben",
+      "draw": "Zeichnen",
+      "drive": "Laufwerk",
+      "tables": "Tabellen",
+      "tasks": "Aufgaben",
+      "documents": "Schreiben",
+      "projects": "Projekte"
+    },
+    "panels": {
+      "general": "Allgemein",
+      "appearance": "Darstellung",
+      "formats": "Formate",
+      "dataModel": "Datenmodell",
+      "homeBackground": "Startseiten-Hintergrund",
+      "widgets": "Widgets",
+      "about": "Über",
+      "pipelineStages": "Pipeline-Stufen",
+      "integrations": "Integrationen",
+      "editor": "Editor",
+      "startup": "Start",
+      "canvas": "Leinwand",
+      "export": "Exportieren",
+      "display": "Anzeige",
+      "files": "Dateien",
+      "regional": "Regional",
+      "behavior": "Verhalten"
+    }
   }
 }

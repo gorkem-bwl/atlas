@@ -522,7 +522,11 @@
     "slash": {
       "drawing": "Drawing",
       "drawingDesc": "Embed an Excalidraw drawing"
-    }
+    },
+    "saving": "Saving...",
+    "saveSnapshot": "Save snapshot",
+    "noVersionsYet": "No versions yet. Click \"Save snapshot\" to create one.",
+    "addIcon": "Add icon"
   },
   "draw": {
     "title": "Draw",
@@ -698,6 +702,18 @@
     },
     "sidebar": {
       "calendar": "Calendar"
+    },
+    "activity": {
+      "title": "Activity",
+      "created": "Created this task",
+      "completed": "Completed this task",
+      "changedField": "Changed {{field}}",
+      "subtaskAdded": "Added a subtask",
+      "subtaskCompleted": "Completed a subtask",
+      "justNow": "just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
     }
   },
   "errors": {
@@ -1245,12 +1261,20 @@
       "copied": "Copied",
       "copiedToClipboard": "Copied to clipboard",
       "pasted": "Pasted",
-      "dropFilesToUpload": "Drop files here to upload"
+      "dropFilesToUpload": "Drop files here to upload",
+      "addedToFavourites": "Added to favourites",
+      "removedFromFavourites": "Removed from favourites"
     },
     "context": {
       "duplicate": "Duplicate",
       "makeACopy": "Make a copy",
-      "moveTo": "Move to..."
+      "moveTo": "Move to...",
+      "changeIcon": "Change icon",
+      "addIcon": "Add icon",
+      "removeFromFavourites": "Remove from favourites",
+      "addToFavourites": "Add to favourites",
+      "addTag": "Add tag",
+      "share": "Share"
     },
     "sidebar": {
       "sharedWithMe": "Shared with me"
@@ -2233,7 +2257,22 @@
     "defaultAccess": "Members have full access to all enabled apps by default.",
     "defaultRole": "Default",
     "defaultRoleDesc": "Full access based on tenant role",
-    "appAccess": "App access"
+    "appAccess": "App access",
+    "atlasApps": "Atlas apps",
+    "appsDescription": "Enable or disable built-in Atlas apps for your organization. Need more? Deploy third-party apps from the",
+    "marketplace": "Marketplace",
+    "marketplaceDesc": "Deploy third-party apps like Metabase, Mattermost, Vaultwarden, and more with one click. Apps run as Docker containers on your server.",
+    "apps": {
+      "crmDesc": "Manage deals, contacts, and companies. Track your sales pipeline and close more business.",
+      "hrDesc": "Employee management, departments, org charts, time-off tracking, and attendance.",
+      "signDesc": "Create, send, and track documents for e-signature. Collect signatures securely.",
+      "driveDesc": "Store, organize, and share files. Preview documents, images, and media.",
+      "tablesDesc": "Spreadsheets with formulas, sorting, filtering, and data import/export.",
+      "tasksDesc": "Task management with projects, due dates, priorities, and multiple views.",
+      "docsDesc": "Rich text documents with real-time editing, templates, and collaboration.",
+      "drawDesc": "Whiteboard and diagramming tool for sketches, flowcharts, and visual ideas.",
+      "projectsDesc": "Time tracking, invoicing, and project management for client work."
+    }
   },
   "permissions": {
     "title": "{{appName}} permissions",
@@ -2323,5 +2362,39 @@
   "mentions": {
     "mentionedYou": "{{name}} mentioned you",
     "typeToMention": "Type @ to mention"
+  },
+  "settingsPanel": {
+    "title": "Settings",
+    "categories": {
+      "global": "Global",
+      "crm": "CRM",
+      "hr": "HR",
+      "write": "Write",
+      "draw": "Draw",
+      "drive": "Drive",
+      "tables": "Tables",
+      "tasks": "Tasks",
+      "documents": "Write",
+      "projects": "Projects"
+    },
+    "panels": {
+      "general": "General",
+      "appearance": "Appearance",
+      "formats": "Formats",
+      "dataModel": "Data model",
+      "homeBackground": "Home background",
+      "widgets": "Widgets",
+      "about": "About",
+      "pipelineStages": "Pipeline stages",
+      "integrations": "Integrations",
+      "editor": "Editor",
+      "startup": "Startup",
+      "canvas": "Canvas",
+      "export": "Export",
+      "display": "Display",
+      "files": "Files",
+      "regional": "Regional",
+      "behavior": "Behavior"
+    }
   }
 }

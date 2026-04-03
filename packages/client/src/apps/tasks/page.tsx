@@ -726,19 +726,20 @@ function SubtaskSection({ taskId }: { taskId: string }) {
 // ─── Activity Section ────────────────────────────────────────────────
 
 function ActivitySection({ taskId }: { taskId: string }) {
+  const { t } = useTranslation();
   const { data: activities = [] } = useTaskActivities(taskId);
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (activities.length === 0) return null;
 
   function formatAction(activity: any): string {
-    if (activity.action === 'created') return 'Created this task';
-    if (activity.action === 'completed') return 'Completed this task';
+    if (activity.action === 'created') return t('tasks.activity.created');
+    if (activity.action === 'completed') return t('tasks.activity.completed');
     if (activity.action === 'updated' && activity.field) {
-      return `Changed ${activity.field}`;
+      return t('tasks.activity.changedField', { field: activity.field });
     }
-    if (activity.action === 'subtask_added') return 'Added a subtask';
-    if (activity.action === 'subtask_completed') return 'Completed a subtask';
+    if (activity.action === 'subtask_added') return t('tasks.activity.subtaskAdded');
+    if (activity.action === 'subtask_completed') return t('tasks.activity.subtaskCompleted');
     return activity.action;
   }
 
@@ -747,12 +748,12 @@ function ActivitySection({ taskId }: { taskId: string }) {
     const then = new Date(dateStr).getTime();
     const diff = now - then;
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 1) return t('tasks.activity.justNow');
+    if (mins < 60) return t('tasks.activity.minutesAgo', { count: mins });
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return t('tasks.activity.hoursAgo', { count: hours });
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return t('tasks.activity.daysAgo', { count: days });
   }
 
   return (
@@ -763,7 +764,7 @@ function ActivitySection({ taskId }: { taskId: string }) {
       >
         {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <Clock className="w-3 h-3" />
-        Activity ({activities.length})
+        {t('tasks.activity.title')} ({activities.length})
       </button>
 
       {isExpanded && (

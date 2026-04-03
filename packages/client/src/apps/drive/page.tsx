@@ -884,7 +884,7 @@ export function DrivePage() {
       { id: item.id, isFavourite: !item.isFavourite },
       {
         onSuccess: () => {
-          addToast({ type: 'success', message: item.isFavourite ? 'Removed from favourites' : 'Added to favourites' });
+          addToast({ type: 'success', message: item.isFavourite ? t('drive.actions.removedFromFavourites') : t('drive.actions.addedToFavourites') });
         },
       },
     );
@@ -1096,7 +1096,7 @@ export function DrivePage() {
       { itemIds: ids, isFavourite: true },
       {
         onSuccess: () => {
-          addToast({ type: 'success', message: 'Added to favourites' });
+          addToast({ type: 'success', message: t('drive.actions.addedToFavourites') });
           setSelectedIds(new Set());
         },
       },
@@ -2697,7 +2697,7 @@ export function DrivePage() {
               {contextMenu.item.type === 'folder' && (
                 <ContextMenuItem
                   icon={<span style={{ fontSize: 14, lineHeight: 1 }}>{contextMenu.item.icon || '😀'}</span>}
-                  label={contextMenu.item.icon ? 'Change icon' : 'Add icon'}
+                  label={contextMenu.item.icon ? t('drive.context.changeIcon') : t('drive.context.addIcon')}
                   onClick={() => handleSetIcon(contextMenu.item)}
                 />
               )}
@@ -2713,17 +2713,17 @@ export function DrivePage() {
               />
               <ContextMenuItem
                 icon={<Star size={14} />}
-                label={contextMenu.item.isFavourite ? 'Remove from favourites' : 'Add to favourites'}
+                label={contextMenu.item.isFavourite ? t('drive.context.removeFromFavourites') : t('drive.context.addToFavourites')}
                 onClick={() => handleToggleFavourite(contextMenu.item)}
               />
               <ContextMenuItem
                 icon={<Tag size={14} />}
-                label="Add tag"
+                label={t('drive.context.addTag')}
                 onClick={() => handleAddTag(contextMenu.item)}
               />
               <ContextMenuItem
                 icon={<Share2 size={14} />}
-                label="Share"
+                label={t('drive.context.share')}
                 onClick={() => { setShareModalItem(contextMenu.item); setContextMenu(null); }}
               />
               {contextMenu.item.type === 'file' && (

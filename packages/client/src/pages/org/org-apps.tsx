@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants } from '../../hooks/use-platform';
 import { useTenantAppsAdmin, useToggleTenantApp } from '../../hooks/use-tenant-app-admin';
@@ -10,19 +11,19 @@ import { Chip } from '../../components/ui/chip';
 import { Skeleton } from '../../components/ui/skeleton';
 
 // ---------------------------------------------------------------------------
-// App descriptions
+// App description i18n keys
 // ---------------------------------------------------------------------------
 
-const APP_DESCRIPTIONS: Record<string, string> = {
-  crm: 'Manage deals, contacts, and companies. Track your sales pipeline and close more business.',
-  hr: 'Employee management, departments, org charts, time-off tracking, and attendance.',
-  sign: 'Create, send, and track documents for e-signature. Collect signatures securely.',
-  drive: 'Store, organize, and share files. Preview documents, images, and media.',
-  tables: 'Spreadsheets with formulas, sorting, filtering, and data import/export.',
-  tasks: 'Task management with projects, due dates, priorities, and multiple views.',
-  docs: 'Rich text documents with real-time editing, templates, and collaboration.',
-  draw: 'Whiteboard and diagramming tool for sketches, flowcharts, and visual ideas.',
-  projects: 'Time tracking, invoicing, and project management for client work.',
+const APP_DESC_KEYS: Record<string, string> = {
+  crm: 'org.apps.crmDesc',
+  hr: 'org.apps.hrDesc',
+  sign: 'org.apps.signDesc',
+  drive: 'org.apps.driveDesc',
+  tables: 'org.apps.tablesDesc',
+  tasks: 'org.apps.tasksDesc',
+  docs: 'org.apps.docsDesc',
+  draw: 'org.apps.drawDesc',
+  projects: 'org.apps.projectsDesc',
 };
 
 // ---------------------------------------------------------------------------
@@ -59,6 +60,7 @@ export function OrgAppsPage() {
   }
 
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 900 }}>
@@ -70,19 +72,19 @@ export function OrgAppsPage() {
             fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
             color: 'var(--color-text-primary)',
           }}>
-            Atlas apps
+            {t('org.atlasApps')}
           </span>
           <Chip height={18} style={{ padding: '0 var(--spacing-xs)' }}>
             {enabledSet.size}
           </Chip>
         </div>
         <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-normal)' }}>
-          Enable or disable built-in Atlas apps for your organization. Need more? Deploy third-party apps from the{' '}
+          {t('org.appsDescription')}{' '}
           <button
             onClick={() => navigate('/marketplace')}
             style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-accent-primary)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}
           >
-            Marketplace
+            {t('org.marketplace')}
           </button>.
         </p>
       </div>
@@ -98,7 +100,7 @@ export function OrgAppsPage() {
             <AppCard
               key={app.id}
               app={app}
-              description={APP_DESCRIPTIONS[app.id] || app.category}
+              description={APP_DESC_KEYS[app.id] ? t(APP_DESC_KEYS[app.id]) : app.category}
               isEnabled={isEnabled}
               isPending={toggleMutation.isPending}
               onToggle={() => toggleMutation.mutate({ appId: app.id, enable: !isEnabled })}
@@ -125,14 +127,14 @@ export function OrgAppsPage() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'], color: 'var(--color-text-primary)', marginBottom: 2 }}>
-            Marketplace
+            {t('org.marketplace')}
           </div>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 'var(--line-height-normal)' }}>
-            Deploy third-party apps like Metabase, Mattermost, Vaultwarden, and more with one click. Apps run as Docker containers on your server.
+            {t('org.marketplaceDesc')}
           </div>
         </div>
         <Button variant="secondary" size="sm" icon={<ArrowRight size={14} />} onClick={() => navigate('/marketplace')}>
-          Marketplace
+          {t('org.marketplace')}
         </Button>
       </div>
     </div>
