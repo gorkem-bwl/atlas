@@ -35,8 +35,8 @@
     "visibility": "Sichtbarkeit",
     "private": "Privat",
     "team": "Team",
-    "visibilityPrivate": "Nur Sie k\u00f6nnen dies sehen",
-    "visibilityTeam": "F\u00fcr alle Teammitglieder sichtbar",
+    "visibilityPrivate": "Nur Sie können dies sehen",
+    "visibilityTeam": "Für alle Teammitglieder sichtbar",
     "madeTeamVisible": "Mit Team geteilt",
     "madePrivate": "Privat gemacht"
   },
@@ -491,6 +491,10 @@
       "h2Desc": "Verschachteln Sie Unterseiten für eine strukturierte Wissensdatenbank",
       "h3Title": "Vorlagen",
       "h3Desc": "Starten Sie mit Vorlagen für Besprechungsnotizen, Specs und mehr"
+    },
+    "slash": {
+      "drawing": "Zeichnung",
+      "drawingDesc": "Eine Excalidraw-Zeichnung einbetten"
     }
   },
   "draw": {
@@ -569,7 +573,9 @@
       "h2Desc": "Starten Sie mit Flussdiagrammen, Wireframes oder Mindmaps",
       "h3Title": "Überall exportieren",
       "h3Desc": "Als PNG, SVG herunterladen oder in die Zwischenablage kopieren"
-    }
+    },
+    "present": "Präsentieren",
+    "exitPresent": "Präsentation beenden"
   },
   "tasks": {
     "title": "Tasks",
@@ -840,6 +846,10 @@
       "h2Desc": "Wechseln Sie zwischen Raster, Kanban, Kalender und Galerie",
       "h3Title": "Sortieren und Filtern",
       "h3Desc": "Organisieren Sie Ihre Daten mit leistungsstarken Filteroptionen"
+    },
+    "fields": {
+      "linkedRecord": "Verknüpfter Datensatz",
+      "selectTable": "Tabelle auswählen"
     }
   },
   "crm": {
@@ -1505,12 +1515,14 @@
       "inactive": "Inaktiv",
       "deactivate": "Deaktivieren",
       "activate": "Aktivieren",
-      "carry": "Uebertrag"
+      "carry": "Uebertrag",
+      "emptyDesc": "Definieren Sie die Urlaubsarten Ihrer Organisation, wie Urlaub, Krankheitstage oder persönliche Tage."
     },
     "policies": {
       "empty": "Noch keine Urlaubsrichtlinien konfiguriert.",
       "add": "Richtlinie hinzufuegen",
-      "default": "Standard"
+      "default": "Standard",
+      "emptyDesc": "Erstellen Sie Richtlinien, die festlegen, wie viele Tage jeder Urlaubsart den Mitarbeitern pro Jahr zustehen."
     },
     "holidays": {
       "empty": "Keine Feiertage in diesem Kalender.",
@@ -1521,7 +1533,8 @@
       "date": "Datum",
       "typePublic": "Gesetzlicher Feiertag",
       "typeCompany": "Firmenfeiertag",
-      "typeOptional": "Optionaler Feiertag"
+      "typeOptional": "Optionaler Feiertag",
+      "emptyDesc": "Fügen Sie gesetzliche Feiertage, Betriebsferien und optionale freie Tage für Ihr Team hinzu."
     },
     "myLeave": {
       "empty": "Noch keine Urlaubsantraege.",
@@ -1529,7 +1542,9 @@
       "selectType": "Urlaubsart waehlen...",
       "reason": "Grund",
       "submit": "Antrag einreichen",
-      "cancel": "Urlaub stornieren"
+      "cancel": "Urlaub stornieren",
+      "emptyDesc": "Reichen Sie einen Urlaubsantrag ein, um zu beginnen. Ihr Vorgesetzter wird zur Genehmigung benachrichtigt.",
+      "request": "Urlaub beantragen"
     },
     "teamCalendar": {
       "noLeaves": "Keine genehmigten Abwesenheiten fuer diesen Monat."
@@ -1571,6 +1586,9 @@
       "display": "Anzeige",
       "showDepartmentInList": "Abteilung in Liste anzeigen",
       "showDepartmentInListDesc": "Abteilungsspalte in der Mitarbeiterliste anzeigen"
+    },
+    "confirm": {
+      "deleteEmployee": "Möchten Sie {{name}} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
     }
   },
   "sign": {
@@ -1731,7 +1749,8 @@
       "viewingAs": "Ansicht als {{name}}",
       "startApproving": "Genehmigung starten",
       "approveThisField": "Dieses Feld genehmigen",
-      "approve": "Genehmigen"
+      "approve": "Genehmigen",
+      "redirecting": "Sie werden in Kürze weitergeleitet..."
     },
     "modal": {
       "addSignature": "Unterschrift hinzufügen",
@@ -1892,7 +1911,9 @@
     "showSecondsDesc": "Sekunden auf der Uhr anzeigen",
     "weather": {
       "unavailable": "Nicht verfügbar"
-    }
+    },
+    "flyingBirds": "Fliegende Vögel",
+    "flyingBirdsDesc": "Animierte Vögel im Hintergrund des Startbildschirms anzeigen"
   },
   "connection": {
     "lost": "Verbindung verloren",
@@ -2231,7 +2252,14 @@
     "allRecords": "Alle Datensätze",
     "ownRecords": "Nur eigene Datensätze",
     "reset": "Auf Standard zurücksetzen",
-    "noMembers": "Keine Teammitglieder gefunden"
+    "noMembers": "Keine Teammitglieder gefunden",
+    "desc": "Verwalten Sie, wer auf Daten in dieser App zugreifen und sie ändern kann",
+    "manage": "Berechtigungen",
+    "roleAdminDesc": "Voller Zugriff auf alle Daten und Einstellungen",
+    "roleEditorDesc": "Kann Datensätze anzeigen, erstellen und bearbeiten",
+    "roleViewerDesc": "Nur-Lese-Zugriff auf alle Daten",
+    "recordAll": "Alle Datensätze",
+    "recordOwn": "Nur eigene Datensätze"
   },
   "customFields": {
     "sectionTitle": "Benutzerdefinierte Felder",

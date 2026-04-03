@@ -32,13 +32,13 @@
     "previous": "Önceki",
     "next": "Sonraki",
     "retry": "Tekrar dene",
-    "visibility": "G\u00f6r\u00fcn\u00fcrl\u00fck",
-    "private": "\u00d6zel",
-    "team": "Tak\u0131m",
-    "visibilityPrivate": "Bunu yaln\u0131z siz g\u00f6rebilirsiniz",
-    "visibilityTeam": "T\u00fcm tak\u0131m \u00fcyeleri g\u00f6rebilir",
-    "madeTeamVisible": "Tak\u0131mla payla\u015f\u0131ld\u0131",
-    "madePrivate": "\u00d6zel yap\u0131ld\u0131"
+    "visibility": "Görünürlük",
+    "private": "Özel",
+    "team": "Takım",
+    "visibilityPrivate": "Bunu yalnız siz görebilirsiniz",
+    "visibilityTeam": "Tüm takım üyeleri görebilir",
+    "madeTeamVisible": "Takımla paylaşıldı",
+    "madePrivate": "Özel yapıldı"
   },
   "auth": {
     "appName": "Atlas",
@@ -1515,12 +1515,14 @@
       "inactive": "İnaktif",
       "deactivate": "Devre dışı bırak",
       "activate": "Etkinleştir",
-      "carry": "Devir"
+      "carry": "Devir",
+      "emptyDesc": "Yıllık izin, hastalık izni veya kişisel izin gibi kuruluşunuzun sunduğu izin türlerini tanımlayın."
     },
     "policies": {
       "empty": "Henüz izin politikası yapılandırılmadı.",
       "add": "Politika ekle",
-      "default": "Varsayılan"
+      "default": "Varsayılan",
+      "emptyDesc": "Çalışanların yılda kaç gün izin hakkına sahip olduğunu belirleyen politikalar oluşturun."
     },
     "holidays": {
       "empty": "Bu takvimde tatil yok.",
@@ -1531,7 +1533,8 @@
       "date": "Tarih",
       "typePublic": "Resmî tatil",
       "typeCompany": "Şirket tatili",
-      "typeOptional": "İsteğe bağlı tatil"
+      "typeOptional": "İsteğe bağlı tatil",
+      "emptyDesc": "Ekibiniz için resmi tatilleri, şirket tatillerini ve isteğe bağlı izin günlerini ekleyin."
     },
     "myLeave": {
       "empty": "Henüz izin başvurusu yok.",
@@ -1539,7 +1542,9 @@
       "selectType": "İzin türü seçin...",
       "reason": "Sebep",
       "submit": "Talebi gönder",
-      "cancel": "İzni iptal et"
+      "cancel": "İzni iptal et",
+      "emptyDesc": "Başlamak için bir izin talebi gönderin. Yöneticiniz onay için bilgilendirilecektir.",
+      "request": "İzin talep et"
     },
     "teamCalendar": {
       "noLeaves": "Bu ay için onaylanmış izin yok."
@@ -1581,6 +1586,9 @@
       "display": "Görünüm",
       "showDepartmentInList": "Listede departmanı göster",
       "showDepartmentInListDesc": "Çalışan listesinde departman sütununu göster"
+    },
+    "confirm": {
+      "deleteEmployee": "{{name}} adlı çalışanı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   },
   "sign": {
@@ -1903,7 +1911,9 @@
     "showSecondsDesc": "Saatte saniyeleri göster",
     "weather": {
       "unavailable": "Kullanılamıyor"
-    }
+    },
+    "flyingBirds": "Uçan kuşlar",
+    "flyingBirdsDesc": "Ana ekran arka planında uçan animasyonlu kuşları göster"
   },
   "connection": {
     "lost": "Bağlantı kesildi",

@@ -31,14 +31,14 @@
     "file_other": "{{count}} fichiers",
     "previous": "Précédent",
     "next": "Suivant",
-    "retry": "R\u00e9essayer",
-    "visibility": "Visibilit\u00e9",
-    "private": "Priv\u00e9",
-    "team": "\u00c9quipe",
+    "retry": "Réessayer",
+    "visibility": "Visibilité",
+    "private": "Privé",
+    "team": "Équipe",
     "visibilityPrivate": "Vous seul pouvez voir ceci",
     "visibilityTeam": "Visible par tous les membres",
-    "madeTeamVisible": "Partag\u00e9 avec l'\u00e9quipe",
-    "madePrivate": "Rendu priv\u00e9"
+    "madeTeamVisible": "Partagé avec l'équipe",
+    "madePrivate": "Rendu privé"
   },
   "auth": {
     "appName": "Atlas",
@@ -491,6 +491,10 @@
       "h2Desc": "Imbriquez des sous-pages pour une base de connaissances structurée",
       "h3Title": "Modèles",
       "h3Desc": "Commencez avec des modèles pour les notes de réunion, les specs et plus"
+    },
+    "slash": {
+      "drawing": "Dessin",
+      "drawingDesc": "Intégrer un dessin Excalidraw"
     }
   },
   "draw": {
@@ -569,7 +573,9 @@
       "h2Desc": "Commencez avec des organigrammes, des maquettes ou des cartes mentales",
       "h3Title": "Exportez partout",
       "h3Desc": "Téléchargez en PNG, SVG ou copiez dans le presse-papiers"
-    }
+    },
+    "present": "Présenter",
+    "exitPresent": "Quitter la présentation"
   },
   "tasks": {
     "title": "Tasks",
@@ -840,6 +846,10 @@
       "h2Desc": "Basculez entre grille, kanban, calendrier et galerie",
       "h3Title": "Tri et filtrage",
       "h3Desc": "Organisez vos données avec des options de filtrage puissantes"
+    },
+    "fields": {
+      "linkedRecord": "Enregistrement lié",
+      "selectTable": "Sélectionner un tableau"
     }
   },
   "crm": {
@@ -1505,12 +1515,14 @@
       "inactive": "Inactif",
       "deactivate": "Desactiver",
       "activate": "Activer",
-      "carry": "Report"
+      "carry": "Report",
+      "emptyDesc": "Définissez les types de congés proposés par votre organisation, tels que les vacances, les congés maladie ou les jours personnels."
     },
     "policies": {
       "empty": "Aucune politique de conge configuree.",
       "add": "Ajouter une politique",
-      "default": "Par defaut"
+      "default": "Par defaut",
+      "emptyDesc": "Créez des politiques pour définir le nombre de jours de chaque type de congé auxquels les employés ont droit par an."
     },
     "holidays": {
       "empty": "Aucun jour ferie dans ce calendrier.",
@@ -1521,7 +1533,8 @@
       "date": "Date",
       "typePublic": "Jour ferie",
       "typeCompany": "Jour d'entreprise",
-      "typeOptional": "Jour optionnel"
+      "typeOptional": "Jour optionnel",
+      "emptyDesc": "Ajoutez les jours fériés, les congés d'entreprise et les jours de repos facultatifs pour votre équipe."
     },
     "myLeave": {
       "empty": "Aucune demande de conge.",
@@ -1529,7 +1542,9 @@
       "selectType": "Type de conge...",
       "reason": "Motif",
       "submit": "Soumettre",
-      "cancel": "Annuler le conge"
+      "cancel": "Annuler le conge",
+      "emptyDesc": "Soumettez une demande de congé pour commencer. Votre responsable sera notifié pour approbation.",
+      "request": "Demander un congé"
     },
     "teamCalendar": {
       "noLeaves": "Aucun conge approuve pour ce mois."
@@ -1571,6 +1586,9 @@
       "display": "Affichage",
       "showDepartmentInList": "Afficher le departement dans la liste",
       "showDepartmentInListDesc": "Afficher la colonne departement dans la liste des employes"
+    },
+    "confirm": {
+      "deleteEmployee": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible."
     }
   },
   "sign": {
@@ -1731,7 +1749,8 @@
       "viewingAs": "Consultation en tant que {{name}}",
       "startApproving": "Commencer l'approbation",
       "approveThisField": "Approuver ce champ",
-      "approve": "Approuver"
+      "approve": "Approuver",
+      "redirecting": "Vous allez être redirigé sous peu..."
     },
     "modal": {
       "addSignature": "Ajouter une signature",
@@ -1892,7 +1911,9 @@
     "showSecondsDesc": "Afficher les secondes sur l'horloge",
     "weather": {
       "unavailable": "Indisponible"
-    }
+    },
+    "flyingBirds": "Oiseaux en vol",
+    "flyingBirdsDesc": "Afficher des oiseaux animés survolant l'arrière-plan de l'écran d'accueil"
   },
   "connection": {
     "lost": "Connexion perdue",
@@ -2231,7 +2252,14 @@
     "allRecords": "Tous les enregistrements",
     "ownRecords": "Ses propres enregistrements",
     "reset": "Réinitialiser",
-    "noMembers": "Aucun membre trouvé"
+    "noMembers": "Aucun membre trouvé",
+    "desc": "Gérer qui peut accéder aux données de cette application et les modifier",
+    "manage": "Permissions",
+    "roleAdminDesc": "Accès complet à toutes les données et paramètres",
+    "roleEditorDesc": "Peut consulter, créer et modifier des enregistrements",
+    "roleViewerDesc": "Accès en lecture seule à toutes les données",
+    "recordAll": "Tous les enregistrements",
+    "recordOwn": "Ses propres enregistrements uniquement"
   },
   "customFields": {
     "sectionTitle": "Champs personnalisés",
