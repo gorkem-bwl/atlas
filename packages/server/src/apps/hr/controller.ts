@@ -77,7 +77,19 @@ export async function getEmployee(req: Request, res: Response) {
       return;
     }
 
-    res.json({ success: true, data: employee });
+    // Non-admin users can only see their own record and shouldn't see salary data
+    const isAdmin = perm.role === 'admin' || perm.role === 'manager';
+    const isSelf = employee.email?.toLowerCase() === req.auth!.email?.toLowerCase();
+
+    if (!isAdmin && !isSelf) {
+      res.status(403).json({ success: false, error: 'You can only view your own employee record' });
+      return;
+    }
+
+    // Strip sensitive fields for non-admins
+    const data = isAdmin ? employee : { ...employee, salary: undefined, salaryCurrency: undefined, salaryPeriod: undefined };
+
+    res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to get employee');
     res.status(500).json({ success: false, error: 'Failed to get employee' });

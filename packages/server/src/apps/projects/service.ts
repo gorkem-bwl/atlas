@@ -473,8 +473,14 @@ export async function listTimeEntries(userId: string, accountId: string, filters
   billable?: boolean;
   entryUserId?: string;
   includeArchived?: boolean;
+  isAdmin?: boolean;
 }) {
   const conditions = [eq(projectTimeEntries.accountId, accountId)];
+
+  // Non-admin users can only see their own time entries
+  if (!filters?.isAdmin) {
+    conditions.push(eq(projectTimeEntries.userId, userId));
+  }
   if (!filters?.includeArchived) {
     conditions.push(eq(projectTimeEntries.isArchived, false));
   }
@@ -687,8 +693,14 @@ export async function listInvoices(userId: string, accountId: string, filters?: 
   status?: string;
   search?: string;
   includeArchived?: boolean;
+  isAdmin?: boolean;
 }) {
   const conditions = [eq(projectInvoices.accountId, accountId)];
+
+  // Non-admin users can only see invoices they created
+  if (!filters?.isAdmin) {
+    conditions.push(eq(projectInvoices.userId, userId));
+  }
   if (!filters?.includeArchived) {
     conditions.push(eq(projectInvoices.isArchived, false));
   }

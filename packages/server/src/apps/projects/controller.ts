@@ -466,6 +466,7 @@ export async function listTimeEntries(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { projectId, startDate, endDate, billed, billable, entryUserId, includeArchived } = req.query;
 
+    const isAdmin = perm.role === 'admin' || perm.role === 'manager';
     const entries = await projectService.listTimeEntries(userId, accountId, {
       projectId: projectId as string | undefined,
       startDate: startDate as string | undefined,
@@ -474,6 +475,7 @@ export async function listTimeEntries(req: Request, res: Response) {
       billable: billable !== undefined ? billable === 'true' : undefined,
       entryUserId: entryUserId as string | undefined,
       includeArchived: includeArchived === 'true',
+      isAdmin,
     });
 
     res.json({ success: true, data: { entries } });
@@ -653,11 +655,13 @@ export async function listInvoices(req: Request, res: Response) {
     const accountId = req.auth!.accountId;
     const { clientId, status, search, includeArchived } = req.query;
 
+    const isAdmin = perm.role === 'admin' || perm.role === 'manager';
     const invoices = await projectService.listInvoices(userId, accountId, {
       clientId: clientId as string | undefined,
       status: status as string | undefined,
       search: search as string | undefined,
       includeArchived: includeArchived === 'true',
+      isAdmin,
     });
 
     res.json({ success: true, data: { invoices } });
