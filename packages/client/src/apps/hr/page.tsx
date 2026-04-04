@@ -51,6 +51,7 @@ import { StatusDot } from '../../components/ui/status-dot';
 import { ContentArea } from '../../components/ui/content-area';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { useUIStore } from '../../stores/ui-store';
+import { useAuthStore } from '../../stores/auth-store';
 import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { useHrSettingsStore } from './settings-store';
 import { StatCard } from '../../components/ui/stat-card';
@@ -61,7 +62,7 @@ import '../../styles/hr.css';
 // ─── Navigation ────────────────────────────────────────────────────
 
 type NavSection = 'dashboard' | 'employees' | 'departments' | 'org-chart' | 'time-off'
-  | 'attendance' | 'my-leave' | 'team-calendar' | 'leave-types' | 'holidays' | 'policies'
+  | 'attendance' | 'my-leave' | 'my-profile' | 'team-calendar' | 'leave-types' | 'holidays' | 'policies'
   | `dept:${string}`;
 
 // ─── Status helpers ────────────────────────────────────────────────
@@ -2342,15 +2343,20 @@ export function HrPage() {
   const isDesktop = !!('atlasDesktop' in window);
   const { openSettings } = useUIStore();
 
+  // Auth
+  const authAccount = useAuthStore((s) => s.account);
+
   // Permission gating
   const { data: hrPerm } = useMyAppPermission('hr');
+  const isPortalUser = hrPerm?.role === 'viewer';
   const canCreate = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
   const canDelete = !hrPerm || hrPerm.role === 'admin';
 
   // Navigation state (URL-driven, falls back to user's preferred default view)
   const hrDefaultView = useHrSettingsStore((s) => s.defaultView);
+  const portalDefault = 'my-profile';
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeNav = (searchParams.get('view') || hrDefaultView) as NavSection;
+  const activeNav = (searchParams.get('view') || (isPortalUser ? portalDefault : hrDefaultView)) as NavSection;
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const setActiveNav = useCallback((nav: NavSection) => {
     setSearchParams({ view: nav });
@@ -2445,6 +2451,7 @@ export function HrPage() {
     if (activeNav === 'org-chart') return t('hr.sidebar.orgChart');
     if (activeNav === 'time-off') return t('hr.sidebar.timeOff');
     if (activeNav === 'attendance') return t('hr.sidebar.attendance');
+    if (activeNav === 'my-profile') return t('hr.sidebar.myProfile');
     if (activeNav === 'my-leave') return t('hr.sidebar.myLeave');
     if (activeNav === 'team-calendar') return t('hr.sidebar.teamCalendar');
     if (activeNav === 'leave-types') return t('hr.sidebar.leaveTypes');
@@ -2476,108 +2483,145 @@ export function HrPage() {
       <AppSidebar
         storageKey="atlas_hr_sidebar"
         title={t('hr.title')}
-        footer={
+        footer={!isPortalUser ? (
           <SidebarItem
             label={t('hr.sidebar.settings')}
             icon={<Settings2 size={14} />}
             iconColor="#6b7280"
             onClick={() => openSettings('hr')}
           />
-        }
+        ) : undefined}
       >
-        <SidebarSection>
-          <SidebarItem
-            label={t('hr.sidebar.dashboard')}
-            icon={<LayoutDashboard size={14} />}
-            iconColor="#14b8a6"
-            isActive={activeNav === 'dashboard'}
-            onClick={() => { setActiveNav('dashboard'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.allEmployees')}
-            icon={<Users size={14} />}
-            iconColor="#14b8a6"
-            isActive={activeNav === 'employees'}
-            count={counts.totalEmployees}
-            onClick={() => { setActiveNav('employees'); setSelectedEmployeeId(null); }}
-          />
-        </SidebarSection>
-
-        <SidebarSection title={t('hr.sidebar.departmentsTitle')}>
-          <SidebarItem
-            label={t('hr.sidebar.allDepartments')}
-            icon={<Building2 size={14} />}
-            iconColor="#06b6d4"
-            isActive={activeNav === 'departments'}
-            count={counts.departments}
-            onClick={() => { setActiveNav('departments'); setSelectedEmployeeId(null); }}
-          />
-          {departments.map((dept) => (
+        {isPortalUser ? (
+          /* ─── Portal sidebar (employees / viewers) ──────────── */
+          <SidebarSection>
             <SidebarItem
-              key={dept.id}
-              label={dept.name}
-              icon={<StatusDot color={dept.color} size={10} />}
-              isActive={activeNav === `dept:${dept.id}`}
-              count={deptEmployeeCounts[dept.id] ?? 0}
-              onClick={() => { setActiveNav(`dept:${dept.id}`); setSelectedEmployeeId(null); }}
+              label={t('hr.sidebar.myProfile')}
+              icon={<User size={14} />}
+              iconColor="#14b8a6"
+              isActive={activeNav === 'my-profile'}
+              onClick={() => setActiveNav('my-profile')}
             />
-          ))}
-        </SidebarSection>
+            <SidebarItem
+              label={t('hr.sidebar.myLeave')}
+              icon={<CalendarDays size={14} />}
+              iconColor="#f59e0b"
+              isActive={activeNav === 'my-leave'}
+              onClick={() => setActiveNav('my-leave')}
+            />
+            <SidebarItem
+              label={t('hr.sidebar.teamCalendar')}
+              icon={<Calendar size={14} />}
+              iconColor="#f59e0b"
+              isActive={activeNav === 'team-calendar'}
+              onClick={() => setActiveNav('team-calendar')}
+            />
+            <SidebarItem
+              label={t('hr.sidebar.holidays')}
+              icon={<Calendar size={14} />}
+              iconColor="#ef4444"
+              isActive={activeNav === 'holidays'}
+              onClick={() => setActiveNav('holidays')}
+            />
+          </SidebarSection>
+        ) : (
+          /* ─── Admin sidebar (full access) ───────────────────── */
+          <>
+            <SidebarSection>
+              <SidebarItem
+                label={t('hr.sidebar.dashboard')}
+                icon={<LayoutDashboard size={14} />}
+                iconColor="#14b8a6"
+                isActive={activeNav === 'dashboard'}
+                onClick={() => { setActiveNav('dashboard'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.allEmployees')}
+                icon={<Users size={14} />}
+                iconColor="#14b8a6"
+                isActive={activeNav === 'employees'}
+                count={counts.totalEmployees}
+                onClick={() => { setActiveNav('employees'); setSelectedEmployeeId(null); }}
+              />
+            </SidebarSection>
 
-        <SidebarSection>
-          <SidebarItem
-            label={t('hr.sidebar.orgChart')}
-            icon={<GitBranch size={14} />}
-            iconColor="#06b6d4"
-            isActive={activeNav === 'org-chart'}
-            onClick={() => { setActiveNav('org-chart'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.attendance')}
-            icon={<UserCheck size={14} />}
-            iconColor="#10b981"
-            isActive={activeNav === 'attendance'}
-            onClick={() => { setActiveNav('attendance'); setSelectedEmployeeId(null); }}
-          />
-        </SidebarSection>
+            <SidebarSection title={t('hr.sidebar.departmentsTitle')}>
+              <SidebarItem
+                label={t('hr.sidebar.allDepartments')}
+                icon={<Building2 size={14} />}
+                iconColor="#06b6d4"
+                isActive={activeNav === 'departments'}
+                count={counts.departments}
+                onClick={() => { setActiveNav('departments'); setSelectedEmployeeId(null); }}
+              />
+              {departments.map((dept) => (
+                <SidebarItem
+                  key={dept.id}
+                  label={dept.name}
+                  icon={<StatusDot color={dept.color} size={10} />}
+                  isActive={activeNav === `dept:${dept.id}`}
+                  count={deptEmployeeCounts[dept.id] ?? 0}
+                  onClick={() => { setActiveNav(`dept:${dept.id}`); setSelectedEmployeeId(null); }}
+                />
+              ))}
+            </SidebarSection>
 
-        <SidebarSection title={t('hr.sidebar.leaveSection')}>
-          <SidebarItem
-            label={t('hr.sidebar.myLeave')}
-            icon={<CalendarDays size={14} />}
-            iconColor="#f59e0b"
-            isActive={activeNav === 'my-leave'}
-            onClick={() => { setActiveNav('my-leave'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.teamCalendar')}
-            icon={<Calendar size={14} />}
-            iconColor="#f59e0b"
-            isActive={activeNav === 'team-calendar'}
-            onClick={() => { setActiveNav('team-calendar'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.leaveTypes')}
-            icon={<ClipboardList size={14} />}
-            iconColor="#8b5cf6"
-            isActive={activeNav === 'leave-types'}
-            onClick={() => { setActiveNav('leave-types'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.holidays')}
-            icon={<Calendar size={14} />}
-            iconColor="#ef4444"
-            isActive={activeNav === 'holidays'}
-            onClick={() => { setActiveNav('holidays'); setSelectedEmployeeId(null); }}
-          />
-          <SidebarItem
-            label={t('hr.sidebar.policies')}
-            icon={<Shield size={14} />}
-            iconColor="#06b6d4"
-            isActive={activeNav === 'policies'}
-            onClick={() => { setActiveNav('policies'); setSelectedEmployeeId(null); }}
-          />
-        </SidebarSection>
+            <SidebarSection>
+              <SidebarItem
+                label={t('hr.sidebar.orgChart')}
+                icon={<GitBranch size={14} />}
+                iconColor="#06b6d4"
+                isActive={activeNav === 'org-chart'}
+                onClick={() => { setActiveNav('org-chart'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.attendance')}
+                icon={<UserCheck size={14} />}
+                iconColor="#10b981"
+                isActive={activeNav === 'attendance'}
+                onClick={() => { setActiveNav('attendance'); setSelectedEmployeeId(null); }}
+              />
+            </SidebarSection>
+
+            <SidebarSection title={t('hr.sidebar.leaveSection')}>
+              <SidebarItem
+                label={t('hr.sidebar.myLeave')}
+                icon={<CalendarDays size={14} />}
+                iconColor="#f59e0b"
+                isActive={activeNav === 'my-leave'}
+                onClick={() => { setActiveNav('my-leave'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.teamCalendar')}
+                icon={<Calendar size={14} />}
+                iconColor="#f59e0b"
+                isActive={activeNav === 'team-calendar'}
+                onClick={() => { setActiveNav('team-calendar'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.leaveTypes')}
+                icon={<ClipboardList size={14} />}
+                iconColor="#8b5cf6"
+                isActive={activeNav === 'leave-types'}
+                onClick={() => { setActiveNav('leave-types'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.holidays')}
+                icon={<Calendar size={14} />}
+                iconColor="#ef4444"
+                isActive={activeNav === 'holidays'}
+                onClick={() => { setActiveNav('holidays'); setSelectedEmployeeId(null); }}
+              />
+              <SidebarItem
+                label={t('hr.sidebar.policies')}
+                icon={<Shield size={14} />}
+                iconColor="#06b6d4"
+                isActive={activeNav === 'policies'}
+                onClick={() => { setActiveNav('policies'); setSelectedEmployeeId(null); }}
+              />
+            </SidebarSection>
+          </>
+        )}
       </AppSidebar>
 
       {/* Main content */}
@@ -2649,6 +2693,24 @@ export function HrPage() {
           />
         )}
 
+        {activeNav === 'my-profile' && (() => {
+          const myEmployee = allEmployees.find(e => e.email?.toLowerCase() === authAccount?.email?.toLowerCase());
+          return myEmployee ? (
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              <EmployeeDetailPanel
+                employee={myEmployee}
+                departments={departments}
+                employees={allEmployees}
+                timeOffRequests={timeOffRequests}
+                onClose={() => {}}
+              />
+            </div>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
+              No employee profile found. Ask your admin to add you.
+            </div>
+          );
+        })()}
         {activeNav === 'attendance' && <AttendanceView employees={allEmployees} />}
         {activeNav === 'my-leave' && <MyLeaveView employees={allEmployees} />}
         {activeNav === 'team-calendar' && <TeamCalendarView />}

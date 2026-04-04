@@ -4,6 +4,7 @@ import {
   hrLeaveTypes, hrLeavePolicies, hrLeavePolicyAssignments,
   hrHolidayCalendars, hrHolidays,
   hrLifecycleEvents, hrLeaveApplications,
+  users, tenantMembers, appPermissions,
 } from '../../db/schema';
 import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
@@ -222,6 +223,42 @@ export async function createEmployee(userId: string, accountId: string, input: C
       updatedAt: now,
     })
     .returning();
+
+  // Auto-link employee to user if email matches
+  if (input.email && !input.linkedUserId) {
+    try {
+      const [matchingUser] = await db.select({ id: users.id }).from(users)
+        .where(eq(users.email, input.email)).limit(1);
+      if (matchingUser) {
+        await db.update(employees).set({ linkedUserId: matchingUser.id })
+          .where(eq(employees.id, created.id));
+        created.linkedUserId = matchingUser.id;
+
+        // Auto-grant HR viewer permission if none exists
+        const { getAppPermission, setAppPermission } = await import('../../services/app-permissions.service');
+        // Find the user's tenant
+        const [membership] = await db.select({ tenantId: tenantMembers.tenantId }).from(tenantMembers)
+          .where(eq(tenantMembers.userId, matchingUser.id)).limit(1);
+        if (membership) {
+          const existingPerm = await getAppPermission(membership.tenantId, matchingUser.id, 'hr');
+          // Only grant viewer if they don't already have HR access
+          // getAppPermission defaults to 'editor' for tenant members, so check if it came from explicit permission
+          const [explicitPerm] = await db.select().from(appPermissions)
+            .where(and(
+              eq(appPermissions.tenantId, membership.tenantId),
+              eq(appPermissions.userId, matchingUser.id),
+              eq(appPermissions.appId, 'hr'),
+            )).limit(1);
+          if (!explicitPerm) {
+            await setAppPermission(membership.tenantId, matchingUser.id, 'hr', 'viewer', 'own');
+          }
+        }
+        logger.info({ employeeId: created.id, linkedUserId: matchingUser.id }, 'Auto-linked employee to user + granted HR viewer');
+      }
+    } catch (err) {
+      logger.warn({ err }, 'Failed to auto-link employee to user');
+    }
+  }
 
   logger.info({ userId, employeeId: created.id }, 'Employee created');
   return created;
