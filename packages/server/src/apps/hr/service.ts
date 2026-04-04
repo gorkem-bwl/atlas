@@ -227,13 +227,17 @@ export async function createEmployee(userId: string, accountId: string, input: C
   return created;
 }
 
-export async function updateEmployee(userId: string, id: string, input: UpdateEmployeeInput) {
+export async function updateEmployee(userId: string, id: string, input: UpdateEmployeeInput, accountId?: string) {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
 
-  // Fetch current employee for lifecycle event comparison
+  // Fetch current employee — use accountId if provided (admin editing another user's record)
+  const fetchCondition = accountId
+    ? and(eq(employees.id, id), eq(employees.accountId, accountId))
+    : and(eq(employees.id, id), eq(employees.userId, userId));
+
   const [current] = await db.select().from(employees)
-    .where(and(eq(employees.id, id), eq(employees.userId, userId))).limit(1);
+    .where(fetchCondition).limit(1);
 
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -265,12 +269,12 @@ export async function updateEmployee(userId: string, id: string, input: UpdateEm
   await db
     .update(employees)
     .set(updates)
-    .where(and(eq(employees.id, id), eq(employees.userId, userId)));
+    .where(fetchCondition);
 
   const [updated] = await db
     .select()
     .from(employees)
-    .where(and(eq(employees.id, id), eq(employees.userId, userId)))
+    .where(fetchCondition)
     .limit(1);
 
   // Auto-create lifecycle events for tracked field changes
@@ -334,11 +338,17 @@ export async function searchEmployees(userId: string, accountId: string, query: 
     .limit(30);
 }
 
-export async function getEmployeeCounts(userId: string, accountId: string) {
+export async function getEmployeeCounts(userId: string, accountId: string, isAdmin = false, userEmail?: string) {
+  const conditions = [eq(employees.accountId, accountId), eq(employees.isArchived, false)];
+  if (!isAdmin && userEmail) {
+    conditions.push(sql`LOWER(${employees.email}) = LOWER(${userEmail})`);
+  } else if (!isAdmin) {
+    conditions.push(eq(employees.userId, userId));
+  }
   const allEmployees = await db
     .select({ status: employees.status })
     .from(employees)
-    .where(and(eq(employees.userId, userId), eq(employees.accountId, accountId), eq(employees.isArchived, false)));
+    .where(and(...conditions));
 
   const counts: Record<string, number> = { active: 0, 'on-leave': 0, terminated: 0, total: 0 };
 

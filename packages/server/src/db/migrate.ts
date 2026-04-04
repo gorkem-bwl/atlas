@@ -1981,6 +1981,11 @@ export async function runMigrations() {
       ALTER TABLE crm_leads ADD COLUMN IF NOT EXISTS expected_close_date TIMESTAMPTZ;
     `);
 
+    // ─── Index: employees.email for permission-based filtering ────────
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(account_id, email);
+    `);
+
     logger.info('Database migrations completed');
   } finally {
     await client.end();

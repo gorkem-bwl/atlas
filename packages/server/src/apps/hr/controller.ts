@@ -169,7 +169,7 @@ export async function updateEmployee(req: Request, res: Response) {
       ? { name, email, role, departmentId, startDate, phone, avatarUrl, status, linkedUserId, tags, sortOrder, isArchived, dateOfBirth, gender, emergencyContactName, emergencyContactPhone, emergencyContactRelation, employmentType, managerId, jobTitle, workLocation, salary, salaryCurrency, salaryPeriod }
       : { name, phone, dateOfBirth, gender, emergencyContactName, emergencyContactPhone, emergencyContactRelation, workLocation };
 
-    const employee = await hrService.updateEmployee(userId, id, updates);
+    const employee = await hrService.updateEmployee(userId, id, updates, req.auth!.accountId);
 
     if (!employee) {
       res.status(404).json({ success: false, error: 'Employee not found' });
