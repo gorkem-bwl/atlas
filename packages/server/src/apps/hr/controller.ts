@@ -42,10 +42,13 @@ export async function listEmployees(req: Request, res: Response) {
 
     const { status, departmentId, includeArchived } = req.query;
 
+    const isAdmin = perm.role === 'admin' || perm.role === 'manager' || perm.role === 'editor';
     const employees = await hrService.listEmployees(userId, accountId, {
       status: status as string | undefined,
       departmentId: departmentId as string | undefined,
       includeArchived: includeArchived === 'true',
+      isAdmin,
+      userEmail: req.auth!.email,
     });
 
     res.json({ success: true, data: { employees } });

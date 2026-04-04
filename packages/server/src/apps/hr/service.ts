@@ -73,8 +73,17 @@ export async function listEmployees(userId: string, accountId: string, filters?:
   status?: string;
   departmentId?: string;
   includeArchived?: boolean;
+  isAdmin?: boolean;
+  userEmail?: string;
 }) {
-  const conditions = [eq(employees.userId, userId), eq(employees.accountId, accountId)];
+  const conditions = [eq(employees.accountId, accountId)];
+
+  // Admin/managers see all employees, regular users see only their own record
+  if (!filters?.isAdmin && filters?.userEmail) {
+    conditions.push(eq(employees.email, filters.userEmail));
+  } else if (!filters?.isAdmin) {
+    conditions.push(eq(employees.userId, userId));
+  }
 
   if (!filters?.includeArchived) {
     conditions.push(eq(employees.isArchived, false));
