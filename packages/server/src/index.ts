@@ -57,6 +57,10 @@ app.listen(env.PORT, async () => {
 
   // Tasks: due-date reminders — runs hourly
   startTaskReminderScheduler();
+
+  // CRM: daily digest emails to CRM users
+  const { startDigestScheduler } = await import('./apps/crm/digest');
+  startDigestScheduler();
 });
 
 // Graceful shutdown
