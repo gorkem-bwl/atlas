@@ -1433,6 +1433,7 @@
       "leaveSection": "Leave",
       "myProfile": "My profile",
       "myLeave": "My leave",
+      "noProfile": "No employee profile found. Ask your admin to add you.",
       "teamCalendar": "Team calendar",
       "leaveTypes": "Leave types",
       "holidays": "Holidays",

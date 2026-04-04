@@ -235,14 +235,10 @@ export async function createEmployee(userId: string, accountId: string, input: C
         created.linkedUserId = matchingUser.id;
 
         // Auto-grant HR viewer permission if none exists
-        const { getAppPermission, setAppPermission } = await import('../../services/app-permissions.service');
-        // Find the user's tenant
+        const { setAppPermission } = await import('../../services/app-permissions.service');
         const [membership] = await db.select({ tenantId: tenantMembers.tenantId }).from(tenantMembers)
           .where(eq(tenantMembers.userId, matchingUser.id)).limit(1);
         if (membership) {
-          const existingPerm = await getAppPermission(membership.tenantId, matchingUser.id, 'hr');
-          // Only grant viewer if they don't already have HR access
-          // getAppPermission defaults to 'editor' for tenant members, so check if it came from explicit permission
           const [explicitPerm] = await db.select().from(appPermissions)
             .where(and(
               eq(appPermissions.tenantId, membership.tenantId),

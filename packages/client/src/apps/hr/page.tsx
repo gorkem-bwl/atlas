@@ -2444,6 +2444,14 @@ export function HrPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedEmployeeId, showSearch]);
 
+  // Portal users can only access portal views — redirect if they try admin views via URL
+  const portalViews = new Set<NavSection>(['my-profile', 'my-leave', 'team-calendar', 'holidays']);
+  useEffect(() => {
+    if (isPortalUser && !portalViews.has(activeNav as NavSection)) {
+      setActiveNav('my-profile');
+    }
+  }, [isPortalUser, activeNav]);
+
   const sectionTitle = useMemo(() => {
     if (activeNav === 'dashboard') return t('hr.sidebar.dashboard');
     if (activeNav === 'employees') return t('hr.sidebar.allEmployees');
@@ -2707,7 +2715,7 @@ export function HrPage() {
             </div>
           ) : (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
-              No employee profile found. Ask your admin to add you.
+              {t('hr.sidebar.noProfile')}
             </div>
           );
         })()}

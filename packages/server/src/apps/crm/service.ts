@@ -1079,7 +1079,12 @@ export async function deleteTeam(accountId: string, id: string) {
   return updateTeam(accountId, id, { isArchived: true });
 }
 
-export async function listTeamMembers(teamId: string) {
+export async function listTeamMembers(teamId: string, accountId: string) {
+  // Verify team belongs to account
+  const [team] = await db.select({ id: crmTeams.id }).from(crmTeams)
+    .where(and(eq(crmTeams.id, teamId), eq(crmTeams.accountId, accountId))).limit(1);
+  if (!team) return [];
+
   return db.select({
     id: crmTeamMembers.id,
     teamId: crmTeamMembers.teamId,
@@ -1092,12 +1097,19 @@ export async function listTeamMembers(teamId: string) {
     .where(eq(crmTeamMembers.teamId, teamId));
 }
 
-export async function addTeamMember(teamId: string, userId: string) {
+export async function addTeamMember(teamId: string, userId: string, accountId: string) {
+  // Verify team belongs to account
+  const [team] = await db.select({ id: crmTeams.id }).from(crmTeams)
+    .where(and(eq(crmTeams.id, teamId), eq(crmTeams.accountId, accountId))).limit(1);
+  if (!team) throw new Error('Team not found');
   const [created] = await db.insert(crmTeamMembers).values({ teamId, userId }).returning();
   return created;
 }
 
-export async function removeTeamMember(teamId: string, userId: string) {
+export async function removeTeamMember(teamId: string, userId: string, accountId: string) {
+  const [team] = await db.select({ id: crmTeams.id }).from(crmTeams)
+    .where(and(eq(crmTeams.id, teamId), eq(crmTeams.accountId, accountId))).limit(1);
+  if (!team) return;
   await db.delete(crmTeamMembers).where(and(eq(crmTeamMembers.teamId, teamId), eq(crmTeamMembers.userId, userId)));
 }
 

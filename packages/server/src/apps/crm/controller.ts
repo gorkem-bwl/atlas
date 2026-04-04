@@ -824,7 +824,7 @@ export async function deleteTeam(req: Request, res: Response) {
 export async function listTeamMembers(req: Request, res: Response) {
   try {
     const teamId = req.params.id as string;
-    const data = await crmService.listTeamMembers(teamId);
+    const data = await crmService.listTeamMembers(teamId, req.auth!.accountId);
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to list team members');
@@ -836,7 +836,7 @@ export async function addTeamMember(req: Request, res: Response) {
   try {
     const teamId = req.params.id as string;
     const { userId } = req.body;
-    const data = await crmService.addTeamMember(teamId, userId);
+    const data = await crmService.addTeamMember(teamId, userId, req.auth!.accountId);
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to add team member');
@@ -848,7 +848,7 @@ export async function removeTeamMember(req: Request, res: Response) {
   try {
     const teamId = req.params.id as string;
     const userId = req.params.userId as string;
-    await crmService.removeTeamMember(teamId, userId);
+    await crmService.removeTeamMember(teamId, userId, req.auth!.accountId);
     res.json({ success: true });
   } catch (error) {
     logger.error({ error }, 'Failed to remove team member');
