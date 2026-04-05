@@ -65,13 +65,12 @@ services:
       retries: 5
 
   # Auto-updater — checks for new Atlas images and updates automatically
-  # Disabled by default. Set AUTO_UPDATE=true in .env to enable.
+  # Starts stopped. Enable via Settings > Updates or manually with: docker start atlas-watchtower
   # WATCHTOWER_SCHEDULE uses cron syntax (default: 3 AM daily)
   watchtower:
     image: containrrr/watchtower
     container_name: atlas-watchtower
-    restart: unless-stopped
-    profiles: ["auto-update"]
+    restart: "no"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
