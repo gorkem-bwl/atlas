@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, MapPin, AlignLeft, Users, Calendar as CalendarIcon, Clock, Trash2, Palette, Repeat, Check, Bell, Eye, Video } from 'lucide-react';
+import { X, Trash2, Repeat, Check, Video } from 'lucide-react';
 import type { RecurringEditScope } from '@atlasmail/shared';
 import { useCalendarStore } from '../../stores/calendar-store';
 import { useCalendars, useCreateCalendarEvent, useUpdateCalendarEvent, useDeleteCalendarEvent } from '../../hooks/use-calendar';
@@ -613,7 +613,6 @@ export function EventModal() {
           {/* Date/time row */}
           <div>
             <label style={labelStyle}>
-              <Clock size={14} />
               Date &amp; time
             </label>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -662,7 +661,6 @@ export function EventModal() {
           {/* Feature 1: Repeat / Recurrence rule builder */}
           <div>
             <label style={labelStyle}>
-              <Repeat size={14} />
               Repeat
             </label>
             <Select
@@ -792,7 +790,6 @@ export function EventModal() {
           {calendars && calendars.length > 1 && (
             <div>
               <label style={labelStyle}>
-                <CalendarIcon size={14} />
                 Calendar
               </label>
               <select
@@ -816,7 +813,6 @@ export function EventModal() {
           {/* Event color */}
           <div>
             <label style={labelStyle}>
-              <Palette size={14} />
               Color
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
@@ -860,7 +856,6 @@ export function EventModal() {
           {/* Feature 6: Show as (free/busy) */}
           <div>
             <label style={labelStyle}>
-              <Eye size={14} />
               Show as
             </label>
             <select
@@ -876,7 +871,6 @@ export function EventModal() {
           {/* Location */}
           <div>
             <label style={labelStyle}>
-              <MapPin size={14} />
               Location
             </label>
             <input
@@ -890,7 +884,6 @@ export function EventModal() {
           {/* Description */}
           <div>
             <label style={labelStyle}>
-              <AlignLeft size={14} />
               Description
             </label>
             <textarea
@@ -910,7 +903,6 @@ export function EventModal() {
           {/* Attendees */}
           <div>
             <label style={labelStyle}>
-              <Users size={14} />
               Attendees
             </label>
             <AttendeeInput
@@ -970,7 +962,6 @@ export function EventModal() {
           {/* Feature 7: Reminders */}
           <div>
             <label style={labelStyle}>
-              <Bell size={14} />
               Reminders
             </label>
             <label
