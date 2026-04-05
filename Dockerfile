@@ -51,6 +51,9 @@ COPY --from=builder /app/packages/shared/dist packages/shared/dist
 COPY --from=builder /app/packages/server/dist packages/server/dist
 COPY --from=builder /app/packages/client/dist packages/client/dist
 
+# Copy non-TS assets that tsc doesn't emit (JSON catalog files, etc.)
+COPY --from=builder /app/packages/server/src/apps/marketplace/catalog packages/server/dist/apps/marketplace/catalog
+
 # Patch shared package.json to point to compiled JS (source .ts is not available in production)
 RUN sed -i 's|"main": "./src/index.ts"|"main": "./dist/index.js"|' packages/shared/package.json && \
     sed -i 's|"types": "./src/index.ts"|"types": "./dist/index.d.ts"|' packages/shared/package.json
