@@ -247,9 +247,11 @@ export function TimeTracker() {
       });
     });
     bulkSave.mutate(allEntries, {
-      onSuccess: () => addToast({ type: 'success', message: t('projects.timeTracking.saved') }),
+      onSuccess: () => {
+        setIsDirty(false);
+        addToast({ type: 'success', message: t('projects.timeTracking.saved') });
+      },
     });
-    setIsDirty(false);
   };
 
   const handleCopyLastWeek = () => {

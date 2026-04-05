@@ -13,6 +13,7 @@ import { InvitationPage } from './pages/invitation';
 import { SettingsPage, SettingsModal } from './pages/settings';
 import { HomePage } from './pages/home';
 import { CommandPalette } from './components/ui/command-palette';
+import { ToastContainer } from './components/ui/toast';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { type ReactNode } from 'react';
 import { useMyAccessibleApps } from './hooks/use-app-permissions';
@@ -136,6 +137,7 @@ export function App() {
             </BrowserRouter>
           </ShortcutProvider>
         </TooltipProvider>
+        <ToastContainer />
       </ThemeProvider>
     </QueryProvider>
   );

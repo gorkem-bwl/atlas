@@ -20,6 +20,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useToastStore } from '../../stores/toast-store';
 import type { Toast } from '../../stores/toast-store';
@@ -245,25 +246,26 @@ export function ToastContainer() {
 
   if (toasts.length === 0) return null;
 
-  return (
+  return createPortal(
     <div
-      aria-label="Notifications"
+      aria-label="Toast notifications"
       style={{
         position: 'fixed',
-        bottom: 'var(--spacing-xl)',
+        bottom: 20,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 300,
+        zIndex: 10000,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 'var(--spacing-sm)',
+        gap: 8,
         pointerEvents: 'none',
       }}
     >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
