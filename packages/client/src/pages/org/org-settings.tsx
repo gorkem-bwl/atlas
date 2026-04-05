@@ -7,12 +7,12 @@ import {
   Calendar,
   Copy,
   Check,
-  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants, useTenantUsers } from '../../hooks/use-platform';
 import { useAllTenantPermissions } from '../../hooks/use-app-permissions';
 import { Chip } from '../../components/ui/chip';
+import { AlertBanner } from '../../components/ui/alert-banner';
 import { Skeleton } from '../../components/ui/skeleton';
 import { IconButton } from '../../components/ui/icon-button';
 
@@ -310,25 +310,10 @@ export function OrgSettingsPage() {
 
       {/* HR access warning */}
       {membersWithoutHr > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 'var(--spacing-md)',
-            padding: 'var(--spacing-lg) var(--spacing-xl)',
-            background: 'var(--color-warning-bg, #fffbeb)',
-            border: '1px solid var(--color-warning, #f59e0b)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-text-primary)',
-          }}
-        >
-          <AlertTriangle size={16} style={{ color: 'var(--color-warning, #f59e0b)', flexShrink: 0, marginTop: 1 }} />
-          <span>
-            {membersWithoutHr} member{membersWithoutHr !== 1 ? 's' : ''} don't have access to HR.
-            They won't be able to view their employee profile, submit leave requests, or check attendance.
-          </span>
-        </div>
+        <AlertBanner variant="warning">
+          {membersWithoutHr} member{membersWithoutHr !== 1 ? 's' : ''} don't have access to HR.
+          They won't be able to view their employee profile, submit leave requests, or check attendance.
+        </AlertBanner>
       )}
 
     </div>
