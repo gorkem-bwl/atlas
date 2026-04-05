@@ -5,7 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { logger } from '../../utils/logger';
 
-const execFile = promisify(execFileCb);
+const execFileRaw = promisify(execFileCb);
+function execFile(cmd: string, args: string[], opts?: Record<string, unknown>) {
+  return execFileRaw(cmd, args, { maxBuffer: 10 * 1024 * 1024, ...opts });
+}
 
 // Docker client — connects to local socket
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
@@ -39,7 +42,60 @@ export async function getDockerVersion(): Promise<{ version: string; apiVersion:
   }
 }
 
-// ─── Compose Operations (via execFile) ───��─────────────────────────
+// ─── System Resource Check ─────────────────────────────────────────
+
+export interface SystemResources {
+  totalMemoryMB: number;
+  freeMemoryMB: number;
+  diskFreeMB: number;
+  diskTotalMB: number;
+}
+
+/**
+ * Check available system resources (memory + disk).
+ */
+export async function getSystemResources(): Promise<SystemResources> {
+  const os = await import('node:os');
+  const totalMemoryMB = Math.round(os.totalmem() / (1024 * 1024));
+  const freeMemoryMB = Math.round(os.freemem() / (1024 * 1024));
+
+  let diskFreeMB = 0;
+  let diskTotalMB = 0;
+  try {
+    const { stdout } = await execFile('df', ['-m', '/']);
+    const lines = stdout.trim().split('\n');
+    if (lines.length >= 2) {
+      const parts = lines[1].split(/\s+/);
+      diskTotalMB = parseInt(parts[1], 10) || 0;
+      diskFreeMB = parseInt(parts[3], 10) || 0;
+    }
+  } catch { /* ignore */ }
+
+  return { totalMemoryMB, freeMemoryMB, diskFreeMB, diskTotalMB };
+}
+
+/**
+ * Check if system has enough resources for an app.
+ * Returns warnings (non-blocking) if resources are low.
+ */
+export function checkResources(
+  resources: { minRam: string; estimatedDisk: string },
+  system: SystemResources,
+): string[] {
+  const warnings: string[] = [];
+  const requiredRamMB = parseInt(resources.minRam, 10) || 0;
+  const requiredDiskMB = parseInt(resources.estimatedDisk, 10) * (resources.estimatedDisk.includes('GB') ? 1024 : 1) || 0;
+
+  if (requiredRamMB > 0 && system.freeMemoryMB < requiredRamMB) {
+    warnings.push(`Low memory: ${system.freeMemoryMB}MB free, app needs ${resources.minRam}`);
+  }
+  if (requiredDiskMB > 0 && system.diskFreeMB < requiredDiskMB) {
+    warnings.push(`Low disk: ${Math.round(system.diskFreeMB / 1024)}GB free, app needs ${resources.estimatedDisk}`);
+  }
+  return warnings;
+}
+
+// ─── Compose Operations (via execFile) ─────────────────────────────
 
 /**
  * Deploy an app: write compose file to disk, run `docker compose up -d`.

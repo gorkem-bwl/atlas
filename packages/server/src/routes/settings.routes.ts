@@ -15,15 +15,24 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', async (req: Request, res: Response) => {
-  let [settings] = await db.select().from(userSettings)
-    .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
+  try {
+    let [settings] = await db.select().from(userSettings)
+      .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
 
-  // Auto-create settings row with defaults if none exists
-  if (!settings) {
-    [settings] = await db.insert(userSettings).values({ accountId: req.auth!.accountId }).returning();
+    // Auto-create settings row with defaults if none exists
+    if (!settings) {
+      [settings] = await db.insert(userSettings).values({ accountId: req.auth!.accountId }).returning();
+    }
+
+    res.json({ success: true, data: settings });
+  } catch (error: any) {
+    // FK violation means the account doesn't exist (stale JWT)
+    if (error?.code === '23503') {
+      res.status(401).json({ success: false, error: 'Account not found' });
+      return;
+    }
+    throw error;
   }
-
-  res.json({ success: true, data: settings });
 });
 
 router.put('/', async (req: Request, res: Response) => {

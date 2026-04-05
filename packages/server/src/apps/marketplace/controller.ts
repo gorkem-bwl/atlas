@@ -25,9 +25,10 @@ export async function getCatalog(req: Request, res: Response) {
   try {
     const accountId = req.auth!.accountId;
     const catalog = service.getCatalog();
-    const [installed, dockerAvailable] = await Promise.all([
+    const [installed, dockerAvailable, systemResources] = await Promise.all([
       service.getInstalledApps(accountId),
       dockerService.isDockerAvailable(),
+      dockerService.getSystemResources(),
     ]);
 
     const installedMap = new Map(installed.map(app => [app.appId, app]));
@@ -64,7 +65,7 @@ export async function getCatalog(req: Request, res: Response) {
       };
     });
 
-    res.json({ success: true, data: { items, dockerAvailable, hostPlatform } });
+    res.json({ success: true, data: { items, dockerAvailable, hostPlatform, systemResources } });
   } catch (error) {
     logger.error({ error }, 'Failed to get marketplace catalog');
     res.status(500).json({ success: false, error: 'Failed to get marketplace catalog' });
@@ -137,6 +138,13 @@ export async function deploy(req: Request, res: Response) {
     if (!manifest) {
       res.status(404).json({ success: false, error: 'App not found in catalog' });
       return;
+    }
+
+    // Check system resources and warn if low (non-blocking)
+    const sysResources = await dockerService.getSystemResources();
+    const resourceWarnings = dockerService.checkResources(manifest.resources, sysResources);
+    if (resourceWarnings.length > 0) {
+      logger.warn({ appId, warnings: resourceWarnings, resources: sysResources }, 'Low system resources for app deployment');
     }
 
     // Allocate port and generate secrets
