@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '../../stores/settings-store';
 import {
   SettingsSection,
@@ -47,6 +48,7 @@ function getTimezoneOptions(): Array<{ value: string; label: string }> {
 // ---------------------------------------------------------------------------
 
 export function FormatsPanel() {
+  const { t } = useTranslation();
   const {
     dateFormat,
     timeFormat,
@@ -67,8 +69,8 @@ export function FormatsPanel() {
   return (
     <div>
       {/* ── Date & time ─────────────────────────────────────────────── */}
-      <SettingsSection title="Date & time">
-        <SettingsRow label="Date format" description="How dates are displayed across the app">
+      <SettingsSection title={t('settings.dateAndTime')}>
+        <SettingsRow label={t('settings.dateFormat')} description={t('settings.dateFormatDesc')}>
           <SettingsSelect
             value={dateFormat}
             options={[
@@ -80,18 +82,18 @@ export function FormatsPanel() {
           />
         </SettingsRow>
 
-        <SettingsRow label="Time format" description="12-hour or 24-hour clock">
+        <SettingsRow label={t('settings.timeFormat')} description={t('settings.timeFormatDesc')}>
           <SettingsSelect
             value={timeFormat}
             options={[
-              { value: '12h' as const, label: '12 hour (2:30 PM)' },
-              { value: '24h' as const, label: '24 hour (14:30)' },
+              { value: '12h' as const, label: t('settings.12hour') },
+              { value: '24h' as const, label: t('settings.24hour') },
             ]}
             onChange={setTimeFormat}
           />
         </SettingsRow>
 
-        <SettingsRow label="Timezone" description="Used for dates, times, and calendar events">
+        <SettingsRow label={t('settings.timezone')} description={t('settings.timezoneDesc')}>
           <SettingsSelect
             value={timezone}
             options={timezoneOptions}
@@ -101,8 +103,8 @@ export function FormatsPanel() {
       </SettingsSection>
 
       {/* ── Numbers & currency ──────────────────────────────────────── */}
-      <SettingsSection title="Numbers & currency">
-        <SettingsRow label="Number format" description="How numbers are displayed">
+      <SettingsSection title={t('settings.numbersAndCurrency')}>
+        <SettingsRow label={t('settings.numberFormat')} description={t('settings.numberFormatDesc')}>
           <SettingsSelect
             value={numberFormat}
             options={[
@@ -114,7 +116,7 @@ export function FormatsPanel() {
           />
         </SettingsRow>
 
-        <SettingsRow label="Currency" description="Default currency symbol">
+        <SettingsRow label={t('settings.currencyLabel')} description={t('settings.currencyDesc')}>
           <SettingsSelect
             value={currencySymbol}
             options={[
@@ -135,13 +137,13 @@ export function FormatsPanel() {
       </SettingsSection>
 
       {/* ── Calendar ────────────────────────────────────────────────── */}
-      <SettingsSection title="Calendar">
-        <SettingsRow label="Week starts on" description="First day of the week in calendars">
+      <SettingsSection title={t('settings.calendarSection')}>
+        <SettingsRow label={t('settings.weekStartsOn')} description={t('settings.weekStartsOnDesc')}>
           <SettingsSelect
             value={calendarStartDay}
             options={[
-              { value: 'sunday' as const, label: 'Sunday' },
-              { value: 'monday' as const, label: 'Monday' },
+              { value: 'sunday' as const, label: t('settings.sunday') },
+              { value: 'monday' as const, label: t('settings.monday') },
             ]}
             onChange={setCalendarStartDay}
           />

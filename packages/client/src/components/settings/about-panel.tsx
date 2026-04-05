@@ -1,13 +1,15 @@
 import { type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   SettingsSection,
   SettingsRow,
 } from './settings-primitives';
 
 export function AboutPanel() {
+  const { t } = useTranslation();
   return (
     <div>
-      <SettingsSection title="About Atlas">
+      <SettingsSection title={t('settings.aboutAtlas')}>
         <div
           style={{
             padding: 'var(--spacing-xl)',
@@ -35,11 +37,11 @@ export function AboutPanel() {
               fontFamily: 'var(--font-family)',
             }}
           >
-            All-in-one business platform
+            {t('settings.allInOnePlatform')}
           </div>
         </div>
 
-        <SettingsRow label="Version" description="Current application version">
+        <SettingsRow label={t('settings.version')} description={t('settings.currentAppVersion')}>
           <span
             style={{
               fontFamily: 'var(--font-mono)',
@@ -55,7 +57,7 @@ export function AboutPanel() {
           </span>
         </SettingsRow>
 
-        <SettingsRow label="Built with" description="Core technologies">
+        <SettingsRow label={t('settings.builtWith')} description={t('settings.coreTechnologies')}>
           <div style={{ display: 'flex', gap: 'var(--spacing-xs)', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {['React', 'TypeScript', 'Express', 'PostgreSQL'].map((name) => (
               <span

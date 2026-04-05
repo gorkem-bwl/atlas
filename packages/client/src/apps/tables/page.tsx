@@ -237,7 +237,7 @@ export function TablesPage() {
                 <div className="tables-footer">
                   <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={handleAddRow} className="tables-footer-btn">{t('tables.addRow')}</Button>
                   <span>{filteredRows.length !== localRows.length ? t('tables.filteredRowCount', { filtered: filteredRows.length, total: localRows.length }) : t('tables.rowCount', { count: localRows.length })}</span>
-                  {rangeVersion > 0 && getSelectedCellCount() > 0 && <span className="tables-footer-agg">{getSelectedCellCount()} cells selected</span>}
+                  {rangeVersion > 0 && getSelectedCellCount() > 0 && <span className="tables-footer-agg">{t('tables.cellsSelected', { count: getSelectedCellCount() })}</span>}
                   {footerAgg && <span className="tables-footer-agg">{footerAgg.label}: {footerAgg.sum} {t('tables.sum')} · {footerAgg.avg} {t('tables.avg')}</span>}
                 </div>
               </>
@@ -283,7 +283,7 @@ function AppSidebar({ state }: { state: ReturnType<typeof useTablesPageState> })
     <AppSidebarLayout storageKey="atlas_tables_sidebar" title={t('tables.title')}
       headerAction={<div style={{ display: 'flex', gap: 2 }}><IconButton icon={<LayoutTemplate size={14} />} label={t('tables.browseTemplates')} onClick={() => setShowTemplates(true)} size={28} /><IconButton icon={<Plus size={14} />} label={t('tables.newTable')} onClick={handleCreateTable} size={28} /></div>}
       search={<div className="tables-sidebar-search"><input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('tables.searchTables')} /></div>}
-      footer={<><div className="tables-sidebar-views">{[{ key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') }, { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') }, { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') }, { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') }].map((v) => (<button key={v.key} className={`tables-sidebar-view-item${localViewConfig.activeView === v.key ? ' active' : ''}`} onClick={() => handleViewToggle(v.key)}><v.icon size={14} /><span>{v.label}</span></button>))}</div><button className="tables-sidebar-view-item" onClick={() => openSettings('tables')} title="Tables settings"><Settings2 size={14} /><span>Settings</span></button></>}>
+      footer={<><div className="tables-sidebar-views">{[{ key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView', 'Grid view') }, { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView', 'Kanban') }, { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView', 'Calendar') }, { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView', 'Gallery') }].map((v) => (<button key={v.key} className={`tables-sidebar-view-item${localViewConfig.activeView === v.key ? ' active' : ''}`} onClick={() => handleViewToggle(v.key)}><v.icon size={14} /><span>{v.label}</span></button>))}</div><button className="tables-sidebar-view-item" onClick={() => openSettings('tables')} title={t('tables.tableSettings')}><Settings2 size={14} /><span>{t('tables.settings')}</span></button></>}>
       <div className="tables-sidebar-list">
         {filteredTables.length === 0 && !listLoading && <div className="tables-sidebar-empty">{t('tables.noTables')}</div>}
         {filteredTables.map((table) => { const SidebarIcon = getTableIcon(table.icon); return (<div key={table.id} role="button" tabIndex={0} className={`tables-sidebar-item${selectedId === table.id ? ' active' : ''}`} onClick={() => handleSelectTable(table.id)} onKeyDown={(e) => { if (e.key === 'Enter') handleSelectTable(table.id); }}><SidebarIcon size={14} style={table.color ? { color: table.color } : undefined} /><span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{table.title}</span><IconButton icon={<Trash2 size={12} />} label={t('tables.delete')} onClick={(e) => { e.stopPropagation(); handleDeleteTable(table.id); }} size={22} destructive tooltip={false} className="tables-sidebar-delete-btn" style={{ opacity: 0, transition: 'opacity 100ms' }} /></div>); })}
@@ -314,13 +314,13 @@ function TopBar({ state }: { state: ReturnType<typeof useTablesPageState> }) {
     <div className="tables-topbar" style={localColor ? { background: localColor } : undefined}>
       <div className="tables-topbar-row">
         <input className="tables-topbar-title" value={localTitle} onChange={(e) => handleTitleChange(e.target.value)} onBlur={() => triggerAutoSave({ title: localTitle })} />
-        <IconButton ref={headerChevronRef} icon={<ChevronDown size={14} />} label="Table settings" onClick={() => setShowHeaderDropdown(!showHeaderDropdown)} size={28} className="tables-topbar-chevron" style={{ color: 'inherit' }} />
+        <IconButton ref={headerChevronRef} icon={<ChevronDown size={14} />} label={t('tables.tableSettings')} onClick={() => setShowHeaderDropdown(!showHeaderDropdown)} size={28} className="tables-topbar-chevron" style={{ color: 'inherit' }} />
         {showHeaderDropdown && <TableHeaderDropdown title={localTitle} color={localColor} icon={localIcon} guide={localGuide} anchorRect={headerChevronRef.current?.getBoundingClientRect() ?? null} onTitleChange={(title) => { setLocalTitle(title); triggerAutoSave({ title }); }} onColorChange={(color) => { setLocalColor(color); triggerAutoSave({ color: color ?? '' }); }} onIconChange={(icon) => { setLocalIcon(icon); triggerAutoSave({ icon: icon ?? '' }); }} onGuideChange={(guide) => { setLocalGuide(guide); triggerAutoSave({ guide }); }} onClose={() => setShowHeaderDropdown(false)} />}
         <div className="tables-topbar-spacer" />
         <IconButton icon={<Undo2 size={14} />} label={t('tables.undo')} onClick={handleUndo} disabled={!canUndo} size={28} style={{ color: 'inherit' }} />
         <IconButton icon={<Redo2 size={14} />} label={t('tables.redo')} onClick={handleRedo} disabled={!canRedo} size={28} style={{ color: 'inherit' }} />
-        <IconButton icon={<Download size={14} />} label="Export to Excel" onClick={handleExportExcel} size={28} style={{ color: 'inherit' }} />
-        <IconButton icon={<Upload size={14} />} label="Import CSV/Excel" onClick={handleImportCSV} size={28} style={{ color: 'inherit' }} />
+        <IconButton icon={<Download size={14} />} label={t('tables.exportExcel')} onClick={handleExportExcel} size={28} style={{ color: 'inherit' }} />
+        <IconButton icon={<Upload size={14} />} label={t('tables.importCsv')} onClick={handleImportCSV} size={28} style={{ color: 'inherit' }} />
         <IconButton icon={<Search size={14} />} label={t('tables.search')} onClick={() => { setShowSearch(!showSearch); if (showSearch) setSearchText(''); }} active={showSearch} size={28} style={{ color: 'inherit' }} />
         {isSaving && <span className="tables-topbar-saving" style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Loader2 size={12} className="tables-spin" />{t('tables.saving')}</span>}
         {!isSaving && showSaved && <span className="tables-topbar-saving" style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Check size={12} />{t('tables.saved')}</span>}
@@ -331,10 +331,10 @@ function TopBar({ state }: { state: ReturnType<typeof useTablesPageState> }) {
           const Icon = VIEW_ICONS[v.key] || LayoutGrid;
           return (<button key={`${v.key}-${idx}`} className={`tables-topbar-view-tab${localViewConfig.activeView === v.key ? ' active' : ''}`} onClick={() => handleViewToggle(v.key)}><Icon size={13} /><span>{v.label}</span>{currentViews.length > 1 && <span className="tables-topbar-view-tab-close" onClick={(e) => { e.stopPropagation(); handleRemoveView(idx); }}><X size={11} /></span>}</button>);
         })}
-        <button ref={addViewBtnRef} className="tables-topbar-view-tab tables-topbar-view-add" onClick={() => setShowAddViewDropdown(!showAddViewDropdown)} title="Add view"><Plus size={13} /></button>
+        <button ref={addViewBtnRef} className="tables-topbar-view-tab tables-topbar-view-add" onClick={() => setShowAddViewDropdown(!showAddViewDropdown)} title={t('tables.addView')}><Plus size={13} /></button>
         {showAddViewDropdown && (() => {
           const rect = addViewBtnRef.current?.getBoundingClientRect();
-          return createPortal(<div ref={addViewDropdownRef} className="tables-add-view-dropdown" style={{ position: 'fixed', top: rect ? rect.bottom + 4 : 0, left: rect ? rect.left : 0 }}>{[{ key: 'grid' as const, icon: LayoutGrid, label: 'Grid view' }, { key: 'kanban' as const, icon: Kanban, label: 'Kanban' }, { key: 'calendar' as const, icon: Calendar, label: 'Calendar' }, { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: 'Gallery' }].map((v) => (<button key={v.key} className="tables-add-view-option" onClick={() => handleAddView(v.key, v.label)}><v.icon size={14} /><span>{v.label}</span></button>))}</div>, document.body);
+          return createPortal(<div ref={addViewDropdownRef} className="tables-add-view-dropdown" style={{ position: 'fixed', top: rect ? rect.bottom + 4 : 0, left: rect ? rect.left : 0 }}>{[{ key: 'grid' as const, icon: LayoutGrid, label: t('tables.gridView') }, { key: 'kanban' as const, icon: Kanban, label: t('tables.kanbanView') }, { key: 'calendar' as const, icon: Calendar, label: t('tables.calendarView') }, { key: 'gallery' as const, icon: GalleryHorizontalEnd, label: t('tables.galleryView') }].map((v) => (<button key={v.key} className="tables-add-view-option" onClick={() => handleAddView(v.key, v.label)}><v.icon size={14} /><span>{v.label}</span></button>))}</div>, document.body);
         })()}
       </div>
     </div>
@@ -353,7 +353,7 @@ function Toolbar({ state }: { state: ReturnType<typeof useTablesPageState> }) {
       <SortPopover columns={localColumns} viewConfig={localViewConfig} onUpdate={(sorts) => { const updated = { ...localViewConfig, sorts }; setLocalViewConfig(updated); triggerAutoSave({ viewConfig: updated }); }} />
       <FilterPopover columns={localColumns} viewConfig={localViewConfig} onUpdate={(filters) => { const updated = { ...localViewConfig, filters }; setLocalViewConfig(updated); triggerAutoSave({ viewConfig: updated }); }} />
       {localViewConfig.groupByColumnId ? (
-        <Button variant="ghost" size="sm" icon={<Ungroup size={14} />} onClick={handleUngroupRows} style={{ background: 'var(--color-surface-active)' }}>Ungroup</Button>
+        <Button variant="ghost" size="sm" icon={<Ungroup size={14} />} onClick={handleUngroupRows} style={{ background: 'var(--color-surface-active)' }}>{t('tables.ungroup')}</Button>
       ) : (
         <div style={{ position: 'relative' }}><Button variant="ghost" size="sm" icon={<Group size={14} />} onClick={() => { const selectCol = localColumns.find((c) => c.type === 'singleSelect'); if (selectCol) handleGroupByColumn(selectCol.id); }} disabled={!localColumns.some((c) => c.type === 'singleSelect')} style={{ opacity: localColumns.some((c) => c.type === 'singleSelect') ? 1 : 0.4 }}>{t('tables.group')}</Button></div>
       )}
@@ -371,7 +371,7 @@ function SearchBar({ state }: { state: ReturnType<typeof useTablesPageState> }) 
     <div className="tables-search-bar">
       <Search size={14} />
       <input autoFocus value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder={t('tables.searchPlaceholder')} onKeyDown={(e) => { if (e.key === 'Escape') { setShowSearch(false); setSearchText(''); } }} />
-      <IconButton icon={<X size={14} />} label="Close search" onClick={() => { setShowSearch(false); setSearchText(''); }} size={24} tooltip={false} />
+      <IconButton icon={<X size={14} />} label={t('tables.closeSearch')} onClick={() => { setShowSearch(false); setSearchText(''); }} size={24} tooltip={false} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LogOut,
   Save,
@@ -20,6 +21,7 @@ import {
 // ---------------------------------------------------------------------------
 
 function SaveButton({ onClick, saved }: { onClick: () => void; saved: boolean }) {
+  const { t } = useTranslation();
   return (
     <Button
       variant="primary"
@@ -28,7 +30,7 @@ function SaveButton({ onClick, saved }: { onClick: () => void; saved: boolean })
       icon={saved ? <CheckCircle2 size={13} /> : <Save size={13} />}
       style={saved ? { background: 'var(--color-success)' } : undefined}
     >
-      {saved ? 'Saved' : 'Save'}
+      {saved ? t('settings.saved') : t('common.save')}
     </Button>
   );
 }
@@ -38,6 +40,7 @@ function SaveButton({ onClick, saved }: { onClick: () => void; saved: boolean })
 // ---------------------------------------------------------------------------
 
 export function GeneralPanel() {
+  const { t } = useTranslation();
   const account = useAuthStore((s) => s.account);
   const updateAccount = useAuthStore((s) => s.updateAccount);
   const [displayName, setDisplayName] = useState(account?.name ?? '');
@@ -83,7 +86,7 @@ export function GeneralPanel() {
 
   return (
     <div>
-      <SettingsSection title="Profile">
+      <SettingsSection title={t('settings.profile')}>
         <div
           style={{
             display: 'flex',
@@ -145,7 +148,7 @@ export function GeneralPanel() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {account?.name || 'No name set'}
+              {account?.name || t('settings.noNameSet')}
             </div>
             <div
               style={{
@@ -167,7 +170,7 @@ export function GeneralPanel() {
                 onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 style={{ height: 24, padding: '0 8px', fontSize: 'var(--font-size-xs)' }}
               >
-                Upload photo
+                {t('settings.uploadPhoto')}
               </Button>
               {account?.pictureUrl && (
                 <Button
@@ -176,19 +179,19 @@ export function GeneralPanel() {
                   onClick={(e) => { e.stopPropagation(); handleRemoveAvatar(); }}
                   style={{ height: 24, padding: '0 8px', fontSize: 'var(--font-size-xs)' }}
                 >
-                  Remove
+                  {t('common.remove')}
                 </Button>
               )}
             </div>
           </div>
         </div>
 
-        <SettingsRow label="Display name" description="How your name appears when you send emails">
+        <SettingsRow label={t('settings.displayName')} description={t('settings.displayNameDesc')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
             <Input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
+              placeholder={t('settings.yourName')}
               onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
               size="sm"
               style={{ width: 220 }}
@@ -197,7 +200,7 @@ export function GeneralPanel() {
           </div>
         </SettingsRow>
 
-        <SettingsRow label="Email address" description="Your Google account email">
+        <SettingsRow label={t('settings.emailAddress')} description={t('settings.yourAccountEmail')}>
           <div
             style={{
               display: 'flex',
@@ -219,7 +222,7 @@ export function GeneralPanel() {
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection title="Account">
+      <SettingsSection title={t('settings.account')}>
         <div
           style={{
             display: 'flex',
@@ -240,7 +243,7 @@ export function GeneralPanel() {
                 fontFamily: 'var(--font-family)',
               }}
             >
-              Sign out
+              {t('settings.signOut')}
             </div>
             <div
               style={{
@@ -250,7 +253,7 @@ export function GeneralPanel() {
                 fontFamily: 'var(--font-family)',
               }}
             >
-              Sign out of your current account
+              {t('settings.signOutDesc')}
             </div>
           </div>
           <Button
@@ -260,7 +263,7 @@ export function GeneralPanel() {
             icon={<LogOut size={14} />}
             style={{ fontSize: 'var(--font-size-sm)' }}
           >
-            Sign out
+            {t('settings.signOut')}
           </Button>
         </div>
       </SettingsSection>
@@ -268,9 +271,9 @@ export function GeneralPanel() {
       <ConfirmDialog
         open={showLogoutConfirm}
         onOpenChange={setShowLogoutConfirm}
-        title="Sign out?"
-        description="You will be signed out of your current account. You can sign back in at any time."
-        confirmLabel="Sign out"
+        title={t('settings.signOutConfirmTitle')}
+        description={t('settings.signOutConfirmDesc')}
+        confirmLabel={t('settings.signOut')}
         onConfirm={() => useAuthStore.getState().logout()}
       />
     </div>
