@@ -305,7 +305,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
         className="glass-card"
         style={{
           position: 'relative', zIndex: 1,
-          width: '100%', maxWidth: 440,
+          width: '100%', maxWidth: 470,
           padding: '36px 32px 28px',
           background: 'rgba(255,255,255,0.10)',
           backdropFilter: 'blur(24px)',
@@ -437,7 +437,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder={t('setup.orgPlaceholder', 'Acme Corp')}
                   required
-                  size="lg"
+                  size="md"
                   style={glassInputStyle}
                   autoFocus
                 />
@@ -445,9 +445,9 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
 
               {step === 2 && (
                 <>
-                  <Input label={t('setup.adminName', 'Full name')} type="text" value={adminName} onChange={(e) => setAdminName(e.target.value)} placeholder={t('setup.namePlaceholder', 'John Doe')} required size="lg" style={glassInputStyle} autoFocus />
-                  <Input label={t('setup.adminEmail', 'Email')} type="email" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder={t('setup.emailPlaceholder', 'admin@company.com')} required size="lg" style={glassInputStyle} />
-                  <Input label={t('setup.adminPassword', 'Password')} type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder={t('setup.passwordPlaceholder', 'Minimum 8 characters')} required size="lg" style={glassInputStyle} />
+                  <Input label={t('setup.adminName', 'Full name')} type="text" value={adminName} onChange={(e) => setAdminName(e.target.value)} placeholder={t('setup.namePlaceholder', 'John Doe')} required size="md" style={glassInputStyle} autoFocus />
+                  <Input label={t('setup.adminEmail', 'Email')} type="email" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder={t('setup.emailPlaceholder', 'admin@company.com')} required size="md" style={glassInputStyle} />
+                  <Input label={t('setup.adminPassword', 'Password')} type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder={t('setup.passwordPlaceholder', 'Minimum 8 characters')} required size="md" style={glassInputStyle} />
                 </>
               )}
 
@@ -525,8 +525,8 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
               {step > 0 && (
                 <Button
                   variant="ghost"
-                  size="lg"
-                  icon={<ArrowLeft size={16} />}
+                  size="md"
+                  icon={<ArrowLeft size={14} />}
                   onClick={handleBack}
                   style={{ color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(255,255,255,0.15)' }}
                 >
@@ -535,7 +535,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
               )}
               <Button
                 variant="primary"
-                size="lg"
+                size="md"
                 onClick={handleNext}
                 disabled={!canProceed() || loading}
                 style={{
@@ -545,7 +545,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
                 }}
               >
                 {loading ? t('setup.settingUp', 'Setting up...') : step < 3 ? t('setup.continue', 'Continue') : t('setup.complete', 'Complete setup')}
-                {!loading && step < 3 && <ArrowRight size={16} style={{ marginLeft: 6 }} />}
+                {!loading && step < 3 && <ArrowRight size={14} style={{ marginLeft: 6 }} />}
               </Button>
             </div>
           </>
