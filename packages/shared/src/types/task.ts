@@ -31,6 +31,8 @@ export interface Task {
   sourceEmailId: string | null;
   sourceEmailSubject: string | null;
   visibility?: 'private' | 'team';
+  creatorName?: string | null;
+  creatorEmail?: string | null;
   subtasks?: Subtask[];
   createdAt: string;
   updatedAt: string;
@@ -134,6 +136,7 @@ export interface CreateTaskInput {
   tags?: string[];
   recurrenceRule?: RecurrenceRule | null;
   assigneeId?: string | null;
+  visibility?: 'private' | 'team';
   sourceEmailId?: string | null;
   sourceEmailSubject?: string | null;
 }

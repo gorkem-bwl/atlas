@@ -456,7 +456,7 @@ export const tasks = pgTable('tasks', {
   sortOrder: integer('sort_order').notNull().default(0),
   isArchived: boolean('is_archived').notNull().default(false),
   tenantId: uuid('tenant_id'),
-  visibility: varchar('visibility', { length: 10 }).notNull().default('private'),
+  visibility: varchar('visibility', { length: 10 }).notNull().default('team'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({

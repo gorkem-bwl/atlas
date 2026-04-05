@@ -875,6 +875,19 @@ export async function removeTeamMember(req: Request, res: Response) {
   }
 }
 
+export async function getUserTeams(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'crm');
+    if (!canAccess(perm.role, 'view')) { res.status(403).json({ success: false, error: 'No permission' }); return; }
+    const userId = req.params.userId as string;
+    const teamIds = await crmService.getUserTeamIds(userId, req.auth!.accountId);
+    res.json({ success: true, data: teamIds });
+  } catch (error) {
+    logger.error({ error }, 'Failed to get user teams');
+    res.status(500).json({ success: false, error: 'Failed to get user teams' });
+  }
+}
+
 // ─── Activity Types ───────────────────────────────────────────────
 
 export async function listActivityTypes(req: Request, res: Response) {

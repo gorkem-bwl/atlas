@@ -1407,3 +1407,25 @@ export function useDeleteLeadForm() {
     },
   });
 }
+
+// ─── Sales Teams ──────────────────────────────────────────────────
+
+export interface CrmTeam {
+  id: string;
+  name: string;
+  color: string | null;
+  leaderUserId: string | null;
+  isArchived: boolean;
+  createdAt: string;
+}
+
+export function useCrmTeams() {
+  return useQuery({
+    queryKey: queryKeys.crm.teams,
+    queryFn: async () => {
+      const { data } = await api.get('/crm/teams/list');
+      return data.data as CrmTeam[];
+    },
+    staleTime: 30_000,
+  });
+}

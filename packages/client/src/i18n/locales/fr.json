@@ -605,6 +605,7 @@
     "anytime": "N'importe quand",
     "someday": "Un jour",
     "logbook": "Journal",
+    "teamTasks": "Tâches d'équipe",
     "newTask": "Nouvelle tâche",
     "newProject": "Nouveau projet",
     "projects": "Projets",
@@ -703,7 +704,12 @@
       "minutesAgo": "il y a {{count}}min",
       "hoursAgo": "il y a {{count}}h",
       "daysAgo": "il y a {{count}}j"
-    }
+    },
+    "visibilityTeam": "Équipe — visible par tous",
+    "visibilityPrivate": "Privé — vous uniquement",
+    "filterAll": "Toutes les tâches",
+    "filterMine": "Mes tâches",
+    "filterTeam": "Tâches d'équipe"
   },
   "errors": {
     "recipientRequired": "Au moins un destinataire est requis",

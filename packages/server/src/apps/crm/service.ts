@@ -1185,7 +1185,7 @@ export async function getDashboard(userId: string, accountId: string, recordAcce
     ? Math.round((dealsWonCount / (dealsWonCount + dealsLostCount)) * 100)
     : 0;
 
-  // 4. Value by stage (active deals only)
+  // 4. Value by stage (all deals, including won/lost — matches pipeline view)
   const valueByStage = await db
     .select({
       stageId: crmDeals.stageId,
@@ -1201,7 +1201,6 @@ export async function getDashboard(userId: string, accountId: string, recordAcce
       ownerFilter,
       eq(crmDeals.accountId, accountId),
       eq(crmDeals.isArchived, false),
-      sql`${crmDeals.wonAt} IS NULL AND ${crmDeals.lostAt} IS NULL`,
     ))
     .groupBy(crmDeals.stageId, crmDealStages.name, crmDealStages.color, crmDealStages.sequence)
     .orderBy(asc(crmDealStages.sequence));

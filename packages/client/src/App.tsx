@@ -15,9 +15,10 @@ import { HomePage } from './pages/home';
 import { CommandPalette } from './components/ui/command-palette';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { type ReactNode } from 'react';
+import { useMyAccessibleApps } from './hooks/use-app-permissions';
 import { OrgLayout } from './pages/org/org-layout';
-import { OrgOverviewPage } from './pages/org/org-overview';
 import { OrgMembersPage } from './pages/org/org-members';
+import { OrgMemberEditPage } from './pages/org/org-member-edit';
 import { OrgAppsPage } from './pages/org/org-apps';
 import { OrgSettingsPage } from './pages/org/org-settings';
 import { ForgotPasswordPage } from './pages/forgot-password';
@@ -56,6 +57,14 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function AppGuard({ appId, children }: { appId: string; children: ReactNode }) {
+  const { data: myApps, isLoading } = useMyAccessibleApps();
+  if (isLoading || !myApps) return null;
+  if (myApps.appIds === '__all__') return <>{children}</>;
+  if ((myApps.appIds as string[]).includes(appId)) return <>{children}</>;
+  return <Navigate to={ROUTES.HOME} replace />;
+}
+
 export function App() {
   const appRoutes = appRegistry.getRoutes();
 
@@ -92,11 +101,11 @@ export function App() {
                 />
 
                 {/* App routes from registry */}
-                {appRoutes.map(({ path, component: Component }) => (
+                {appRoutes.map(({ path, component: Component, appId }) => (
                   <Route
                     key={path}
                     path={path}
-                    element={<ProtectedRoute><Component /></ProtectedRoute>}
+                    element={<ProtectedRoute><AppGuard appId={appId}><Component /></AppGuard></ProtectedRoute>}
                   />
                 ))}
 
@@ -109,8 +118,9 @@ export function App() {
                   path={ROUTES.ORG}
                   element={<ProtectedRoute><OrgLayout /></ProtectedRoute>}
                 >
-                  <Route index element={<OrgOverviewPage />} />
+                  <Route index element={<Navigate to="members" replace />} />
                   <Route path="members" element={<OrgMembersPage />} />
+                  <Route path="members/:userId" element={<OrgMemberEditPage />} />
                   <Route path="apps" element={<OrgAppsPage />} />
                   <Route path="settings" element={<OrgSettingsPage />} />
                 </Route>

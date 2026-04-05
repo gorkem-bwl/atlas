@@ -5,7 +5,8 @@ import {
   Hash, CircleDot, MoreHorizontal, Moon, Sun, GripVertical,
   Clock, FileText, Filter, Tag, CheckCircle2, Settings2,
   Repeat, LayoutList, LayoutGrid, User, MessageSquare, Send,
-  Paperclip, Download, CalendarDays, AlertTriangle, Link2,
+  Paperclip, Download, CalendarDays, AlertTriangle, Link2, Users,
+  Globe, Lock, Eye,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -54,7 +55,7 @@ import '../../styles/tasks.css';
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
 
-type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | 'calendar' | 'assignedToMe' | `project:${string}` | `tag:${string}`;
+type NavSection = 'inbox' | 'today' | 'upcoming' | 'anytime' | 'someday' | 'logbook' | 'calendar' | 'assignedToMe' | 'team' | `project:${string}` | `tag:${string}`;
 
 interface NavItem {
   id: NavSection;
@@ -70,6 +71,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'anytime', labelKey: 'tasks.anytime', icon: CircleDot, color: '#06b6d4' },
   { id: 'someday', labelKey: 'tasks.someday', icon: Coffee, color: '#a78bfa' },
   { id: 'logbook', labelKey: 'tasks.logbook', icon: BookOpen, color: '#6b7280' },
+  { id: 'team', labelKey: 'tasks.teamTasks', icon: Users, color: '#10b981' },
 ];
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -202,6 +204,7 @@ function TaskItem({
   isBlocked?: boolean;
 }) {
   const tasksSettings = useTasksSettingsStore();
+  const currentUserId = useAuthStore((s) => s.account?.userId);
   const [completing, setCompleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
@@ -373,6 +376,13 @@ function TaskItem({
         ) : null;
       })()}
 
+      {/* Creator badge for team tasks */}
+      {task.visibility === 'team' && task.userId !== currentUserId && (task as any).creatorName && (
+        <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', flexShrink: 0 }}>
+          by {(task as any).creatorName}
+        </span>
+      )}
+
       {/* Notes indicator (respects settings) */}
       {tasksSettings.showNotesIndicator && (task.description || task.notes) && (
         <FileText size={13} className="task-notes-indicator" />
@@ -467,15 +477,18 @@ function NewTaskCreator({
   defaultWhen,
   projectId,
   headingId,
+  defaultVisibility = 'team',
   onCreated,
 }: {
   defaultWhen: TaskWhen;
   projectId?: string | null;
   headingId?: string | null;
+  defaultVisibility?: 'private' | 'team';
   onCreated?: () => void;
 }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
+  const [visibility, setVisibility] = useState<'private' | 'team'>(defaultVisibility);
   const inputRef = useRef<HTMLInputElement>(null);
   const createTask = useCreateTask();
 
@@ -488,6 +501,7 @@ function NewTaskCreator({
         when: defaultWhen,
         projectId: projectId ?? undefined,
         headingId: headingId ?? undefined,
+        visibility,
       },
       {
         onSuccess: () => {
@@ -517,6 +531,23 @@ function NewTaskCreator({
         onKeyDown={handleKeyDown}
         placeholder={t('tasks.quickAdd')}
       />
+      <button
+        type="button"
+        title={visibility === 'team' ? t('tasks.visibilityTeam') : t('tasks.visibilityPrivate')}
+        onClick={() => setVisibility(v => v === 'team' ? 'private' : 'team')}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 4,
+          display: 'flex',
+          alignItems: 'center',
+          color: visibility === 'team' ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
+          flexShrink: 0,
+        }}
+      >
+        {visibility === 'team' ? <Globe size={14} /> : <Lock size={14} />}
+      </button>
     </div>
   );
 }
@@ -527,13 +558,16 @@ function QuickCaptureInput({
   defaultWhen,
   projectId,
   headingId,
+  defaultVisibility = 'team',
 }: {
   defaultWhen: TaskWhen;
   projectId?: string | null;
   headingId?: string | null;
+  defaultVisibility?: 'private' | 'team';
 }) {
   const { t } = useTranslation();
   const createTask = useCreateTask();
+  const [visibility, setVisibility] = useState<'private' | 'team'>(defaultVisibility);
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px', opacity: 0.6 }}>
@@ -548,6 +582,7 @@ function QuickCaptureInput({
               when: defaultWhen,
               projectId: projectId ?? undefined,
               headingId: headingId ?? undefined,
+              visibility,
             });
             e.currentTarget.value = '';
           }
@@ -562,6 +597,23 @@ function QuickCaptureInput({
           fontFamily: 'var(--font-family)',
         }}
       />
+      <button
+        type="button"
+        title={visibility === 'team' ? t('tasks.visibilityTeam') : t('tasks.visibilityPrivate')}
+        onClick={() => setVisibility(v => v === 'team' ? 'private' : 'team')}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 4,
+          display: 'flex',
+          alignItems: 'center',
+          color: visibility === 'team' ? 'var(--color-accent-primary)' : 'var(--color-text-tertiary)',
+          flexShrink: 0,
+        }}
+      >
+        {visibility === 'team' ? <Globe size={14} /> : <Lock size={14} />}
+      </button>
     </div>
   );
 }
@@ -1850,6 +1902,9 @@ export function TasksPage() {
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Visibility filter: all / mine / team
+  const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'mine' | 'team'>('all');
+
   // View mode (list/board) — board only available in inbox
   const [viewMode, setViewMode] = useState<'list' | 'board'>(tasksSettings.viewMode || 'list');
   const canShowBoard = activeSection === 'inbox';
@@ -1889,6 +1944,7 @@ export function TasksPage() {
     if (activeSection === 'logbook') return { status: 'completed' };
     if (activeSection === 'upcoming') return { status: 'todo' };
     if (activeSection === 'calendar') return { status: 'todo' }; // fetch all todo tasks for calendar
+    if (activeSection === 'team') return { status: 'todo', visibility: 'team' as const };
     if (activeSection === 'assignedToMe' && currentUserId) {
       return { status: 'todo', assigneeId: currentUserId };
     }
@@ -1924,7 +1980,7 @@ export function TasksPage() {
   const displayTasks = useMemo(() => {
     let tasks = allTasks;
     if (activeSection === 'upcoming') {
-      return tasks.filter(t => t.dueDate).sort((a, b) => (a.dueDate! > b.dueDate! ? 1 : -1));
+      tasks = tasks.filter(t => t.dueDate).sort((a, b) => (a.dueDate! > b.dueDate! ? 1 : -1));
     }
     if (activeSection.startsWith('tag:')) {
       const tag = activeSection.replace('tag:', '');
@@ -1934,8 +1990,14 @@ export function TasksPage() {
       const q = searchQuery.toLowerCase();
       tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
     }
+    // Visibility filter
+    if (visibilityFilter === 'mine') {
+      tasks = tasks.filter(t => t.userId === currentUserId);
+    } else if (visibilityFilter === 'team') {
+      tasks = tasks.filter(t => t.visibility === 'team' && t.userId !== currentUserId);
+    }
     return tasks;
-  }, [allTasks, activeSection, searchQuery]);
+  }, [allTasks, activeSection, searchQuery, visibilityFilter, currentUserId]);
 
   // Split today view into daytime + evening (feature 2)
   const todayTasks = useMemo(() => {
@@ -2247,6 +2309,7 @@ export function TasksPage() {
     someday: counts?.someday ?? 0,
     logbook: counts?.logbook ?? 0,
     assignedToMe: (counts as any)?.assignedToMe ?? 0,
+    team: counts?.team ?? 0,
   }), [counts]);
 
   const handleNewProject = () => {
@@ -2439,6 +2502,19 @@ export function TasksPage() {
             {displayTasks.length > 0 && (
               <span className="tasks-toolbar-count">{displayTasks.length}</span>
             )}
+            {/* Visibility filter toggle */}
+            <div className="tasks-view-toggle">
+              {(['all', 'mine', 'team'] as const).map((f) => (
+                <button
+                  key={f}
+                  className={`tasks-view-toggle-btn${visibilityFilter === f ? ' active' : ''}`}
+                  onClick={() => setVisibilityFilter(f)}
+                  title={f === 'all' ? t('tasks.filterAll') : f === 'mine' ? t('tasks.filterMine') : t('tasks.filterTeam')}
+                >
+                  {f === 'all' ? <Eye size={14} /> : f === 'mine' ? <User size={14} /> : <Users size={14} />}
+                </button>
+              ))}
+            </div>
             {visibleNonHeadingTasks.length > 0 && (
               <IconButton
                 icon={

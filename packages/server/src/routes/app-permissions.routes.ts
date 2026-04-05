@@ -20,6 +20,66 @@ async function isTenantAdmin(tenantId: string, userId: string): Promise<boolean>
   return member?.role === 'owner' || member?.role === 'admin';
 }
 
+// GET /my-apps — list app IDs the current user has access to
+router.get('/my-apps', async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
+
+    if (!tenantId) {
+      res.json({ success: true, data: { appIds: [], role: null } });
+      return;
+    }
+
+    // Check tenant role
+    const [member] = await db.select().from(tenantMembers)
+      .where(and(eq(tenantMembers.tenantId, tenantId), eq(tenantMembers.userId, userId)))
+      .limit(1);
+
+    if (!member) {
+      res.json({ success: true, data: { appIds: [], role: null } });
+      return;
+    }
+
+    const isPrivileged = member.role === 'owner' || member.role === 'admin';
+    if (isPrivileged) {
+      // Owners/admins see all apps
+      res.json({ success: true, data: { appIds: '__all__', role: member.role } });
+      return;
+    }
+
+    // Members only see apps they have explicit permissions for
+    const perms = await appPermissionsService.listUserPermissions(tenantId, userId);
+    const appIds = perms.map(p => p.appId);
+    res.json({ success: true, data: { appIds, role: member.role } });
+  } catch (err) {
+    logger.error({ err }, 'Failed to get my apps');
+    res.status(500).json({ success: false, error: 'Failed to get accessible apps' });
+  }
+});
+
+// GET /all — list ALL permissions for the tenant (admin only, used by members page)
+router.get('/all', async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.auth!.tenantId;
+    if (!tenantId) {
+      res.status(400).json({ success: false, error: 'Tenant context required' });
+      return;
+    }
+
+    if (!(await isTenantAdmin(tenantId, req.auth!.userId))) {
+      res.status(403).json({ success: false, error: 'Only tenant admins can list permissions' });
+      return;
+    }
+
+    const permissions = await appPermissionsService.listAllTenantPermissions(tenantId);
+    res.json({ success: true, data: { permissions } });
+  } catch (err) {
+    logger.error({ err }, 'Failed to list all permissions');
+    res.status(500).json({ success: false, error: 'Failed to list all permissions' });
+  }
+});
+
 // GET /:appId — list permissions for an app (tenant admin only)
 router.get('/:appId', async (req: Request, res: Response) => {
   try {

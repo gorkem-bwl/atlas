@@ -31,6 +31,8 @@ const APP_DESC_KEYS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export function OrgAppsPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const storeTenantId = useAuthStore((s) => s.tenantId);
   const { data: tenants, isLoading: tenantsLoading } = useMyTenants();
   const tenant = tenants?.[0];
@@ -58,9 +60,6 @@ export function OrgAppsPage() {
       </div>
     );
   }
-
-  const navigate = useNavigate();
-  const { t } = useTranslation();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 900 }}>

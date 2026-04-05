@@ -65,10 +65,18 @@ export async function listTasks(userId: string, filters?: {
   assigneeId?: string;
   includeArchived?: boolean;
   tenantId?: string | null;
+  visibility?: 'private' | 'team';
 }) {
-  const ownerCondition = filters?.tenantId
-    ? or(eq(tasks.userId, userId), and(eq(tasks.visibility, 'team'), eq(tasks.tenantId, filters.tenantId)))
-    : eq(tasks.userId, userId);
+  let ownerCondition;
+  if (filters?.visibility === 'team' && filters?.tenantId) {
+    // Team view: only team-visible tasks in this tenant
+    ownerCondition = and(eq(tasks.visibility, 'team'), eq(tasks.tenantId, filters.tenantId));
+  } else if (filters?.tenantId) {
+    // Normal view: own tasks + team tasks
+    ownerCondition = or(eq(tasks.userId, userId), and(eq(tasks.visibility, 'team'), eq(tasks.tenantId, filters.tenantId)));
+  } else {
+    ownerCondition = eq(tasks.userId, userId);
+  }
   const conditions = [ownerCondition!];
 
   if (!filters?.includeArchived) {
@@ -97,8 +105,39 @@ export async function listTasks(userId: string, filters?: {
   }
 
   return db
-    .select()
+    .select({
+      id: tasks.id,
+      accountId: tasks.accountId,
+      userId: tasks.userId,
+      projectId: tasks.projectId,
+      title: tasks.title,
+      notes: tasks.notes,
+      description: tasks.description,
+      icon: tasks.icon,
+      type: tasks.type,
+      headingId: tasks.headingId,
+      status: tasks.status,
+      when: tasks.when,
+      priority: tasks.priority,
+      dueDate: tasks.dueDate,
+      completedAt: tasks.completedAt,
+      sortOrder: tasks.sortOrder,
+      tags: tasks.tags,
+      recurrenceRule: tasks.recurrenceRule,
+      recurrenceParentId: tasks.recurrenceParentId,
+      isArchived: tasks.isArchived,
+      assigneeId: tasks.assigneeId,
+      sourceEmailId: tasks.sourceEmailId,
+      sourceEmailSubject: tasks.sourceEmailSubject,
+      visibility: tasks.visibility,
+      tenantId: tasks.tenantId,
+      createdAt: tasks.createdAt,
+      updatedAt: tasks.updatedAt,
+      creatorName: users.name,
+      creatorEmail: users.email,
+    })
     .from(tasks)
+    .leftJoin(users, eq(tasks.userId, users.id))
     .where(and(...conditions))
     .orderBy(asc(tasks.sortOrder), asc(tasks.createdAt));
 }
@@ -144,6 +183,7 @@ export async function createTask(userId: string, accountId: string, input: Creat
       tags: input.tags ?? [],
       recurrenceRule: input.recurrenceRule ?? null,
       assigneeId: input.assigneeId || null,
+      visibility: input.visibility ?? 'team',
       sourceEmailId: (input as any).sourceEmailId ?? null,
       sourceEmailSubject: (input as any).sourceEmailSubject ?? null,
       tenantId: tenantId ?? null,
@@ -392,7 +432,7 @@ export async function deleteProject(userId: string, projectId: string) {
 
 // ─── Stats ──────────────────────────────────────────────────────────
 
-export async function getTaskCounts(userId: string) {
+export async function getTaskCounts(userId: string, tenantId?: string | null) {
   const allTasks = await db
     .select({
       status: tasks.status,
@@ -409,6 +449,7 @@ export async function getTaskCounts(userId: string) {
     someday: 0,
     logbook: 0,
     total: 0,
+    team: 0,
   };
 
   for (const t of allTasks) {
@@ -450,6 +491,22 @@ export async function getTaskCounts(userId: string) {
       ),
     );
   (counts as any).assignedToMe = assignedToMe.length;
+
+  // Team tasks count
+  if (tenantId) {
+    const teamTasks = await db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.visibility, 'team'),
+          eq(tasks.tenantId, tenantId),
+          eq(tasks.isArchived, false),
+          eq(tasks.status, 'todo'),
+        ),
+      );
+    counts.team = teamTasks.length;
+  }
 
   return counts;
 }

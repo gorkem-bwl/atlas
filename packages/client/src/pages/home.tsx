@@ -16,6 +16,7 @@ import { ROUTES } from '../config/routes';
 import { appRegistry } from '../apps';
 import { useUIStore } from '../stores/ui-store';
 import { WidgetGrid } from '../components/home/widgets/widget-grid';
+import { useMyAccessibleApps } from '../hooks/use-app-permissions';
 import { ActivityFeed } from '../components/activity/activity-feed';
 import { DockPet, type PetType } from '../components/home/dock-pet';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
@@ -685,17 +686,22 @@ export function HomePage() {
     setShowClearDemoConfirm(false);
   }, [queryClient]);
 
-  // Dock app definitions
-  const dockApps = useMemo(() =>
-    appRegistry.getAll()
+  // Dock app definitions — filtered by user's accessible apps
+  const { data: myApps } = useMyAccessibleApps();
+  const dockApps = useMemo(() => {
+    const accessibleSet = myApps?.appIds === '__all__'
+      ? null
+      : new Set(myApps?.appIds ?? []);
+    return appRegistry.getAll()
       .filter(app => app.id !== 'marketplace' && app.id !== 'system')
+      .filter(app => !accessibleSet || accessibleSet.has(app.id))
       .map(app => ({
         icon: app.icon,
         label: app.name,
         color: app.color,
         route: app.routes[0]?.path ?? `/${app.id}`,
-      })),
-  []);
+      }));
+  }, [myApps]);
 
   return (
     <div

@@ -113,6 +113,16 @@ export async function setAppPermission(
   return created;
 }
 
+export async function listUserPermissions(tenantId: string, userId: string) {
+  return db.select().from(appPermissions)
+    .where(and(eq(appPermissions.tenantId, tenantId), eq(appPermissions.userId, userId)));
+}
+
+export async function listAllTenantPermissions(tenantId: string) {
+  return db.select().from(appPermissions)
+    .where(eq(appPermissions.tenantId, tenantId));
+}
+
 export async function deleteAppPermission(tenantId: string, userId: string, appId: string) {
   await db.delete(appPermissions)
     .where(and(

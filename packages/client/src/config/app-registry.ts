@@ -26,8 +26,8 @@ class AppRegistry {
     return this.getAll().filter(app => enabledAppIds.has(app.id));
   }
 
-  getRoutes(): AppRoute[] {
-    return this.getAll().flatMap(app => app.routes);
+  getRoutes(): (AppRoute & { appId: string })[] {
+    return this.getAll().flatMap(app => app.routes.map(r => ({ ...r, appId: app.id })));
   }
 
   getNavItems(): Array<{ id: string; labelKey: string; icon: LucideIcon; color: string; route: string }> {

@@ -633,6 +633,7 @@
     "anytime": "Anytime",
     "someday": "Someday",
     "logbook": "Logbook",
+    "teamTasks": "Team tasks",
     "newTask": "New task",
     "newProject": "New project",
     "projects": "Projects",
@@ -731,7 +732,12 @@
       "minutesAgo": "{{count}}m ago",
       "hoursAgo": "{{count}}h ago",
       "daysAgo": "{{count}}d ago"
-    }
+    },
+    "visibilityTeam": "Team — visible to everyone",
+    "visibilityPrivate": "Private — only you",
+    "filterAll": "All tasks",
+    "filterMine": "My tasks",
+    "filterTeam": "Team tasks"
   },
   "errors": {
     "recipientRequired": "At least one recipient is required",

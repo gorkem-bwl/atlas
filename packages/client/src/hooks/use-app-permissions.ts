@@ -49,6 +49,40 @@ export function useMyAppPermission(appId: string) {
   });
 }
 
+// ─── My accessible apps (sidebar filtering) ──────────────────────
+
+export function useMyAccessibleApps() {
+  return useQuery({
+    queryKey: queryKeys.permissions.myApps,
+    queryFn: async () => {
+      const { data } = await api.get('/permissions/my-apps');
+      return data.data as { appIds: string[] | '__all__'; role: string | null };
+    },
+    staleTime: 60_000,
+  });
+}
+
+// ─── All permissions for the tenant (all apps, all users) ─────────
+
+export function useAllTenantPermissions(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.permissions.allTenant,
+    enabled,
+    queryFn: async () => {
+      const { data } = await api.get('/permissions/all');
+      return data.data.permissions as Array<{
+        id: string;
+        tenantId: string;
+        userId: string;
+        appId: string;
+        role: AppRole;
+        recordAccess: AppRecordAccess;
+      }>;
+    },
+    staleTime: 30_000,
+  });
+}
+
 // ─── All permissions for an app ────────────────────────────────────
 
 export function useAppPermissions(appId: string) {

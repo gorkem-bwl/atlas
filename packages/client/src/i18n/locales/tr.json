@@ -605,6 +605,7 @@
     "anytime": "Her zaman",
     "someday": "Bir gün",
     "logbook": "Günlük",
+    "teamTasks": "Takım görevleri",
     "newTask": "Yeni görev",
     "newProject": "Yeni proje",
     "projects": "Projeler",
@@ -703,7 +704,12 @@
       "minutesAgo": "{{count}}dk önce",
       "hoursAgo": "{{count}}sa önce",
       "daysAgo": "{{count}}g önce"
-    }
+    },
+    "visibilityTeam": "Takım — herkese görünür",
+    "visibilityPrivate": "Özel — yalnızca siz",
+    "filterAll": "Tüm görevler",
+    "filterMine": "Görevlerim",
+    "filterTeam": "Takım görevleri"
   },
   "errors": {
     "recipientRequired": "En az bir alıcı gereklidir",

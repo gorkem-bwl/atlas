@@ -605,6 +605,7 @@
     "anytime": "Jederzeit",
     "someday": "Irgendwann",
     "logbook": "Logbuch",
+    "teamTasks": "Team-Aufgaben",
     "newTask": "Neue Aufgabe",
     "newProject": "Neues Projekt",
     "projects": "Projekte",
@@ -703,7 +704,12 @@
       "minutesAgo": "vor {{count}}Min",
       "hoursAgo": "vor {{count}}Std",
       "daysAgo": "vor {{count}}T"
-    }
+    },
+    "visibilityTeam": "Team — für alle sichtbar",
+    "visibilityPrivate": "Privat — nur für dich",
+    "filterAll": "Alle Aufgaben",
+    "filterMine": "Meine Aufgaben",
+    "filterTeam": "Teamaufgaben"
   },
   "errors": {
     "recipientRequired": "Mindestens ein Empfänger ist erforderlich",

@@ -605,6 +605,7 @@
     "anytime": "In qualsiasi momento",
     "someday": "Un giorno",
     "logbook": "Registro",
+    "teamTasks": "Attività del team",
     "newTask": "Nuova attività",
     "newProject": "Nuovo progetto",
     "projects": "Progetti",
@@ -703,7 +704,12 @@
       "minutesAgo": "{{count}}min fa",
       "hoursAgo": "{{count}}h fa",
       "daysAgo": "{{count}}g fa"
-    }
+    },
+    "visibilityTeam": "Team — visibile a tutti",
+    "visibilityPrivate": "Privato — solo tu",
+    "filterAll": "Tutte le attività",
+    "filterMine": "Le mie attività",
+    "filterTeam": "Attività del team"
   },
   "errors": {
     "recipientRequired": "È necessario almeno un destinatario",

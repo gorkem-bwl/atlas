@@ -16,6 +16,7 @@ export const ROUTES = {
   DRIVE_FOLDER: '/drive/folder/:id',
   ORG: '/org',
   ORG_MEMBERS: '/org/members',
+  ORG_MEMBER_EDIT: '/org/members/:userId',
   ORG_APPS: '/org/apps',
   ORG_SETTINGS: '/org/settings',
   CALENDAR: '/calendar',

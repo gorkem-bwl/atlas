@@ -13,10 +13,12 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { AccountSwitcher } from './account-switcher';
 import { appRegistry } from '../../apps';
 import { ROUTES } from '../../config/routes';
+import { useMyAccessibleApps } from '../../hooks/use-app-permissions';
 import type { ThemeMode } from '@atlasmail/shared';
 import type { CSSProperties } from 'react';
 
 const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system'];
+const ALWAYS_SHOW_NAV = new Set(['org', 'settings', 'system']);
 
 const THEME_ICONS: Record<ThemeMode, typeof Sun> = {
   light: Sun,
@@ -179,7 +181,14 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const navItems = useMemo(() => getNavItems(), []);
+  const { data: myApps } = useMyAccessibleApps();
+
+  const navItems = useMemo(() => {
+    const all = getNavItems();
+    if (!myApps || myApps.appIds === '__all__') return all;
+    const allowedSet = new Set(myApps.appIds);
+    return all.filter((item) => ALWAYS_SHOW_NAV.has(item.id) || allowedSet.has(item.id));
+  }, [myApps]);
 
   // Detect Electron desktop shell (set by preload script)
   const isDesktop = !!('atlasDesktop' in window);

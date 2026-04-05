@@ -21,6 +21,7 @@ export function useTaskList(filters?: {
   projectId?: string | null;
   assigneeId?: string;
   includeArchived?: boolean;
+  visibility?: 'private' | 'team';
 }, options?: { enabled?: boolean }) {
   const filterKey = filters ? JSON.stringify(filters) : '';
   return useQuery({
@@ -32,6 +33,7 @@ export function useTaskList(filters?: {
       if (filters?.projectId !== undefined) params.set('projectId', filters.projectId === null ? 'null' : filters.projectId);
       if (filters?.assigneeId) params.set('assigneeId', filters.assigneeId);
       if (filters?.includeArchived) params.set('includeArchived', 'true');
+      if (filters?.visibility) params.set('visibility', filters.visibility);
       const qs = params.toString();
       const { data } = await api.get(`/tasks${qs ? `?${qs}` : ''}`);
       return data.data as ListTasksResponse;
@@ -66,6 +68,7 @@ export function useTaskCounts(options?: { enabled?: boolean }) {
         someday: number;
         logbook: number;
         total: number;
+        team: number;
       };
     },
     staleTime: 15_000,

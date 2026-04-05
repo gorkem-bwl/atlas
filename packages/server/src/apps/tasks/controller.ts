@@ -35,7 +35,7 @@ export async function listTasks(req: Request, res: Response) {
     }
 
     const userId = req.auth!.userId;
-    const { status, when, projectId, includeArchived, assigneeId } = req.query;
+    const { status, when, projectId, includeArchived, assigneeId, visibility } = req.query;
 
     const tasks = await taskService.listTasks(userId, {
       status: status as string | undefined,
@@ -44,6 +44,7 @@ export async function listTasks(req: Request, res: Response) {
       assigneeId: assigneeId as string | undefined,
       includeArchived: includeArchived === 'true',
       tenantId: req.auth!.tenantId ?? null,
+      visibility: visibility as 'private' | 'team' | undefined,
     });
 
     res.json({ success: true, data: { tasks } });
@@ -87,10 +88,10 @@ export async function createTask(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
-    const { title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId } = req.body;
+    const { title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId, visibility } = req.body;
 
     const task = await taskService.createTask(userId, accountId, {
-      title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId,
+      title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId, visibility,
     }, req.auth!.tenantId ?? null);
 
     res.json({ success: true, data: task });
@@ -112,6 +113,11 @@ export async function updateTask(req: Request, res: Response) {
     const taskId = req.params.id as string;
     const { title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, tags, recurrenceRule, assigneeId, sortOrder, isArchived } = req.body;
 
+    // Fetch existing task before update (for reassignment detection)
+    const existingTask = assigneeId !== undefined
+      ? await taskService.getTask(userId, taskId, req.auth!.tenantId ?? null)
+      : null;
+
     const task = await taskService.updateTask(userId, taskId, {
       title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, tags, recurrenceRule, assigneeId, sortOrder, isArchived,
     });
@@ -130,6 +136,19 @@ export async function updateTask(req: Request, res: Response) {
         eventType: 'task.completed',
         title: `completed task: ${task.title}`,
         metadata: { taskId: task.id },
+      }).catch(() => {});
+    }
+
+    // Emit notification when task is reassigned
+    if (assigneeId && assigneeId !== existingTask?.assigneeId && req.auth!.tenantId) {
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId,
+        appId: 'tasks',
+        eventType: 'task.assigned',
+        title: `assigned you a task: ${task.title}`,
+        metadata: { taskId: task.id, assigneeId },
+        notifyUserIds: [assigneeId],
       }).catch(() => {});
     }
 
@@ -240,7 +259,7 @@ export async function getTaskCounts(req: Request, res: Response) {
     }
 
     const userId = req.auth!.userId;
-    const counts = await taskService.getTaskCounts(userId);
+    const counts = await taskService.getTaskCounts(userId, req.auth!.tenantId ?? null);
     res.json({ success: true, data: counts });
   } catch (error) {
     logger.error({ error }, 'Failed to get task counts');

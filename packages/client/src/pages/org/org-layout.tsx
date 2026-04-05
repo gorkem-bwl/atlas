@@ -2,8 +2,6 @@ import { type ReactNode } from 'react';
 import type { CSSProperties } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Building2,
-  LayoutDashboard,
   LayoutGrid,
   Settings,
   Users,
@@ -30,7 +28,6 @@ interface NavItem {
 // ---------------------------------------------------------------------------
 
 const NAV_ITEMS: NavItem[] = [
-  { to: ROUTES.ORG, label: 'Overview', icon: <LayoutDashboard size={15} />, iconColor: '#3b82f6', end: true },
   { to: ROUTES.ORG_MEMBERS, label: 'Members', icon: <Users size={15} />, iconColor: '#10b981' },
   { to: ROUTES.ORG_APPS, label: 'Apps', icon: <LayoutGrid size={15} />, iconColor: '#8b5cf6' },
   { to: ROUTES.ORG_SETTINGS, label: 'Settings', icon: <Settings size={15} />, iconColor: '#6b7280' },
@@ -41,7 +38,6 @@ const NAV_ITEMS: NavItem[] = [
 // ---------------------------------------------------------------------------
 
 function getPageTitle(pathname: string): string {
-  if (pathname === ROUTES.ORG) return 'Overview';
   if (pathname.startsWith(ROUTES.ORG_MEMBERS)) return 'Members';
   if (pathname.startsWith(ROUTES.ORG_APPS)) return 'Apps';
   if (pathname.startsWith(ROUTES.ORG_SETTINGS)) return 'Settings';

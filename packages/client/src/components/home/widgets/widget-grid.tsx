@@ -6,7 +6,7 @@ import { queryKeys } from '../../../config/query-keys';
 import { widgetRegistry } from './registry';
 import { appRegistry } from '../../../config/app-registry';
 import { useAuthStore } from '../../../stores/auth-store';
-import { useMyAppPermission } from '../../../hooks/use-app-permissions';
+import { useMyAccessibleApps } from '../../../hooks/use-app-permissions';
 
 const WIDGET_W = 240;
 const WIDGET_H = 160;
@@ -66,23 +66,24 @@ export function WidgetGrid() {
     return all.filter((w) => enabledIds!.includes(`${w.appId}:${w.id}`));
   }, [settings]);
 
-  // Role-based widget filtering
+  // Role-based widget filtering using accessible apps
   const tenantRole = useAuthStore((s) => s.tenantRole);
   const isAdmin = tenantRole === 'owner' || tenantRole === 'admin';
-  const { data: crmPerm } = useMyAppPermission('crm');
-  const { data: hrPerm } = useMyAppPermission('hr');
+  const { data: myApps } = useMyAccessibleApps();
 
   const filteredAppWidgets = useMemo(() => {
+    const accessibleSet = myApps?.appIds === '__all__'
+      ? null // null means all accessible
+      : new Set(myApps?.appIds ?? []);
+
     return enabledAppWidgets.filter(w => {
       // CPU/Memory: admin only
       if (w.id === 'cpu-usage' || w.id === 'memory-usage') return isAdmin;
-      // CRM Pipeline: only for users with CRM editor+ access (not default viewer fallback)
-      if (w.appId === 'crm') return !!crmPerm && crmPerm.role !== 'viewer';
-      // HR Team: only for HR admin/manager/editor (not portal viewers)
-      if (w.appId === 'hr') return !!hrPerm && hrPerm.role !== 'viewer';
+      // If not admin, only show widgets for apps user has explicit access to
+      if (accessibleSet && !accessibleSet.has(w.appId)) return false;
       return true;
     });
-  }, [enabledAppWidgets, isAdmin, crmPerm, hrPerm]);
+  }, [enabledAppWidgets, isAdmin, myApps]);
 
   const navigate = useNavigate();
   const [hoveredWidget, setHoveredWidget] = useState<string | null>(null);

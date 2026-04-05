@@ -11,13 +11,13 @@ import type { TenantMemberRole } from '@atlasmail/shared';
 import { env } from '../../config/env';
 import { sendEmail } from '../email.service';
 
-// Default app permissions for new members — everything except CRM and Projects
-const DEFAULT_MEMBER_APPS = ['hr', 'tasks', 'drive', 'docs', 'draw', 'tables', 'sign'];
+// Default app permissions for new members — everything except CRM, HR, Marketplace, System
+const DEFAULT_MEMBER_APPS = ['tasks', 'drive', 'docs', 'draw', 'tables', 'sign', 'projects'];
 
 async function grantDefaultPermissions(tenantId: string, userId: string) {
   for (const appId of DEFAULT_MEMBER_APPS) {
-    const role: AppRole = appId === 'hr' ? 'viewer' : 'editor';
-    const recordAccess: AppRecordAccess = appId === 'hr' ? 'own' : 'all';
+    const role: AppRole = 'editor';
+    const recordAccess: AppRecordAccess = 'all';
     try {
       await setAppPermission(tenantId, userId, appId, role, recordAccess);
     } catch { /* ignore duplicates */ }

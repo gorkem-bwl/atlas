@@ -60,6 +60,7 @@ router.delete('/teams/:id', crmController.deleteTeam);
 router.get('/teams/:id/members', crmController.listTeamMembers);
 router.post('/teams/:id/members', crmController.addTeamMember);
 router.delete('/teams/:id/members/:userId', crmController.removeTeamMember);
+router.get('/teams/user/:userId', crmController.getUserTeams);
 
 // Activity Types
 router.get('/activity-types/list', crmController.listActivityTypes);

@@ -183,6 +183,7 @@ export const queryKeys = {
       byContact: (id: string) => ['crm', 'events', 'contact', id] as const,
       byDeal: (id: string) => ['crm', 'events', 'deal', id] as const,
     },
+    teams: ['crm', 'teams'] as const,
     savedViews: {
       all: ['crm', 'savedViews'] as const,
       bySection: (section: string) => ['crm', 'savedViews', section] as const,
@@ -193,6 +194,8 @@ export const queryKeys = {
   },
   permissions: {
     all: ['permissions'] as const,
+    allTenant: ['permissions', 'all-tenant'] as const,
+    myApps: ['permissions', 'my-apps'] as const,
     app: (appId: string) => ['permissions', appId] as const,
     me: (appId: string) => ['permissions', appId, 'me'] as const,
   },

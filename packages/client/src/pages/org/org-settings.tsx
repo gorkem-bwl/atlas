@@ -7,9 +7,11 @@ import {
   Calendar,
   Copy,
   Check,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants, useTenantUsers } from '../../hooks/use-platform';
+import { useAllTenantPermissions } from '../../hooks/use-app-permissions';
 import { Chip } from '../../components/ui/chip';
 import { Skeleton } from '../../components/ui/skeleton';
 import { IconButton } from '../../components/ui/icon-button';
@@ -181,6 +183,7 @@ export function OrgSettingsPage() {
   const effectiveTenantId = storeTenantId ?? tenant?.id;
 
   const { data: users, isLoading: usersLoading } = useTenantUsers(effectiveTenantId ?? undefined);
+  const { data: allPermissions } = useAllTenantPermissions(!!effectiveTenantId);
 
   const isLoading = tenantsLoading || usersLoading;
 
@@ -203,8 +206,31 @@ export function OrgSettingsPage() {
 
   const memberCount = users?.length ?? 0;
 
+  // Count members without explicit HR app permission (non-admin/owner)
+  const membersWithoutHr = (() => {
+    if (!users || !allPermissions) return 0;
+    const adminOwnerRoles = new Set(['admin', 'owner']);
+    const nonAdminMembers = users.filter(u => !adminOwnerRoles.has(u.role));
+    const hrUserIds = new Set(
+      allPermissions
+        .filter(p => p.appId === 'hr')
+        .map(p => p.userId),
+    );
+    return nonAdminMembers.filter(u => !hrUserIds.has(u.userId)).length;
+  })();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 720 }}>
+      {/* Page header */}
+      <div>
+        <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', margin: 0 }}>
+          Organization settings
+        </h2>
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', margin: '4px 0 0' }}>
+          View your organization details and infrastructure configuration. {memberCount} team member{memberCount !== 1 ? 's' : ''} in this organization.
+        </p>
+      </div>
+
       {/* Organization profile */}
       <div style={sectionStyle}>
         <div style={sectionHeaderStyle}>
@@ -244,6 +270,24 @@ export function OrgSettingsPage() {
         </div>
       </div>
 
+      {/* Subscription */}
+      <div style={sectionStyle}>
+        <div style={sectionHeaderStyle}>
+          <CreditCard size={15} style={{ color: 'var(--color-text-tertiary)' }} />
+          <span style={sectionTitleStyle}>Subscription</span>
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Plan</span>
+          <div style={valueStyle}>
+            <PlanBadge plan={tenant.plan ?? 'starter'} />
+          </div>
+        </div>
+        <div style={{ ...rowStyle, borderBottom: 'none' }}>
+          <span style={labelStyle}>Team members</span>
+          <span style={valueStyle}>{memberCount}</span>
+        </div>
+      </div>
+
       {/* Infrastructure */}
       <div style={sectionStyle}>
         <div style={sectionHeaderStyle}>
@@ -263,6 +307,29 @@ export function OrgSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* HR access warning */}
+      {membersWithoutHr > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 'var(--spacing-md)',
+            padding: 'var(--spacing-lg) var(--spacing-xl)',
+            background: 'var(--color-warning-bg, #fffbeb)',
+            border: '1px solid var(--color-warning, #f59e0b)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          <AlertTriangle size={16} style={{ color: 'var(--color-warning, #f59e0b)', flexShrink: 0, marginTop: 1 }} />
+          <span>
+            {membersWithoutHr} member{membersWithoutHr !== 1 ? 's' : ''} don't have access to HR.
+            They won't be able to view their employee profile, submit leave requests, or check attendance.
+          </span>
+        </div>
+      )}
 
     </div>
   );
