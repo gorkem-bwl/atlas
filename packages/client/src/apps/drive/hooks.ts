@@ -123,7 +123,7 @@ export function useDriveStorage() {
   });
 }
 
-interface FilePreviewResponse {
+export interface FilePreviewResponse {
   content: string;
   truncated: boolean;
   totalSize: number;

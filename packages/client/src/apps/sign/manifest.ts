@@ -17,5 +17,6 @@ export const signManifest: ClientAppManifest = {
   sidebarOrder: 30,
   routes: [
     { path: '/sign-app', component: SignPage },
+    { path: '/sign-app/:id', component: SignPage },
   ],
 };

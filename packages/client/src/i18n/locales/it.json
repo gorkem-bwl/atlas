@@ -1743,10 +1743,12 @@
       "signNow": "Firma ora",
       "manageSigners": "Gestisci firmatari",
       "addTag": "Aggiungi tag",
+      "tagsLabel": "Tag",
       "deleteConfirm": "Sei sicuro di voler eliminare questo documento? Questa azione non può essere annullata.",
       "voidConfirm": "Questo annullerà tutti i link di firma in sospeso. I firmatari non potranno più firmare questo documento.",
       "redirectUrl": "URL di reindirizzamento",
-      "redirectUrlPlaceholder": "URL a cui reindirizzare il firmatario dopo la firma (opzionale)"
+      "redirectUrlPlaceholder": "URL a cui reindirizzare il firmatario dopo la firma (opzionale)",
+      "settingsTitle": "Impostazioni documento"
     },
     "fields": {
       "signature": "Firma",

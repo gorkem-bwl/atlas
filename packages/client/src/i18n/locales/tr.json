@@ -1743,10 +1743,12 @@
       "signNow": "Şimdi imzala",
       "manageSigners": "İmzacıları yönet",
       "addTag": "Etiket ekle",
+      "tagsLabel": "Etiketler",
       "deleteConfirm": "Bu belgeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
       "voidConfirm": "Bu işlem tüm bekleyen imza bağlantılarını iptal edecektir. İmzacılar artık bu belgeyi imzalayamaz.",
       "redirectUrl": "Yönlendirme URL'si",
-      "redirectUrlPlaceholder": "İmzalama sonrası yönlendirilecek URL (isteğe bağlı)"
+      "redirectUrlPlaceholder": "İmzalama sonrası yönlendirilecek URL (isteğe bağlı)",
+      "settingsTitle": "Belge ayarları"
     },
     "fields": {
       "signature": "İmza",

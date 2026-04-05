@@ -1743,10 +1743,12 @@
       "signNow": "Jetzt unterschreiben",
       "manageSigners": "Unterzeichner verwalten",
       "addTag": "Tag hinzufügen",
+      "tagsLabel": "Tags",
       "deleteConfirm": "Sind Sie sicher, dass Sie dieses Dokument löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
       "voidConfirm": "Damit werden alle ausstehenden Unterschriftslinks ungültig. Unterzeichner können dieses Dokument nicht mehr unterschreiben.",
       "redirectUrl": "Weiterleitungs-URL",
-      "redirectUrlPlaceholder": "URL zur Weiterleitung nach der Unterzeichnung (optional)"
+      "redirectUrlPlaceholder": "URL zur Weiterleitung nach der Unterzeichnung (optional)",
+      "settingsTitle": "Dokumenteinstellungen"
     },
     "fields": {
       "signature": "Unterschrift",

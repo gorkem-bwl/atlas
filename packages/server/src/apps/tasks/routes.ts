@@ -105,6 +105,7 @@ router.get('/:id/activities', taskController.listActivities);
 
 // Attachments (nested under task)
 router.get('/:taskId/attachments', taskController.listAttachments);
+router.post('/:taskId/attachments/from-drive', taskController.linkDriveAttachment);
 router.post('/:taskId/attachments', upload.single('file'), handleMulterError, taskController.uploadAttachment);
 
 // Dependencies (nested under task)

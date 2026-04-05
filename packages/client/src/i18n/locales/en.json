@@ -1775,10 +1775,12 @@
       "signNow": "Sign now",
       "manageSigners": "Manage signers",
       "addTag": "Add tag",
+      "tagsLabel": "Tags",
       "deleteConfirm": "Are you sure you want to delete this document? This action cannot be undone.",
       "voidConfirm": "This will cancel all outstanding signing links. Signers will no longer be able to sign this document.",
       "redirectUrl": "Redirect URL",
-      "redirectUrlPlaceholder": "URL to redirect signer after signing (optional)"
+      "redirectUrlPlaceholder": "URL to redirect signer after signing (optional)",
+      "settingsTitle": "Document settings"
     },
     "fields": {
       "signature": "Signature",

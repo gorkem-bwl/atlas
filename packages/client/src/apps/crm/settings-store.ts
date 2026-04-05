@@ -1,18 +1,14 @@
-import { create } from 'zustand';
-import { api } from '../../lib/api-client';
+import { createAppSettingsStore } from '../../lib/create-app-settings-store';
 
-type CrmDefaultView = 'dashboard' | 'leads' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions' | 'forecast';
+export type CrmDefaultView = 'dashboard' | 'leads' | 'pipeline' | 'deals' | 'contacts' | 'companies' | 'activities' | 'automations' | 'permissions' | 'forecast';
 
-interface CrmSettingsState {
+interface CrmSettings {
   defaultView: CrmDefaultView;
-  setDefaultView: (view: CrmDefaultView) => void;
 }
 
-function persistCrm(key: string, value: unknown) {
-  api.put('/settings', { [`crm_${key}`]: value }).catch(() => {});
-}
+const { useStore: useCrmSettingsStore, useSync: useCrmSettingsSync } = createAppSettingsStore<CrmSettings>({
+  defaults: { defaultView: 'pipeline' },
+  fieldMapping: { defaultView: 'crm_defaultView' },
+});
 
-export const useCrmSettingsStore = create<CrmSettingsState>((set) => ({
-  defaultView: 'pipeline',
-  setDefaultView: (defaultView) => { set({ defaultView }); persistCrm('defaultView', defaultView); },
-}));
+export { useCrmSettingsStore, useCrmSettingsSync };

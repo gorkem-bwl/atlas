@@ -1,22 +1,21 @@
-import { create } from 'zustand';
-import { api } from '../../lib/api-client';
+import { createAppSettingsStore } from '../../lib/create-app-settings-store';
 
-type HrDefaultView = 'dashboard' | 'employees' | 'departments' | 'org-chart' | 'time-off';
+export type HrDefaultView = 'dashboard' | 'employees' | 'departments' | 'org-chart' | 'time-off';
 
-interface HrSettingsState {
+interface HrSettings {
   defaultView: HrDefaultView;
   showDepartmentInList: boolean;
-  setDefaultView: (view: HrDefaultView) => void;
-  setShowDepartmentInList: (value: boolean) => void;
 }
 
-function persistHr(key: string, value: unknown) {
-  api.put('/settings', { [`hr_${key}`]: value }).catch(() => {});
-}
+const { useStore: useHrSettingsStore, useSync: useHrSettingsSync } = createAppSettingsStore<HrSettings>({
+  defaults: {
+    defaultView: 'employees',
+    showDepartmentInList: true,
+  },
+  fieldMapping: {
+    defaultView: 'hr_defaultView',
+    showDepartmentInList: 'hr_showDepartmentInList',
+  },
+});
 
-export const useHrSettingsStore = create<HrSettingsState>((set) => ({
-  defaultView: 'employees',
-  showDepartmentInList: true,
-  setDefaultView: (defaultView) => { set({ defaultView }); persistHr('defaultView', defaultView); },
-  setShowDepartmentInList: (showDepartmentInList) => { set({ showDepartmentInList }); persistHr('showDepartmentInList', showDepartmentInList); },
-}));
+export { useHrSettingsStore, useHrSettingsSync };

@@ -1743,10 +1743,12 @@
       "signNow": "Signer maintenant",
       "manageSigners": "Gérer les signataires",
       "addTag": "Ajouter un tag",
+      "tagsLabel": "Tags",
       "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.",
       "voidConfirm": "Cela annulera tous les liens de signature en cours. Les signataires ne pourront plus signer ce document.",
       "redirectUrl": "URL de redirection",
-      "redirectUrlPlaceholder": "URL de redirection après la signature (facultatif)"
+      "redirectUrlPlaceholder": "URL de redirection après la signature (facultatif)",
+      "settingsTitle": "Paramètres du document"
     },
     "fields": {
       "signature": "Signature",

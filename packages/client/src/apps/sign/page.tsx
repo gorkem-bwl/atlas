@@ -1,4 +1,3 @@
-import { useState, useCallback, useRef, useMemo, useEffect, type CSSProperties, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FileText,
@@ -7,583 +6,36 @@ import {
   FilePen,
   AlertTriangle,
   Upload,
-  PenTool,
-  Type,
-  Calendar,
-  AlignLeft,
-  Send,
-  ArrowLeft,
-  Link2,
-  Copy,
-  Trash2,
-  Download,
   Ban,
-  Plus,
-  X,
-  Users,
-  CheckSquare,
-  ChevronDown,
-  Pencil,
-  Tag,
-  Search,
-  History,
   BookTemplate,
-  Play,
-  BookmarkPlus,
-  Bell,
-  ListOrdered,
-  User,
-  Mail,
-  ExternalLink,
 } from 'lucide-react';
-import { DataTable, type DataTableColumn } from '../../components/ui/data-table';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { ContentArea } from '../../components/ui/content-area';
-import { ListToolbar } from '../../components/ui/list-toolbar';
 import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Modal } from '../../components/ui/modal';
-import { StatusDot } from '../../components/ui/status-dot';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
-import { Select } from '../../components/ui/select';
-import { IconButton } from '../../components/ui/icon-button';
-import { Tooltip } from '../../components/ui/tooltip';
-import { Skeleton } from '../../components/ui/skeleton';
-import { PdfViewer } from './components/pdf-viewer';
-import { FieldOverlay } from './components/field-overlay';
 import { SignatureModal } from './components/signature-modal';
-import { SignerPanel, SIGNER_COLORS, type Signer } from './components/signer-panel';
-import { FieldPropertiesPanel } from './components/field-properties-panel';
-import {
-  useSignDocuments,
-  useSignDocument,
-  useSignFields,
-  useCreateSignDoc,
-  useUpdateSignDoc,
-  useDeleteSignDoc,
-  useCreateField,
-  useUpdateField,
-  useDeleteField,
-  useCreateSigningLink,
-  useSigningLinks,
-  useSendReminder,
-  useVoidDocument,
-  useAuditLog,
-  useTemplates,
-  useCreateFromTemplate,
-  useSaveAsTemplate,
-  useDeleteTemplate,
-} from './hooks';
-import { config } from '../../config/env';
-import type { SignatureDocument, SignatureFieldType, SignatureField, SignAuditLogEntry } from '@atlasmail/shared';
-import { formatDate } from '../../lib/format';
-import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
-import { Chip } from '../../components/ui/chip';
-import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
+import { SignListView } from './components/sign-list-view';
+import { SignEditorView } from './components/sign-editor-view';
+import { SignTemplatesView } from './components/sign-templates-view';
+import { SignAuditView } from './components/sign-audit-view';
+import { SignSendModal } from './components/sign-send-modal';
+import { SignSignersModal } from './components/sign-signers-modal';
+import { useSignPageState } from './lib/use-sign-page-state';
 import '../../styles/sign.css';
-
-// ─── Status helpers ─────────────────────────────────────────────────
-
-type FilterStatus = 'all' | 'pending' | 'signed' | 'draft' | 'expired' | 'voided';
-
-const STATUS_BADGE_MAP: Record<string, 'default' | 'primary' | 'success' | 'warning' | 'error'> = {
-  draft: 'default',
-  pending: 'warning',
-  signed: 'success',
-  expired: 'error',
-  voided: 'error',
-};
-
-// Status-based left border colors for document list rows
-const STATUS_BORDER_COLORS: Record<string, string> = {
-  signed: 'var(--color-success)',
-  pending: 'var(--color-warning)',
-  draft: 'var(--color-border-primary)',
-  expired: 'var(--color-error)',
-  voided: 'var(--color-error)',
-};
-
-// ─── Audit action label helper ──────────────────────────────────────
-
-function getAuditActionLabel(entry: SignAuditLogEntry, t: (key: string, opts?: Record<string, unknown>) => string): string {
-  switch (entry.action) {
-    case 'document.created':
-      return t('sign.audit.documentCreated');
-    case 'signing_link.created':
-      return t('sign.audit.linkCreated', { email: entry.actorEmail ?? '' });
-    case 'document.viewed':
-      return t('sign.audit.documentViewed', { email: entry.actorEmail ?? '' });
-    case 'document.signed':
-      return t('sign.audit.fieldSigned', { email: entry.actorEmail ?? '' });
-    case 'document.completed':
-      return t('sign.audit.documentCompleted');
-    case 'document.voided':
-      return t('sign.audit.documentVoided');
-    case 'document.declined':
-      return t('sign.audit.documentDeclined', { email: entry.actorEmail ?? '' });
-    case 'signing_token.completed':
-      return t('sign.audit.fieldSigned', { email: entry.actorEmail ?? '' });
-    default:
-      return entry.action;
-  }
-}
-
-// ─── Main page ──────────────────────────────────────────────────────
 
 export function SignPage() {
   const { t } = useTranslation();
-  const [view, setView] = useState<'list' | 'editor' | 'templates' | 'audit'>('list');
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<'title' | 'status' | 'updatedAt' | 'createdAt'>('createdAt');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [selectedFieldId, setSelectedFieldId] = useState<string | undefined>();
-  const [sigModalOpen, setSigModalOpen] = useState(false);
-  const [sigFieldType, setSigFieldType] = useState<SignatureFieldType>('signature');
-  const [sigFieldId, setSigFieldId] = useState<string | undefined>();
-  const [sendModalOpen, setSendModalOpen] = useState(false);
-  // (signerEmail/signerName state removed — signers array is used instead)
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
-  // Upload progress
-  const [uploading, setUploading] = useState(false);
-  // Multiple signers (editor panel)
-  const [signers, setSigners] = useState<Signer[]>([{ email: '', name: '', role: 'signer' }]);
-  const [activeSignerIndex, setActiveSignerIndex] = useState<number | null>(null);
-  const [generatedLinks, setGeneratedLinks] = useState<{ email: string; link: string }[]>([]);
-  const [activeSigner, setActiveSigner] = useState<string | undefined>();
-  const [signersModalOpen, setSignersModalOpen] = useState(false);
-  // Email customization
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailMessage, setEmailMessage] = useState('');
-  // Sequential signing
-  const [signInOrder, setSignInOrder] = useState(false);
-  // Expiration date
-  const getDefaultExpiry = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 30);
-    return d.toISOString().split('T')[0];
-  };
-  const [expiryDate, setExpiryDate] = useState(getDefaultExpiry);
-  // Inline title editing
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [titleDraft, setTitleDraft] = useState('');
-  // Tags
-  const [addingTag, setAddingTag] = useState(false);
-  const [tagDraft, setTagDraft] = useState('');
-  // Template delete
-  const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
-  const [deleteTemplateOpen, setDeleteTemplateOpen] = useState(false);
-  // Page thumbnails for sidebar navigation
-  const [pageThumbnails, setPageThumbnails] = useState<Array<{ page: number; dataUrl: string; width: number; height: number }>>([]);
-  const [scrollToPage, setScrollToPage] = useState<number | null>(null);
-  // Track which page number is visible for thumbnail highlight
-  const [activePageNumber, setActivePageNumber] = useState(1);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const pdfContentRef = useRef<HTMLDivElement>(null);
-
-  // Queries
-  const { data: documents, isLoading: docsLoading } = useSignDocuments();
-  const { data: selectedDoc } = useSignDocument(selectedDocId ?? undefined);
-  const { data: fields } = useSignFields(selectedDocId ?? undefined);
-  const { data: signingLinks } = useSigningLinks(selectedDocId ?? undefined);
-  const { data: auditEntries } = useAuditLog(selectedDocId ?? undefined);
-  const { data: templates, isLoading: templatesLoading } = useTemplates();
-
-  // Mutations
-  const createDoc = useCreateSignDoc();
-  const updateDoc = useUpdateSignDoc(selectedDocId ?? undefined);
-  const deleteDoc = useDeleteSignDoc();
-  const createField = useCreateField(selectedDocId ?? undefined);
-  const updateField = useUpdateField(selectedDocId ?? undefined);
-  const deleteField = useDeleteField(selectedDocId ?? undefined);
-  const createSigningLink = useCreateSigningLink(selectedDocId ?? undefined);
-  const sendReminder = useSendReminder(selectedDocId ?? undefined);
-  const voidDoc = useVoidDocument(selectedDocId ?? undefined);
-  const createFromTemplate = useCreateFromTemplate();
-  const saveAsTemplate = useSaveAsTemplate(selectedDocId ?? undefined);
-  const deleteTemplate = useDeleteTemplate();
-
-  // ─── Handlers ───────────────────────────────────────────────────
-
-  const handleUpload = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('pdf', file);
-      formData.append('title', file.name.replace(/\.pdf$/i, ''));
-      try {
-        const doc = await createDoc.mutateAsync(formData);
-        setSelectedDocId(doc.id);
-        setView('editor');
-      } catch {
-        // Error handled by React Query
-      } finally {
-        setUploading(false);
-      }
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    },
-    [createDoc],
-  );
-
-  const handleOpenDoc = useCallback((doc: SignatureDocument) => {
-    setSelectedDocId(doc.id);
-    setSelectedFieldId(undefined);
-    setView('editor');
-  }, []);
-
-  const handleBackToList = useCallback(() => {
-    setView('list');
-    setSelectedDocId(null);
-    setSelectedFieldId(undefined);
-  }, []);
-
-  const handleRequestDelete = useCallback((id: string) => {
-    setDeleteTargetId(id);
-    setDeleteConfirmOpen(true);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!deleteTargetId) return;
-    await deleteDoc.mutateAsync(deleteTargetId);
-    if (selectedDocId === deleteTargetId) {
-      handleBackToList();
-    }
-    setDeleteTargetId(null);
-  }, [deleteDoc, deleteTargetId, selectedDocId, handleBackToList]);
-
-  const handleDownload = useCallback(
-    (docId: string) => {
-      const authToken = localStorage.getItem('atlasmail_token');
-      const tokenParam = authToken ? `?token=${encodeURIComponent(authToken)}` : '';
-      const url = `${config.apiUrl}/sign/${docId}/download${tokenParam}`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = '';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    },
-    [],
-  );
-
-  const handleVoidDocument = useCallback(async () => {
-    if (!selectedDocId) return;
-    await voidDoc.mutateAsync();
-  }, [selectedDocId, voidDoc]);
-
-  const handleAddField = useCallback(
-    async (type: SignatureFieldType, pageNumber = 1, x = 25, y = 40) => {
-      if (!selectedDocId) return;
-      // Auto-assign to active signer if one is selected
-      const assignedEmail = activeSignerIndex !== null && signers[activeSignerIndex]?.email.trim()
-        ? signers[activeSignerIndex].email.trim()
-        : null;
-      await createField.mutateAsync({
-        type,
-        pageNumber,
-        x,
-        y,
-        width: type === 'checkbox' ? 5 : 20,
-        height: type === 'checkbox' ? 4 : 5,
-        signerEmail: assignedEmail,
-        label: null,
-        required: true,
-        sortOrder: 0,
-      });
-    },
-    [selectedDocId, createField, activeSignerIndex, signers],
-  );
-
-  // Handle drop from toolbar onto a PDF page
-  const handlePageDrop = useCallback(
-    (e: DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      const fieldType = e.dataTransfer.getData('application/sign-field-type') as SignatureFieldType;
-      if (!fieldType) return;
-
-      // Find which page element was dropped on
-      const pdfContent = pdfContentRef.current;
-      if (!pdfContent) return;
-
-      const pageElements = pdfContent.querySelectorAll('[id^="sign-page-"]');
-      let targetPage = 1;
-      let relX = 25;
-      let relY = 40;
-
-      for (const pageEl of pageElements) {
-        const rect = pageEl.getBoundingClientRect();
-        if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          const pageNum = parseInt(pageEl.id.replace('sign-page-', ''), 10);
-          if (!isNaN(pageNum)) {
-            targetPage = pageNum;
-            // Calculate position relative to the page as percentages
-            // The img inside is the first child; its dimensions are the page dimensions
-            const imgEl = pageEl.querySelector('img');
-            if (imgEl) {
-              const imgRect = imgEl.getBoundingClientRect();
-              relX = ((e.clientX - imgRect.left) / imgRect.width) * 100;
-              relY = ((e.clientY - imgRect.top) / imgRect.height) * 100;
-              // Clamp so the field stays within bounds
-              relX = Math.max(0, Math.min(80, relX));
-              relY = Math.max(0, Math.min(90, relY));
-            }
-          }
-          break;
-        }
-      }
-
-      handleAddField(fieldType, targetPage, relX, relY);
-    },
-    [handleAddField],
-  );
-
-  const handlePageDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  }, []);
-
-  const handleFieldMove = useCallback(
-    (id: string, x: number, y: number) => {
-      updateField.mutate({ fieldId: id, x, y });
-    },
-    [updateField],
-  );
-
-  const handleFieldResize = useCallback(
-    (id: string, width: number, height: number) => {
-      updateField.mutate({ fieldId: id, width, height });
-    },
-    [updateField],
-  );
-
-  const handleFieldDelete = useCallback(
-    (id: string) => {
-      deleteField.mutate(id);
-      if (selectedFieldId === id) setSelectedFieldId(undefined);
-    },
-    [deleteField, selectedFieldId],
-  );
-
-  const handleFieldClick = useCallback(
-    (id: string) => {
-      setSelectedFieldId(id);
-    },
-    [],
-  );
-
-  // Delete selected field with Delete/Backspace key
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (!selectedFieldId) return;
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        handleFieldDelete(selectedFieldId);
-      }
-      if (e.key === 'Escape') {
-        setSelectedFieldId(undefined);
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedFieldId, handleFieldDelete]);
-
-  // Sign now: click a field to apply a signature
-  const handleSignNowClick = useCallback(
-    (fieldId: string) => {
-      const field = fields?.find((f) => f.id === fieldId);
-      if (!field) return;
-      if (field.signatureData) return; // Already signed
-      setSigFieldType(field.type);
-      setSigFieldId(fieldId);
-      setSigModalOpen(true);
-    },
-    [fields],
-  );
-
-  const handleSignatureApply = useCallback(
-    (signatureData: string) => {
-      if (!sigFieldId) return;
-      updateField.mutate({ fieldId: sigFieldId, signatureData, signedAt: new Date().toISOString() });
-      setSigFieldId(undefined);
-    },
-    [sigFieldId, updateField],
-  );
-
-  // Send for signing (multi-signer)
-  const handleSendForSigning = useCallback(async () => {
-    const validSigners = signers.filter((s) => s.email.trim());
-    if (validSigners.length === 0) return;
-    // Calculate days from now to expiry
-    const now = new Date();
-    const globalExpiry = new Date(expiryDate);
-    try {
-      const links: { email: string; link: string }[] = [];
-      for (let idx = 0; idx < validSigners.length; idx++) {
-        const signer = validSigners[idx];
-        const signerExpiry = signer.expiryDate ? new Date(signer.expiryDate) : globalExpiry;
-        const diffMs = signerExpiry.getTime() - now.getTime();
-        const expiresInDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-        const tokenResult = await createSigningLink.mutateAsync({
-          email: signer.email.trim(),
-          name: signer.name.trim() || undefined,
-          expiresInDays,
-          signingOrder: signInOrder ? idx : 0,
-          role: signer.role || 'signer',
-          customSubject: emailSubject.trim() || undefined,
-          customMessage: emailMessage.trim() || undefined,
-        });
-        links.push({
-          email: signer.email.trim(),
-          link: `${window.location.origin}/sign/${tokenResult.token}`,
-        });
-      }
-      setGeneratedLinks(links);
-      // Also set single link for backward compat display
-      if (links.length === 1) {
-        setGeneratedLink(links[0].link);
-      } else {
-        setGeneratedLink('__multi__');
-      }
-      setLinkCopied(false);
-      // Mark document as pending
-      await updateDoc.mutateAsync({ status: 'pending' });
-    } catch {
-      // Handled by RQ
-    }
-  }, [signers, signInOrder, emailSubject, emailMessage, createSigningLink, updateDoc]);
-
-  const handleCopyLink = useCallback(() => {
-    if (!generatedLink) return;
-    navigator.clipboard.writeText(generatedLink);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
-  }, [generatedLink]);
-
-  const handleCloseSendModal = useCallback((open: boolean) => {
-    setSendModalOpen(open);
-    if (!open) {
-      setGeneratedLink(null);
-      setGeneratedLinks([]);
-      setLinkCopied(false);
-      setExpiryDate(getDefaultExpiry());
-      setEmailSubject('');
-      setEmailMessage('');
-    }
-  }, []);
-
-  // ─── Selected field (for properties panel) ────────────────────
-  const selectedField = useMemo(() => {
-    if (!selectedFieldId || !fields) return null;
-    return fields.find((f) => f.id === selectedFieldId) ?? null;
-  }, [selectedFieldId, fields]);
-
-  const handleFieldPropertyUpdate = useCallback(
-    (data: Partial<SignatureField>) => {
-      if (!selectedFieldId) return;
-      updateField.mutate({ fieldId: selectedFieldId, ...data });
-    },
-    [selectedFieldId, updateField],
-  );
-
-  // Check if all required fields have a signer assigned (for send enablement)
-  const allFieldsAssigned = useMemo(() => {
-    if (!fields || fields.length === 0) return false;
-    const requiredFields = fields.filter((f) => f.required);
-    if (requiredFields.length === 0) return true;
-    return requiredFields.every((f) => f.signerEmail);
-  }, [fields]);
-
-  // ─── Filtered + searched + sorted docs ─────────────────────────
-
-  const filteredDocs = useMemo(() => {
-    let docs = (documents ?? []).filter((doc) => {
-      if (filterStatus !== 'all' && doc.status !== filterStatus) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchTitle = (doc.title || '').toLowerCase().includes(q);
-        const matchFile = (doc.fileName || '').toLowerCase().includes(q);
-        if (!matchTitle && !matchFile) return false;
-      }
-      return true;
-    });
-
-    docs.sort((a, b) => {
-      let cmp = 0;
-      switch (sortField) {
-        case 'title':
-          cmp = (a.title || '').localeCompare(b.title || '');
-          break;
-        case 'status':
-          cmp = (a.status || '').localeCompare(b.status || '');
-          break;
-        case 'updatedAt':
-          cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
-          break;
-        case 'createdAt':
-        default:
-          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          break;
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    return docs;
-  }, [documents, filterStatus, searchQuery, sortField, sortDir]);
-
-  const handleSort = useCallback((columnKey: string) => {
-    const key = columnKey as typeof sortField;
-    if (sortField === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(key);
-      setSortDir('asc');
-    }
-  }, [sortField]);
-
-  // ─── Sidebar counts ───────────────────────────────────────────
-
-  const counts = useMemo(() => ({
-    all: documents?.length ?? 0,
-    pending: documents?.filter((d) => d.status === 'pending').length ?? 0,
-    signed: documents?.filter((d) => d.status === 'signed').length ?? 0,
-    draft: documents?.filter((d) => d.status === 'draft').length ?? 0,
-    expired: documents?.filter((d) => d.status === 'expired').length ?? 0,
-    voided: documents?.filter((d) => d.status === 'voided').length ?? 0,
-  }), [documents]);
-
-  // PDF url for the selected document (include auth token for pdfjs-dist)
-  const token = localStorage.getItem('atlasmail_token');
-  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-  const pdfUrl = selectedDocId
-    ? `${config.apiUrl}/sign/${selectedDocId}/view${tokenParam}`
-    : undefined;
+  const s = useSignPageState();
 
   return (
     <div className="sign-page">
       {/* Hidden file input */}
       <input
-        ref={fileInputRef}
+        ref={s.fileInputRef}
         type="file"
         accept="application/pdf"
         style={{ display: 'none' }}
-        onChange={handleFileChange}
+        onChange={s.handleFileChange}
       />
 
       {/* Sidebar */}
@@ -593,49 +45,49 @@ export function SignPage() {
             label={t('sign.sidebar.allDocuments')}
             icon={<FileText size={15} />}
             iconColor="#8b5cf6"
-            isActive={view !== 'templates' && filterStatus === 'all'}
-            count={counts.all}
-            onClick={() => { setFilterStatus('all'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'all'}
+            count={s.counts.all}
+            onClick={() => { s.setFilterStatus('all'); s.setView('list'); s.setSelectedDocId(null); }}
           />
           <SidebarItem
             label={t('sign.sidebar.pending')}
             icon={<Clock size={15} />}
             iconColor="#f59e0b"
-            isActive={view !== 'templates' && filterStatus === 'pending'}
-            count={counts.pending}
-            onClick={() => { setFilterStatus('pending'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'pending'}
+            count={s.counts.pending}
+            onClick={() => { s.setFilterStatus('pending'); s.setView('list'); s.setSelectedDocId(null); }}
           />
           <SidebarItem
             label={t('sign.sidebar.signed')}
             icon={<CheckCircle size={15} />}
             iconColor="#10b981"
-            isActive={view !== 'templates' && filterStatus === 'signed'}
-            count={counts.signed}
-            onClick={() => { setFilterStatus('signed'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'signed'}
+            count={s.counts.signed}
+            onClick={() => { s.setFilterStatus('signed'); s.setView('list'); s.setSelectedDocId(null); }}
           />
           <SidebarItem
             label={t('sign.sidebar.draft')}
             icon={<FilePen size={15} />}
             iconColor="#64748b"
-            isActive={view !== 'templates' && filterStatus === 'draft'}
-            count={counts.draft}
-            onClick={() => { setFilterStatus('draft'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'draft'}
+            count={s.counts.draft}
+            onClick={() => { s.setFilterStatus('draft'); s.setView('list'); s.setSelectedDocId(null); }}
           />
           <SidebarItem
             label={t('sign.sidebar.expired')}
             icon={<AlertTriangle size={15} />}
             iconColor="#ef4444"
-            isActive={view !== 'templates' && filterStatus === 'expired'}
-            count={counts.expired}
-            onClick={() => { setFilterStatus('expired'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'expired'}
+            count={s.counts.expired}
+            onClick={() => { s.setFilterStatus('expired'); s.setView('list'); s.setSelectedDocId(null); }}
           />
           <SidebarItem
             label={t('sign.sidebar.voided')}
             icon={<Ban size={15} />}
             iconColor="#ef4444"
-            isActive={view !== 'templates' && filterStatus === 'voided'}
-            count={counts.voided}
-            onClick={() => { setFilterStatus('voided'); setView('list'); setSelectedDocId(null); }}
+            isActive={s.view !== 'templates' && s.filterStatus === 'voided'}
+            count={s.counts.voided}
+            onClick={() => { s.setFilterStatus('voided'); s.setView('list'); s.setSelectedDocId(null); }}
           />
         </SidebarSection>
         <SidebarSection>
@@ -643,9 +95,9 @@ export function SignPage() {
             label={t('sign.sidebar.templates')}
             icon={<BookTemplate size={15} />}
             iconColor="#8b5cf6"
-            isActive={view === 'templates'}
-            count={templates?.length ?? 0}
-            onClick={() => { setView('templates'); setSelectedDocId(null); }}
+            isActive={s.view === 'templates'}
+            count={s.templates?.length ?? 0}
+            onClick={() => { s.setView('templates'); s.setSelectedDocId(null); }}
           />
         </SidebarSection>
       </AppSidebar>
@@ -653,1144 +105,177 @@ export function SignPage() {
       {/* Main content */}
       <ContentArea
         title={
-          view === 'templates' ? t('sign.templates.title')
-            : view === 'audit' ? t('sign.audit.title')
-            : filterStatus === 'all' ? t('sign.sidebar.allDocuments')
-            : t(`sign.status.${filterStatus}`)
+          s.view === 'templates' ? t('sign.templates.title')
+            : s.view === 'audit' ? t('sign.audit.title')
+            : s.filterStatus === 'all' ? t('sign.sidebar.allDocuments')
+            : t(`sign.status.${s.filterStatus}`)
         }
         actions={
-          view === 'list' ? (
-            <Button variant="primary" size="sm" icon={<Upload size={14} />} onClick={handleUpload}>
+          s.view === 'list' ? (
+            <Button variant="primary" size="sm" icon={<Upload size={14} />} onClick={s.handleUpload}>
               {t('sign.editor.uploadPdf')}
             </Button>
           ) : undefined
         }
       >
-        {view === 'list' && (
-          <>
-            <ListToolbar>
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('sign.list.search', 'Search documents...')}
-                iconLeft={<Search size={14} />}
-                size="sm"
-                style={{ width: 220 }}
-              />
-            </ListToolbar>
-            <div style={{ flex: 1, overflow: 'auto' }}>
-              {uploading ? (
-                <div className="sign-upload-feedback">
-                  <Skeleton width={60} height={60} borderRadius="var(--radius-lg)" />
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-sm)' }}>
-                    {t('sign.editor.uploading')}
-                  </span>
-                </div>
-              ) : docsLoading ? (
-                <div className="sign-empty">{t('sign.list.loading')}</div>
-              ) : filteredDocs.length === 0 ? (
-                <FeatureEmptyState
-                  illustration="documents"
-                  title={t('sign.empty.title')}
-                  description={t('sign.empty.desc')}
-                  highlights={[
-                    { icon: <PenTool size={14} />, title: t('sign.empty.h1Title'), description: t('sign.empty.h1Desc') },
-                    { icon: <Send size={14} />, title: t('sign.empty.h2Title'), description: t('sign.empty.h2Desc') },
-                    { icon: <CheckCircle size={14} />, title: t('sign.empty.h3Title'), description: t('sign.empty.h3Desc') },
-                  ]}
-                  actionLabel={t('sign.empty.upload')}
-                  actionIcon={<Upload size={14} />}
-                  onAction={handleUpload}
-                />
-              ) : (
-                <DataTable<SignatureDocument & { signerCount?: number; signedCount?: number; signers?: Array<{ email: string; name: string | null; status: string }> }>
-                  data={filteredDocs as Array<SignatureDocument & { signerCount?: number; signedCount?: number; signers?: Array<{ email: string; name: string | null; status: string }> }>}
-                  columns={[
-                    {
-                      key: 'title',
-                      label: t('sign.list.title'),
-                      icon: <FileText size={12} />,
-                      sortable: true,
-                      render: (doc) => (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'] }}>
-                          <span>{doc.title}</span>
-                          {(doc.tags ?? []).map((tag) => (
-                            <Chip key={tag} color="#8b5cf6" height={18} style={{ fontSize: 10 }}>
-                              {tag}
-                            </Chip>
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      key: 'status',
-                      label: t('sign.list.status'),
-                      icon: <Tag size={12} />,
-                      sortable: true,
-                      width: 110,
-                      render: (doc) => (
-                        <Badge variant={STATUS_BADGE_MAP[doc.status] ?? 'default'}>
-                          {doc.status}
-                        </Badge>
-                      ),
-                    },
-                    {
-                      key: 'signers',
-                      label: t('sign.list.signers'),
-                      icon: <Users size={12} />,
-                      width: 140,
-                      render: (doc) =>
-                        doc.signerCount && doc.signerCount > 0 ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <div style={{ display: 'flex', gap: 3 }}>
-                              {(doc.signers ?? []).map((signer, sIdx) => (
-                                <StatusDot
-                                  key={sIdx}
-                                  color={
-                                    signer.status === 'signed' ? 'var(--color-success)'
-                                      : signer.status === 'declined' || signer.status === 'expired' ? 'var(--color-error)'
-                                      : 'var(--color-warning)'
-                                  }
-                                  size={8}
-                                  glow={signer.status === 'signed'}
-                                  label={`${signer.email}: ${signer.status}`}
-                                />
-                              ))}
-                            </div>
-                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                              {doc.signedCount}/{doc.signerCount}
-                            </span>
-                          </div>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-tertiary)' }}>&mdash;</span>
-                        ),
-                    },
-                    {
-                      key: 'createdAt',
-                      label: t('sign.list.created'),
-                      icon: <Calendar size={12} />,
-                      sortable: true,
-                      width: 130,
-                      render: (doc) => (
-                        <span style={{ color: 'var(--color-text-secondary)' }}>{formatDate(doc.createdAt)}</span>
-                      ),
-                    },
-                    {
-                      key: 'actions',
-                      label: t('sign.list.actions'),
-                      width: 80,
-                      render: (doc) => (
-                        <div
-                          style={{ display: 'flex', gap: 2 }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {doc.status === 'signed' && (
-                            <IconButton
-                              icon={<Download size={14} />}
-                              label={t('sign.editor.downloadPdf')}
-                              size={26}
-                              onClick={() => handleDownload(doc.id)}
-                            />
-                          )}
-                          <IconButton
-                            icon={<Trash2 size={14} />}
-                            label={t('sign.editor.deleteDocument')}
-                            size={26}
-                            destructive
-                            onClick={() => handleRequestDelete(doc.id)}
-                          />
-                        </div>
-                      ),
-                    },
-                  ] as DataTableColumn<SignatureDocument & { signerCount?: number; signedCount?: number; signers?: Array<{ email: string; name: string | null; status: string }> }>[]}
-                  onRowClick={handleOpenDoc}
-                  activeRowId={selectedDocId}
-                  sort={{ column: sortField, direction: sortDir }}
-                  onSortChange={(s) => {
-                    if (!s) return;
-                    handleSort(s.column);
-                  }}
-                  rowClassName={(doc) => `sign-doc-row-dt`}
-                  paginated={false}
-                  hideFooter={false}
-                  emptyTitle={t('sign.empty.title')}
-                />
-              )}
-            </div>
-          </>
+        {s.view === 'list' && (
+          <SignListView
+            searchQuery={s.searchQuery}
+            onSearchChange={s.setSearchQuery}
+            uploading={s.uploading}
+            docsLoading={s.docsLoading}
+            filteredDocs={s.filteredDocs as any}
+            selectedDocId={s.selectedDocId}
+            sortField={s.sortField}
+            sortDir={s.sortDir}
+            onSort={s.handleSort}
+            onUpload={s.handleUpload}
+            onOpenDoc={s.handleOpenDoc}
+            onDownload={s.handleDownload}
+            onRequestDelete={s.handleRequestDelete}
+          />
         )}
 
-        {view === 'editor' && selectedDoc && (
-          <>
-            {/* Editor toolbar */}
-            <div className="sign-toolbar">
-              <div className="sign-toolbar-left">
-                <Button variant="ghost" size="sm" icon={<ArrowLeft size={14} />} onClick={handleBackToList}>
-                  {t('sign.editor.back')}
-                </Button>
-                {editingTitle ? (
-                  <input
-                    autoFocus
-                    value={titleDraft}
-                    onChange={(e) => setTitleDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        if (titleDraft.trim() && titleDraft.trim() !== selectedDoc.title) {
-                          updateDoc.mutate({ title: titleDraft.trim() });
-                        }
-                        setEditingTitle(false);
-                      }
-                      if (e.key === 'Escape') {
-                        setEditingTitle(false);
-                      }
-                    }}
-                    onBlur={() => {
-                      if (titleDraft.trim() && titleDraft.trim() !== selectedDoc.title) {
-                        updateDoc.mutate({ title: titleDraft.trim() });
-                      }
-                      setEditingTitle(false);
-                    }}
-                    style={{
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                      color: 'var(--color-text-primary)',
-                      fontFamily: 'var(--font-family)',
-                      border: '1px solid var(--color-border-primary)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '2px 6px',
-                      outline: 'none',
-                      background: 'var(--color-bg-primary)',
-                      maxWidth: 240,
-                    }}
-                  />
-                ) : (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                      color: 'var(--color-text-primary)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => { setTitleDraft(selectedDoc.title); setEditingTitle(true); }}
-                  >
-                    {selectedDoc.title}
-                    <Pencil size={12} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-                  </span>
-                )}
-                <Badge variant={STATUS_BADGE_MAP[selectedDoc.status] ?? 'default'}>
-                  {selectedDoc.status}
-                </Badge>
-              </div>
-              <div className="sign-toolbar-right">
-                <IconButton
-                  icon={<History size={14} />}
-                  label={t('sign.audit.title')}
-                  size={28}
-                  onClick={() => setView('audit')}
-                />
-                <IconButton
-                  icon={<BookmarkPlus size={14} />}
-                  label={t('sign.templates.saveAsTemplate')}
-                  size={28}
-                  onClick={async () => {
-                    try {
-                      await saveAsTemplate.mutateAsync({});
-                    } catch { /* handled by RQ */ }
-                  }}
-                />
-                <IconButton
-                  icon={<Users size={14} />}
-                  label={t('sign.editor.manageSigners')}
-                  size={28}
-                  onClick={() => setSignersModalOpen(true)}
-                />
-                <IconButton
-                  icon={<Download size={14} />}
-                  label={t('sign.editor.downloadPdf')}
-                  size={28}
-                  onClick={() => handleDownload(selectedDoc.id)}
-                />
-                <IconButton
-                  icon={<Trash2 size={14} />}
-                  label={t('sign.editor.deleteDocument')}
-                  size={28}
-                  destructive
-                  onClick={() => handleRequestDelete(selectedDoc.id)}
-                />
-                {selectedDoc.status === 'pending' && (
-                  <IconButton
-                    icon={<Ban size={14} />}
-                    label={t('sign.editor.voidDocument')}
-                    size={28}
-                    destructive
-                    onClick={() => setVoidConfirmOpen(true)}
-                  />
-                )}
-                <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
-                <Tooltip content={!allFieldsAssigned && fields && fields.length > 0 ? t('sign.editor.assignAllFields') : undefined}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Send size={14} />}
-                    onClick={() => setSendModalOpen(true)}
-                    disabled={!allFieldsAssigned && fields != null && fields.length > 0}
-                  >
-                    {t('sign.editor.sendForSigning')}
-                    {signers.filter((s) => s.email.trim()).length > 0 && (
-                      <span style={{ marginLeft: 4, fontSize: 'var(--font-size-xs)', opacity: 0.7 }}>
-                        ({signers.filter((s) => s.email.trim()).length})
-                      </span>
-                    )}
-                  </Button>
-                </Tooltip>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={<PenTool size={14} />}
-                  onClick={() => {
-                    // Sign now mode: click a field to sign
-                    if (fields && fields.length > 0) {
-                      const firstUnsigned = fields.find((f) => !f.signatureData);
-                      if (firstUnsigned) {
-                        handleSignNowClick(firstUnsigned.id);
-                      }
-                    }
-                  }}
-                >
-                  {t('sign.editor.signNow')}
-                </Button>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderBottom: '1px solid var(--color-border-secondary)', flexWrap: 'wrap' }}>
-              <Tag size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-              {(selectedDoc.tags ?? []).map((tag) => (
-                <Chip
-                  key={tag}
-                  color="#8b5cf6"
-                  onRemove={() => {
-                    const next = (selectedDoc.tags ?? []).filter((t) => t !== tag);
-                    updateDoc.mutate({ tags: next });
-                  }}
-                >
-                  {tag}
-                </Chip>
-              ))}
-              {addingTag ? (
-                <input
-                  autoFocus
-                  value={tagDraft}
-                  onChange={(e) => setTagDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && tagDraft.trim()) {
-                      const current = selectedDoc.tags ?? [];
-                      if (!current.includes(tagDraft.trim())) {
-                        updateDoc.mutate({ tags: [...current, tagDraft.trim()] });
-                      }
-                      setTagDraft('');
-                      setAddingTag(false);
-                    }
-                    if (e.key === 'Escape') {
-                      setTagDraft('');
-                      setAddingTag(false);
-                    }
-                  }}
-                  onBlur={() => {
-                    if (tagDraft.trim()) {
-                      const current = selectedDoc.tags ?? [];
-                      if (!current.includes(tagDraft.trim())) {
-                        updateDoc.mutate({ tags: [...current, tagDraft.trim()] });
-                      }
-                    }
-                    setTagDraft('');
-                    setAddingTag(false);
-                  }}
-                  placeholder="Tag name..."
-                  style={{
-                    fontSize: 'var(--font-size-xs)',
-                    fontFamily: 'var(--font-family)',
-                    border: '1px solid var(--color-border-primary)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '2px 6px',
-                    outline: 'none',
-                    background: 'var(--color-bg-primary)',
-                    width: 100,
-                    height: 22,
-                  }}
-                />
-              ) : (
-                <Chip onClick={() => setAddingTag(true)} color="#6b7280">
-                  + {t('sign.editor.addTag')}
-                </Chip>
-              )}
-            </div>
-
-            {/* Redirect URL setting */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderBottom: '1px solid var(--color-border-secondary)' }}>
-              <ExternalLink size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-              <Input
-                placeholder={t('sign.editor.redirectUrlPlaceholder')}
-                value={selectedDoc.redirectUrl ?? ''}
-                onChange={(e) => updateDoc.mutate({ redirectUrl: e.target.value || null })}
-                size="sm"
-                style={{ flex: 1 }}
-              />
-            </div>
-
-            <SmartButtonBar appId="sign" recordId={selectedDoc.id} />
-
-            {/* Field toolbar (vertical) + Page thumbnails + PDF viewer + Right sidebar */}
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              {/* Vertical field type toolbar — items are draggable */}
-              <div className="sign-field-toolbar">
-                <div className="sign-field-toolbar-group">
-                  <Tooltip content={t('sign.fields.signature')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'signature'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('signature')}
-                    >
-                      <PenTool size={18} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={t('sign.fields.initials')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'initials'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('initials')}
-                    >
-                      <Type size={18} />
-                    </button>
-                  </Tooltip>
-                </div>
-                <div className="sign-field-toolbar-divider" />
-                <div className="sign-field-toolbar-group">
-                  <Tooltip content={t('sign.fields.date')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'date'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('date')}
-                    >
-                      <Calendar size={18} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={t('sign.fields.text')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'text'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('text')}
-                    >
-                      <AlignLeft size={18} />
-                    </button>
-                  </Tooltip>
-                </div>
-                <div className="sign-field-toolbar-divider" />
-                <div className="sign-field-toolbar-group">
-                  <Tooltip content={t('sign.fields.checkbox')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'checkbox'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('checkbox')}
-                    >
-                      <CheckSquare size={18} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={t('sign.fields.dropdown')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'dropdown'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('dropdown')}
-                    >
-                      <ChevronDown size={18} />
-                    </button>
-                  </Tooltip>
-                </div>
-                <div className="sign-field-toolbar-divider" />
-                <div className="sign-field-toolbar-group">
-                  <Tooltip content={t('sign.fields.name')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'name'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('name')}
-                    >
-                      <User size={18} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={t('sign.fields.email')} side="right">
-                    <button
-                      className="sign-field-toolbar-btn"
-                      draggable
-                      onDragStart={(e) => { e.dataTransfer.setData('application/sign-field-type', 'email'); e.dataTransfer.effectAllowed = 'copy'; }}
-                      onClick={() => handleAddField('email')}
-                    >
-                      <Mail size={18} />
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
-
-              {/* Page thumbnails sidebar */}
-              {pageThumbnails.length > 1 && (
-                <div className="sign-page-thumbnails">
-                  {pageThumbnails.map((thumb) => (
-                    <button
-                      key={thumb.page}
-                      className={`sign-page-thumbnail${activePageNumber === thumb.page ? ' sign-page-thumbnail--active' : ''}`}
-                      onClick={() => {
-                        setActivePageNumber(thumb.page);
-                        setScrollToPage(thumb.page);
-                        // Reset after scroll starts
-                        setTimeout(() => setScrollToPage(null), 100);
-                      }}
-                    >
-                      <img
-                        src={thumb.dataUrl}
-                        alt={`Page ${thumb.page}`}
-                        style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 2 }}
-                        draggable={false}
-                      />
-                      <span className="sign-page-thumbnail-label">{thumb.page}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* PDF viewer + field overlay */}
-              <div
-                className="sign-content"
-                ref={pdfContentRef}
-                onDrop={handlePageDrop}
-                onDragOver={handlePageDragOver}
-              >
-                {uploading ? (
-                  <div className="sign-upload-feedback">
-                    <Skeleton width={120} height={120} borderRadius="var(--radius-lg)" />
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-md)' }}>
-                      {t('sign.editor.uploading')}
-                    </span>
-                  </div>
-                ) : pdfUrl ? (
-                  <div style={{ position: 'relative' }}>
-                    <PdfViewer
-                      url={pdfUrl}
-                      scale={1.5}
-                      scrollToPage={scrollToPage}
-                      onPageImages={(images) => setPageThumbnails(images)}
-                      onPageCount={(count) => {
-                        if (selectedDoc.pageCount !== count) {
-                          updateDoc.mutate({ pageCount: count });
-                        }
-                      }}
-                      renderOverlay={(pageNumber, pageWidth, pageHeight) => (
-                        <>
-                          <FieldOverlay
-                            fields={fields ?? []}
-                            pageNumber={pageNumber}
-                            pageWidth={pageWidth}
-                            pageHeight={pageHeight}
-                            onFieldMove={handleFieldMove}
-                            onFieldResize={handleFieldResize}
-                            onFieldClick={handleFieldClick}
-                            onFieldDelete={handleFieldDelete}
-                            selectedFieldId={selectedFieldId}
-                            editable
-                          />
-                          {/* Empty state hint overlay when no fields on this page */}
-                          {(!fields || fields.filter((f) => f.pageNumber === pageNumber).length === 0) && pageNumber === 1 && (
-                            <div className="sign-empty-overlay">
-                              <div className="sign-empty-overlay-content">
-                                <PenTool size={20} style={{ color: 'var(--color-text-tertiary)' }} />
-                                <span>{t('sign.editor.dragFieldsHint')}</span>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    />
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Right sidebar: signer panel + field properties */}
-              <div className="sign-right-sidebar">
-                <SignerPanel
-                  signers={signers}
-                  onSignersChange={setSigners}
-                  activeSignerIndex={activeSignerIndex}
-                  onActiveSignerChange={setActiveSignerIndex}
-                />
-                {selectedField && (
-                  <>
-                    <div className="sign-right-sidebar-divider" />
-                    <FieldPropertiesPanel
-                      field={selectedField}
-                      signers={signers}
-                      onUpdateField={handleFieldPropertyUpdate}
-                      onDeleteField={() => handleFieldDelete(selectedField.id)}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-          </>
+        {s.view === 'editor' && s.selectedDoc && (
+          <SignEditorView
+            selectedDoc={s.selectedDoc}
+            fields={s.fields}
+            pdfUrl={s.pdfUrl}
+            uploading={s.uploading}
+            selectedFieldId={s.selectedFieldId}
+            selectedField={s.selectedField}
+            signers={s.signers}
+            activeSignerIndex={s.activeSignerIndex}
+            allFieldsAssigned={s.allFieldsAssigned}
+            pageThumbnails={s.pageThumbnails}
+            activePageNumber={s.activePageNumber}
+            scrollToPage={s.scrollToPage}
+            onSetSelectedFieldId={s.setSelectedFieldId}
+            onSetActiveSignerIndex={s.setActiveSignerIndex}
+            onSetSigners={s.setSigners}
+            onSetActivePageNumber={s.setActivePageNumber}
+            onSetScrollToPage={s.setScrollToPage}
+            onSetPageThumbnails={s.setPageThumbnails}
+            onBackToList={s.handleBackToList}
+            onDownload={s.handleDownload}
+            onRequestDelete={s.handleRequestDelete}
+            onVoidOpen={() => s.setVoidConfirmOpen(true)}
+            onAuditView={() => s.setView('audit')}
+            onSaveAsTemplate={async () => {
+              try { await s.saveAsTemplate.mutateAsync({}); } catch { /* handled by RQ */ }
+            }}
+            onSignersModalOpen={() => s.setSignersModalOpen(true)}
+            onSendModalOpen={() => s.setSendModalOpen(true)}
+            onSignNowClick={s.handleSignNowClick}
+            onAddField={s.handleAddField}
+            onFieldMove={s.handleFieldMove}
+            onFieldResize={s.handleFieldResize}
+            onFieldClick={s.handleFieldClick}
+            onFieldDelete={s.handleFieldDelete}
+            onFieldPropertyUpdate={s.handleFieldPropertyUpdate}
+            onUpdateDoc={(data) => s.updateDoc.mutate(data)}
+          />
         )}
 
-        {/* Templates view */}
-        {view === 'templates' && (
-          <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-lg)' }}>
-            {templatesLoading ? (
-              <div className="sign-empty">{t('common.loading')}</div>
-            ) : !templates || templates.length === 0 ? (
-              <FeatureEmptyState
-                illustration="documents"
-                title={t('sign.templates.empty')}
-                description={t('sign.templates.emptyDesc')}
-                highlights={[]}
-              />
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-lg)' }}>
-                {templates.map((tpl) => (
-                  <div
-                    key={tpl.id}
-                    style={{
-                      border: '1px solid var(--color-border-primary)',
-                      borderRadius: 'var(--radius-lg)',
-                      padding: 'var(--spacing-lg)',
-                      background: 'var(--color-bg-primary)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 'var(--spacing-sm)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                      <BookTemplate size={16} style={{ color: '#8b5cf6', flexShrink: 0 }} />
-                      <span style={{ fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'], fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                        {tpl.title}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                      <span>{tpl.pageCount} {t('sign.list.pages').toLowerCase()}</span>
-                      <span>&middot;</span>
-                      <span>{t('sign.templates.fieldCount', { count: tpl.fields.length })}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        icon={<Play size={13} />}
-                        onClick={async () => {
-                          try {
-                            const doc = await createFromTemplate.mutateAsync({ templateId: tpl.id });
-                            setSelectedDocId(doc.id);
-                            setView('editor');
-                          } catch { /* handled by RQ */ }
-                        }}
-                        disabled={createFromTemplate.isPending}
-                      >
-                        {t('sign.templates.useTemplate')}
-                      </Button>
-                      <IconButton
-                        icon={<Trash2 size={14} />}
-                        label={t('sign.templates.deleteTemplate')}
-                        size={28}
-                        destructive
-                        onClick={() => { setDeleteTemplateId(tpl.id); setDeleteTemplateOpen(true); }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {s.view === 'templates' && (
+          <SignTemplatesView
+            templates={s.templates}
+            templatesLoading={s.templatesLoading}
+            onCreateFromTemplate={async (templateId) => {
+              try {
+                const doc = await s.createFromTemplate.mutateAsync({ templateId });
+                s.setSelectedDocId(doc.id);
+                s.setView('editor');
+              } catch { /* handled by RQ */ }
+            }}
+            isCreating={s.createFromTemplate.isPending}
+            onDeleteTemplate={(id) => { s.setDeleteTemplateId(id); s.setDeleteTemplateOpen(true); }}
+          />
         )}
 
-        {/* Audit log view (shown in editor) */}
-        {view === 'audit' && selectedDocId && (
-          <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-lg)' }}>
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <Button variant="ghost" size="sm" icon={<ArrowLeft size={14} />} onClick={() => setView('editor')}>
-                {t('sign.editor.back')}
-              </Button>
-            </div>
-            {!auditEntries || auditEntries.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
-                {t('sign.audit.noEvents')}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 640 }}>
-                {auditEntries.map((entry, idx) => (
-                  <div
-                    key={entry.id}
-                    style={{
-                      display: 'flex',
-                      gap: 'var(--spacing-md)',
-                      padding: 'var(--spacing-md) 0',
-                      borderBottom: idx < auditEntries.length - 1 ? '1px solid var(--color-border-secondary)' : undefined,
-                    }}
-                  >
-                    <div style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      background: 'var(--color-bg-tertiary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      {entry.action === 'document.created' && <FileText size={13} style={{ color: '#8b5cf6' }} />}
-                      {entry.action === 'signing_link.created' && <Link2 size={13} style={{ color: '#f59e0b' }} />}
-                      {entry.action === 'document.viewed' && <FileText size={13} style={{ color: '#6b7280' }} />}
-                      {entry.action === 'document.signed' && <PenTool size={13} style={{ color: '#10b981' }} />}
-                      {entry.action === 'signing_token.completed' && <CheckCircle size={13} style={{ color: '#10b981' }} />}
-                      {entry.action === 'document.completed' && <CheckCircle size={13} style={{ color: '#10b981' }} />}
-                      {entry.action === 'document.voided' && <Ban size={13} style={{ color: '#ef4444' }} />}
-                      {entry.action === 'document.declined' && <AlertTriangle size={13} style={{ color: '#ef4444' }} />}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                        {getAuditActionLabel(entry, t)}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 2 }}>
-                        {formatDate(entry.createdAt)}
-                        {entry.actorEmail && (
-                          <span> &middot; {entry.actorEmail}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {s.view === 'audit' && s.selectedDocId && (
+          <SignAuditView
+            auditEntries={s.auditEntries}
+            onBack={() => s.setView('editor')}
+          />
         )}
       </ContentArea>
 
       {/* Signature modal */}
       <SignatureModal
-        open={sigModalOpen}
-        onOpenChange={setSigModalOpen}
-        onApply={handleSignatureApply}
-        fieldType={sigFieldType}
+        open={s.sigModalOpen}
+        onOpenChange={s.setSigModalOpen}
+        onApply={s.handleSignatureApply}
+        fieldType={s.sigFieldType}
       />
 
-      {/* Send for signing modal (multi-signer) */}
-      <Modal open={sendModalOpen} onOpenChange={handleCloseSendModal} width={520} title={t('sign.editor.sendForSigning')}>
-        <Modal.Header title={t('sign.editor.sendForSigning')} />
-        <Modal.Body>
-          {!generatedLink ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Input
-                label={t('sign.send.emailSubject')}
-                placeholder={t('sign.send.emailSubjectPlaceholder')}
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                size="md"
-              />
-              <Textarea
-                label={t('sign.send.emailMessage')}
-                placeholder={t('sign.send.emailMessagePlaceholder')}
-                value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
-                rows={3}
-              />
-              {signers.map((signer, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    gap: 8,
-                    alignItems: 'flex-end',
-                    padding: '8px 0',
-                    borderLeft: `3px solid ${SIGNER_COLORS[idx % SIGNER_COLORS.length]}`,
-                    paddingLeft: 12,
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <Input
-                      label={idx === 0 ? t('sign.send.signerEmail') : undefined}
-                      placeholder="name@example.com"
-                      value={signer.email}
-                      onChange={(e) => {
-                        const updated = [...signers];
-                        updated[idx] = { ...updated[idx], email: e.target.value };
-                        setSigners(updated);
-                      }}
-                      size="md"
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <Input
-                      label={idx === 0 ? t('sign.send.signerName') : undefined}
-                      placeholder="John Doe"
-                      value={signer.name}
-                      onChange={(e) => {
-                        const updated = [...signers];
-                        updated[idx] = { ...updated[idx], name: e.target.value };
-                        setSigners(updated);
-                      }}
-                      size="md"
-                    />
-                  </div>
-                  <div style={{ width: 110, flexShrink: 0 }}>
-                    {idx === 0 && (
-                      <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'], color: 'var(--color-text-secondary)', marginBottom: 4 }}>
-                        {t('sign.send.role')}
-                      </div>
-                    )}
-                    <Select
-                      value={signer.role || 'signer'}
-                      onChange={(val) => {
-                        const updated = [...signers];
-                        updated[idx] = { ...updated[idx], role: val as Signer['role'] };
-                        setSigners(updated);
-                      }}
-                      options={[
-                        { value: 'signer', label: t('sign.roles.signer') },
-                        { value: 'viewer', label: t('sign.roles.viewer') },
-                        { value: 'approver', label: t('sign.roles.approver') },
-                        { value: 'cc', label: t('sign.roles.cc') },
-                      ]}
-                      size="md"
-                    />
-                  </div>
-                  <div style={{ width: 120, flexShrink: 0 }}>
-                    {idx === 0 && (
-                      <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'], color: 'var(--color-text-secondary)', marginBottom: 4 }}>
-                        {t('sign.send.signerExpiry')}
-                      </div>
-                    )}
-                    <Input
-                      type="date"
-                      value={signer.expiryDate || ''}
-                      onChange={(e) => {
-                        const updated = [...signers];
-                        updated[idx] = { ...updated[idx], expiryDate: e.target.value || undefined };
-                        setSigners(updated);
-                      }}
-                      placeholder={t('sign.send.defaultExpiry')}
-                      size="md"
-                      min={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
-                  {signers.length > 1 && (
-                    <IconButton
-                      icon={<X size={14} />}
-                      label={t('sign.send.removeSigner')}
-                      size={28}
-                      destructive
-                      onClick={() => {
-                        setSigners(signers.filter((_, i) => i !== idx));
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<Plus size={14} />}
-                onClick={() => setSigners([...signers, { email: '', name: '', role: 'signer', expiryDate: undefined }])}
-                style={{ alignSelf: 'flex-start' }}
-              >
-                {t('sign.send.addSigner')}
-              </Button>
-              <Input
-                label={t('sign.send.expiresOn')}
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                size="md"
-                min={new Date().toISOString().split('T')[0]}
-              />
-              {/* Sign in order toggle */}
-              {signers.filter((s) => s.email.trim()).length > 1 && (
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 12px',
-                    background: signInOrder ? 'rgba(139, 92, 246, 0.06)' : 'var(--color-bg-tertiary)',
-                    border: `1px solid ${signInOrder ? 'rgba(139, 92, 246, 0.3)' : 'var(--color-border-secondary)'}`,
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    transition: 'all 150ms ease',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={signInOrder}
-                    onChange={(e) => setSignInOrder(e.target.checked)}
-                    style={{ accentColor: '#8b5cf6' }}
-                  />
-                  <ListOrdered size={14} style={{ color: signInOrder ? '#8b5cf6' : 'var(--color-text-tertiary)', flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'], color: 'var(--color-text-primary)' }}>
-                      {t('sign.send.signInOrder')}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 1 }}>
-                      {t('sign.send.signInOrderDesc')}
-                    </div>
-                  </div>
-                </label>
-              )}
-              {/* Existing links */}
-              {signingLinks && signingLinks.length > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <div
-                    style={{
-                      fontSize: 'var(--font-size-xs)',
-                      fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                      color: 'var(--color-text-tertiary)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      marginBottom: 6,
-                    }}
-                  >
-                    {t('sign.send.existingLinks')}
-                  </div>
-                  {signingLinks.map((link) => (
-                    <div
-                      key={link.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '6px 0',
-                        borderBottom: '1px solid var(--color-border-secondary)',
-                        fontSize: 'var(--font-size-sm)',
-                        gap: 8,
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {link.signingOrder > 0 && (
-                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'] }}>
-                              #{link.signingOrder + 1}
-                            </span>
-                          )}
-                          <span style={{ color: 'var(--color-text-primary)' }}>
-                            {link.signerEmail}
-                          </span>
-                          {link.role && link.role !== 'signer' && (
-                            <Badge variant="default">
-                              {t(`sign.roles.${link.role}`)}
-                            </Badge>
-                          )}
-                        </div>
-                        {link.status === 'pending' && link.lastReminderAt && (
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 2 }}>
-                            {t('sign.reminders.lastSent', { date: formatDate(link.lastReminderAt) })}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {link.status === 'pending' && (
-                          <Tooltip content={t('sign.reminders.sendReminder')}>
-                            <IconButton
-                              icon={<Bell size={13} />}
-                              label={t('sign.reminders.sendReminder')}
-                              size={24}
-                              onClick={() => sendReminder.mutate(link.id)}
-                            />
-                          </Tooltip>
-                        )}
-                        <Badge variant={link.status === 'signed' ? 'success' : link.status === 'expired' || link.status === 'declined' ? 'error' : 'warning'}>
-                          {link.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-sm)',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: 4,
-                }}
-              >
-                {generatedLinks.length > 1
-                  ? t('sign.send.linksGenerated')
-                  : t('sign.send.linkGenerated')}
-              </div>
-              {generatedLinks.map((gl, idx) => (
-                <div key={idx}>
-                  {generatedLinks.length > 1 && (
-                    <div
-                      style={{
-                        fontSize: 'var(--font-size-xs)',
-                        color: SIGNER_COLORS[idx % SIGNER_COLORS.length],
-                        fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                        marginBottom: 4,
-                      }}
-                    >
-                      {gl.email}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px',
-                      background: 'var(--color-bg-tertiary)',
-                      border: '1px solid var(--color-border-primary)',
-                      borderRadius: 'var(--radius-md)',
-                    }}
-                  >
-                    <Link2 size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-                    <span
-                      style={{
-                        flex: 1,
-                        fontSize: 'var(--font-size-sm)',
-                        color: 'var(--color-text-primary)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {gl.link}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<Copy size={13} />}
-                      onClick={() => {
-                        navigator.clipboard.writeText(gl.link);
-                        setLinkCopied(true);
-                        setTimeout(() => setLinkCopied(false), 2000);
-                      }}
-                    >
-                      {t('sign.send.copy')}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="ghost" onClick={() => handleCloseSendModal(false)}>
-            {generatedLink ? t('sign.send.done') : t('sign.send.cancel')}
-          </Button>
-          {!generatedLink && (
-            <Button
-              variant="primary"
-              onClick={handleSendForSigning}
-              disabled={!signers.some((s) => s.email.trim()) || createSigningLink.isPending}
-            >
-              {createSigningLink.isPending ? t('sign.send.generating') : signers.filter((s) => s.email.trim()).length > 1 ? t('sign.send.generateLinks') : t('sign.send.generateLink')}
-            </Button>
-          )}
-        </Modal.Footer>
-      </Modal>
+      {/* Send for signing modal */}
+      <SignSendModal
+        open={s.sendModalOpen}
+        onOpenChange={s.handleCloseSendModal}
+        signers={s.signers}
+        onSignersChange={s.setSigners}
+        emailSubject={s.emailSubject}
+        onEmailSubjectChange={s.setEmailSubject}
+        emailMessage={s.emailMessage}
+        onEmailMessageChange={s.setEmailMessage}
+        expiryDate={s.expiryDate}
+        onExpiryDateChange={s.setExpiryDate}
+        signInOrder={s.signInOrder}
+        onSignInOrderChange={s.setSignInOrder}
+        generatedLink={s.generatedLink}
+        generatedLinks={s.generatedLinks}
+        linkCopied={s.linkCopied}
+        onCopyLink={s.handleCopyLink}
+        signingLinks={s.signingLinks}
+        onSendForSigning={s.handleSendForSigning}
+        onSendReminder={(linkId) => s.sendReminder.mutate(linkId)}
+        isSending={s.createSigningLink.isPending}
+      />
 
       {/* Signers management modal */}
-      <Modal open={signersModalOpen} onOpenChange={setSignersModalOpen} width={480} title={t('sign.signers.manageSigners')}>
-        <Modal.Header title={t('sign.signers.manageSigners')} />
-        <Modal.Body>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div
-              style={{
-                fontSize: 'var(--font-size-sm)',
-                color: 'var(--color-text-secondary)',
-                marginBottom: 4,
-              }}
-            >
-              {t('sign.signers.assignFieldsDesc')}
-            </div>
-            {signingLinks && signingLinks.length > 0 ? (
-              signingLinks.map((link, idx) => (
-                <div
-                  key={link.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-md)',
-                    border: `1px solid ${activeSigner === link.signerEmail ? SIGNER_COLORS[idx % SIGNER_COLORS.length] : 'var(--color-border-primary)'}`,
-                    background: activeSigner === link.signerEmail ? `${SIGNER_COLORS[idx % SIGNER_COLORS.length]}10` : 'transparent',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => setActiveSigner(activeSigner === link.signerEmail ? undefined : link.signerEmail)}
-                >
-                  <StatusDot color={SIGNER_COLORS[idx % SIGNER_COLORS.length]} size={10} />
-                  <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>
-                    {link.signerName || link.signerEmail}
-                  </span>
-                  <Badge variant={link.status === 'signed' ? 'success' : link.status === 'expired' || link.status === 'declined' ? 'error' : 'warning'}>
-                    {link.status}
-                  </Badge>
-                </div>
-              ))
-            ) : (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', padding: '12px 0' }}>
-                {t('sign.signers.noSignersYet')}
-              </div>
-            )}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="ghost" onClick={() => setSignersModalOpen(false)}>
-            {t('common.close')}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <SignSignersModal
+        open={s.signersModalOpen}
+        onOpenChange={s.setSignersModalOpen}
+        signingLinks={s.signingLinks}
+        activeSigner={s.activeSigner}
+        onActiveSignerChange={s.setActiveSigner}
+      />
 
       {/* Delete confirmation dialog */}
       <ConfirmDialog
-        open={deleteConfirmOpen}
-        onOpenChange={setDeleteConfirmOpen}
+        open={s.deleteConfirmOpen}
+        onOpenChange={s.setDeleteConfirmOpen}
         title={t('sign.editor.deleteDocument')}
         description={t('sign.editor.deleteConfirm')}
         confirmLabel={t('common.delete')}
         destructive
-        onConfirm={handleConfirmDelete}
+        onConfirm={s.handleConfirmDelete}
       />
 
       {/* Void confirmation dialog */}
       <ConfirmDialog
-        open={voidConfirmOpen}
-        onOpenChange={setVoidConfirmOpen}
+        open={s.voidConfirmOpen}
+        onOpenChange={s.setVoidConfirmOpen}
         title={t('sign.editor.voidDocument')}
         description={t('sign.editor.voidConfirm')}
         confirmLabel={t('sign.editor.voidDocument')}
         destructive
-        onConfirm={handleVoidDocument}
+        onConfirm={s.handleVoidDocument}
       />
 
       {/* Template delete confirmation dialog */}
       <ConfirmDialog
-        open={deleteTemplateOpen}
-        onOpenChange={setDeleteTemplateOpen}
+        open={s.deleteTemplateOpen}
+        onOpenChange={s.setDeleteTemplateOpen}
         title={t('sign.templates.deleteTemplate')}
         description={t('sign.editor.deleteConfirm')}
         confirmLabel={t('common.delete')}
         destructive
         onConfirm={async () => {
-          if (!deleteTemplateId) return;
-          await deleteTemplate.mutateAsync(deleteTemplateId);
-          setDeleteTemplateId(null);
+          if (!s.deleteTemplateId) return;
+          await s.deleteTemplate.mutateAsync(s.deleteTemplateId);
+          s.setDeleteTemplateId(null);
         }}
       />
     </div>

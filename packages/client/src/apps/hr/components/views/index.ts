@@ -1,0 +1,10 @@
+export { DashboardView } from './dashboard-view';
+export { EmployeesListView } from './employees-list-view';
+export { DepartmentsView } from './departments-view';
+export { TimeOffView } from './time-off-view';
+export { LeaveTypesView } from './leave-types-view';
+export { LeavePoliciesView } from './leave-policies-view';
+export { HolidaysView } from './holidays-view';
+export { MyLeaveView } from './my-leave-view';
+export { TeamCalendarView } from './team-calendar-view';
+export { AttendanceView } from './attendance-view';
