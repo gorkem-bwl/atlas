@@ -3138,7 +3138,8 @@
       "files": "Files",
       "regional": "Regional",
       "behavior": "Behavior",
-      "updates": "Updates"
+      "updates": "Updates",
+      "integrations": "Integrations"
     }
   }
 }

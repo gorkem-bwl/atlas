@@ -5,6 +5,7 @@ import {
   Settings,
   Palette,
   Clock,
+  Link2,
   Database,
   Info,
   Image,
@@ -20,6 +21,7 @@ import { DataModelPanel } from '../components/settings/data-model-panel';
 import { AboutPanel } from '../components/settings/about-panel';
 import { AiSettingsPanel } from '../components/settings/ai-settings-panel';
 import { UpdatesPanel } from '../components/settings/updates-panel';
+import { IntegrationsPanel } from '../components/settings/integrations-panel';
 
 import {
   HomeBackgroundPanel,
@@ -62,6 +64,7 @@ export const globalSettingsCategory: SettingsCategory = {
     { id: 'data-model', label: 'Data model', icon: Database, component: DataModelPanel, adminOnly: true },
     { id: 'home-background', label: 'Home background', icon: Image, component: HomeBackgroundPanel },
     { id: 'home-widgets', label: 'Widgets', icon: LayoutGrid, component: HomeWidgetsPanel },
+    { id: 'integrations', label: 'Integrations', icon: Link2, component: IntegrationsPanel },
     { id: 'ai', label: 'AI', icon: Sparkles, component: AiSettingsPanel, adminOnly: true },
     { id: 'updates', label: 'Updates', icon: RefreshCw, component: UpdatesPanel, adminOnly: true },
     { id: 'about', label: 'About', icon: Info, component: AboutPanel },

@@ -3132,7 +3132,8 @@
       "files": "Dateien",
       "regional": "Regional",
       "behavior": "Verhalten",
-      "updates": "Aktualisierungen"
+      "updates": "Aktualisierungen",
+      "integrations": "Integrationen"
     }
   }
 }

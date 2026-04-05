@@ -3132,7 +3132,8 @@
       "files": "Dosyalar",
       "regional": "Bölgesel",
       "behavior": "Davranış",
-      "updates": "Güncellemeler"
+      "updates": "Güncellemeler",
+      "integrations": "Entegrasyonlar"
     }
   }
 }
