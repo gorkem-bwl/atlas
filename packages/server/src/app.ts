@@ -16,7 +16,14 @@ export function createApp() {
   // In production, serve static client files FIRST (no CORS/auth needed)
   if (env.NODE_ENV === 'production') {
     const clientDist = path.join(__dirname, '../../client/dist');
-    app.use(express.static(clientDist));
+    // Hashed assets (JS/CSS) — cache forever, Vite includes content hash in filenames
+    app.use('/assets', express.static(path.join(clientDist, 'assets'), { maxAge: '1y', immutable: true }));
+    // index.html and other root files — never cache so updates are picked up immediately
+    app.use(express.static(clientDist, { maxAge: 0, setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }}));
   }
 
   app.use(helmet({

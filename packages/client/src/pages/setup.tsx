@@ -382,6 +382,8 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
                       <button
                         key={lang.value}
                         onClick={() => setLanguage(lang.value)}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
                         style={{
                           position: 'relative',
                           display: 'flex', alignItems: 'center',
@@ -463,6 +465,8 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
                         <button
                           key={String(opt.key)}
                           onClick={() => setWithDemoData(opt.key)}
+                          onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                          onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
                           style={{
                             flex: 1,
                             display: 'flex',
