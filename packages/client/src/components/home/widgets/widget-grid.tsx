@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api-client';
@@ -11,6 +11,10 @@ import { useMyAccessibleApps } from '../../../hooks/use-app-permissions';
 const WIDGET_W = 240;
 const WIDGET_H = 160;
 const GAP = 12;
+
+type UnifiedWidget =
+  | { type: 'home'; key: string; widget: (typeof widgetRegistry)[number] }
+  | { type: 'app'; key: string; widget: ReturnType<typeof appRegistry.getAllWidgets>[number]; route?: string };
 
 export function WidgetGrid() {
   const { data: settings } = useQuery({
@@ -88,75 +92,195 @@ export function WidgetGrid() {
   const navigate = useNavigate();
   const [hoveredWidget, setHoveredWidget] = useState<string | null>(null);
 
+  // --- Drag-and-drop state ---
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  // Parse saved widget order from settings
+  const widgetOrder = useMemo(() => {
+    const raw = settings?.homeWidgetOrder;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw) as string[]; } catch { return null; }
+    }
+    if (Array.isArray(raw)) return raw as string[];
+    return null;
+  }, [settings]);
+
+  // Local order state for instant feedback before server round-trip
+  const [localOrder, setLocalOrder] = useState<string[] | null>(null);
+
   const hasWidgets = enabledWidgets.length > 0 || filteredAppWidgets.length > 0;
-  if (!hasWidgets) return null;
 
   const visibleWidgets = enabledWidgets.slice(0, 10);
 
+  // Combine all widgets into a single ordered array
+  const allWidgets: UnifiedWidget[] = useMemo(() => {
+    const homeItems: UnifiedWidget[] = visibleWidgets.map((w) => ({
+      type: 'home' as const,
+      key: w.id,
+      widget: w,
+    }));
+
+    const appItems: UnifiedWidget[] = filteredAppWidgets.map((w) => {
+      const app = appRegistry.getAll().find((a) => a.id === w.appId);
+      const route = app?.routes[0]?.path;
+      return {
+        type: 'app' as const,
+        key: `${w.appId}:${w.id}`,
+        widget: w,
+        route,
+      };
+    });
+
+    return [...homeItems, ...appItems];
+  }, [visibleWidgets, filteredAppWidgets]);
+
+  // Sort widgets by saved order (local override > server setting > default)
+  const orderedWidgets = useMemo(() => {
+    const order = localOrder ?? widgetOrder;
+    if (!order) return allWidgets;
+    const orderMap = new Map(order.map((id, i) => [id, i]));
+    return [...allWidgets].sort((a, b) => {
+      const aIdx = orderMap.get(a.key) ?? 999;
+      const bIdx = orderMap.get(b.key) ?? 999;
+      return aIdx - bIdx;
+    });
+  }, [allWidgets, widgetOrder, localOrder]);
+
+  // Get current ordered keys
+  const orderedWidgetKeys = useMemo(
+    () => orderedWidgets.map((w) => w.key),
+    [orderedWidgets],
+  );
+
+  // Handle reorder on drop
+  const handleReorder = useCallback(
+    (fromId: string | null, toId: string) => {
+      if (!fromId || fromId === toId) return;
+      const currentOrder = [...orderedWidgetKeys];
+      const fromIdx = currentOrder.indexOf(fromId);
+      const toIdx = currentOrder.indexOf(toId);
+      if (fromIdx === -1 || toIdx === -1) return;
+      currentOrder.splice(fromIdx, 1);
+      currentOrder.splice(toIdx, 0, fromId);
+      setLocalOrder(currentOrder);
+      // Persist to server
+      api.put('/settings', { homeWidgetOrder: JSON.stringify(currentOrder) }).catch(() => {});
+      setDraggedId(null);
+      setDragOverId(null);
+    },
+    [orderedWidgetKeys],
+  );
+
+  if (!hasWidgets) return null;
+
   return (
     <div style={{ marginTop: 16 }}>
-      {hasWidgets && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(auto-fill, ${WIDGET_W}px)`,
-            gap: GAP,
-            justifyContent: 'center',
-            width: '100%',
-            maxWidth: '90vw',
-          }}
-        >
-          {/* Home widgets */}
-          {visibleWidgets.map((widget) => (
-            <div
-              key={widget.id}
-              style={{
-                width: WIDGET_W,
-                height: WIDGET_H,
-                background: 'rgba(0,0,0,0.35)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 'var(--radius-xl)',
-                overflow: 'hidden',
-              }}
-            >
-              <widget.component width={WIDGET_W} height={WIDGET_H} />
-            </div>
-          ))}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(auto-fill, ${WIDGET_W}px)`,
+          gap: GAP,
+          justifyContent: 'center',
+          width: '100%',
+          maxWidth: '90vw',
+        }}
+      >
+        {orderedWidgets.map((item) => {
+          const isDragged = draggedId === item.key;
+          const isDragOver = dragOverId === item.key && draggedId !== item.key;
 
-          {/* App widgets — merged into the same grid */}
-          {filteredAppWidgets.map((widget) => {
-            const wKey = `${widget.appId}:${widget.id}`;
-            const isHovered = hoveredWidget === wKey;
-            const app = appRegistry.getAll().find((a) => a.id === widget.appId);
-            const route = app?.routes[0]?.path;
+          if (item.type === 'home') {
             return (
               <div
-                key={wKey}
-                onClick={() => route && navigate(route)}
-                onMouseEnter={() => setHoveredWidget(wKey)}
-                onMouseLeave={() => setHoveredWidget(null)}
+                key={item.key}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedId(item.key);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragEnd={() => {
+                  setDraggedId(null);
+                  setDragOverId(null);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverId(item.key);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleReorder(draggedId, item.key);
+                }}
                 style={{
                   width: WIDGET_W,
                   height: WIDGET_H,
                   background: 'rgba(0,0,0,0.35)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  border: isHovered ? '1px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.12)',
+                  border: isDragOver
+                    ? '2px dashed rgba(255,255,255,0.4)'
+                    : '1px solid rgba(255,255,255,0.12)',
                   borderRadius: 'var(--radius-xl)',
                   overflow: 'hidden',
-                  cursor: route ? 'pointer' : 'default',
-                  transition: 'border-color 0.2s, transform 0.2s',
-                  transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                  opacity: isDragged ? 0.4 : 1,
+                  cursor: isDragged ? 'grabbing' : 'grab',
+                  transition: 'opacity 0.2s, border-color 0.2s',
                 }}
               >
-                <widget.component width={WIDGET_W} height={WIDGET_H} appId={widget.appId} />
+                <item.widget.component width={WIDGET_W} height={WIDGET_H} />
               </div>
             );
-          })}
-        </div>
-      )}
+          }
+
+          // App widget
+          const isHovered = hoveredWidget === item.key;
+          return (
+            <div
+              key={item.key}
+              draggable
+              onDragStart={(e) => {
+                setDraggedId(item.key);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragEnd={() => {
+                setDraggedId(null);
+                setDragOverId(null);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverId(item.key);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleReorder(draggedId, item.key);
+              }}
+              onClick={() => !isDragged && item.route && navigate(item.route)}
+              onMouseEnter={() => setHoveredWidget(item.key)}
+              onMouseLeave={() => setHoveredWidget(null)}
+              style={{
+                width: WIDGET_W,
+                height: WIDGET_H,
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: isDragOver
+                  ? '2px dashed rgba(255,255,255,0.4)'
+                  : isHovered
+                    ? '1px solid rgba(255,255,255,0.25)'
+                    : '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 'var(--radius-xl)',
+                overflow: 'hidden',
+                opacity: isDragged ? 0.4 : 1,
+                cursor: isDragged ? 'grabbing' : 'grab',
+                transition: 'opacity 0.2s, border-color 0.2s, transform 0.2s',
+                transform: isHovered && !isDragged ? 'translateY(-2px)' : 'translateY(0)',
+              }}
+            >
+              <item.widget.component width={WIDGET_W} height={WIDGET_H} appId={item.widget.appId} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
