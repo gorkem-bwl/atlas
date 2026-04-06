@@ -700,12 +700,47 @@ export function HomePage() {
       .filter(app => app.id !== 'system' || isAdmin)
       .filter(app => !accessibleSet || accessibleSet.has(app.id))
       .map(app => ({
+        id: app.id,
         icon: app.icon,
         label: app.name,
         color: app.color,
         route: app.routes[0]?.path ?? `/${app.id}`,
       }));
   }, [myApps]);
+
+  // Sort dock apps by persisted order
+  const orderedDockApps = useMemo(() => {
+    const raw = userSettings?.homeDockOrder;
+    let order: string[] | null = null;
+    if (typeof raw === 'string') { try { order = JSON.parse(raw); } catch { /* ignore */ } }
+    else if (Array.isArray(raw)) order = raw;
+    if (!order) return dockApps;
+    const orderMap = new Map(order.map((id: string, i: number) => [id, i]));
+    return [...dockApps].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+  }, [dockApps, userSettings?.homeDockOrder]);
+
+  // Dock drag-and-drop state
+  const [dockDragId, setDockDragId] = useState<string | null>(null);
+  const [dockDragOverId, setDockDragOverId] = useState<string | null>(null);
+
+  const handleDockReorder = useCallback((fromId: string, toId: string) => {
+    if (!fromId || fromId === toId) return;
+    const currentOrder = orderedDockApps.map(a => a.id);
+    const fromIdx = currentOrder.indexOf(fromId);
+    const toIdx = currentOrder.indexOf(toId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    currentOrder.splice(fromIdx, 1);
+    currentOrder.splice(toIdx, 0, fromId);
+    // Persist
+    api.put('/settings', { homeDockOrder: JSON.stringify(currentOrder) }).catch(() => {});
+    // Force re-render by updating the settings query cache
+    queryClient.setQueryData(queryKeys.settings.all, (old: any) => ({
+      ...old,
+      homeDockOrder: JSON.stringify(currentOrder),
+    }));
+    setDockDragId(null);
+    setDockDragOverId(null);
+  }, [orderedDockApps, queryClient]);
 
   return (
     <div
@@ -1147,12 +1182,25 @@ export function HomePage() {
             gap: 12,
           }}
         >
-          {dockApps.map((app) => {
+          {orderedDockApps.map((app) => {
             const Icon = app.icon;
             return (
               <div
-                key={app.route}
+                key={app.id}
                 className="dock-item"
+                draggable
+                onDragStart={(e) => {
+                  setDockDragId(app.id);
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragEnd={() => { setDockDragId(null); setDockDragOverId(null); }}
+                onDragOver={(e) => { e.preventDefault(); setDockDragOverId(app.id); }}
+                onDrop={(e) => { e.preventDefault(); if (dockDragId) handleDockReorder(dockDragId, app.id); }}
+                style={{
+                  opacity: dockDragId === app.id ? 0.3 : 1,
+                  transform: dockDragOverId === app.id && dockDragId !== app.id ? 'translateX(10px)' : undefined,
+                  transition: 'opacity 0.15s, transform 0.15s',
+                }}
               >
                 <div
                   className="dock-icon-inner"
