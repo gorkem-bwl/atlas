@@ -2277,7 +2277,8 @@
       "importDesc": "2026 resmi tatillerini içe aktarmak için bir ülke seçin",
       "importSuccess": "{{country}} ülkesinden {{count}} tatil içe aktarıldı",
       "importFailed": "Tatiller içe aktarılamadı",
-      "holidayCount": "tatil"
+      "holidayCount": "tatil",
+      "optionalNote": "Çalışanlar çalışmayı tercih edebilir"
     },
     "myLeave": {
       "empty": "Henüz izin başvurusu yok.",

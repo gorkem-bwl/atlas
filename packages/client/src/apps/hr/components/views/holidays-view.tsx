@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Download } from 'lucide-react';
-import { useHolidayCalendars, useCreateHolidayCalendar, useHolidays, useCreateHoliday, useDeleteHoliday, useBulkImportHolidays } from '../../hooks';
+import { Plus, Trash2, Download, Pencil, Check, X } from 'lucide-react';
+import { useHolidayCalendars, useCreateHolidayCalendar, useHolidays, useCreateHoliday, useUpdateHoliday, useDeleteHoliday, useBulkImportHolidays } from '../../hooks';
 import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -26,6 +26,7 @@ export function HolidaysView() {
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
   const { data: holidays } = useHolidays(selectedCalendarId ?? undefined);
   const createHoliday = useCreateHoliday();
+  const updateHoliday = useUpdateHoliday();
   const deleteHoliday = useDeleteHoliday();
   const bulkImport = useBulkImportHolidays();
   const [showAddHoliday, setShowAddHoliday] = useState(false);
@@ -35,6 +36,30 @@ export function HolidaysView() {
   const [importOpen, setImportOpen] = useState(false);
   const [importing, setImporting] = useState<string | null>(null);
   const importingRef = useRef(false);
+
+  // Inline editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editType, setEditType] = useState('public');
+
+  const startEditing = (h: { id: string; name: string; date: string; type: string }) => {
+    setEditingId(h.id);
+    setEditName(h.name);
+    setEditDate(h.date);
+    setEditType(h.type);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const saveEditing = () => {
+    if (!editingId || !editName.trim() || !editDate) return;
+    updateHoliday.mutate({ id: editingId, name: editName.trim(), date: editDate, type: editType }, {
+      onSuccess: () => setEditingId(null),
+    });
+  };
 
   // Auto-select first calendar
   useEffect(() => {
@@ -177,15 +202,60 @@ export function HolidaysView() {
                 display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-md) var(--spacing-lg)',
                 borderBottom: '1px solid var(--color-border-secondary)',
               }}>
-                <div style={{ width: 4, height: 24, borderRadius: 2, background: typeColors[h.type] || 'var(--color-text-tertiary)', flexShrink: 0 }} />
-                <span style={{ width: 100, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-                  {formatDate(h.date)}
-                </span>
-                <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                  {h.name}
-                </span>
-                <Badge variant={h.type === 'public' ? 'error' : h.type === 'company' ? 'primary' : 'warning'}>{t(`hr.holidays.type${h.type.charAt(0).toUpperCase() + h.type.slice(1)}`)}</Badge>
-                {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteHoliday.mutate(h.id)} />}
+                <div style={{ width: 4, height: 24, borderRadius: 2, background: typeColors[editingId === h.id ? editType : h.type] || 'var(--color-text-tertiary)', flexShrink: 0 }} />
+                {editingId === h.id ? (
+                  <>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      size="sm"
+                      style={{ flex: 1 }}
+                      autoFocus
+                      onKeyDown={(e) => { if (e.key === 'Enter') saveEditing(); if (e.key === 'Escape') cancelEditing(); }}
+                    />
+                    <Input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      size="sm"
+                      style={{ width: 160 }}
+                    />
+                    <Select
+                      value={editType}
+                      onChange={setEditType}
+                      options={[
+                        { value: 'public', label: t('hr.holidays.typePublic') },
+                        { value: 'company', label: t('hr.holidays.typeCompany') },
+                        { value: 'optional', label: t('hr.holidays.typeOptional') },
+                      ]}
+                      size="sm"
+                      width={160}
+                    />
+                    <IconButton icon={<Check size={14} />} label={t('common.save')} size={26} onClick={saveEditing} disabled={!editName.trim() || !editDate} />
+                    <IconButton icon={<X size={14} />} label={t('common.cancel')} size={26} onClick={cancelEditing} />
+                  </>
+                ) : (
+                  <>
+                    <span style={{ width: 100, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+                      {formatDate(h.date)}
+                    </span>
+                    <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                      {h.name}
+                    </span>
+                    <Badge variant={h.type === 'public' ? 'error' : h.type === 'company' ? 'primary' : 'warning'}>{t(`hr.holidays.type${h.type.charAt(0).toUpperCase() + h.type.slice(1)}`)}</Badge>
+                    {h.type === 'optional' && (
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', fontStyle: 'italic' }}>
+                        {t('hr.holidays.optionalNote')}
+                      </span>
+                    )}
+                    {canDelete && (
+                      <>
+                        <IconButton icon={<Pencil size={14} />} label={t('common.edit')} size={26} onClick={() => startEditing(h)} />
+                        <IconButton icon={<Trash2 size={14} />} label={t('common.delete')} size={26} destructive onClick={() => deleteHoliday.mutate(h.id)} />
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             ))}
           </div>

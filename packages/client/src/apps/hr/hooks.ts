@@ -722,6 +722,17 @@ export function useCreateHoliday() {
   });
 }
 
+export function useUpdateHoliday() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string; name?: string; date?: string; type?: string; description?: string }) => {
+      const { data } = await api.patch(`/hr/holidays/${id}`, input);
+      return data.data;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.hr.all }); },
+  });
+}
+
 export function useDeleteHoliday() {
   const queryClient = useQueryClient();
   return useMutation({

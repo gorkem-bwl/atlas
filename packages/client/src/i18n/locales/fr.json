@@ -2277,7 +2277,8 @@
       "importDesc": "Sélectionnez un pays pour importer ses jours fériés 2026",
       "importSuccess": "{{count}} jours fériés importés depuis {{country}}",
       "importFailed": "Échec de l'importation des jours fériés",
-      "holidayCount": "jours fériés"
+      "holidayCount": "jours fériés",
+      "optionalNote": "Les employés peuvent choisir de travailler"
     },
     "myLeave": {
       "empty": "Aucune demande de conge.",

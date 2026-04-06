@@ -2277,7 +2277,8 @@
       "importDesc": "Seleziona un paese per importare le festività pubbliche del 2026",
       "importSuccess": "Importate {{count}} festività da {{country}}",
       "importFailed": "Impossibile importare le festività",
-      "holidayCount": "festività"
+      "holidayCount": "festività",
+      "optionalNote": "I dipendenti possono scegliere di lavorare"
     },
     "myLeave": {
       "empty": "Nessuna richiesta di permesso.",
