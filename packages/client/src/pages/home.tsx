@@ -1336,6 +1336,39 @@ export function HomePage() {
           })()}
         </nav>
 
+        {/* Floating dock icon during drag */}
+        {dockDragState?.isDragging && (() => {
+          const app = orderedDockApps.find(a => a.id === dockDragState.id);
+          if (!app) return null;
+          const Icon = app.icon;
+          const dockRect = dockRef.current?.getBoundingClientRect();
+          return (
+            <div style={{
+              position: 'fixed',
+              left: dockDragState.currentX - 26,
+              top: (dockRect?.top ?? 0) + 8,
+              width: 52,
+              height: 52,
+              zIndex: 9999,
+              pointerEvents: 'none',
+            }}>
+              <div style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                boxShadow: `0 8px 24px ${app.color}88, 0 4px 12px rgba(0,0,0,0.3)`,
+                transform: 'scale(1.15)',
+              }}>
+                <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Demo data pill */}
         {!!userSettings?.homeDemoDataActive && (
           <div style={{
