@@ -2278,7 +2278,12 @@
       "importSuccess": "{{count}} jours fériés importés depuis {{country}}",
       "importFailed": "Échec de l'importation des jours fériés",
       "holidayCount": "jours fériés",
-      "optionalNote": "Les employés peuvent choisir de travailler"
+      "optionalNote": "Les employés peuvent choisir de travailler",
+      "summaryTotal": "{{count}} jours fériés",
+      "summaryPublic": "{{count}} publics",
+      "summaryCompany": "{{count}} entreprise",
+      "summaryOptional": "{{count}} optionnels",
+      "yearNote": "Les jours fériés sont basés sur 2026, les dates peuvent différer pour {{year}}"
     },
     "myLeave": {
       "empty": "Aucune demande de conge.",

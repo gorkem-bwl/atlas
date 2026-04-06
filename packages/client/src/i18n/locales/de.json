@@ -2278,7 +2278,12 @@
       "importSuccess": "{{count}} Feiertage aus {{country}} importiert",
       "importFailed": "Feiertage konnten nicht importiert werden",
       "holidayCount": "Feiertage",
-      "optionalNote": "Mitarbeiter können wählen zu arbeiten"
+      "optionalNote": "Mitarbeiter können wählen zu arbeiten",
+      "summaryTotal": "{{count}} Feiertage",
+      "summaryPublic": "{{count}} gesetzliche",
+      "summaryCompany": "{{count}} betriebliche",
+      "summaryOptional": "{{count}} optionale",
+      "yearNote": "Feiertagspakete sind für 2026, Daten können für {{year}} abweichen"
     },
     "myLeave": {
       "empty": "Noch keine Urlaubsantraege.",

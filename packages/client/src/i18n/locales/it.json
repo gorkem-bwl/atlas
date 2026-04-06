@@ -2278,7 +2278,12 @@
       "importSuccess": "Importate {{count}} festività da {{country}}",
       "importFailed": "Impossibile importare le festività",
       "holidayCount": "festività",
-      "optionalNote": "I dipendenti possono scegliere di lavorare"
+      "optionalNote": "I dipendenti possono scegliere di lavorare",
+      "summaryTotal": "{{count}} festività",
+      "summaryPublic": "{{count}} pubbliche",
+      "summaryCompany": "{{count}} aziendali",
+      "summaryOptional": "{{count}} opzionali",
+      "yearNote": "I pacchetti festività sono per il 2026, le date potrebbero differire per il {{year}}"
     },
     "myLeave": {
       "empty": "Nessuna richiesta di permesso.",

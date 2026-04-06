@@ -2314,7 +2314,12 @@
       "importSuccess": "Imported {{count}} holidays from {{country}}",
       "importFailed": "Failed to import holidays",
       "holidayCount": "holidays",
-      "optionalNote": "Employees may choose to work"
+      "optionalNote": "Employees may choose to work",
+      "summaryTotal": "{{count}} holidays",
+      "summaryPublic": "{{count}} public",
+      "summaryCompany": "{{count}} company",
+      "summaryOptional": "{{count}} optional",
+      "yearNote": "Holiday packs are for 2026 and dates may differ for {{year}}"
     },
     "myLeave": {
       "empty": "No leave applications yet",

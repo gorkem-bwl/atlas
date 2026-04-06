@@ -2278,7 +2278,12 @@
       "importSuccess": "{{country}} ülkesinden {{count}} tatil içe aktarıldı",
       "importFailed": "Tatiller içe aktarılamadı",
       "holidayCount": "tatil",
-      "optionalNote": "Çalışanlar çalışmayı tercih edebilir"
+      "optionalNote": "Çalışanlar çalışmayı tercih edebilir",
+      "summaryTotal": "{{count}} tatil",
+      "summaryPublic": "{{count}} resmi",
+      "summaryCompany": "{{count}} şirket",
+      "summaryOptional": "{{count}} isteğe bağlı",
+      "yearNote": "Tatil paketleri 2026 içindir, {{year}} için tarihler farklı olabilir"
     },
     "myLeave": {
       "empty": "Henüz izin başvurusu yok.",
