@@ -11,7 +11,7 @@ https://github.com/user-attachments/assets/15ec33e3-0308-4a95-b58f-5b8b2d83a7d9
 
 **macOS / Linux:**
 ```bash
-git clone https://github.com/bluewave-labs/atlas.git
+git clone https://github.com/gorkem-bwl/atlas.git
 cd atlas
 chmod +x setup.sh
 ./setup.sh
@@ -19,7 +19,7 @@ chmod +x setup.sh
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/bluewave-labs/atlas.git
+git clone https://github.com/gorkem-bwl/atlas.git
 cd atlas
 powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
@@ -34,7 +34,7 @@ Then open **http://localhost:3001** and create your admin account.
 ## Manual Docker setup
 
 ```bash
-git clone https://github.com/bluewave-labs/atlas.git
+git clone https://github.com/gorkem-bwl/atlas.git
 cd atlas
 docker compose -f docker-compose.production.yml up -d
 ```
@@ -66,14 +66,19 @@ docker compose up -d
 # 2. Install dependencies
 npm install --legacy-peer-deps
 
-# 3. Create environment file with dev secrets
+# 3. Create environment file
 cp .env.example .env
-# Generate secrets (required even for dev):
-#   openssl rand -hex 32  → paste into JWT_SECRET
-#   openssl rand -hex 32  → paste into JWT_REFRESH_SECRET
-#   openssl rand -hex 32  → paste into TOKEN_ENCRYPTION_KEY
 
-# 4. Start dev servers
+# 4. Update .env for local development:
+#    - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/atlas
+#    - CLIENT_PUBLIC_URL=http://localhost:5180
+#    - CORS_ORIGINS=http://localhost:5180,http://localhost:3001
+#    The JWT secrets in .env.example are placeholders — generate real ones:
+#      openssl rand -hex 32  → paste into JWT_SECRET
+#      openssl rand -hex 32  → paste into JWT_REFRESH_SECRET
+#      openssl rand -hex 32  → paste into TOKEN_ENCRYPTION_KEY
+
+# 5. Start dev servers
 npm run dev
 ```
 
@@ -103,18 +108,18 @@ Atlas can also host 3rd party apps. Here is a screenshot of the Atlas Marketplac
 
 <img width="2466" height="2210" alt="image" src="https://github.com/user-attachments/assets/45d83b6b-6554-4369-a7ac-306ab05118ba" />
 
-| App | Category | Description | Status | License |
-|-----|----------|-------------|--------|---------|
-| Activepieces | Automation | Visual workflow automation — connect your apps and automate tasks |
-| Cal.com | Scheduling | Open-source scheduling platform — event types, availability, booking pages, and calendar integrations |
-| Chatwoot | Support | Open-source helpdesk and live chat — manage customer conversations across channels |
-| Checkmate | Monitoring | Open-source uptime monitoring for your websites and APIs | 
-| Formbricks | Forms | Open-source survey & experience management — in-app surveys, link surveys, and user research |
-| Listmonk | Email Marketing | High-performance newsletter and mailing list manager — self-hosted email marketing |
-| Mattermost | Communication | Open-source team messaging — channels, threads, and integrations (Slack alternative) |
-| Metabase | Analytics | Business intelligence and analytics dashboards — ask questions, get charts |
-| Umami | Analytics | Privacy-focused web analytics — lightweight alternative to Google Analytics | 
-| Vaultwarden | Security | Bitwarden-compatible password manager — self-hosted vault for keys and secrets | 
+| App | Category | Description | License |
+|-----|----------|-------------|---------|
+| Activepieces | Automation | Visual workflow automation — connect your apps and automate tasks | MIT |
+| Cal.com | Scheduling | Open-source scheduling platform — event types, availability, booking pages | AGPLv3 |
+| Chatwoot | Support | Open-source helpdesk and live chat — manage customer conversations | MIT |
+| Checkmate | Monitoring | Open-source uptime monitoring for your websites and APIs | AGPLv3 |
+| Formbricks | Forms | Open-source survey & experience management — in-app surveys, link surveys | AGPLv3 |
+| Listmonk | Email Marketing | High-performance newsletter and mailing list manager | AGPLv3 |
+| Mattermost | Communication | Open-source team messaging — channels, threads, and integrations | MIT |
+| Metabase | Analytics | Business intelligence and analytics dashboards — ask questions, get charts | AGPLv3 |
+| Umami | Analytics | Privacy-focused web analytics — lightweight alternative to Google Analytics | MIT |
+| Vaultwarden | Security | Bitwarden-compatible password manager — self-hosted vault for keys and secrets | AGPLv3 |
 
 
 ## Tech stack
