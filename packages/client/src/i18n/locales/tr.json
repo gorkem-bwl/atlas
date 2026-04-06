@@ -5,6 +5,7 @@
     "confirm": "Onayla",
     "save": "Kaydet",
     "delete": "Sil",
+    "edit": "Düzenle",
     "remove": "Kaldır",
     "close": "Kapat",
     "apply": "Uygula",
@@ -2248,7 +2249,16 @@
       "add": "Politika ekle",
       "default": "Varsayılan",
       "emptyDesc": "Çalışanların yılda kaç gün izin hakkına sahip olduğunu belirleyen politikalar oluşturun.",
-      "loadDefaults": "Varsayılanları yükle"
+      "loadDefaults": "Varsayılanları yükle",
+      "leaveType": "İzin türü",
+      "daysPerYear": "Gün / yıl",
+      "paidLabel": "Ücretli",
+      "paid": "Ücretli",
+      "noAllocations": "Tahsis yapılandırılmadı",
+      "deleteTitle": "Politikayı sil",
+      "deleteDesc": "\"{{name}}\" politikasını silmek istediğinizden emin misiniz? Bu politikaya atanmış çalışanların yeniden atanması gerekecektir.",
+      "createTitle": "İzin politikası oluştur",
+      "allocationsLabel": "İzin tahsisleri"
     },
     "holidays": {
       "empty": "Bu takvimde tatil yok.",

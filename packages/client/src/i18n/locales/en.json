@@ -5,6 +5,7 @@
     "confirm": "Confirm",
     "save": "Save",
     "delete": "Delete",
+    "edit": "Edit",
     "remove": "Remove",
     "close": "Close",
     "previous": "Previous",
@@ -2284,7 +2285,16 @@
       "emptyDesc": "Create policies to define how many days of each leave type employees are entitled to per year.",
       "add": "Add policy",
       "default": "Default",
-      "loadDefaults": "Load defaults"
+      "loadDefaults": "Load defaults",
+      "leaveType": "Leave type",
+      "daysPerYear": "Days / year",
+      "paidLabel": "Paid",
+      "paid": "Paid",
+      "noAllocations": "No allocations configured",
+      "deleteTitle": "Delete policy",
+      "deleteDesc": "Are you sure you want to delete \"{{name}}\"? Employees assigned to this policy will need to be reassigned.",
+      "createTitle": "Create leave policy",
+      "allocationsLabel": "Leave allocations"
     },
     "holidays": {
       "empty": "No holidays in this calendar",

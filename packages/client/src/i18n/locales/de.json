@@ -5,6 +5,7 @@
     "confirm": "Bestätigen",
     "save": "Speichern",
     "delete": "Löschen",
+    "edit": "Bearbeiten",
     "remove": "Entfernen",
     "close": "Schließen",
     "apply": "Anwenden",
@@ -2248,7 +2249,16 @@
       "add": "Richtlinie hinzufuegen",
       "default": "Standard",
       "emptyDesc": "Erstellen Sie Richtlinien, die festlegen, wie viele Tage jeder Urlaubsart den Mitarbeitern pro Jahr zustehen.",
-      "loadDefaults": "Standardwerte laden"
+      "loadDefaults": "Standardwerte laden",
+      "leaveType": "Urlaubsart",
+      "daysPerYear": "Tage / Jahr",
+      "paidLabel": "Bezahlt",
+      "paid": "Bezahlt",
+      "noAllocations": "Keine Zuteilungen konfiguriert",
+      "deleteTitle": "Richtlinie löschen",
+      "deleteDesc": "Möchten Sie \"{{name}}\" wirklich löschen? Mitarbeiter, die dieser Richtlinie zugewiesen sind, müssen neu zugewiesen werden.",
+      "createTitle": "Urlaubsrichtlinie erstellen",
+      "allocationsLabel": "Urlaubszuteilungen"
     },
     "holidays": {
       "empty": "Keine Feiertage in diesem Kalender.",

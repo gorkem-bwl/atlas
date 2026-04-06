@@ -602,6 +602,16 @@ export function useUpdateLeavePolicy() {
   });
 }
 
+export function useDeleteLeavePolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/hr/leave-policies/${id}`);
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: queryKeys.hr.all }); },
+  });
+}
+
 export function useSeedLeavePolicies() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -5,6 +5,7 @@
     "confirm": "Conferma",
     "save": "Salva",
     "delete": "Elimina",
+    "edit": "Modifica",
     "remove": "Rimuovi",
     "close": "Chiudi",
     "apply": "Applica",
@@ -2248,7 +2249,16 @@
       "add": "Aggiungi politica",
       "default": "Predefinita",
       "emptyDesc": "Crea politiche per definire quanti giorni di ogni tipo di congedo spettano ai dipendenti all'anno.",
-      "loadDefaults": "Carica valori predefiniti"
+      "loadDefaults": "Carica valori predefiniti",
+      "leaveType": "Tipo di congedo",
+      "daysPerYear": "Giorni / anno",
+      "paidLabel": "Retribuito",
+      "paid": "Retribuito",
+      "noAllocations": "Nessuna allocazione configurata",
+      "deleteTitle": "Elimina politica",
+      "deleteDesc": "Sei sicuro di voler eliminare \"{{name}}\"? I dipendenti assegnati a questa politica dovranno essere riassegnati.",
+      "createTitle": "Crea politica di congedo",
+      "allocationsLabel": "Allocazioni congedi"
     },
     "holidays": {
       "empty": "Nessuna festivita in questo calendario.",

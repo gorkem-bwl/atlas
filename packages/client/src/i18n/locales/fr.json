@@ -5,6 +5,7 @@
     "confirm": "Confirmer",
     "save": "Enregistrer",
     "delete": "Supprimer",
+    "edit": "Modifier",
     "remove": "Retirer",
     "close": "Fermer",
     "apply": "Appliquer",
@@ -2248,7 +2249,16 @@
       "add": "Ajouter une politique",
       "default": "Par defaut",
       "emptyDesc": "Créez des politiques pour définir le nombre de jours de chaque type de congé auxquels les employés ont droit par an.",
-      "loadDefaults": "Charger les valeurs par defaut"
+      "loadDefaults": "Charger les valeurs par defaut",
+      "leaveType": "Type de congé",
+      "daysPerYear": "Jours / an",
+      "paidLabel": "Payé",
+      "paid": "Payé",
+      "noAllocations": "Aucune allocation configurée",
+      "deleteTitle": "Supprimer la politique",
+      "deleteDesc": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Les employés assignés à cette politique devront être réassignés.",
+      "createTitle": "Créer une politique de congé",
+      "allocationsLabel": "Allocations de congés"
     },
     "holidays": {
       "empty": "Aucun jour ferie dans ce calendrier.",
