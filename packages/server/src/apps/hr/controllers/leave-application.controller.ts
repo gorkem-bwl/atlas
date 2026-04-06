@@ -3,6 +3,39 @@ import * as leaveService from '../leave.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { db } from '../../../config/database';
+import { employees, accounts } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
+
+// ─── Helpers ─────────────────────────────────────────────────────
+
+/** Look up the platform userId for an employee by matching email to accounts table. */
+async function getAccountUserIdForEmployee(employeeId: string): Promise<string | null> {
+  try {
+    const [result] = await db.select({ userId: accounts.userId })
+      .from(accounts)
+      .innerJoin(employees, eq(employees.email, accounts.email))
+      .where(eq(employees.id, employeeId))
+      .limit(1);
+    return result?.userId ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Look up the manager's platform userId for an employee. */
+async function getManagerUserIdForEmployee(employeeId: string): Promise<string | null> {
+  try {
+    const [employee] = await db.select({ managerId: employees.managerId })
+      .from(employees)
+      .where(eq(employees.id, employeeId))
+      .limit(1);
+    if (!employee?.managerId) return null;
+    return getAccountUserIdForEmployee(employee.managerId);
+  } catch {
+    return null;
+  }
+}
 
 // ─── Leave Applications ───────────────────────────────────────────
 
@@ -50,6 +83,7 @@ export async function createLeaveApplication(req: Request, res: Response) {
     });
 
     if (req.auth!.tenantId) {
+      const managerUserId = await getManagerUserIdForEmployee(employeeId);
       emitAppEvent({
         tenantId: req.auth!.tenantId,
         userId: req.auth!.userId,
@@ -57,6 +91,7 @@ export async function createLeaveApplication(req: Request, res: Response) {
         eventType: 'leave.requested',
         title: `requested leave from ${startDate} to ${endDate}`,
         metadata: { leaveApplicationId: data.id, employeeId, startDate, endDate },
+        ...(managerUserId ? { notifyUserIds: [managerUserId] } : {}),
       }).catch(() => {});
     }
 
@@ -98,6 +133,20 @@ export async function submitLeaveApplication(req: Request, res: Response) {
 
     const data = await leaveService.submitLeaveApplication(accountId, req.params.id as string);
     if (!data) { res.status(400).json({ success: false, error: 'Cannot submit this application' }); return; }
+
+    if (req.auth!.tenantId && data.employeeId) {
+      const managerUserId = await getManagerUserIdForEmployee(data.employeeId);
+      emitAppEvent({
+        tenantId: req.auth!.tenantId,
+        userId: req.auth!.userId,
+        appId: 'hr',
+        eventType: 'leave.submitted',
+        title: `submitted leave application for approval`,
+        metadata: { leaveApplicationId: data.id, employeeId: data.employeeId },
+        ...(managerUserId ? { notifyUserIds: [managerUserId] } : {}),
+      }).catch(() => {});
+    }
+
     res.json({ success: true, data });
   } catch (error: any) {
     logger.error({ error }, 'Failed to submit leave application');
@@ -121,6 +170,7 @@ export async function approveLeaveApplication(req: Request, res: Response) {
     if (!data) { res.status(400).json({ success: false, error: 'Cannot approve this application' }); return; }
 
     if (req.auth!.tenantId) {
+      const employeeUserId = data.employeeId ? await getAccountUserIdForEmployee(data.employeeId) : null;
       emitAppEvent({
         tenantId: req.auth!.tenantId,
         userId,
@@ -128,6 +178,7 @@ export async function approveLeaveApplication(req: Request, res: Response) {
         eventType: 'leave.approved',
         title: `approved leave application`,
         metadata: { leaveApplicationId: data.id },
+        ...(employeeUserId ? { notifyUserIds: [employeeUserId] } : {}),
       }).catch(() => {});
     }
 
@@ -154,6 +205,7 @@ export async function rejectLeaveApplication(req: Request, res: Response) {
     if (!data) { res.status(400).json({ success: false, error: 'Cannot reject this application' }); return; }
 
     if (req.auth!.tenantId) {
+      const employeeUserId = data.employeeId ? await getAccountUserIdForEmployee(data.employeeId) : null;
       emitAppEvent({
         tenantId: req.auth!.tenantId,
         userId,
@@ -161,6 +213,7 @@ export async function rejectLeaveApplication(req: Request, res: Response) {
         eventType: 'leave.rejected',
         title: `rejected leave application`,
         metadata: { leaveApplicationId: data.id },
+        ...(employeeUserId ? { notifyUserIds: [employeeUserId] } : {}),
       }).catch(() => {});
     }
 
