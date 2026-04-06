@@ -203,17 +203,19 @@ export function WidgetGrid() {
                   e.dataTransfer.effectAllowed = 'move';
                 }}
                 onDragEnd={() => {
-                  setDraggedId(null);
-                  setDragOverId(null);
+                  if (draggedId && dragOverId && draggedId !== dragOverId) {
+                    handleReorder(draggedId, dragOverId);
+                  } else {
+                    setDraggedId(null);
+                    setDragOverId(null);
+                  }
                 }}
                 onDragOver={(e) => {
                   e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
                   setDragOverId(item.key);
                 }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  handleReorder(draggedId, item.key);
-                }}
+                onDrop={(e) => { e.preventDefault(); }}
                 style={{
                   width: WIDGET_W,
                   height: WIDGET_H,
@@ -247,18 +249,20 @@ export function WidgetGrid() {
                 e.dataTransfer.effectAllowed = 'move';
               }}
               onDragEnd={() => {
-                setDraggedId(null);
-                setDragOverId(null);
+                if (draggedId && dragOverId && draggedId !== dragOverId) {
+                  handleReorder(draggedId, dragOverId);
+                } else {
+                  setDraggedId(null);
+                  setDragOverId(null);
+                }
               }}
               onDragOver={(e) => {
                 e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
                 setDragOverId(item.key);
               }}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleReorder(draggedId, item.key);
-              }}
-              onClick={() => !isDragged && item.route && navigate(item.route)}
+              onDrop={(e) => { e.preventDefault(); }}
+              onClick={() => !draggedId && item.route && navigate(item.route)}
               onMouseEnter={() => setHoveredWidget(item.key)}
               onMouseLeave={() => setHoveredWidget(null)}
               style={{

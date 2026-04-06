@@ -1213,10 +1213,23 @@ export function HomePage() {
                 onDragStart={(e) => {
                   setDockDragId(app.id);
                   e.dataTransfer.effectAllowed = 'move';
+                  // Set a transparent drag image to avoid the default ghost blocking drop targets
+                  const ghost = document.createElement('div');
+                  ghost.style.cssText = 'width:52px;height:52px;opacity:0;position:absolute;top:-9999px';
+                  document.body.appendChild(ghost);
+                  e.dataTransfer.setDragImage(ghost, 26, 26);
+                  setTimeout(() => document.body.removeChild(ghost), 0);
                 }}
-                onDragEnd={() => { setDockDragId(null); setDockDragOverId(null); }}
-                onDragOver={(e) => { e.preventDefault(); setDockDragOverId(app.id); }}
-                onDrop={(e) => { e.preventDefault(); if (dockDragId) handleDockReorder(dockDragId, app.id); }}
+                onDragEnd={() => {
+                  if (dockDragId && dockDragOverId && dockDragId !== dockDragOverId) {
+                    handleDockReorder(dockDragId, dockDragOverId);
+                  } else {
+                    setDockDragId(null);
+                    setDockDragOverId(null);
+                  }
+                }}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDockDragOverId(app.id); }}
+                onDrop={(e) => { e.preventDefault(); }}
                 style={{
                   opacity: dockDragId === app.id ? 0.3 : 1,
                   transform: getDockItemTransform(app.id),
@@ -1225,7 +1238,7 @@ export function HomePage() {
               >
                 <div
                   className="dock-icon-inner"
-                  onClick={() => navigate(app.route)}
+                  onClick={() => !dockDragId && navigate(app.route)}
                   style={{
                     background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
                     boxShadow: `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
