@@ -719,8 +719,14 @@ export function HomePage() {
     return [...dockApps].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
   }, [dockApps, userSettings?.homeDockOrder]);
 
-  // Dock drag-and-drop state
-  const [dockDragId, setDockDragId] = useState<string | null>(null);
+  // Dock drag-and-drop state (custom mouse-based, macOS-style)
+  const [dockDragState, setDockDragState] = useState<{
+    id: string;
+    startX: number;
+    currentX: number;
+    offsetX: number;
+    isDragging: boolean; // true once mouse moves past threshold
+  } | null>(null);
   const [dockDragOverId, setDockDragOverId] = useState<string | null>(null);
 
   const handleDockReorder = useCallback((fromId: string, toId: string) => {
@@ -738,11 +744,69 @@ export function HomePage() {
       ...old,
       homeDockOrder: JSON.stringify(currentOrder),
     }));
-    setDockDragId(null);
+    setDockDragState(null);
     setDockDragOverId(null);
   }, [orderedDockApps, queryClient]);
 
+  // Global mousemove/mouseup for dock dragging
+  useEffect(() => {
+    if (!dockDragState) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const moved = Math.abs(e.clientX - dockDragState.startX);
+      setDockDragState(prev => {
+        if (!prev) return null;
+        return { ...prev, currentX: e.clientX, isDragging: prev.isDragging || moved >= 3 };
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (dockDragState.isDragging && dockDragOverId && dockDragState.id !== dockDragOverId) {
+        handleDockReorder(dockDragState.id, dockDragOverId);
+      } else if (!dockDragState.isDragging) {
+        // It was a click, not a drag — navigate
+        const app = orderedDockApps.find(a => a.id === dockDragState.id);
+        if (app) navigate(app.route);
+      }
+      setDockDragState(null);
+      setDockDragOverId(null);
+      // Reset magnification after drag ends
+      handleDockMouseLeave();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dockDragState, dockDragOverId, handleDockReorder, orderedDockApps, navigate, handleDockMouseLeave]);
+
+  // Determine which dock item the cursor is over during drag
+  useEffect(() => {
+    if (!dockDragState?.isDragging) return;
+    const dock = dockRef.current;
+    if (!dock) return;
+
+    const items = dock.querySelectorAll<HTMLElement>('.dock-item');
+    let closestId: string | null = null;
+    let closestDist = Infinity;
+
+    items.forEach((item, idx) => {
+      const rect = item.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const dist = Math.abs(dockDragState.currentX - centerX);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestId = orderedDockApps[idx]?.id ?? null;
+      }
+    });
+
+    if (closestId) setDockDragOverId(closestId);
+  }, [dockDragState?.currentX, dockDragState?.isDragging, orderedDockApps]);
+
   // Calculate smooth slide transform for dock items during drag
+  const dockDragId = dockDragState?.isDragging ? dockDragState.id : null;
   const getDockItemTransform = useCallback((itemId: string) => {
     if (!dockDragId || !dockDragOverId || dockDragId === itemId) return 'none';
     const order = orderedDockApps.map(a => a.id);
@@ -1179,8 +1243,8 @@ export function HomePage() {
         <nav
           ref={dockRef}
           className="atlas-dock"
-          onMouseMove={handleDockItemHover}
-          onMouseLeave={handleDockMouseLeave}
+          onMouseMove={dockDragState?.isDragging ? undefined : handleDockItemHover}
+          onMouseLeave={dockDragState?.isDragging ? undefined : handleDockMouseLeave}
           style={{
             position: 'absolute',
             bottom: 20,
@@ -1202,39 +1266,30 @@ export function HomePage() {
         >
           {orderedDockApps.map((app) => {
             const Icon = app.icon;
+            const isBeingDragged = dockDragState?.isDragging && dockDragState.id === app.id;
             return (
               <div
                 key={app.id}
                 className="dock-item"
-                draggable
-                onDragStart={(e) => {
-                  setDockDragId(app.id);
-                  e.dataTransfer.effectAllowed = 'move';
-                  // Use the icon element as drag image
-                  const iconEl = e.currentTarget.querySelector('.dock-icon-inner') as HTMLElement;
-                  if (iconEl) {
-                    e.dataTransfer.setDragImage(iconEl, 26, 26);
-                  }
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setDockDragState({
+                    id: app.id,
+                    startX: e.clientX,
+                    currentX: e.clientX,
+                    offsetX: e.clientX - rect.left - rect.width / 2,
+                    isDragging: false,
+                  });
                 }}
-                onDragEnd={() => {
-                  if (dockDragId && dockDragOverId && dockDragId !== dockDragOverId) {
-                    handleDockReorder(dockDragId, dockDragOverId);
-                  } else {
-                    setDockDragId(null);
-                    setDockDragOverId(null);
-                  }
-                }}
-                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDockDragOverId(app.id); }}
-                onDrop={(e) => { e.preventDefault(); }}
                 style={{
-                  opacity: dockDragId === app.id ? 0.3 : 1,
+                  opacity: isBeingDragged ? 0.3 : 1,
                   transform: getDockItemTransform(app.id),
                   transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s',
                 }}
               >
                 <div
                   className="dock-icon-inner"
-                  onClick={() => !dockDragId && navigate(app.route)}
                   style={{
                     background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
                     boxShadow: `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
@@ -1248,6 +1303,37 @@ export function HomePage() {
               </div>
             );
           })}
+          {/* Floating clone of the dragged icon */}
+          {dockDragState?.isDragging && (() => {
+            const app = orderedDockApps.find(a => a.id === dockDragState.id);
+            if (!app) return null;
+            const Icon = app.icon;
+            return (
+              <div style={{
+                position: 'fixed',
+                left: dockDragState.currentX - 26,
+                top: (dockRef.current?.getBoundingClientRect().top ?? 0) + 10,
+                width: 52,
+                height: 52,
+                zIndex: 9999,
+                pointerEvents: 'none',
+              }}>
+                <div className="dock-icon-inner" style={{
+                  background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                  boxShadow: `0 8px 20px ${app.color}66`,
+                  transform: 'scale(1.15)',
+                  width: 52,
+                  height: 52,
+                  borderRadius: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                </div>
+              </div>
+            );
+          })()}
         </nav>
 
         {/* Demo data pill */}
