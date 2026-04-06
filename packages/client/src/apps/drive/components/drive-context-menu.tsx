@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Download, Pencil, Copy, FolderInput, Star, Tag, Share2,
   Upload, Trash2, RotateCcw, ExternalLink, FileArchive, CloudUpload,
+  Link2, FolderOutput,
 } from 'lucide-react';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../../../components/ui/context-menu';
 import { useGoogleDriveStatus, useExportToGoogleDrive } from '../hooks';
@@ -22,6 +23,7 @@ interface DriveContextMenuProps {
   handleSetIcon: (item: DriveItem) => void;
   handleDuplicate: (item: DriveItem) => void;
   handleMove: (item: DriveItem) => void;
+  handleCopy: (item: DriveItem) => void;
   handleToggleFavourite: (item: DriveItem) => void;
   handleAddTag: (item: DriveItem) => void;
   setShareModalItem: (item: DriveItem) => void;
@@ -42,6 +44,7 @@ export function DriveContextMenuView({
   handleSetIcon,
   handleDuplicate,
   handleMove,
+  handleCopy,
   handleToggleFavourite,
   handleAddTag,
   setShareModalItem,
@@ -89,6 +92,17 @@ export function DriveContextMenuView({
           )}
           {contextMenu.item.type === 'file' && !contextMenu.item.linkedResourceType && (
             <ContextMenuItem
+              icon={<ExternalLink size={14} />}
+              label={t('drive.context.openInNewTab')}
+              onClick={() => {
+                const token = localStorage.getItem('atlasmail_token');
+                window.open(`/api/v1/drive/${contextMenu.item.id}/view${token ? `?token=${encodeURIComponent(token)}` : ''}`, '_blank');
+                setContextMenu(null);
+              }}
+            />
+          )}
+          {contextMenu.item.type === 'file' && !contextMenu.item.linkedResourceType && (
+            <ContextMenuItem
               icon={<Download size={14} />}
               label={t('drive.context.download')}
               onClick={() => handleDownload(contextMenu.item)}
@@ -124,6 +138,11 @@ export function DriveContextMenuView({
             onClick={() => handleMove(contextMenu.item)}
           />
           <ContextMenuItem
+            icon={<FolderOutput size={14} />}
+            label={t('drive.context.copyTo')}
+            onClick={() => handleCopy(contextMenu.item)}
+          />
+          <ContextMenuItem
             icon={<Star size={14} />}
             label={contextMenu.item.isFavourite ? t('drive.context.removeFromFavourites') : t('drive.context.addToFavourites')}
             onClick={() => handleToggleFavourite(contextMenu.item)}
@@ -137,6 +156,17 @@ export function DriveContextMenuView({
             icon={<Share2 size={14} />}
             label={t('drive.context.share')}
             onClick={() => { setShareModalItem(contextMenu.item); setContextMenu(null); }}
+          />
+          <ContextMenuItem
+            icon={<Link2 size={14} />}
+            label={t('drive.context.copyLink')}
+            onClick={() => {
+              const url = `${window.location.origin}/drive?file=${contextMenu.item.id}`;
+              navigator.clipboard.writeText(url).then(() => {
+                addToast({ type: 'success', message: t('drive.context.linkCopied') });
+              });
+              setContextMenu(null);
+            }}
           />
           {contextMenu.item.type === 'file' && (
             <ContextMenuItem

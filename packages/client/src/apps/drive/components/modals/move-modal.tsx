@@ -17,6 +17,7 @@ interface MoveModalProps {
   targetId: string | null;
   setTargetId: (id: string | null) => void;
   onSubmit: () => void;
+  mode?: 'move' | 'copy';
 }
 
 export function MoveModal({
@@ -27,6 +28,7 @@ export function MoveModal({
   targetId,
   setTargetId,
   onSubmit,
+  mode = 'move',
 }: MoveModalProps) {
   const { t } = useTranslation();
   return (
@@ -85,7 +87,7 @@ export function MoveModal({
             {t('drive.modals.cancel')}
           </Button>
           <Button variant="primary" onClick={onSubmit}>
-            {t('drive.modals.moveHere')}
+            {mode === 'copy' ? t('drive.modals.copyHere') : t('drive.modals.moveHere')}
           </Button>
         </div>
       </div>

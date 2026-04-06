@@ -61,6 +61,9 @@ export function useDrivePage() {
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [moveItem, setMoveItem] = useState<DriveItem | null>(null);
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [copyModalItem, setCopyModalItem] = useState<DriveItem | null>(null);
+  const [copyTargetId, setCopyTargetId] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>(() => driveSettings.defaultSort as SortBy || 'default');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
@@ -358,6 +361,8 @@ export function useDrivePage() {
   const handleMove = useCallback((item: DriveItem) => { setMoveItem(item); setMoveTargetId(null); setMoveModalOpen(true); setContextMenu(null); }, []);
   const handleMoveSubmit = useCallback(() => { if (!moveItem) return; updateItem.mutate({ id: moveItem.id, parentId: moveTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.moved') }); setMoveModalOpen(false); setMoveItem(null); } }); }, [moveItem, moveTargetId, updateItem, addToast, t]);
   const handleDuplicate = useCallback((item: DriveItem) => { duplicateItem.mutate(item.id, { onSuccess: () => addToast({ type: 'success', message: t('drive.actions.duplicated') }) }); setContextMenu(null); }, [duplicateItem, addToast, t]);
+  const handleCopy = useCallback((item: DriveItem) => { setCopyModalItem(item); setCopyTargetId(null); setCopyModalOpen(true); setContextMenu(null); }, []);
+  const handleCopySubmit = useCallback(() => { if (!copyModalItem) return; copyItem.mutate({ id: copyModalItem.id, targetParentId: copyTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.copied') }); setCopyModalOpen(false); setCopyModalItem(null); } }); }, [copyModalItem, copyTargetId, copyItem, addToast, t]);
   const handleClipboardCopy = useCallback(() => { if (selectedIds.size === 1) { setClipboardItemId(Array.from(selectedIds)[0]); addToast({ type: 'success', message: t('drive.actions.copiedToClipboard') }); } }, [selectedIds, addToast, t]);
   const handleClipboardPaste = useCallback(() => { if (!clipboardItemId) return; copyItem.mutate({ id: clipboardItemId, targetParentId: currentParentId }, { onSuccess: () => addToast({ type: 'success', message: t('drive.actions.pasted') }) }); }, [clipboardItemId, currentParentId, copyItem, addToast, t]);
   const handleContextMenu = useCallback((e: React.MouseEvent, item: DriveItem) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, item }); }, []);
@@ -442,6 +447,19 @@ export function useDrivePage() {
     return tree;
   }, [foldersData, moveItem]);
 
+  const copyFolderTree = useMemo(() => {
+    const folders = foldersData?.folders ?? [];
+    const tree: Array<{ id: string; name: string; depth: number }> = [];
+    function buildLevel(parentId: string | null, depth: number) {
+      for (const child of folders.filter((f) => f.parentId === parentId)) {
+        tree.push({ id: child.id, name: child.name, depth });
+        buildLevel(child.id, depth + 1);
+      }
+    }
+    buildLevel(null, 0);
+    return tree;
+  }, [foldersData]);
+
   const batchFolderTree = useMemo(() => {
     const folders = foldersData?.folders ?? [];
     const tree: Array<{ id: string; name: string; depth: number }> = [];
@@ -509,6 +527,7 @@ export function useDrivePage() {
     renameId, setRenameId, renameValue, setRenameValue,
     confirmDelete, setConfirmDelete, confirmPermanent, setConfirmPermanent,
     moveModalOpen, setMoveModalOpen, moveTargetId, setMoveTargetId,
+    copyModalOpen, setCopyModalOpen, copyTargetId, setCopyTargetId,
     isDraggingOver, sortBy, setSortBy, sortDropdownOpen, setSortDropdownOpen,
     typeFilter, setTypeFilter, typeDropdownOpen, setTypeDropdownOpen,
     modifiedFilter, setModifiedFilter, modifiedDropdownOpen, setModifiedDropdownOpen,
@@ -526,7 +545,7 @@ export function useDrivePage() {
     fileInputRef, replaceFileInputRef, newDropdownRef, sortDropdownRef, typeDropdownRef, modifiedDropdownRef,
     // Derived data
     currentParentId, displayItems, isLoading, breadcrumbs, hasSelection, viewTitle,
-    folderTree, batchFolderTree,
+    folderTree, copyFolderTree, batchFolderTree,
     // Query data
     storageData, filePreviewData, previewLoading,
     linkedDocData, linkedDrawingData, linkedTableData,
@@ -544,6 +563,7 @@ export function useDrivePage() {
     handleMoveToTrash, confirmMoveToTrash, handleRestore,
     handlePermanentDelete, confirmPermanentDelete,
     handleDownload, handleDownloadZip, handleMove, handleMoveSubmit,
+    handleCopy, handleCopySubmit,
     handleDuplicate, handleSetIcon, handleIconSelect, handleIconRemove,
     handleAddTag, handleTagSubmit, handleRemoveTag,
     handleContextMenu,

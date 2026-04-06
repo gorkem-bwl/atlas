@@ -1733,7 +1733,11 @@
       "downloadAsZip": "ZIP olarak indir",
       "rename": "Yeniden adlandır",
       "uploadNewVersion": "Yeni sürüm yükle",
-      "moveToTrash": "Çöp kutusuna taşı"
+      "moveToTrash": "Çöp kutusuna taşı",
+      "copyTo": "Kopyala...",
+      "copyLink": "Bağlantıyı kopyala",
+      "linkCopied": "Bağlantı panoya kopyalandı",
+      "openInNewTab": "Yeni sekmede aç"
     },
     "sidebar": {
       "sharedWithMe": "Benimle paylaşılan",
@@ -1866,6 +1870,8 @@
       "myDriveRoot": "Sürücüm (kök)",
       "cancel": "İptal",
       "moveHere": "Buraya taşı",
+      "copyTo": "Kopyala...",
+      "copyHere": "Buraya kopyala",
       "addTag": "Etiket ekle",
       "tagName": "Etiket adı",
       "add": "Ekle",

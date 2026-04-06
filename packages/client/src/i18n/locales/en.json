@@ -1764,7 +1764,11 @@
       "downloadAsZip": "Download as ZIP",
       "rename": "Rename",
       "uploadNewVersion": "Upload new version",
-      "moveToTrash": "Move to trash"
+      "moveToTrash": "Move to trash",
+      "copyTo": "Copy to...",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied to clipboard",
+      "openInNewTab": "Open in new tab"
     },
     "sidebar": {
       "sharedWithMe": "Shared with me",
@@ -1897,6 +1901,8 @@
       "myDriveRoot": "My drive (root)",
       "cancel": "Cancel",
       "moveHere": "Move here",
+      "copyTo": "Copy to...",
+      "copyHere": "Copy here",
       "addTag": "Add tag",
       "tagName": "Tag name",
       "add": "Add",

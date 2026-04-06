@@ -1733,7 +1733,11 @@
       "downloadAsZip": "Scarica come ZIP",
       "rename": "Rinomina",
       "uploadNewVersion": "Carica nuova versione",
-      "moveToTrash": "Sposta nel cestino"
+      "moveToTrash": "Sposta nel cestino",
+      "copyTo": "Copia in...",
+      "copyLink": "Copia link",
+      "linkCopied": "Link copiato negli appunti",
+      "openInNewTab": "Apri in una nuova scheda"
     },
     "sidebar": {
       "sharedWithMe": "Condivisi con me",
@@ -1866,6 +1870,8 @@
       "myDriveRoot": "Il mio archivio (radice)",
       "cancel": "Annulla",
       "moveHere": "Sposta qui",
+      "copyTo": "Copia in...",
+      "copyHere": "Copia qui",
       "addTag": "Aggiungi tag",
       "tagName": "Nome del tag",
       "add": "Aggiungi",

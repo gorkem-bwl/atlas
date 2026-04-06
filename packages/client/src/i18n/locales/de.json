@@ -1733,7 +1733,11 @@
       "downloadAsZip": "Als ZIP herunterladen",
       "rename": "Umbenennen",
       "uploadNewVersion": "Neue Version hochladen",
-      "moveToTrash": "In den Papierkorb"
+      "moveToTrash": "In den Papierkorb",
+      "copyTo": "Kopieren nach...",
+      "copyLink": "Link kopieren",
+      "linkCopied": "Link in die Zwischenablage kopiert",
+      "openInNewTab": "In neuem Tab öffnen"
     },
     "sidebar": {
       "sharedWithMe": "Mit mir geteilt",
@@ -1866,6 +1870,8 @@
       "myDriveRoot": "Mein Laufwerk (Stammverzeichnis)",
       "cancel": "Abbrechen",
       "moveHere": "Hierher verschieben",
+      "copyTo": "Kopieren nach...",
+      "copyHere": "Hierher kopieren",
       "addTag": "Tag hinzufügen",
       "tagName": "Tag-Name",
       "add": "Hinzufügen",

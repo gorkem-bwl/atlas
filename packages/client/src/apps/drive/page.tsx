@@ -185,13 +185,14 @@ export function DrivePage() {
 
       {/* Context menu */}
       {d.contextMenu && (
-        <DriveContextMenuView contextMenu={d.contextMenu} setContextMenu={() => d.setContextMenu(null)} sidebarView={d.sidebarView} handleRestore={d.handleRestore} handlePermanentDelete={d.handlePermanentDelete} handleDownload={d.handleDownload} handleDownloadZip={d.handleDownloadZip} handleRename={d.handleRename} handleSetIcon={d.handleSetIcon} handleDuplicate={d.handleDuplicate} handleMove={d.handleMove} handleToggleFavourite={d.handleToggleFavourite} handleAddTag={d.handleAddTag} setShareModalItem={d.setShareModalItem} setReplaceTargetId={d.setReplaceTargetId} replaceFileInputRef={d.replaceFileInputRef} handleMoveToTrash={d.handleMoveToTrash} />
+        <DriveContextMenuView contextMenu={d.contextMenu} setContextMenu={() => d.setContextMenu(null)} sidebarView={d.sidebarView} handleRestore={d.handleRestore} handlePermanentDelete={d.handlePermanentDelete} handleDownload={d.handleDownload} handleDownloadZip={d.handleDownloadZip} handleRename={d.handleRename} handleSetIcon={d.handleSetIcon} handleDuplicate={d.handleDuplicate} handleMove={d.handleMove} handleCopy={d.handleCopy} handleToggleFavourite={d.handleToggleFavourite} handleAddTag={d.handleAddTag} setShareModalItem={d.setShareModalItem} setReplaceTargetId={d.setReplaceTargetId} replaceFileInputRef={d.replaceFileInputRef} handleMoveToTrash={d.handleMoveToTrash} />
       )}
 
       {/* Modals */}
       <NewFolderModal open={d.newFolderOpen} onOpenChange={d.setNewFolderOpen} folderName={d.newFolderName} setFolderName={d.setNewFolderName} onSubmit={d.handleCreateFolder} />
       <MoveModal open={d.moveModalOpen} onOpenChange={d.setMoveModalOpen} title={t('drive.modals.moveTo')} folderTree={d.folderTree} targetId={d.moveTargetId} setTargetId={d.setMoveTargetId} onSubmit={d.handleMoveSubmit} />
       <MoveModal open={d.batchMoveOpen} onOpenChange={d.setBatchMoveOpen} title={t('drive.modals.moveItemsTo', { count: d.selectedIds.size })} folderTree={d.batchFolderTree} targetId={d.batchMoveTargetId} setTargetId={d.setBatchMoveTargetId} onSubmit={d.handleBulkMoveSubmit} />
+      <MoveModal open={d.copyModalOpen} onOpenChange={d.setCopyModalOpen} title={t('drive.modals.copyTo')} folderTree={d.copyFolderTree} targetId={d.copyTargetId} setTargetId={d.setCopyTargetId} onSubmit={d.handleCopySubmit} mode="copy" />
       <TagModal tagModalItem={d.tagModalItem} setTagModalItem={d.setTagModalItem} tagLabel={d.tagLabel} setTagLabel={d.setTagLabel} tagColor={d.tagColor} setTagColor={d.setTagColor} handleTagSubmit={d.handleTagSubmit} />
       <ShareModal shareModalItem={d.shareModalItem} setShareModalItem={d.setShareModalItem} tenantUsersData={d.tenantUsersData ?? []} itemSharesData={d.itemSharesData} shareLinksData={d.shareLinksData} shareItem={d.shareItem} revokeShare={d.revokeShare} createShareLink={d.createShareLink} deleteShareLink={d.deleteShareLink} addToast={d.addToast} defaultExpiry={d.driveSettings.shareDefaultExpiry || 'never'} />
       <GoogleDriveModal open={d.googleDriveModalOpen} onClose={() => d.setGoogleDriveModalOpen(false)} targetParentId={d.currentParentId} />
