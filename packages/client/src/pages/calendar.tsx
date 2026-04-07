@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Layers,
   RefreshCw,
   Plus,
   PanelLeftClose,
@@ -12,6 +13,7 @@ import {
   Search,
   Settings,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '../hooks/use-media-query';
 import { useUIStore } from '../stores/ui-store';
 import { api } from '../lib/api-client';
@@ -20,7 +22,8 @@ import { Button } from '../components/ui/button';
 import { IconButton } from '../components/ui/icon-button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
-import { useCalendars, useCalendarEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
+import { useCalendars, useCalendarEvents, useAggregatedEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
+import type { AggregatedEvent } from '../hooks/use-calendar';
 import { useCalendarStore } from '../stores/calendar-store';
 import { useCalendarSettingsStore } from '../stores/calendar-settings-store';
 import { useToastStore } from '../stores/toast-store';
@@ -76,7 +79,15 @@ function formatWeekRange(weekStart: Date): string {
   return `${sMonth} ${sDay} \u2013 ${eMonth} ${eDay}, ${year}`;
 }
 
+// Extended CalendarEvent type with aggregation fields
+type DisplayEvent = import('@atlasmail/shared').CalendarEvent & {
+  _source?: AggregatedEvent['source'];
+  _color?: string;
+  _route?: string;
+};
+
 export function CalendarPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { openSettings } = useUIStore();
@@ -139,8 +150,14 @@ export function CalendarPage() {
     }
     return getTimeRange(weekStart);
   }, [weekStart, view]);
+  const [showAllApps, setShowAllApps] = useState(true);
+
   const { data: calendars } = useCalendars();
   const { data: events, isLoading: eventsLoading } = useCalendarEvents(timeMin, timeMax);
+  const { data: aggregatedEvents } = useAggregatedEvents(
+    showAllApps ? timeMin : '',
+    showAllApps ? timeMax : '',
+  );
   const syncCalendar = useSyncCalendar();
   const toggleCalendar = useToggleCalendar();
   const updateEvent = useUpdateCalendarEvent();
@@ -168,8 +185,15 @@ export function CalendarPage() {
   // Derive selected calendar IDs and color map
   const selectedCalendarIds = useMemo(() => {
     if (!calendars) return new Set<string>();
-    return new Set(calendars.filter((c) => c.isSelected).map((c) => c.id));
-  }, [calendars]);
+    const ids = new Set(calendars.filter((c) => c.isSelected).map((c) => c.id));
+    // Include virtual calendar IDs for aggregated app events
+    if (showAllApps) {
+      ids.add('__crm__');
+      ids.add('__hr-leave__');
+      ids.add('__task__');
+    }
+    return ids;
+  }, [calendars, showAllApps]);
 
   const calendarColorMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -286,6 +310,19 @@ export function CalendarPage() {
       openCreateModal(start.toISOString(), end.toISOString(), isAllDay);
     },
     [openCreateModal],
+  );
+
+  const handleEventClick = useCallback(
+    (event: import('@atlasmail/shared').CalendarEvent) => {
+      // If this is an aggregated app event with a route, navigate instead of opening modal
+      const evAny = event as any;
+      if (evAny._route) {
+        navigate(evAny._route);
+        return;
+      }
+      openEditModal(event);
+    },
+    [navigate, openEditModal],
   );
 
   const handleRSVP = useCallback(
@@ -576,6 +613,46 @@ export function CalendarPage() {
         ev.description?.toLowerCase().includes(q),
     );
   }, [events, searchQuery]);
+
+  // Merge aggregated events (from other apps) into the display list
+  const displayEvents: DisplayEvent[] = useMemo(() => {
+    const base = filteredEvents as DisplayEvent[];
+    if (!showAllApps || !aggregatedEvents) return base;
+
+    // Map aggregated non-google events to CalendarEvent-compatible shape
+    const appEvents: DisplayEvent[] = aggregatedEvents
+      .filter((evt) => evt.source !== 'google')
+      .map((evt) => ({
+        id: evt.id,
+        accountId: '',
+        calendarId: `__${evt.source}__`,
+        googleEventId: '',
+        summary: evt.title,
+        description: evt.description || null,
+        location: null,
+        startTime: evt.startTime,
+        endTime: evt.endTime,
+        isAllDay: evt.isAllDay,
+        status: 'confirmed' as const,
+        selfResponseStatus: null,
+        htmlLink: null,
+        hangoutLink: null,
+        organizer: null,
+        attendees: null,
+        recurrence: null,
+        recurringEventId: null,
+        transparency: null,
+        colorId: null,
+        reminders: null,
+        createdAt: '',
+        updatedAt: '',
+        _source: evt.source,
+        _color: evt.color,
+        _route: evt.route,
+      }));
+
+    return [...base, ...appEvents];
+  }, [filteredEvents, showAllApps, aggregatedEvents]);
 
   // Show overlay only on the very first load before any cached data is available
   const showLoadingOverlay = eventsLoading && events === undefined;
@@ -974,6 +1051,20 @@ export function CalendarPage() {
           )}
         </div>
 
+        {/* All apps toggle */}
+        <IconButton
+          icon={<Layers size={14} />}
+          label={showAllApps ? t('calendar.allApps', 'All apps') : t('calendar.googleOnly', 'Google only')}
+          onClick={() => setShowAllApps(!showAllApps)}
+          style={{
+            border: '1px solid var(--color-border-primary)',
+            ...(showAllApps ? {
+              background: 'color-mix(in srgb, var(--color-accent-primary) 10%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--color-accent-primary) 40%, transparent)',
+            } : {}),
+          }}
+        />
+
         {/* Sync button */}
         <IconButton
           icon={<RefreshCw size={13} style={{ animation: syncCalendar.isPending ? 'spin 1s linear infinite' : undefined }} />}
@@ -1258,19 +1349,19 @@ export function CalendarPage() {
             <YearGrid weekStartsOnMonday={weekStartsOnMonday} />
           ) : view === 'agenda' ? (
             <AgendaView
-              events={filteredEvents}
+              events={displayEvents}
               selectedCalendarIds={selectedCalendarIds}
               calendarColorMap={calendarColorMap}
-              onEventClick={openEditModal}
+              onEventClick={handleEventClick}
             />
           ) : view === 'month-grid' ? (
             <MonthGrid
               selectedDate={selectedDate}
-              events={filteredEvents}
+              events={displayEvents}
               selectedCalendarIds={selectedCalendarIds}
               calendarColorMap={calendarColorMap}
               weekStartsOnMonday={weekStartsOnMonday}
-              onEventClick={openEditModal}
+              onEventClick={handleEventClick}
               onDateClick={(date) => {
                 setSelectedDate(date);
                 setView('day');
@@ -1279,10 +1370,10 @@ export function CalendarPage() {
           ) : (
             <WeekGrid
               weekStart={weekStart}
-              events={filteredEvents}
+              events={displayEvents}
               selectedCalendarIds={selectedCalendarIds}
               calendarColorMap={calendarColorMap}
-              onEventClick={openEditModal}
+              onEventClick={handleEventClick}
               onDragCreate={handleDragCreate}
               onEventUpdate={handleEventUpdate}
               onQuickCreate={handleQuickCreate}

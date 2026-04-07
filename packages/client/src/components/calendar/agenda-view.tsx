@@ -152,8 +152,9 @@ export function AgendaView({ events, selectedCalendarIds, calendarColorMap, onEv
             {/* Events for this day */}
             <div style={{ paddingBottom: 4 }}>
               {dayEvents.map((ev) => {
-                const baseColor = calendarColorMap.get(ev.calendarId) || '#5a7fa0';
-                const color = ev.colorId ? (EVENT_COLOR_MAP[ev.colorId] ?? baseColor) : baseColor;
+                const evAny = ev as any;
+                const baseColor = evAny._color || calendarColorMap.get(ev.calendarId) || '#5a7fa0';
+                const color = evAny._color || (ev.colorId ? (EVENT_COLOR_MAP[ev.colorId] ?? baseColor) : baseColor);
 
                 return (
                   <AgendaEventRow

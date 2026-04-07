@@ -33,6 +33,34 @@ export function useCalendarEvents(timeMin: string, timeMax: string, options?: { 
   });
 }
 
+export interface AggregatedEvent {
+  id: string;
+  source: 'google' | 'crm' | 'hr-leave' | 'task';
+  sourceId: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  isAllDay: boolean;
+  color: string;
+  route?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export function useAggregatedEvents(timeMin: string, timeMax: string) {
+  return useQuery({
+    queryKey: ['calendar', 'aggregated', timeMin, timeMax],
+    queryFn: async () => {
+      const { data } = await api.get('/calendar/events/aggregated', {
+        params: { timeMin, timeMax },
+      });
+      return data.data as AggregatedEvent[];
+    },
+    staleTime: 30_000,
+    enabled: !!timeMin && !!timeMax,
+  });
+}
+
 export function useSyncCalendar() {
   const queryClient = useQueryClient();
 

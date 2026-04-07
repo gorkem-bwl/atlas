@@ -489,7 +489,9 @@
     "hideSidebar": "Masquer la barre latérale",
     "secondaryTimezone": "Fuseau horaire secondaire",
     "off": "Désactivé",
-    "noTitle": "(Sans titre)"
+    "noTitle": "(Sans titre)",
+    "allApps": "Toutes les apps",
+    "googleOnly": "Google uniquement"
   },
   "docs": {
     "title": "Write",

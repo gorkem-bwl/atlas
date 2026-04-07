@@ -489,7 +489,9 @@
     "hideSidebar": "Kenar çubuğunu gizle",
     "secondaryTimezone": "İkincil saat dilimi",
     "off": "Kapalı",
-    "noTitle": "(Başlıksız)"
+    "noTitle": "(Başlıksız)",
+    "allApps": "Tüm uygulamalar",
+    "googleOnly": "Yalnızca Google"
   },
   "docs": {
     "title": "Write",

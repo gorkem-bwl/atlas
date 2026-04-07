@@ -489,7 +489,9 @@
     "hideSidebar": "Seitenleiste ausblenden",
     "secondaryTimezone": "Zweite Zeitzone",
     "off": "Aus",
-    "noTitle": "(Kein Titel)"
+    "noTitle": "(Kein Titel)",
+    "allApps": "Alle Apps",
+    "googleOnly": "Nur Google"
   },
   "docs": {
     "title": "Write",
