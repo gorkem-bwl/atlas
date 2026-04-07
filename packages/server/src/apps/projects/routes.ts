@@ -63,6 +63,12 @@ router.post('/invoices/:id/paid', projectsController.markInvoicePaid);
 router.post('/invoices/:id/duplicate', projectsController.duplicateInvoice);
 router.post('/invoices/:id/waive', projectsController.waiveInvoice);
 
+// e-Fatura
+router.post('/invoices/:id/efatura/generate', projectsController.generateEFatura);
+router.get('/invoices/:id/efatura/xml', projectsController.getEFaturaXml);
+router.get('/invoices/:id/efatura/preview', projectsController.getEFaturaPreview);
+router.get('/invoices/:id/efatura/pdf', projectsController.getEFaturaPdf);
+
 // Line Items
 router.get('/invoices/:invoiceId/line-items', projectsController.listLineItems);
 router.post('/invoices/:invoiceId/line-items', projectsController.createLineItem);

@@ -109,6 +109,15 @@ export function CompanyDetailPanel({
               </div>
             </div>
           )}
+
+          {company.taxId && (
+            <div className="crm-detail-field">
+              <span className="crm-detail-field-label">{t('crm.companies.taxId')}</span>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                {company.taxId}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Contacts */}

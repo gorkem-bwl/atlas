@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Download, Eye, Edit } from 'lucide-react';
+import { Plus, Trash2, Download, Eye, Edit, FileText } from 'lucide-react';
 import {
   useClients, useCreateInvoice, useUpdateInvoice, usePopulateFromTimeEntries,
-  useProjectSettings,
+  useProjectSettings, useGenerateEFatura,
   type Invoice, type ProjectClient,
 } from '../hooks';
 import { Button } from '../../../components/ui/button';
@@ -21,6 +21,7 @@ interface LineItem {
   description: string;
   quantity: number;
   unitPrice: number;
+  taxRate?: number;
 }
 
 interface InvoiceBuilderProps {
@@ -41,6 +42,9 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const populateFromTime = usePopulateFromTimeEntries();
+  const generateEFatura = useGenerateEFatura();
+
+  const eFaturaEnabled = settings?.eFaturaEnabled ?? false;
 
   const [clientId, setClientId] = useState('');
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -55,6 +59,7 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
   const [taxPercent, setTaxPercent] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
   const [notes, setNotes] = useState('');
+  const [eFaturaType, setEFaturaType] = useState('SATIS');
 
   // Populate date range for time entries
   const [populateStart, setPopulateStart] = useState('');
@@ -72,11 +77,13 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
           description: li.description,
           quantity: li.quantity,
           unitPrice: li.unitPrice,
+          taxRate: li.taxRate,
         })),
       );
       setTaxPercent(invoice.taxPercent);
       setDiscountPercent(invoice.discountPercent);
       setNotes(invoice.notes || '');
+      setEFaturaType(invoice.eFaturaType || 'SATIS');
     } else {
       setClientId('');
       setIssueDate(new Date().toISOString().slice(0, 10));
@@ -87,6 +94,7 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
       setTaxPercent(0);
       setDiscountPercent(0);
       setNotes('');
+      setEFaturaType('SATIS');
     }
     setActiveTab('edit');
   }, [invoice, open]);
@@ -146,10 +154,12 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
           description: li.description,
           quantity: li.quantity,
           unitPrice: li.unitPrice,
+          ...(eFaturaEnabled ? { taxRate: li.taxRate ?? 20 } : {}),
         })),
       taxPercent,
       discountPercent,
       notes: notes || null,
+      ...(eFaturaEnabled ? { eFaturaType } : {}),
     };
 
     if (invoice) {
@@ -189,6 +199,27 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
             <Input label={t('projects.invoices.dueDate')} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={{ flex: 1 }} />
           </div>
 
+          {/* E-fatura type */}
+          {eFaturaEnabled && (
+            <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+                  {t('projects.efatura.type')}
+                </label>
+                <Select
+                  value={eFaturaType}
+                  onChange={setEFaturaType}
+                  options={[
+                    { value: 'SATIS', label: t('projects.efatura.typeOptions.satis') },
+                    { value: 'IADE', label: t('projects.efatura.typeOptions.iade') },
+                    { value: 'TEVKIFAT', label: t('projects.efatura.typeOptions.tevkifat') },
+                    { value: 'ISTISNA', label: t('projects.efatura.typeOptions.istisna') },
+                  ]}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Populate from time entries */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--spacing-sm)', padding: 'var(--spacing-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)' }}>
             <Input label={t('projects.invoices.from')} type="date" value={populateStart} onChange={(e) => setPopulateStart(e.target.value)} size="sm" style={{ flex: 1 }} />
@@ -209,9 +240,10 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
             <table className="projects-invoice-line-items">
               <thead>
                 <tr>
-                  <th style={{ width: '50%' }}>{t('projects.invoices.description')}</th>
+                  <th style={{ width: eFaturaEnabled ? '40%' : '50%' }}>{t('projects.invoices.description')}</th>
                   <th style={{ width: '15%' }}>{t('projects.invoices.quantity')}</th>
                   <th style={{ width: '20%' }}>{t('projects.invoices.unitPrice')}</th>
+                  {eFaturaEnabled && <th style={{ width: '12%' }}>{t('projects.efatura.kdvRate')}</th>}
                   <th style={{ width: '15%', textAlign: 'right' }}>{t('projects.invoices.amount')}</th>
                   <th style={{ width: 32 }} />
                 </tr>
@@ -245,6 +277,21 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
                         size="sm"
                       />
                     </td>
+                    {eFaturaEnabled && (
+                      <td>
+                        <Select
+                          value={String(li.taxRate ?? 20)}
+                          onChange={(val) => handleLineItemChange(li.id, 'taxRate', parseInt(val, 10))}
+                          options={[
+                            { value: '0', label: '0%' },
+                            { value: '1', label: '1%' },
+                            { value: '10', label: '10%' },
+                            { value: '20', label: '20%' },
+                          ]}
+                          size="sm"
+                        />
+                      </td>
+                    )}
                     <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)' }}>
                       {formatCurrency(li.quantity * li.unitPrice)}
                     </td>
@@ -330,6 +377,16 @@ export function InvoiceBuilder({ open, onClose, invoice }: InvoiceBuilderProps) 
         <Button variant="primary" onClick={() => handleSave('sent')} disabled={!clientId || lineItems.length === 0}>
           {t('projects.invoices.send')}
         </Button>
+        {eFaturaEnabled && invoice && (
+          <Button
+            variant="secondary"
+            icon={<FileText size={14} />}
+            onClick={() => generateEFatura.mutate(invoice.id, { onSuccess: () => onClose() })}
+            disabled={generateEFatura.isPending}
+          >
+            {t('projects.efatura.generate')}
+          </Button>
+        )}
       </Modal.Footer>
     </Modal>
   );

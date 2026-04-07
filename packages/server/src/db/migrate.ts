@@ -2020,6 +2020,27 @@ export async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(account_id, email);
     `);
 
+    // ─── e-Fatura: schema extensions ──────────────────────────────────
+    await client.query(`
+      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS e_fatura_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_tax_id VARCHAR(11);
+      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_tax_office VARCHAR(100);
+      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_city VARCHAR(100);
+      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_country VARCHAR(100) DEFAULT 'TR';
+
+      ALTER TABLE project_clients ADD COLUMN IF NOT EXISTS tax_id VARCHAR(11);
+      ALTER TABLE project_clients ADD COLUMN IF NOT EXISTS tax_office VARCHAR(100);
+
+      ALTER TABLE project_invoice_line_items ADD COLUMN IF NOT EXISTS tax_rate REAL NOT NULL DEFAULT 20;
+
+      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_type VARCHAR(20);
+      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_uuid UUID;
+      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_status VARCHAR(20);
+      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_xml TEXT;
+
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS tax_id VARCHAR(11);
+    `);
+
     logger.info('Database migrations completed');
   } finally {
     await client.end();

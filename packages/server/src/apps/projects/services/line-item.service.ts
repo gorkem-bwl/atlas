@@ -15,6 +15,7 @@ interface CreateLineItemInput {
   quantity: number;
   unitPrice: number;
   amount: number;
+  taxRate?: number;
 }
 
 interface UpdateLineItemInput {
@@ -22,6 +23,7 @@ interface UpdateLineItemInput {
   quantity?: number;
   unitPrice?: number;
   amount?: number;
+  taxRate?: number;
 }
 
 // ─── Line Items ─────────────────────────────────────────────────────
@@ -55,6 +57,7 @@ export async function createLineItem(input: CreateLineItemInput) {
       quantity: input.quantity,
       unitPrice: input.unitPrice,
       amount: input.amount,
+      taxRate: input.taxRate ?? 20,
       createdAt: now,
       updatedAt: now,
     })
@@ -71,6 +74,7 @@ export async function updateLineItem(id: string, input: UpdateLineItemInput) {
   if (input.quantity !== undefined) updates.quantity = input.quantity;
   if (input.unitPrice !== undefined) updates.unitPrice = input.unitPrice;
   if (input.amount !== undefined) updates.amount = input.amount;
+  if (input.taxRate !== undefined) updates.taxRate = input.taxRate;
 
   const [updated] = await db
     .update(projectInvoiceLineItems)

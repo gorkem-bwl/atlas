@@ -7,3 +7,4 @@ export * from './services/line-item.service';
 export * from './services/report.service';
 export * from './services/dashboard.service';
 export * from './services/settings.service';
+export * from './services/efatura.service';

@@ -5,3 +5,4 @@ export * from './controllers/time-entry.controller';
 export * from './controllers/invoice.controller';
 export * from './controllers/report.controller';
 export * from './controllers/settings.controller';
+export * from './controllers/efatura.controller';

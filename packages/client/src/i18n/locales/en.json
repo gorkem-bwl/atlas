@@ -1307,7 +1307,8 @@
       "deleteCompany": "Delete company",
       "employees": "employees",
       "contactsDeals": "Contacts / Deals",
-      "groupByIndustry": "Industry"
+      "groupByIndustry": "Industry",
+      "taxId": "Tax ID (VKN)"
     },
     "confirm": {
       "deleteDeal": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
@@ -2942,6 +2943,37 @@
       "companyNameDesc": "Appears on invoices",
       "companyAddress": "Company address",
       "companyAddressDesc": "Appears on invoices"
+    },
+    "efatura": {
+      "title": "E-fatura",
+      "enabled": "Enable e-fatura",
+      "enabledDesc": "Enable Turkish e-fatura (electronic invoice) generation",
+      "type": "E-fatura type",
+      "typeOptions": {
+        "satis": "Sales (Satis)",
+        "iade": "Return (Iade)",
+        "tevkifat": "Withholding (Tevkifat)",
+        "istisna": "Exemption (Istisna)"
+      },
+      "kdvRate": "KDV %",
+      "generate": "Generate e-fatura",
+      "downloadXml": "Download XML",
+      "downloadPdf": "Download PDF",
+      "companyTaxId": "Company tax ID (VKN)",
+      "companyTaxIdDesc": "Your company tax identification number",
+      "taxOffice": "Tax office",
+      "taxOfficeDesc": "The tax office your company is registered with",
+      "city": "City",
+      "cityDesc": "City where your company is located",
+      "country": "Country",
+      "countryDesc": "Country where your company is located",
+      "status": {
+        "draft": "Draft",
+        "generated": "Generated",
+        "submitted": "Submitted",
+        "accepted": "Accepted",
+        "rejected": "Rejected"
+      }
     },
     "portal": {
       "clientPortal": "Client portal",

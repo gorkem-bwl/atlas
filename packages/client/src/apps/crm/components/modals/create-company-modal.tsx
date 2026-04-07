@@ -19,9 +19,10 @@ export function CreateCompanyModal({
   const [size, setSize] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [taxId, setTaxId] = useState('');
   const createCompany = useCreateCompany();
 
-  const reset = () => { setName(''); setDomain(''); setIndustry(''); setSize(''); setAddress(''); setPhone(''); };
+  const reset = () => { setName(''); setDomain(''); setIndustry(''); setSize(''); setAddress(''); setPhone(''); setTaxId(''); };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -32,6 +33,7 @@ export function CreateCompanyModal({
       size: size || null,
       address: address.trim() || null,
       phone: phone.trim() || null,
+      taxId: taxId.trim() || null,
     }, {
       onSuccess: () => { reset(); onClose(); },
     });
@@ -65,6 +67,7 @@ export function CreateCompanyModal({
           </div>
           <Input label={t('crm.companies.address')} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St" />
           <Input label={t('crm.contacts.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1-555-0100" />
+          <Input label={t('crm.companies.taxId')} value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="1234567890" />
         </div>
       </Modal.Body>
       <Modal.Footer>

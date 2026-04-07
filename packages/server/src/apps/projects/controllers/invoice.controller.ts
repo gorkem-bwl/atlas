@@ -318,7 +318,7 @@ export async function createLineItem(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const invoiceId = req.params.invoiceId as string;
-    const { timeEntryId, description, quantity, unitPrice, amount } = req.body;
+    const { timeEntryId, description, quantity, unitPrice, amount, taxRate } = req.body;
 
     // Verify the invoice belongs to the authenticated user's account
     const invoice = await projectService.getInvoice(userId, accountId, invoiceId);
@@ -333,7 +333,7 @@ export async function createLineItem(req: Request, res: Response) {
     }
 
     const lineItem = await projectService.createLineItem({
-      invoiceId, timeEntryId, description, quantity: quantity ?? 1, unitPrice: unitPrice ?? 0, amount: amount ?? 0,
+      invoiceId, timeEntryId, description, quantity: quantity ?? 1, unitPrice: unitPrice ?? 0, amount: amount ?? 0, taxRate,
     });
 
     res.json({ success: true, data: lineItem });
@@ -354,7 +354,7 @@ export async function updateLineItem(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const accountId = req.auth!.accountId;
     const id = req.params.id as string;
-    const { description, quantity, unitPrice, amount } = req.body;
+    const { description, quantity, unitPrice, amount, taxRate } = req.body;
 
     // Verify the line item's invoice belongs to the authenticated user's account
     const existingLineItem = await projectService.getLineItemById(id);
@@ -368,7 +368,7 @@ export async function updateLineItem(req: Request, res: Response) {
       return;
     }
 
-    const lineItem = await projectService.updateLineItem(id, { description, quantity, unitPrice, amount });
+    const lineItem = await projectService.updateLineItem(id, { description, quantity, unitPrice, amount, taxRate });
     if (!lineItem) {
       res.status(404).json({ success: false, error: 'Line item not found' });
       return;

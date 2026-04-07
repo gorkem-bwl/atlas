@@ -1278,7 +1278,8 @@
       "deleteCompany": "Şirketi sil",
       "employees": "çalışan",
       "contactsDeals": "Kişiler / Anlaşmalar",
-      "groupByIndustry": "Sektör"
+      "groupByIndustry": "Sektör",
+      "taxId": "Vergi kimlik no (VKN)"
     },
     "confirm": {
       "deleteDeal": "\"{{name}}\" anlaşmasını silmek istediğinizden emin misiniz?",
@@ -2936,6 +2937,37 @@
       "companyNameDesc": "Faturalarda gorunur",
       "companyAddress": "Sirket adresi",
       "companyAddressDesc": "Faturalarda gorunur"
+    },
+    "efatura": {
+      "title": "E-fatura",
+      "enabled": "E-fatura etkinlestir",
+      "enabledDesc": "Turkiye e-fatura (elektronik fatura) olusturmayi etkinlestir",
+      "type": "E-fatura tipi",
+      "typeOptions": {
+        "satis": "Satis",
+        "iade": "Iade",
+        "tevkifat": "Tevkifat",
+        "istisna": "Istisna"
+      },
+      "kdvRate": "KDV %",
+      "generate": "E-fatura olustur",
+      "downloadXml": "XML indir",
+      "downloadPdf": "PDF indir",
+      "companyTaxId": "Sirket vergi kimlik no (VKN)",
+      "companyTaxIdDesc": "Sirketinizin vergi kimlik numarasi",
+      "taxOffice": "Vergi dairesi",
+      "taxOfficeDesc": "Sirketinizin kayitli oldugu vergi dairesi",
+      "city": "Sehir",
+      "cityDesc": "Sirketinizin bulundugu sehir",
+      "country": "Ulke",
+      "countryDesc": "Sirketinizin bulundugu ulke",
+      "status": {
+        "draft": "Taslak",
+        "generated": "Olusturuldu",
+        "submitted": "Gonderildi",
+        "accepted": "Kabul edildi",
+        "rejected": "Reddedildi"
+      }
     },
     "portal": {
       "clientPortal": "Musteri portali",

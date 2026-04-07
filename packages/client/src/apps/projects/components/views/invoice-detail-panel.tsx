@@ -1,16 +1,29 @@
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatCurrency } from '../../../../lib/format';
 import {
-  X, Trash2, DollarSign, Send, CheckCircle2,
+  X, Trash2, DollarSign, Send, CheckCircle2, FileCode, FileDown,
 } from 'lucide-react';
 import {
   useDeleteInvoice, useSendInvoice, useMarkInvoicePaid, useWaiveInvoice, useDuplicateInvoice,
+  useProjectSettings,
   type Invoice,
   getInvoiceStatusVariant,
 } from '../../hooks';
+import { api } from '../../../../lib/api-client';
 import { Button } from '../../../../components/ui/button';
 import { IconButton } from '../../../../components/ui/icon-button';
 import { Badge } from '../../../../components/ui/badge';
+
+function getEFaturaStatusVariant(status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' {
+  switch (status) {
+    case 'draft': return 'default';
+    case 'generated': return 'primary';
+    case 'submitted': return 'warning';
+    case 'accepted': return 'success';
+    case 'rejected': return 'error';
+    default: return 'default';
+  }
+}
 
 export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invoice; onClose: () => void; onEdit: () => void }) {
   const { t } = useTranslation();
@@ -19,6 +32,16 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invo
   const markPaid = useMarkInvoicePaid();
   const waive = useWaiveInvoice();
   const duplicate = useDuplicateInvoice();
+  const { data: settings } = useProjectSettings();
+  const eFaturaEnabled = settings?.eFaturaEnabled ?? false;
+
+  const handleDownloadXml = () => {
+    window.open(`${api.defaults.baseURL}/projects/invoices/${invoice.id}/efatura/xml`, '_blank');
+  };
+
+  const handleDownloadPdf = () => {
+    window.open(`${api.defaults.baseURL}/projects/invoices/${invoice.id}/efatura/pdf`, '_blank');
+  };
 
   return (
     <div className="projects-detail-panel">
@@ -163,6 +186,31 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invo
               <span className="projects-invoice-totals-total">{formatCurrency(invoice.total)}</span>
             </div>
           </div>
+
+          {/* E-fatura info */}
+          {eFaturaEnabled && invoice.eFaturaStatus && (
+            <div style={{ padding: 'var(--spacing-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
+                  {t('projects.efatura.title')}
+                </span>
+                <Badge variant={getEFaturaStatusVariant(invoice.eFaturaStatus)}>
+                  {t(`projects.efatura.status.${invoice.eFaturaStatus}`)}
+                </Badge>
+              </div>
+              {invoice.eFaturaUuid && (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
+                  UUID: {invoice.eFaturaUuid}
+                </div>
+              )}
+              {(invoice.eFaturaStatus === 'generated' || invoice.eFaturaStatus === 'submitted' || invoice.eFaturaStatus === 'accepted') && (
+                <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+                  <IconButton icon={<FileCode size={14} />} label={t('projects.efatura.downloadXml')} size={28} onClick={handleDownloadXml} />
+                  <IconButton icon={<FileDown size={14} />} label={t('projects.efatura.downloadPdf')} size={28} onClick={handleDownloadPdf} />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>

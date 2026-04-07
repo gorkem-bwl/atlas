@@ -12,6 +12,7 @@ export interface CrmCompany {
   size: string | null;
   address: string | null;
   phone: string | null;
+  taxId: string | null;
   tags: string[];
   isArchived: boolean;
   sortOrder: number;
@@ -182,7 +183,7 @@ export function useCompany(id: string | undefined) {
 export function useCreateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; domain?: string | null; industry?: string | null; size?: string | null; address?: string | null; phone?: string | null; tags?: string[] }) => {
+    mutationFn: async (input: { name: string; domain?: string | null; industry?: string | null; size?: string | null; address?: string | null; phone?: string | null; taxId?: string | null; tags?: string[] }) => {
       const { data } = await api.post('/crm/companies', input);
       return data.data as CrmCompany;
     },
@@ -195,7 +196,7 @@ export function useCreateCompany() {
 export function useUpdateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; domain: string | null; industry: string | null; size: string | null; address: string | null; phone: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
+    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; domain: string | null; industry: string | null; size: string | null; address: string | null; phone: string | null; taxId: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
       const { data } = await api.patch(`/crm/companies/${id}`, input);
       return data.data as CrmCompany;
     },

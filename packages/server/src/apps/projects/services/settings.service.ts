@@ -23,6 +23,11 @@ export async function updateSettings(accountId: string, input: {
   companyAddress?: string | null;
   companyLogo?: string | null;
   nextInvoiceNumber?: number;
+  eFaturaEnabled?: boolean;
+  companyTaxId?: string | null;
+  companyTaxOffice?: string | null;
+  companyCity?: string | null;
+  companyCountry?: string | null;
 }) {
   const now = new Date();
 
@@ -53,6 +58,11 @@ export async function updateSettings(accountId: string, input: {
   if (input.companyAddress !== undefined) updates.companyAddress = input.companyAddress;
   if (input.companyLogo !== undefined) updates.companyLogo = input.companyLogo;
   if (input.nextInvoiceNumber !== undefined) updates.nextInvoiceNumber = input.nextInvoiceNumber;
+  if (input.eFaturaEnabled !== undefined) updates.eFaturaEnabled = input.eFaturaEnabled;
+  if (input.companyTaxId !== undefined) updates.companyTaxId = input.companyTaxId;
+  if (input.companyTaxOffice !== undefined) updates.companyTaxOffice = input.companyTaxOffice;
+  if (input.companyCity !== undefined) updates.companyCity = input.companyCity;
+  if (input.companyCountry !== undefined) updates.companyCountry = input.companyCountry;
 
   const [updated] = await db
     .update(projectSettings)

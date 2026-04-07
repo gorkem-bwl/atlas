@@ -1278,7 +1278,8 @@
       "deleteCompany": "Supprimer l'entreprise",
       "employees": "employés",
       "contactsDeals": "Contacts / Affaires",
-      "groupByIndustry": "Secteur"
+      "groupByIndustry": "Secteur",
+      "taxId": "Numero fiscal (VKN)"
     },
     "confirm": {
       "deleteDeal": "Voulez-vous vraiment supprimer \"{{name}}\" ? Cette action est irréversible.",
@@ -2936,6 +2937,37 @@
       "companyNameDesc": "Apparait sur les factures",
       "companyAddress": "Adresse de l'entreprise",
       "companyAddressDesc": "Apparait sur les factures"
+    },
+    "efatura": {
+      "title": "E-fatura",
+      "enabled": "Activer e-fatura",
+      "enabledDesc": "Activer la generation de factures electroniques turques (e-fatura)",
+      "type": "Type d'e-fatura",
+      "typeOptions": {
+        "satis": "Vente (Satis)",
+        "iade": "Retour (Iade)",
+        "tevkifat": "Retenue (Tevkifat)",
+        "istisna": "Exemption (Istisna)"
+      },
+      "kdvRate": "KDV %",
+      "generate": "Generer e-fatura",
+      "downloadXml": "Telecharger XML",
+      "downloadPdf": "Telecharger PDF",
+      "companyTaxId": "Numero fiscal (VKN)",
+      "companyTaxIdDesc": "Le numero d'identification fiscale de votre entreprise",
+      "taxOffice": "Bureau des impots",
+      "taxOfficeDesc": "Le bureau des impots ou votre entreprise est enregistree",
+      "city": "Ville",
+      "cityDesc": "Ville ou se trouve votre entreprise",
+      "country": "Pays",
+      "countryDesc": "Pays ou se trouve votre entreprise",
+      "status": {
+        "draft": "Brouillon",
+        "generated": "Genere",
+        "submitted": "Soumis",
+        "accepted": "Accepte",
+        "rejected": "Rejete"
+      }
     },
     "portal": {
       "clientPortal": "Portail client",

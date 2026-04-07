@@ -1278,7 +1278,8 @@
       "deleteCompany": "Unternehmen löschen",
       "employees": "Mitarbeiter",
       "contactsDeals": "Kontakte / Geschäfte",
-      "groupByIndustry": "Branche"
+      "groupByIndustry": "Branche",
+      "taxId": "Steuer-ID (VKN)"
     },
     "confirm": {
       "deleteDeal": "Möchten Sie \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -2936,6 +2937,37 @@
       "companyNameDesc": "Erscheint auf Rechnungen",
       "companyAddress": "Firmenadresse",
       "companyAddressDesc": "Erscheint auf Rechnungen"
+    },
+    "efatura": {
+      "title": "E-Fatura",
+      "enabled": "E-Fatura aktivieren",
+      "enabledDesc": "Turkische E-Fatura (elektronische Rechnung) Erstellung aktivieren",
+      "type": "E-Fatura Typ",
+      "typeOptions": {
+        "satis": "Verkauf (Satis)",
+        "iade": "Ruckgabe (Iade)",
+        "tevkifat": "Einbehaltung (Tevkifat)",
+        "istisna": "Befreiung (Istisna)"
+      },
+      "kdvRate": "KDV %",
+      "generate": "E-Fatura erstellen",
+      "downloadXml": "XML herunterladen",
+      "downloadPdf": "PDF herunterladen",
+      "companyTaxId": "Steuer-ID des Unternehmens (VKN)",
+      "companyTaxIdDesc": "Steueridentifikationsnummer Ihres Unternehmens",
+      "taxOffice": "Finanzamt",
+      "taxOfficeDesc": "Das Finanzamt, bei dem Ihr Unternehmen registriert ist",
+      "city": "Stadt",
+      "cityDesc": "Stadt, in der sich Ihr Unternehmen befindet",
+      "country": "Land",
+      "countryDesc": "Land, in dem sich Ihr Unternehmen befindet",
+      "status": {
+        "draft": "Entwurf",
+        "generated": "Erstellt",
+        "submitted": "Eingereicht",
+        "accepted": "Akzeptiert",
+        "rejected": "Abgelehnt"
+      }
     },
     "portal": {
       "clientPortal": "Kundenportal",

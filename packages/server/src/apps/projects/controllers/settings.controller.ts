@@ -68,10 +68,10 @@ export async function updateSettings(req: Request, res: Response) {
     }
 
     const accountId = req.auth!.accountId;
-    const { invoicePrefix, defaultHourlyRate, companyName, companyAddress, companyLogo, nextInvoiceNumber } = req.body;
+    const { invoicePrefix, defaultHourlyRate, companyName, companyAddress, companyLogo, nextInvoiceNumber, eFaturaEnabled, companyTaxId, companyTaxOffice, companyCity, companyCountry } = req.body;
 
     const settings = await projectService.updateSettings(accountId, {
-      invoicePrefix, defaultHourlyRate, companyName, companyAddress, companyLogo, nextInvoiceNumber,
+      invoicePrefix, defaultHourlyRate, companyName, companyAddress, companyLogo, nextInvoiceNumber, eFaturaEnabled, companyTaxId, companyTaxOffice, companyCity, companyCountry,
     });
 
     res.json({ success: true, data: settings });

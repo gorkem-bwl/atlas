@@ -62,6 +62,7 @@ export interface InvoiceLineItem {
   quantity: number;
   unitPrice: number;
   amount: number;
+  taxRate?: number;
 }
 
 export interface Invoice {
@@ -81,6 +82,10 @@ export interface Invoice {
   discountAmount: number;
   total: number;
   notes: string | null;
+  eFaturaType: string | null;
+  eFaturaUuid: string | null;
+  eFaturaStatus: string | null;
+  eFaturaXml: string | null;
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
@@ -133,6 +138,11 @@ export interface ProjectSettings {
   defaultHourlyRate: number;
   companyName: string;
   companyAddress: string;
+  eFaturaEnabled: boolean;
+  companyTaxId: string;
+  companyTaxOffice: string;
+  companyCity: string;
+  companyCountry: string;
 }
 
 export interface TimeReport {
@@ -597,10 +607,11 @@ export function useCreateInvoice() {
       clientId: string;
       issueDate: string;
       dueDate: string;
-      lineItems: Array<{ description: string; quantity: number; unitPrice: number }>;
+      lineItems: Array<{ description: string; quantity: number; unitPrice: number; taxRate?: number }>;
       taxPercent?: number;
       discountPercent?: number;
       notes?: string | null;
+      eFaturaType?: string;
     }) => {
       const { data } = await api.post('/projects/invoices', input);
       return data.data as Invoice;
@@ -618,11 +629,12 @@ export function useUpdateInvoice() {
       clientId: string;
       issueDate: string;
       dueDate: string;
-      lineItems: Array<{ description: string; quantity: number; unitPrice: number }>;
+      lineItems: Array<{ description: string; quantity: number; unitPrice: number; taxRate?: number }>;
       taxPercent: number;
       discountPercent: number;
       notes: string | null;
       status: string;
+      eFaturaType: string;
     }>) => {
       const { data } = await api.patch(`/projects/invoices/${id}`, input);
       return data.data as Invoice;
@@ -807,6 +819,22 @@ export function getInvoiceStatusVariant(status: string): 'default' | 'primary' |
     case 'waived': return 'default';
     default: return 'default';
   }
+}
+
+// ─── E-Fatura ────────────────────────────────────────────────────
+
+export function useGenerateEFatura() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoiceId: string) => {
+      const { data } = await api.post(`/projects/invoices/${invoiceId}/efatura/generate`);
+      return data.data as Invoice;
+    },
+    onSuccess: (invoice) => {
+      queryClient.setQueryData(queryKeys.projects.invoices.detail(invoice.id), invoice);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
+    },
+  });
 }
 
 // ─── Portal (public, no auth) ─────────────────────────────────────
