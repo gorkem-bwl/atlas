@@ -35,12 +35,20 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invo
   const { data: settings } = useProjectSettings();
   const eFaturaEnabled = settings?.eFaturaEnabled ?? false;
 
-  const handleDownloadXml = () => {
-    window.open(`${api.defaults.baseURL}/projects/invoices/${invoice.id}/efatura/xml`, '_blank');
+  const handleDownloadXml = async () => {
+    const { data } = await api.get(`/projects/invoices/${invoice.id}/efatura/xml`, { responseType: 'blob' });
+    const url = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${invoice.invoiceNumber}-efatura.xml`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const handleDownloadPdf = () => {
-    window.open(`${api.defaults.baseURL}/projects/invoices/${invoice.id}/efatura/pdf`, '_blank');
+  const handleDownloadPdf = async () => {
+    const { data } = await api.get(`/projects/invoices/${invoice.id}/efatura/preview`, { responseType: 'blob' });
+    const url = URL.createObjectURL(data);
+    window.open(url, '_blank');
   };
 
   return (
