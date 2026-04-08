@@ -9,6 +9,7 @@ import { ROUTES } from './config/routes';
 import { appRegistry } from './apps';
 import { LoginPage } from './pages/login';
 import { RegisterPage } from './pages/register';
+import { OnboardingPage } from './pages/onboarding';
 import { SetupPage } from './pages/setup';
 import { InvitationPage } from './pages/invitation';
 import { SettingsPage, SettingsModal } from './pages/settings';
@@ -82,6 +83,7 @@ export function App() {
                 <Route path={ROUTES.SETUP} element={<SetupPage />} />
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
                 <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+                <Route path={ROUTES.ONBOARDING} element={<OnboardingPage />} />
                 <Route path={ROUTES.INVITATION} element={<InvitationPage />} />
                 <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
                 <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />

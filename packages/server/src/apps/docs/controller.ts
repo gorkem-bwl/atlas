@@ -17,9 +17,6 @@ export async function listDocuments(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
 
-    // Auto-seed sample documents on first visit
-    await documentService.seedSampleDocuments(userId, tenantId);
-
     const docs = await documentService.listDocuments(userId, includeArchived, req.auth!.tenantId ?? null);
     const tree = documentService.buildDocumentTree(docs);
 

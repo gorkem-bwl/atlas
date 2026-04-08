@@ -16,9 +16,6 @@ export async function listSpreadsheets(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
 
-    // Auto-seed sample spreadsheet on first visit
-    await tableService.seedSampleSpreadsheets(userId, tenantId);
-
     const spreadsheets = await tableService.listSpreadsheets(userId, includeArchived);
 
     res.json({ success: true, data: { spreadsheets } });

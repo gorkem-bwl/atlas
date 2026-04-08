@@ -21,6 +21,7 @@ export const ROUTES = {
   ORG_SETTINGS: '/org/settings',
   CALENDAR: '/calendar',
   REGISTER: '/register',
+  ONBOARDING: '/onboarding',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password/:token',
 } as const;

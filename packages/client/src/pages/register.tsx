@@ -41,7 +41,7 @@ export function RegisterPage() {
       const { data } = await api.post('/auth/register', { name, email, password, companyName });
       const { accessToken, refreshToken, account } = data.data;
       addAccount(account as Account, accessToken, refreshToken);
-      navigate(ROUTES.HOME, { replace: true });
+      navigate(ROUTES.ONBOARDING, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.error || t('register.genericError', 'Registration failed'));
     } finally {

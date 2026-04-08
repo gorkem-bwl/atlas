@@ -30,9 +30,6 @@ export async function listDrawings(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
 
-    // Auto-seed sample drawing on first visit
-    await drawingService.seedSampleDrawings(userId, tenantId);
-
     const drawings = await drawingService.listDrawings(userId, includeArchived, req.auth!.tenantId ?? null);
 
     res.json({ success: true, data: { drawings } });

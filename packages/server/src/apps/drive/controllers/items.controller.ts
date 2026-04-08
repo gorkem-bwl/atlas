@@ -37,9 +37,6 @@ export async function listItems(req: Request, res: Response) {
     const sortBy = (req.query.sortBy as string) || undefined;
     const sortOrder = (req.query.sortOrder as string) || undefined;
 
-    // Auto-seed on first visit
-    await driveService.seedSampleFolder(userId, tenantId);
-
     const items = await driveService.listItems(userId, parentId, false, sortBy, sortOrder, req.auth!.tenantId ?? null);
     res.json({ success: true, data: { items } });
   } catch (error) {
