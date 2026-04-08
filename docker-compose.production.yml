@@ -10,7 +10,7 @@ name: atlas
 
 services:
   atlas:
-    image: ghcr.io/bluewave-labs/atlas:${IMAGE_TAG:-latest}
+    image: ghcr.io/gorkem-bwl/atlas:${IMAGE_TAG:-latest}
     pull_policy: always
     container_name: atlas
     restart: unless-stopped
