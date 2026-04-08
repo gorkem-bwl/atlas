@@ -166,6 +166,12 @@ export function LoginPage() {
             {loading ? t('login.signingIn', 'Signing in...') : t('login.signIn', 'Sign in')}
           </Button>
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Link to={ROUTES.REGISTER} style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>
+            {t('login.noAccount')}
+          </Link>
+        </div>
       </div>
     </div>
   );

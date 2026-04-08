@@ -20,6 +20,7 @@ export const ROUTES = {
   ORG_APPS: '/org/apps',
   ORG_SETTINGS: '/org/settings',
   CALENDAR: '/calendar',
+  REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password/:token',
 } as const;

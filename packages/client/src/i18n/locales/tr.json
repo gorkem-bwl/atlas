@@ -68,7 +68,21 @@
     "backendCheck1": "Atlas sunucusunun çalıştığından emin olun (varsayılan port: 3001)",
     "backendCheck2": "DATABASE_URL değerinin .env dosyasında doğru ayarlandığını kontrol edin",
     "backendCheck3": "Docker kullanıyorsanız: docker compose up -d komutunu çalıştırın",
-    "retryConnection": "Bağlantıyı tekrar dene"
+    "retryConnection": "Bağlantıyı tekrar dene",
+    "noAccount": "Hesabınız yok mu? Kayıt olun"
+  },
+  "register": {
+    "title": "Çalışma alanınızı oluşturun",
+    "subtitle": "Atlas üzerinde organizasyonunuzu kurun",
+    "name": "Ad soyad",
+    "email": "E-posta",
+    "password": "Şifre",
+    "companyName": "Şirket adı",
+    "companyPlaceholder": "Şirketiniz veya ekibinizin adı",
+    "submit": "Çalışma alanı oluştur",
+    "submitting": "Çalışma alanı oluşturuluyor...",
+    "hasAccount": "Zaten hesabınız var mı? Giriş yapın",
+    "genericError": "Kayıt başarısız oldu"
   },
   "sidebar": {
     "important": "Önemli",

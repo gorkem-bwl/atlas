@@ -68,7 +68,21 @@
     "backendCheck1": "Make sure the Atlas server is running (port 3001 by default)",
     "backendCheck2": "Check that DATABASE_URL is set correctly in your .env file",
     "backendCheck3": "If using Docker, run: docker compose up -d",
-    "retryConnection": "Retry connection"
+    "retryConnection": "Retry connection",
+    "noAccount": "Don't have an account? Register"
+  },
+  "register": {
+    "title": "Create your workspace",
+    "subtitle": "Set up your organization on Atlas",
+    "name": "Full name",
+    "email": "Email",
+    "password": "Password",
+    "companyName": "Company name",
+    "companyPlaceholder": "Your company or team name",
+    "submit": "Create workspace",
+    "submitting": "Creating workspace...",
+    "hasAccount": "Already have an account? Sign in",
+    "genericError": "Registration failed"
   },
   "sidebar": {
     "allMail": "All mail",

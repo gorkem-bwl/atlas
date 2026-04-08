@@ -68,7 +68,21 @@
     "backendCheck1": "Stellen Sie sicher, dass der Atlas-Server läuft (Standard-Port: 3001)",
     "backendCheck2": "Prüfen Sie, ob DATABASE_URL in der .env-Datei korrekt gesetzt ist",
     "backendCheck3": "Bei Docker: docker compose up -d ausführen",
-    "retryConnection": "Verbindung erneut versuchen"
+    "retryConnection": "Verbindung erneut versuchen",
+    "noAccount": "Noch kein Konto? Registrieren"
+  },
+  "register": {
+    "title": "Arbeitsbereich erstellen",
+    "subtitle": "Richten Sie Ihre Organisation auf Atlas ein",
+    "name": "Vollständiger Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "companyName": "Firmenname",
+    "companyPlaceholder": "Ihr Firmen- oder Teamname",
+    "submit": "Arbeitsbereich erstellen",
+    "submitting": "Arbeitsbereich wird erstellt...",
+    "hasAccount": "Bereits ein Konto? Anmelden",
+    "genericError": "Registrierung fehlgeschlagen"
   },
   "sidebar": {
     "important": "Wichtig",

@@ -8,6 +8,7 @@ import { useAuthStore } from './stores/auth-store';
 import { ROUTES } from './config/routes';
 import { appRegistry } from './apps';
 import { LoginPage } from './pages/login';
+import { RegisterPage } from './pages/register';
 import { SetupPage } from './pages/setup';
 import { InvitationPage } from './pages/invitation';
 import { SettingsPage, SettingsModal } from './pages/settings';
@@ -80,6 +81,7 @@ export function App() {
               <Routes>
                 <Route path={ROUTES.SETUP} element={<SetupPage />} />
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
                 <Route path={ROUTES.INVITATION} element={<InvitationPage />} />
                 <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
                 <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
