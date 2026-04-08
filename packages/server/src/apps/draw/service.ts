@@ -302,8 +302,7 @@ export async function purgeOldArchivedDrawings() {
 
 // ─── Visibility ────────────────────────────────────────────────────
 
-export async function updateDrawingVisibility(userId: string, drawingId: string, visibility: 'private' | 'team', tenantId: string | null) {
-  if (visibility === 'team' && !tenantId) throw new Error('Tenant required for team visibility');
-  await db.update(drawings).set({ visibility, tenantId: visibility === 'team' ? tenantId : null, updatedAt: new Date() })
+export async function updateDrawingVisibility(userId: string, drawingId: string, visibility: 'private' | 'team') {
+  await db.update(drawings).set({ visibility, updatedAt: new Date() })
     .where(and(eq(drawings.id, drawingId), eq(drawings.userId, userId)));
 }

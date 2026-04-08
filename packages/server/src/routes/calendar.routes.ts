@@ -1,8 +1,16 @@
 import { Router } from 'express';
+import { eq } from 'drizzle-orm';
+import { db } from '../config/database';
+import { accounts } from '../db/schema';
 import * as calendarController from '../controllers/calendar.controller';
 import * as aggregatorService from '../services/calendar/aggregator.service';
 import { authMiddleware } from '../middleware/auth';
 import { logger } from '../utils/logger';
+
+async function getAccountId(userId: string): Promise<string> {
+  const [row] = await db.select({ id: accounts.id }).from(accounts).where(eq(accounts.userId, userId)).limit(1);
+  return row?.id ?? '';
+}
 
 const router = Router();
 router.use(authMiddleware);
@@ -19,8 +27,9 @@ router.get('/events/aggregated', async (req, res) => {
       res.status(400).json({ success: false, error: 'timeMin and timeMax required' });
       return;
     }
+    const accountId = await getAccountId(req.auth!.userId);
     const events = await aggregatorService.getAggregatedEvents(
-      req.auth!.accountId, req.auth!.userId, req.auth?.tenantId ?? null,
+      accountId, req.auth!.userId, req.auth!.tenantId,
       timeMin as string, timeMax as string,
     );
     res.json({ success: true, data: events });

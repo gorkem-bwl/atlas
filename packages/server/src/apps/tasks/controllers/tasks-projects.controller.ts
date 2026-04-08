@@ -390,7 +390,7 @@ export async function updateTaskVisibility(req: Request, res: Response) {
       return;
     }
 
-    await taskService.updateTaskVisibility(userId, taskId, visibility, req.auth!.tenantId ?? null);
+    await taskService.updateTaskVisibility(userId, taskId, visibility);
     res.json({ success: true, data: null });
   } catch (error: any) {
     if (error.message === 'Tenant required for team visibility') {
@@ -413,7 +413,7 @@ export async function updateProjectVisibility(req: Request, res: Response) {
       return;
     }
 
-    await taskService.updateProjectVisibility(userId, projectId, visibility, req.auth!.tenantId ?? null);
+    await taskService.updateProjectVisibility(userId, projectId, visibility);
     res.json({ success: true, data: null });
   } catch (error: any) {
     if (error.message === 'Tenant required for team visibility') {

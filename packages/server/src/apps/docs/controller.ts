@@ -468,7 +468,7 @@ export async function updateDocumentVisibility(req: Request, res: Response) {
       return;
     }
 
-    await documentService.updateDocumentVisibility(userId, documentId, visibility, req.auth!.tenantId ?? null);
+    await documentService.updateDocumentVisibility(userId, documentId, visibility);
     res.json({ success: true, data: null });
   } catch (error: any) {
     if (error.message === 'Tenant required for team visibility') {

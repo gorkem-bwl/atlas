@@ -29,7 +29,7 @@ export interface AggregatedEvent {
 export async function getAggregatedEvents(
   accountId: string,
   userId: string,
-  tenantId: string | null,
+  tenantId: string,
   timeMin: string,
   timeMax: string,
 ): Promise<AggregatedEvent[]> {
@@ -79,7 +79,7 @@ export async function getAggregatedEvents(
         .leftJoin(crmDeals, eq(crmActivities.dealId, crmDeals.id))
         .leftJoin(crmContacts, eq(crmActivities.contactId, crmContacts.id))
         .where(and(
-          eq(crmActivities.accountId, accountId),
+          eq(crmActivities.tenantId, tenantId),
           isNotNull(crmActivities.scheduledAt),
           gte(crmActivities.scheduledAt, new Date(timeMin)),
           lte(crmActivities.scheduledAt, new Date(timeMax)),
@@ -124,7 +124,7 @@ export async function getAggregatedEvents(
         .innerJoin(employees, eq(hrLeaveApplications.employeeId, employees.id))
         .innerJoin(hrLeaveTypes, eq(hrLeaveApplications.leaveTypeId, hrLeaveTypes.id))
         .where(and(
-          eq(hrLeaveApplications.accountId, accountId),
+          eq(hrLeaveApplications.tenantId, tenantId),
           eq(hrLeaveApplications.status, 'approved'),
           lte(hrLeaveApplications.startDate, timeMax.slice(0, 10)),
           gte(hrLeaveApplications.endDate, timeMin.slice(0, 10)),
@@ -163,7 +163,7 @@ export async function getAggregatedEvents(
       const rows = await db.select()
         .from(tasks)
         .where(and(
-          eq(tasks.accountId, accountId),
+          eq(tasks.tenantId, tenantId),
           isNotNull(tasks.dueDate),
           gte(tasks.dueDate, timeMin.slice(0, 10)),
           lte(tasks.dueDate, timeMax.slice(0, 10)),

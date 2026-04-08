@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { eq } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth';
 import { db } from '../config/database';
-import { userSettings, crmDeals, crmContacts, crmCompanies, crmLeads, crmActivities, crmNotes, crmWorkflows, crmLeadForms } from '../db/schema';
+import { userSettings, accounts, crmDeals, crmContacts, crmCompanies, crmLeads, crmActivities, crmNotes, crmWorkflows, crmLeadForms } from '../db/schema';
 import { employees, departments } from '../db/schema';
 import { settingsSchema } from '@atlasmail/shared';
 import { encrypt, decrypt } from '../utils/crypto';
@@ -11,17 +11,26 @@ import { logger } from '../utils/logger';
 
 import type { Request, Response } from 'express';
 
+/** Look up the user's primary account ID from the accounts table. */
+async function getAccountId(userId: string): Promise<string | null> {
+  const [row] = await db.select({ id: accounts.id }).from(accounts).where(eq(accounts.userId, userId)).limit(1);
+  return row?.id ?? null;
+}
+
 const router = Router();
 router.use(authMiddleware);
 
 router.get('/', async (req: Request, res: Response) => {
   try {
+    const accountId = await getAccountId(req.auth!.userId);
+    if (!accountId) { res.status(404).json({ success: false, error: 'Account not found' }); return; }
+
     let [settings] = await db.select().from(userSettings)
-      .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
+      .where(eq(userSettings.accountId, accountId)).limit(1);
 
     // Auto-create settings row with defaults if none exists
     if (!settings) {
-      [settings] = await db.insert(userSettings).values({ accountId: req.auth!.accountId }).returning();
+      [settings] = await db.insert(userSettings).values({ accountId }).returning();
     }
 
     res.json({ success: true, data: settings });
@@ -41,14 +50,17 @@ router.put('/', async (req: Request, res: Response) => {
     res.status(400).json({ success: false, error: parsed.error.message });
     return;
   }
+  const accountId = await getAccountId(req.auth!.userId);
+  if (!accountId) { res.status(404).json({ success: false, error: 'Account not found' }); return; }
+
   const existing = await db.select().from(userSettings)
-    .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
+    .where(eq(userSettings.accountId, accountId)).limit(1);
   if (existing.length > 0) {
     const [updated] = await db.update(userSettings).set({ ...parsed.data, updatedAt: new Date() })
-      .where(eq(userSettings.accountId, req.auth!.accountId)).returning();
+      .where(eq(userSettings.accountId, accountId)).returning();
     res.json({ success: true, data: updated });
   } else {
-    const [created] = await db.insert(userSettings).values({ accountId: req.auth!.accountId, ...parsed.data }).returning();
+    const [created] = await db.insert(userSettings).values({ accountId, ...parsed.data }).returning();
     res.json({ success: true, data: created });
   }
 });
@@ -57,27 +69,30 @@ router.put('/', async (req: Request, res: Response) => {
 
 router.post('/clear-demo', async (req: Request, res: Response) => {
   try {
-    const accountId = req.auth!.accountId;
+    const tenantId = req.auth!.tenantId;
+    const accountId = await getAccountId(req.auth!.userId);
 
     // Delete CRM data
-    await db.delete(crmActivities).where(eq(crmActivities.accountId, accountId));
-    await db.delete(crmNotes).where(eq(crmNotes.accountId, accountId));
-    await db.delete(crmLeads).where(eq(crmLeads.accountId, accountId));
-    await db.delete(crmDeals).where(eq(crmDeals.accountId, accountId));
-    await db.delete(crmContacts).where(eq(crmContacts.accountId, accountId));
-    await db.delete(crmCompanies).where(eq(crmCompanies.accountId, accountId));
-    await db.delete(crmWorkflows).where(eq(crmWorkflows.accountId, accountId));
-    await db.delete(crmLeadForms).where(eq(crmLeadForms.accountId, accountId));
+    await db.delete(crmActivities).where(eq(crmActivities.tenantId, tenantId));
+    await db.delete(crmNotes).where(eq(crmNotes.tenantId, tenantId));
+    await db.delete(crmLeads).where(eq(crmLeads.tenantId, tenantId));
+    await db.delete(crmDeals).where(eq(crmDeals.tenantId, tenantId));
+    await db.delete(crmContacts).where(eq(crmContacts.tenantId, tenantId));
+    await db.delete(crmCompanies).where(eq(crmCompanies.tenantId, tenantId));
+    await db.delete(crmWorkflows).where(eq(crmWorkflows.tenantId, tenantId));
+    await db.delete(crmLeadForms).where(eq(crmLeadForms.tenantId, tenantId));
 
     // Delete HR data
-    await db.delete(employees).where(eq(employees.accountId, accountId));
-    await db.delete(departments).where(eq(departments.accountId, accountId));
+    await db.delete(employees).where(eq(employees.tenantId, tenantId));
+    await db.delete(departments).where(eq(departments.tenantId, tenantId));
 
     // Update settings flag
-    await db.update(userSettings).set({ homeDemoDataActive: false, updatedAt: new Date() })
-      .where(eq(userSettings.accountId, accountId));
+    if (accountId) {
+      await db.update(userSettings).set({ homeDemoDataActive: false, updatedAt: new Date() })
+        .where(eq(userSettings.accountId, accountId));
+    }
 
-    logger.info({ accountId }, 'Demo data cleared');
+    logger.info({ tenantId }, 'Demo data cleared');
     res.json({ success: true });
   } catch (error) {
     logger.error({ error }, 'Failed to clear demo data');
@@ -101,7 +116,7 @@ function maskKey(encryptedKey: string): string {
 router.get('/ai', async (req: Request, res: Response) => {
   try {
     const [settings] = await db.select().from(userSettings)
-      .where(eq(userSettings.accountId, req.auth!.accountId)).limit(1);
+      .where(eq(userSettings.accountId, await getAccountId(req.auth!.userId) as string)).limit(1);
 
     const aiApiKeys = (settings?.aiApiKeys as Record<string, string>) || {};
     const keys: Record<string, { hasKey: boolean; maskedKey: string | null }> = {};
@@ -128,7 +143,7 @@ router.get('/ai', async (req: Request, res: Response) => {
 router.put('/ai', async (req: Request, res: Response) => {
   try {
     const { enabled, provider, apiKey } = req.body;
-    const accountId = req.auth!.accountId;
+    const accountId = await getAccountId(req.auth!.userId) as string;
 
     const [existing] = await db.select().from(userSettings)
       .where(eq(userSettings.accountId, accountId)).limit(1);
@@ -162,7 +177,7 @@ router.put('/ai', async (req: Request, res: Response) => {
 
 router.delete('/ai/key/:provider', async (req: Request, res: Response) => {
   try {
-    const accountId = req.auth!.accountId;
+    const accountId = await getAccountId(req.auth!.userId) as string;
     const provider = req.params.provider as string;
 
     const [existing] = await db.select().from(userSettings)

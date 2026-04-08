@@ -107,7 +107,7 @@ export async function listTasks(userId: string, filters?: {
       recurrenceParentId: tasks.recurrenceParentId, isArchived: tasks.isArchived,
       assigneeId: tasks.assigneeId, sourceEmailId: tasks.sourceEmailId,
       sourceEmailSubject: tasks.sourceEmailSubject, visibility: tasks.visibility,
-      tenantId: tasks.tenantId, createdAt: tasks.createdAt, updatedAt: tasks.updatedAt,
+      createdAt: tasks.createdAt, updatedAt: tasks.updatedAt,
       creatorName: users.name, creatorEmail: users.email,
     })
     .from(tasks)
@@ -491,14 +491,12 @@ export async function getWidgetData(userId: string) {
 
 // ─── Visibility ────────────────────────────────────────────────────
 
-export async function updateTaskVisibility(userId: string, taskId: string, visibility: 'private' | 'team', tenantId: string | null) {
-  if (visibility === 'team' && !tenantId) throw new Error('Tenant required for team visibility');
-  await db.update(tasks).set({ visibility, tenantId: visibility === 'team' ? tenantId : null, updatedAt: new Date() })
+export async function updateTaskVisibility(userId: string, taskId: string, visibility: 'private' | 'team') {
+  await db.update(tasks).set({ visibility, updatedAt: new Date() })
     .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
 }
 
-export async function updateProjectVisibility(userId: string, projectId: string, visibility: 'private' | 'team', tenantId: string | null) {
-  if (visibility === 'team' && !tenantId) throw new Error('Tenant required for team visibility');
-  await db.update(taskProjects).set({ visibility, tenantId: visibility === 'team' ? tenantId : null, updatedAt: new Date() })
+export async function updateProjectVisibility(userId: string, projectId: string, visibility: 'private' | 'team') {
+  await db.update(taskProjects).set({ visibility, updatedAt: new Date() })
     .where(and(eq(taskProjects.id, projectId), eq(taskProjects.userId, userId)));
 }

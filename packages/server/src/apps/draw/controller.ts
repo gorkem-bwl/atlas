@@ -208,7 +208,7 @@ export async function updateDrawingVisibility(req: Request, res: Response) {
       return;
     }
 
-    await drawingService.updateDrawingVisibility(userId, drawingId, visibility, req.auth!.tenantId ?? null);
+    await drawingService.updateDrawingVisibility(userId, drawingId, visibility);
     res.json({ success: true, data: null });
   } catch (error: any) {
     if (error.message === 'Tenant required for team visibility') {

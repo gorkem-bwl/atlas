@@ -352,8 +352,7 @@ export async function searchDocuments(userId: string, query: string) {
 
 // ─── Visibility ────────────────────────────────────────────────────
 
-export async function updateDocumentVisibility(userId: string, documentId: string, visibility: 'private' | 'team', tenantId: string | null) {
-  if (visibility === 'team' && !tenantId) throw new Error('Tenant required for team visibility');
-  await db.update(documents).set({ visibility, tenantId: visibility === 'team' ? tenantId : null, updatedAt: new Date() })
+export async function updateDocumentVisibility(userId: string, documentId: string, visibility: 'private' | 'team') {
+  await db.update(documents).set({ visibility, updatedAt: new Date() })
     .where(and(eq(documents.id, documentId), eq(documents.userId, userId)));
 }

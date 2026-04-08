@@ -131,7 +131,7 @@ export function getRecordFilter(recordAccess: CrmRecordAccess, userIdColumn: any
 
 // ─── Permission CRUD ───────────────────────────────────────────────
 
-export async function listCrmPermissions(tenantId: string, tenantId: string) {
+export async function listCrmPermissions(tenantId: string) {
   // Get all tenant members first
   const members = await db
     .select()

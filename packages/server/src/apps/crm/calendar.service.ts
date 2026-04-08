@@ -94,7 +94,7 @@ export async function getDealEvents(tenantId: string, dealId: string, limit = 50
 // ─── Create a Google Calendar event ────────────────────────────────────
 
 export async function createCalendarEvent(
-  tenantId: string,
+  accountId: string,
   summary: string,
   startTime: string,
   endTime: string,
@@ -102,14 +102,14 @@ export async function createCalendarEvent(
   location?: string,
   description?: string,
 ) {
-  const client = await getAuthenticatedClient(tenantId);
+  const client = await getAuthenticatedClient(accountId);
   const calendarApi = google.calendar({ version: 'v3', auth: client });
 
   // Get the primary calendar
   const [primaryCal] = await db.select()
     .from(calendars)
     .where(and(
-      eq(calendars.tenantId, tenantId),
+      eq(calendars.accountId, accountId),
       eq(calendars.isPrimary, true),
     ))
     .limit(1);
@@ -147,7 +147,7 @@ export async function createCalendarEvent(
     }));
 
     const eventValues = {
-      tenantId,
+      accountId,
       calendarId: primaryCal.id,
       googleEventId: event.id,
       summary: event.summary ?? null,
@@ -169,11 +169,11 @@ export async function createCalendarEvent(
     await db.insert(calendarEvents)
       .values({ ...eventValues, createdAt: new Date() })
       .onConflictDoUpdate({
-        target: [calendarEvents.tenantId, calendarEvents.googleEventId],
+        target: [calendarEvents.accountId, calendarEvents.googleEventId],
         set: eventValues,
       });
   }
 
-  logger.info({ tenantId, eventId: event.id, summary }, 'Calendar event created via Google Calendar');
+  logger.info({ accountId, eventId: event.id, summary }, 'Calendar event created via Google Calendar');
   return event;
 }

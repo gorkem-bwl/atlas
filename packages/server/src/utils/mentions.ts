@@ -1,5 +1,5 @@
 import { db } from '../config/database';
-import { users, tenantMembers, notifications, accounts } from '../db/schema';
+import { users, tenantMembers, notifications } from '../db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { logger } from './logger';
 
@@ -50,19 +50,9 @@ export async function parseMentionsAndNotify(data: {
 
     if (targetUserIds.length === 0) return;
 
-    // Batch-lookup accountIds for the target users (same pattern as emitAppEvent)
-    const accountRows = await db
-      .select({ userId: accounts.userId, id: accounts.id })
-      .from(accounts)
-      .where(inArray(accounts.userId, targetUserIds));
-
-    const accountMap = new Map(accountRows.map((r) => [r.userId, r.id]));
-
-    const rows = targetUserIds
-      .filter((uid) => accountMap.has(uid))
-      .map((uid) => ({
+    const rows = targetUserIds.map((uid) => ({
         userId: uid,
-        accountId: accountMap.get(uid)!,
+        tenantId: data.tenantId,
         type: 'mention' as const,
         title: `${data.authorName} mentioned you`,
         body: data.body.substring(0, 200),

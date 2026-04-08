@@ -582,7 +582,7 @@ export async function updateDriveItemVisibility(req: Request, res: Response) {
       return;
     }
 
-    await driveService.updateDriveItemVisibility(userId, itemId, visibility, req.auth!.tenantId ?? null);
+    await driveService.updateDriveItemVisibility(userId, itemId, visibility);
     res.json({ success: true, data: null });
   } catch (error: any) {
     if (error.message === 'Tenant required for team visibility') {

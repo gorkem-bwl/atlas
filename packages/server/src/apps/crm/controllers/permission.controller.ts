@@ -10,7 +10,6 @@ export async function listPermissions(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
-    const tenantId = req.auth!.tenantId;
 
     if (!tenantId) {
       res.status(400).json({ success: false, error: 'Tenant context required' });
@@ -24,7 +23,7 @@ export async function listPermissions(req: Request, res: Response) {
       return;
     }
 
-    const permissions = await listCrmPermissions(tenantId, tenantId);
+    const permissions = await listCrmPermissions(tenantId);
     res.json({ success: true, data: { permissions } });
   } catch (error) {
     logger.error({ error }, 'Failed to list CRM permissions');

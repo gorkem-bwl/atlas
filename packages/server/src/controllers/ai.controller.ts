@@ -2,8 +2,13 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import * as aiService from '../services/ai.service';
 import { db } from '../config/database';
-import { threads, emails } from '../db/schema';
+import { threads, emails, accounts } from '../db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+
+async function getAccountId(userId: string): Promise<string> {
+  const [row] = await db.select({ id: accounts.id }).from(accounts).where(eq(accounts.userId, userId)).limit(1);
+  return row?.id ?? '';
+}
 
 // ---------------------------------------------------------------------------
 // Validation schemas
@@ -50,7 +55,7 @@ const summarizeSchema = z.object({
 export async function summarize(req: Request, res: Response) {
   try {
     const { threadId, provider, apiKey, baseUrl, model } = summarizeSchema.parse(req.body);
-    const accountId = req.auth!.accountId;
+    const accountId = await getAccountId(req.auth!.userId);
 
     // Fetch thread + emails
     const [thread] = await db
@@ -108,7 +113,7 @@ const quickRepliesSchema = z.object({
 export async function quickReplies(req: Request, res: Response) {
   try {
     const { threadId, provider, apiKey, baseUrl, model } = quickRepliesSchema.parse(req.body);
-    const accountId = req.auth!.accountId;
+    const accountId = await getAccountId(req.auth!.userId);
 
     // Get the last email in the thread
     const [thread] = await db
