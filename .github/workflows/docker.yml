@@ -150,3 +150,11 @@ jobs:
           echo '```bash' >> "$GITHUB_STEP_SUMMARY"
           echo "docker pull $REGISTRY/$IMAGE_NAME:latest" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Trigger Dokploy deploy ──────────────────────────────────
+      - name: Deploy to production
+        if: success()
+        env:
+          DEPLOY_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$DEPLOY_URL" || true
