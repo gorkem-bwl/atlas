@@ -70,7 +70,7 @@ services:
   watchtower:
     image: containrrr/watchtower
     container_name: atlas-watchtower
-    restart: "no"
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
