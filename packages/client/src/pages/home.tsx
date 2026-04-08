@@ -557,6 +557,7 @@ export function HomePage() {
 
   const bgType = (userSettings?.homeBgType as string) || 'unsplash';
   const bgValue = userSettings?.homeBgValue as string | undefined;
+  const bgRotate = (userSettings?.homeBgRotate as boolean) ?? false;
 
   // Image rotation — changes daily, crossfade on manual cycle
   const [imageIndex, setImageIndex] = useState(getDailyImageIndex);
@@ -570,12 +571,12 @@ export function HomePage() {
     crossfadeTimerRef.current = setTimeout(() => setPrevImageIndex(null), 2200);
   }, [imageIndex]);
 
-  // Auto-cycle every 5 minutes (only when no specific background is selected)
+  // Auto-cycle every 5 minutes (only when rotate is enabled)
   useEffect(() => {
-    if (backgroundStyle) return;
+    if (!bgRotate) return;
     const id = setInterval(cycleImage, 5 * 60 * 1000);
     return () => clearInterval(id);
-  }, [cycleImage, backgroundStyle]);
+  }, [cycleImage, bgRotate]);
 
   // Preload next image
   useEffect(() => {
@@ -596,8 +597,10 @@ export function HomePage() {
 
   // Background style based on user settings
   const backgroundStyle = useMemo(() => {
+    // Rotate mode: use cycling images
+    if (bgType === 'unsplash' && bgRotate) return null;
+
     if (bgType === 'unsplash' && bgValue) {
-      // User selected a specific photo
       return {
         backgroundImage: `url(${bgValue})`,
         backgroundSize: 'cover' as const,
@@ -617,9 +620,13 @@ export function HomePage() {
         backgroundPosition: 'center',
       };
     }
-    // Default: unsplash rotation (bgType=unsplash, bgValue=null)
-    return null;
-  }, [bgType, bgValue]);
+    // Default: first wallpaper (no rotation, no specific selection)
+    return {
+      backgroundImage: `url(${BG_IMAGES[0]})`,
+      backgroundSize: 'cover' as const,
+      backgroundPosition: 'center',
+    };
+  }, [bgType, bgValue, bgRotate]);
 
   // Recent items from settings
   interface RecentItem {

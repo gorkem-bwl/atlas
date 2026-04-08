@@ -241,6 +241,7 @@ export const userSettings = pgTable('user_settings', {
   // Home
   homeBgType: text('home_bg_type').notNull().default('unsplash'),
   homeBgValue: text('home_bg_value'),
+  homeBgRotate: boolean('home_bg_rotate').notNull().default(false),
   homeShowSeconds: boolean('home_show_seconds').notNull().default(true),
   homeEnabledWidgets: jsonb('home_enabled_widgets').$type<string[] | null>(),
   homeDockPet: varchar('home_dock_pet', { length: 20 }).notNull().default('cat'),

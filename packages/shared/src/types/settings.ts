@@ -46,6 +46,7 @@ export interface UserSettings {
   tablesIncludeRowIdsInExport: boolean;
   homeBgType: 'unsplash' | 'solid' | 'gradient' | 'custom';
   homeBgValue: string | null;
+  homeBgRotate: boolean;
   recentItems: string; // JSON array string
   appWidgets: Record<string, { enabledIds: string[]; order: string[] }> | null;
 }

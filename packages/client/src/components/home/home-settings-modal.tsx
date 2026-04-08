@@ -88,11 +88,12 @@ export function HomeBackgroundPanel() {
 
   const bgType = (settings?.homeBgType as BgType) || 'unsplash';
   const bgValue = (settings?.homeBgValue as string) || '';
+  const bgRotate = (settings?.homeBgRotate as boolean) ?? false;
 
   const [customHex, setCustomHex] = useState('');
 
   const mutation = useMutation({
-    mutationFn: async (payload: { homeBgType: BgType; homeBgValue: string | null }) => {
+    mutationFn: async (payload: Record<string, unknown>) => {
       await api.put('/settings', payload);
     },
     onSuccess: () => {
@@ -102,6 +103,14 @@ export function HomeBackgroundPanel() {
 
   const setBg = (type: BgType, value: string | null) => {
     mutation.mutate({ homeBgType: type, homeBgValue: value });
+  };
+
+  const setRotate = (enabled: boolean) => {
+    if (enabled) {
+      mutation.mutate({ homeBgRotate: true, homeBgValue: null });
+    } else {
+      mutation.mutate({ homeBgRotate: false });
+    }
   };
 
   const typeOptions: Array<{ value: BgType; label: string; desc: string }> = [
@@ -164,29 +173,39 @@ export function HomeBackgroundPanel() {
       </SettingsSection>
 
       {bgType === 'unsplash' && (
-        <SettingsSection title="Choose a wallpaper" description="Select a photo for your home screen">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {WALLPAPER_PHOTOS.map((photo) => (
-              <div
-                key={photo.url}
-                onClick={() => setBg('unsplash', photo.url)}
-                title={photo.label}
-                style={{
-                  width: 80,
-                  height: 56,
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  border: bgValue === photo.url ? '2px solid var(--color-accent-primary)' : '2px solid transparent',
-                  backgroundImage: `url(${photo.thumb})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  flexShrink: 0,
-                  transition: 'border-color 0.15s',
-                }}
-              />
-            ))}
-          </div>
-        </SettingsSection>
+        <>
+          <SettingsSection title="Auto-rotate" description="Cycle through wallpapers automatically">
+            <SettingsRow label="Rotate wallpapers" description="Change wallpaper every 5 minutes">
+              <SettingsToggle checked={bgRotate} onChange={setRotate} label="Rotate wallpapers" />
+            </SettingsRow>
+          </SettingsSection>
+
+          {!bgRotate && (
+            <SettingsSection title="Choose a wallpaper" description="Select a photo for your home screen">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {WALLPAPER_PHOTOS.map((photo) => (
+                  <div
+                    key={photo.url}
+                    onClick={() => setBg('unsplash', photo.url)}
+                    title={photo.label}
+                    style={{
+                      width: 80,
+                      height: 56,
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer',
+                      border: bgValue === photo.url ? '2px solid var(--color-accent-primary)' : '2px solid transparent',
+                      backgroundImage: `url(${photo.thumb})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      flexShrink: 0,
+                      transition: 'border-color 0.15s',
+                    }}
+                  />
+                ))}
+              </div>
+            </SettingsSection>
+          )}
+        </>
       )}
 
       {bgType === 'solid' && (

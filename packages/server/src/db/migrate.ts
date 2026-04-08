@@ -231,6 +231,7 @@ export async function runMigrations() {
         recent_searches JSONB NOT NULL DEFAULT '[]',
         home_bg_type TEXT NOT NULL DEFAULT 'unsplash',
         home_bg_value TEXT,
+        home_bg_rotate BOOLEAN NOT NULL DEFAULT FALSE,
         home_enabled_widgets JSONB,
         recent_items JSONB NOT NULL DEFAULT '[]',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
