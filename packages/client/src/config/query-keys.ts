@@ -130,6 +130,13 @@ export const queryKeys = {
     audit: (docId: string) => ['sign', 'audit', docId] as const,
     templates: ['sign', 'templates'] as const,
   },
+  invoices: {
+    all: ['invoices'] as const,
+    list: (filters?: Record<string, unknown>) => ['invoices', 'list', filters] as const,
+    detail: (id: string) => ['invoices', id] as const,
+    settings: ['invoices', 'settings'] as const,
+    nextNumber: ['invoices', 'next-number'] as const,
+  },
   crm: {
     all: ['crm'] as const,
     widget: ['crm', 'widget'] as const,
@@ -190,6 +197,11 @@ export const queryKeys = {
     },
     leadForms: {
       all: ['crm', 'leadForms'] as const,
+    },
+    proposals: {
+      all: ['crm', 'proposals'] as const,
+      list: (filters?: Record<string, unknown>) => ['crm', 'proposals', 'list', filters] as const,
+      detail: (id: string) => ['crm', 'proposals', id] as const,
     },
   },
   permissions: {
