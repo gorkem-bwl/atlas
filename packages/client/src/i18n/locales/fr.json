@@ -653,12 +653,12 @@
     "showReplace": "Afficher remplacer",
     "hideReplace": "Masquer remplacer",
     "keyboardShortcuts": "Raccourcis clavier",
-    "tableAddRowAbove": "+Ligne \u2191",
-    "tableAddRowBelow": "+Ligne \u2193",
-    "tableDeleteRow": "\u2212Ligne",
-    "tableAddColBefore": "+Col \u2190",
-    "tableAddColAfter": "+Col \u2192",
-    "tableDeleteCol": "\u2212Col",
+    "tableAddRowAbove": "+Ligne ↑",
+    "tableAddRowBelow": "+Ligne ↓",
+    "tableDeleteRow": "−Ligne",
+    "tableAddColBefore": "+Col ←",
+    "tableAddColAfter": "+Col →",
+    "tableDeleteCol": "−Col",
     "tableDelete": "Tableau",
     "importedFrom": "Importé depuis {{filename}}"
   },
@@ -2102,7 +2102,7 @@
     "sidebar": {
       "dashboard": "Tableau de bord",
       "allEmployees": "Tous les employes",
-      "departments": "Tous les departements",
+      "departments": "Departements",
       "departmentsTitle": "Departements",
       "department": "Departement",
       "orgChart": "Organigramme",
@@ -2116,7 +2116,8 @@
       "leaveTypes": "Types de conge",
       "holidays": "Jours feries",
       "policies": "Politiques",
-      "approvals": "Approbations"
+      "approvals": "Approbations",
+      "expensesSection": "Depenses"
     },
     "status": {
       "active": "Actif",
@@ -3545,8 +3546,7 @@
       "files": "Fichiers",
       "regional": "Régional",
       "behavior": "Comportement",
-      "updates": "Mises à jour",
-      "integrations": "Intégrations"
+      "updates": "Mises à jour"
     }
   },
   "invoices": {

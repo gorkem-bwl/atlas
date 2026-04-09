@@ -675,19 +675,18 @@
     "untitledTable": "Untitled table",
     "find": "Find...",
     "replace": "Replace...",
-    "noResults": "No results for \"{{query}}\"",
     "replaceBtn": "Replace",
     "replaceAll": "All",
     "caseSensitive": "Case sensitive",
     "showReplace": "Show replace",
     "hideReplace": "Hide replace",
     "keyboardShortcuts": "Keyboard shortcuts",
-    "tableAddRowAbove": "+Row \u2191",
-    "tableAddRowBelow": "+Row \u2193",
-    "tableDeleteRow": "\u2212Row",
-    "tableAddColBefore": "+Col \u2190",
-    "tableAddColAfter": "+Col \u2192",
-    "tableDeleteCol": "\u2212Col",
+    "tableAddRowAbove": "+Row ↑",
+    "tableAddRowBelow": "+Row ↓",
+    "tableDeleteRow": "−Row",
+    "tableAddColBefore": "+Col ←",
+    "tableAddColAfter": "+Col →",
+    "tableDeleteCol": "−Col",
     "tableDelete": "Table",
     "importedFrom": "Imported from {{filename}}"
   },
@@ -2133,7 +2132,7 @@
     "sidebar": {
       "dashboard": "Dashboard",
       "allEmployees": "All employees",
-      "departments": "All departments",
+      "departments": "Departments",
       "departmentsTitle": "Departments",
       "department": "Department",
       "orgChart": "Org chart",
@@ -2149,7 +2148,8 @@
       "leaveTypes": "Leave types",
       "holidays": "Holidays",
       "policies": "Policies",
-      "approvals": "Approvals"
+      "approvals": "Approvals",
+      "expensesSection": "Expenses"
     },
     "status": {
       "active": "Active",
@@ -3551,8 +3551,7 @@
       "files": "Files",
       "regional": "Regional",
       "behavior": "Behavior",
-      "updates": "Updates",
-      "integrations": "Integrations"
+      "updates": "Updates"
     }
   },
   "invoices": {

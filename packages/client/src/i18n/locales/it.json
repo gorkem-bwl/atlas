@@ -653,12 +653,12 @@
     "showReplace": "Mostra sostituzione",
     "hideReplace": "Nascondi sostituzione",
     "keyboardShortcuts": "Scorciatoie da tastiera",
-    "tableAddRowAbove": "+Riga \u2191",
-    "tableAddRowBelow": "+Riga \u2193",
-    "tableDeleteRow": "\u2212Riga",
-    "tableAddColBefore": "+Col \u2190",
-    "tableAddColAfter": "+Col \u2192",
-    "tableDeleteCol": "\u2212Col",
+    "tableAddRowAbove": "+Riga ↑",
+    "tableAddRowBelow": "+Riga ↓",
+    "tableDeleteRow": "−Riga",
+    "tableAddColBefore": "+Col ←",
+    "tableAddColAfter": "+Col →",
+    "tableDeleteCol": "−Col",
     "tableDelete": "Tabella",
     "importedFrom": "Importato da {{filename}}"
   },
@@ -2102,7 +2102,7 @@
     "sidebar": {
       "dashboard": "Dashboard",
       "allEmployees": "Tutti i dipendenti",
-      "departments": "Tutti i reparti",
+      "departments": "Dipartimenti",
       "departmentsTitle": "Reparti",
       "department": "Reparto",
       "orgChart": "Organigramma",
@@ -2116,7 +2116,8 @@
       "leaveTypes": "Tipi di permesso",
       "holidays": "Festivita",
       "policies": "Politiche",
-      "approvals": "Approvazioni"
+      "approvals": "Approvazioni",
+      "expensesSection": "Spese"
     },
     "status": {
       "active": "Attivo",
@@ -3545,8 +3546,7 @@
       "files": "File",
       "regional": "Regionale",
       "behavior": "Comportamento",
-      "updates": "Aggiornamenti",
-      "integrations": "Integrazioni"
+      "updates": "Aggiornamenti"
     }
   },
   "invoices": {

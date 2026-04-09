@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Users, Building2, CalendarDays, Plus, Search, Settings2, X,
-  User, ChevronDown,
+  User,
   LayoutDashboard, GitBranch,
   ClipboardList, Calendar, Shield,
   UserCheck, CheckSquare,
@@ -22,7 +22,6 @@ import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { IconButton } from '../../components/ui/icon-button';
-import { StatusDot } from '../../components/ui/status-dot';
 import { ContentArea } from '../../components/ui/content-area';
 import { useUIStore } from '../../stores/ui-store';
 import { useAuthStore } from '../../stores/auth-store';
@@ -106,8 +105,6 @@ export function HrPage() {
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
-  const [showAllDepts, setShowAllDepts] = useState(false);
-  const MAX_VISIBLE_DEPTS = 5;
 
   // Data
   const { data: countsData } = useEmployeeCounts();
@@ -160,15 +157,7 @@ export function HrPage() {
     }
   }, [loadingEmployees, employees.length, departments.length, countsData, counts.totalEmployees, seedHr]);
 
-  const deptEmployeeCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    for (const dept of departments) {
-      map[dept.id] = allEmployees.filter((e) => e.departmentId === dept.id).length;
-    }
-    return map;
-  }, [departments, allEmployees]);
-
-  const selectedEmployee = selectedEmployeeId ? (activeNav.startsWith('dept:') ? employees : allEmployees).find((e) => e.id === selectedEmployeeId) : null;
+  const selectedEmployee = selectedEmployeeId ? allEmployees.find((e) => e.id === selectedEmployeeId) : null;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -235,7 +224,7 @@ export function HrPage() {
   const handleDeleteTimeOff = (id: string) => { deleteTimeOff.mutate(id); };
   const handleDeleteDepartment = (id: string) => { deleteDepartment.mutate(id); };
 
-  const showAddButton = canCreate && (activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav === 'my-expenses' || activeNav.startsWith('dept:'));
+  const showAddButton = canCreate && (activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav === 'my-expenses');
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -317,46 +306,14 @@ export function HrPage() {
                 count={counts.totalEmployees}
                 onClick={() => { setActiveNav('employees'); setSelectedEmployeeId(null); }}
               />
-            </SidebarSection>
-
-            <SidebarSection title={t('hr.sidebar.departmentsTitle')}>
               <SidebarItem
-                label={t('hr.sidebar.allDepartments')}
+                label={t('hr.sidebar.departments')}
                 icon={<Building2 size={14} />}
                 iconColor="#06b6d4"
                 isActive={activeNav === 'departments'}
                 count={counts.departments}
                 onClick={() => { setActiveNav('departments'); setSelectedEmployeeId(null); }}
               />
-              {(showAllDepts || departments.length <= MAX_VISIBLE_DEPTS + 1
-                ? departments
-                : departments.slice(0, MAX_VISIBLE_DEPTS)
-              ).map((dept) => (
-                <SidebarItem
-                  key={dept.id}
-                  label={dept.name}
-                  icon={<StatusDot color={dept.color} size={10} />}
-                  isActive={activeNav === `dept:${dept.id}`}
-                  count={deptEmployeeCounts[dept.id] ?? 0}
-                  onClick={() => { setActiveNav(`dept:${dept.id}`); setSelectedEmployeeId(null); }}
-                />
-              ))}
-              {!showAllDepts && departments.length > MAX_VISIBLE_DEPTS + 1 && (
-                <SidebarItem
-                  label={t('common.nMore', { count: departments.length - MAX_VISIBLE_DEPTS })}
-                  icon={<ChevronDown size={13} />}
-                  onClick={() => setShowAllDepts(true)}
-                  style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)' }}
-                />
-              )}
-              {showAllDepts && departments.length > MAX_VISIBLE_DEPTS + 1 && (
-                <SidebarItem
-                  label={t('common.showLess', 'Show less')}
-                  icon={<ChevronDown size={13} style={{ transform: 'rotate(180deg)' }} />}
-                  onClick={() => setShowAllDepts(false)}
-                  style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-xs)' }}
-                />
-              )}
             </SidebarSection>
 
             <SidebarSection>
@@ -422,7 +379,7 @@ export function HrPage() {
               />
             </SidebarSection>
 
-            <SidebarSection title={t('hr.expenses.sidebar.myExpenses').split(' ')[0]}>
+            <SidebarSection title={t('hr.sidebar.expensesSection', 'Expenses')}>
               <SidebarItem
                 label={t('hr.expenses.sidebar.myExpenses')}
                 icon={<Receipt size={15} />}
@@ -495,7 +452,7 @@ export function HrPage() {
             )}
             {showAddButton && (
               <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
-                {activeNav === 'departments' ? t('hr.actions.addDepartment') : activeNav === 'time-off' ? t('hr.actions.requestTimeOff') : t('hr.actions.addEmployee')}
+                {activeNav === 'departments' ? t('hr.actions.addDepartment') : activeNav === 'time-off' ? t('hr.actions.requestTimeOff') : activeNav === 'my-expenses' ? t('hr.expenses.form.newExpense') : t('hr.actions.addEmployee')}
               </Button>
             )}
           </>
