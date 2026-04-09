@@ -13,6 +13,14 @@ interface CreateCompanyInput {
   size?: string | null;
   address?: string | null;
   phone?: string | null;
+  taxId?: string | null;
+  taxOffice?: string | null;
+  currency?: string;
+  postalCode?: string | null;
+  state?: string | null;
+  country?: string | null;
+  logo?: string | null;
+  portalToken?: string | null;
   tags?: string[];
 }
 
@@ -149,6 +157,14 @@ export async function createCompany(userId: string, tenantId: string, input: Cre
       size: input.size ?? null,
       address: input.address ?? null,
       phone: input.phone ?? null,
+      taxId: input.taxId ?? null,
+      taxOffice: input.taxOffice ?? null,
+      currency: input.currency ?? 'USD',
+      postalCode: input.postalCode ?? null,
+      state: input.state ?? null,
+      country: input.country ?? null,
+      logo: input.logo ?? null,
+      portalToken: input.portalToken ?? null,
       tags: input.tags ?? [],
       sortOrder,
       createdAt: now,
@@ -170,6 +186,14 @@ export async function updateCompany(userId: string, tenantId: string, id: string
   if (input.size !== undefined) updates.size = input.size;
   if (input.address !== undefined) updates.address = input.address;
   if (input.phone !== undefined) updates.phone = input.phone;
+  if (input.taxId !== undefined) updates.taxId = input.taxId;
+  if (input.taxOffice !== undefined) updates.taxOffice = input.taxOffice;
+  if (input.currency !== undefined) updates.currency = input.currency;
+  if (input.postalCode !== undefined) updates.postalCode = input.postalCode;
+  if (input.state !== undefined) updates.state = input.state;
+  if (input.country !== undefined) updates.country = input.country;
+  if (input.logo !== undefined) updates.logo = input.logo;
+  if (input.portalToken !== undefined) updates.portalToken = input.portalToken;
   if (input.tags !== undefined) updates.tags = input.tags;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;

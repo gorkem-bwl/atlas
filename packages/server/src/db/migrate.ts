@@ -2035,6 +2035,13 @@ export async function runMigrations() {
       ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_xml TEXT;
 
       ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS tax_id VARCHAR(11);
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS tax_office VARCHAR(100);
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS currency VARCHAR(10) NOT NULL DEFAULT 'USD';
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS postal_code VARCHAR(20);
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS state VARCHAR(100);
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS country VARCHAR(100);
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS logo TEXT;
+      ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS portal_token UUID UNIQUE;
     `);
 
     logger.info('Database migrations completed');

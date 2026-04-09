@@ -61,7 +61,7 @@ export async function createCompany(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { name, domain, industry, size, address, phone, tags } = req.body;
+    const { name, domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags } = req.body;
 
     const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
     if (!canAccessEntity(perm.role, 'companies', 'create', perm.entityPermissions)) {
@@ -75,7 +75,7 @@ export async function createCompany(req: Request, res: Response) {
     }
 
     const company = await crmService.createCompany(userId, tenantId, {
-      name: name.trim(), domain, industry, size, address, phone, tags,
+      name: name.trim(), domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags,
     });
 
     if (req.auth!.tenantId) {
@@ -101,7 +101,7 @@ export async function updateCompany(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
-    const { name, domain, industry, size, address, phone, tags, sortOrder, isArchived } = req.body;
+    const { name, domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags, sortOrder, isArchived } = req.body;
 
     const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
     if (!canAccessEntity(perm.role, 'companies', 'update', perm.entityPermissions)) {
@@ -110,7 +110,7 @@ export async function updateCompany(req: Request, res: Response) {
     }
 
     const company = await crmService.updateCompany(userId, tenantId, id, {
-      name, domain, industry, size, address, phone, tags, sortOrder, isArchived,
+      name, domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags, sortOrder, isArchived,
     }, perm.recordAccess);
 
     if (!company) {
