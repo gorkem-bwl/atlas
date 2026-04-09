@@ -16,11 +16,11 @@ export async function listProjects(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { search, clientId, status, includeArchived } = req.query;
+    const { search, companyId, clientId, status, includeArchived } = req.query;
 
     const projects = await projectService.listProjects(userId, tenantId, {
       search: search as string | undefined,
-      clientId: clientId as string | undefined,
+      companyId: (companyId || clientId) as string | undefined,
       status: status as string | undefined,
       includeArchived: includeArchived === 'true',
     });
@@ -67,7 +67,7 @@ export async function createProject(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { name, clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color } = req.body;
+    const { name, companyId, clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color } = req.body;
 
     if (!name?.trim()) {
       res.status(400).json({ success: false, error: 'Name is required' });
@@ -75,7 +75,7 @@ export async function createProject(req: Request, res: Response) {
     }
 
     const project = await projectService.createProject(userId, tenantId, {
-      name: name.trim(), clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color,
+      name: name.trim(), companyId: companyId || clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color,
     });
 
     if (req.auth!.tenantId) {
@@ -107,10 +107,10 @@ export async function updateProject(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
-    const { name, clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color, sortOrder, isArchived } = req.body;
+    const { name, companyId, clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color, sortOrder, isArchived } = req.body;
 
     const project = await projectService.updateProject(userId, tenantId, id, {
-      name, clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color, sortOrder, isArchived,
+      name, companyId: companyId ?? clientId, description, billable, status, estimatedHours, estimatedAmount, startDate, endDate, color, sortOrder, isArchived,
     });
 
     if (!project) {

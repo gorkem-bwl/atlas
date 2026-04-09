@@ -2865,6 +2865,7 @@
       "newProjectSubtitle": "Creez un nouveau projet pour suivre le temps et le budget",
       "projectName": "Nom du projet",
       "projectNamePlaceholder": "Refonte du site web",
+      "company": "Entreprise",
       "hourlyRate": "Taux horaire",
       "budgetHours": "Heures budgetees",
       "budget": "Budget",
@@ -2980,7 +2981,7 @@
       "revenueVsCost": "Revenus vs coûts"
     },
     "settings": {
-      "invoiceSettings": "Parametres de facturation",
+      "projectSettings": "Paramètres du projet",
       "invoicePrefix": "Prefixe de facture",
       "invoicePrefixDesc": "Prefixe pour les numeros de facture automatiques",
       "defaultHourlyRate": "Taux horaire par defaut",

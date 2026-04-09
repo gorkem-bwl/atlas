@@ -45,15 +45,11 @@ export async function searchGlobal(query: string, tenantId: string): Promise<Glo
      ORDER BY updated_at DESC LIMIT 5)
     UNION ALL
     (SELECT id::text AS record_id, name AS title, 'projects' AS app_id, 'Projects' AS app_name
-     FROM project_clients WHERE tenant_id = ${tenantId} AND is_archived = false AND name ILIKE ${term}
-     ORDER BY updated_at DESC LIMIT 5)
-    UNION ALL
-    (SELECT id::text AS record_id, name AS title, 'projects' AS app_id, 'Projects' AS app_name
      FROM project_projects WHERE tenant_id = ${tenantId} AND is_archived = false AND name ILIKE ${term}
      ORDER BY updated_at DESC LIMIT 5)
     UNION ALL
-    (SELECT id::text AS record_id, invoice_number AS title, 'projects' AS app_id, 'Projects' AS app_name
-     FROM project_invoices WHERE tenant_id = ${tenantId} AND is_archived = false AND invoice_number ILIKE ${term}
+    (SELECT id::text AS record_id, invoice_number AS title, 'invoices' AS app_id, 'Invoices' AS app_name
+     FROM invoices WHERE tenant_id = ${tenantId} AND is_archived = false AND invoice_number ILIKE ${term}
      ORDER BY created_at DESC LIMIT 5)
     LIMIT 25
   `);

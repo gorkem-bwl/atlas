@@ -1245,33 +1245,11 @@ export async function runMigrations() {
     // ─── Projects tables ────────────────────────────────────────────
 
     await client.query(`
-      CREATE TABLE IF NOT EXISTS project_clients (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id),
-        user_id UUID NOT NULL,
-        name VARCHAR(500) NOT NULL,
-        email VARCHAR(255),
-        phone VARCHAR(50),
-        address TEXT,
-        city VARCHAR(255),
-        state VARCHAR(255),
-        country VARCHAR(255),
-        postal_code VARCHAR(20),
-        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-        logo TEXT,
-        portal_token UUID DEFAULT gen_random_uuid(),
-        notes TEXT,
-        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-        sort_order INTEGER NOT NULL DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
       CREATE TABLE IF NOT EXISTS project_projects (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID NOT NULL REFERENCES tenants(id),
         user_id UUID NOT NULL,
-        client_id UUID REFERENCES project_clients(id) ON DELETE SET NULL,
+        company_id UUID REFERENCES crm_companies(id) ON DELETE SET NULL,
         name VARCHAR(500) NOT NULL,
         description TEXT,
         billable BOOLEAN NOT NULL DEFAULT TRUE,
@@ -1318,51 +1296,13 @@ export async function runMigrations() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE TABLE IF NOT EXISTS project_invoices (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL REFERENCES tenants(id),
-        user_id UUID NOT NULL,
-        client_id UUID NOT NULL REFERENCES project_clients(id) ON DELETE CASCADE,
-        invoice_number VARCHAR(50) NOT NULL,
-        status VARCHAR(50) NOT NULL DEFAULT 'draft',
-        amount REAL NOT NULL DEFAULT 0,
-        tax REAL NOT NULL DEFAULT 0,
-        tax_amount REAL NOT NULL DEFAULT 0,
-        discount REAL NOT NULL DEFAULT 0,
-        discount_amount REAL NOT NULL DEFAULT 0,
-        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
-        issue_date TIMESTAMPTZ,
-        due_date TIMESTAMPTZ,
-        notes TEXT,
-        sent_at TIMESTAMPTZ,
-        viewed_at TIMESTAMPTZ,
-        paid_at TIMESTAMPTZ,
-        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS project_invoice_line_items (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        invoice_id UUID NOT NULL REFERENCES project_invoices(id) ON DELETE CASCADE,
-        time_entry_id UUID REFERENCES project_time_entries(id) ON DELETE SET NULL,
-        description VARCHAR(500) NOT NULL DEFAULT '',
-        quantity REAL NOT NULL DEFAULT 1,
-        unit_price REAL NOT NULL DEFAULT 0,
-        amount REAL NOT NULL DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-
       CREATE TABLE IF NOT EXISTS project_settings (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID NOT NULL REFERENCES tenants(id),
-        invoice_prefix VARCHAR(20) NOT NULL DEFAULT 'INV',
         default_hourly_rate REAL NOT NULL DEFAULT 0,
         company_name VARCHAR(500),
         company_address TEXT,
         company_logo TEXT,
-        next_invoice_number INTEGER NOT NULL DEFAULT 1,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -1753,8 +1693,7 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_crm_proposals_status ON crm_proposals(status)',
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_proposals_token ON crm_proposals(public_token)',
       // Project Clients
-      'CREATE INDEX IF NOT EXISTS idx_project_clients_tenant ON project_clients(tenant_id)',
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_clients_portal_token ON project_clients(portal_token)',
+      'CREATE INDEX IF NOT EXISTS idx_project_projects_company ON project_projects(company_id)',
       // Project Projects
       'CREATE INDEX IF NOT EXISTS idx_project_projects_tenant ON project_projects(tenant_id)',
       'CREATE INDEX IF NOT EXISTS idx_project_projects_client ON project_projects(client_id)',
@@ -1767,14 +1706,6 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_project_time_entries_project ON project_time_entries(project_id)',
       'CREATE INDEX IF NOT EXISTS idx_project_time_entries_user_date ON project_time_entries(user_id, work_date)',
       'CREATE INDEX IF NOT EXISTS idx_project_time_entries_billed ON project_time_entries(billed, billable)',
-      // Project Invoices
-      'CREATE INDEX IF NOT EXISTS idx_project_invoices_tenant ON project_invoices(tenant_id)',
-      'CREATE INDEX IF NOT EXISTS idx_project_invoices_client ON project_invoices(client_id)',
-      'CREATE INDEX IF NOT EXISTS idx_project_invoices_status ON project_invoices(status)',
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_invoices_number ON project_invoices(tenant_id, invoice_number)',
-      // Project Invoice Line Items
-      'CREATE INDEX IF NOT EXISTS idx_project_line_items_invoice ON project_invoice_line_items(invoice_id)',
-      'CREATE INDEX IF NOT EXISTS idx_project_line_items_time_entry ON project_invoice_line_items(time_entry_id)',
       // Project Settings
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_settings_tenant ON project_settings(tenant_id)',
       // Invoices
@@ -2136,24 +2067,8 @@ export async function runMigrations() {
       CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(tenant_id, email);
     `);
 
-    // ─── e-Fatura: schema extensions ──────────────────────────────────
+    // ─── CRM billing extensions ──────────────────────────────────────
     await client.query(`
-      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS e_fatura_enabled BOOLEAN NOT NULL DEFAULT FALSE;
-      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_tax_id VARCHAR(11);
-      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_tax_office VARCHAR(100);
-      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_city VARCHAR(100);
-      ALTER TABLE project_settings ADD COLUMN IF NOT EXISTS company_country VARCHAR(100) DEFAULT 'TR';
-
-      ALTER TABLE project_clients ADD COLUMN IF NOT EXISTS tax_id VARCHAR(11);
-      ALTER TABLE project_clients ADD COLUMN IF NOT EXISTS tax_office VARCHAR(100);
-
-      ALTER TABLE project_invoice_line_items ADD COLUMN IF NOT EXISTS tax_rate REAL NOT NULL DEFAULT 20;
-
-      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_type VARCHAR(20);
-      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_uuid UUID;
-      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_status VARCHAR(20);
-      ALTER TABLE project_invoices ADD COLUMN IF NOT EXISTS e_fatura_xml TEXT;
-
       ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS tax_id VARCHAR(11);
       ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS tax_office VARCHAR(100);
       ALTER TABLE crm_companies ADD COLUMN IF NOT EXISTS currency VARCHAR(10) NOT NULL DEFAULT 'USD';

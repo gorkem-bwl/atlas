@@ -2871,6 +2871,7 @@
       "newProjectSubtitle": "Create a new project to track time and budget",
       "projectName": "Project name",
       "projectNamePlaceholder": "Website redesign",
+      "company": "Company",
       "hourlyRate": "Hourly rate",
       "budgetHours": "Budget hours",
       "budget": "Budget",
@@ -2986,7 +2987,7 @@
       "revenueVsCost": "Revenue vs cost"
     },
     "settings": {
-      "invoiceSettings": "Invoice settings",
+      "projectSettings": "Project settings",
       "invoicePrefix": "Invoice prefix",
       "invoicePrefixDesc": "Prefix for auto-generated invoice numbers",
       "defaultHourlyRate": "Default hourly rate",

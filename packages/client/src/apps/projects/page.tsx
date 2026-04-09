@@ -2,38 +2,30 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Clock, FolderKanban, Users, FileText, BarChart3, Settings2,
+  LayoutDashboard, Clock, FolderKanban, BarChart3, Settings2,
   Plus, Search, X,
 } from 'lucide-react';
-import {
-  useProjects, useClients, useInvoices,
-  type Invoice,
-} from './hooks';
+import { useProjects } from './hooks';
 import { TimeTracker } from './components/time-tracker';
 import { ReportsView } from './components/reports-view';
-import { InvoiceBuilder } from './components/invoice-builder';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { IconButton } from '../../components/ui/icon-button';
 import { ContentArea } from '../../components/ui/content-area';
-import { useUIStore } from '../../stores/ui-store';
 import '../../styles/projects.css';
 
 import type { ActiveView } from './lib/types';
 import {
   DashboardView, ProjectsListView, ProjectDetailPanel,
-  ClientsListView, ClientDetailPanel,
-  InvoicesListView, InvoiceDetailPanel,
   SettingsView,
 } from './components/views';
-import { CreateProjectModal, CreateClientModal } from './components/modals';
+import { CreateProjectModal } from './components/modals';
 
 // ─── Main Page ────────────────────────────────────────────────────
 
 export function ProjectsPage() {
   const { t } = useTranslation();
-  const { openSettings } = useUIStore();
 
   // Navigation
   const [searchParams, setSearchParams] = useSearchParams();
@@ -45,38 +37,23 @@ export function ProjectsPage() {
 
   // Selection state
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Modals
   const [showCreateProject, setShowCreateProject] = useState(false);
-  const [showCreateClient, setShowCreateClient] = useState(false);
-  const [showInvoiceBuilder, setShowInvoiceBuilder] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   // Data
   const { data: projectsData } = useProjects();
   const projects = projectsData?.projects ?? [];
 
-  const { data: clientsData } = useClients();
-  const clients = clientsData?.clients ?? [];
-
-  const { data: invoicesData } = useInvoices();
-  const invoices = invoicesData?.invoices ?? [];
-
   // Selected entities
   const selectedProject = selectedProjectId ? projects.find((p) => p.id === selectedProjectId) : null;
-  const selectedClient = selectedClientId ? clients.find((c) => c.id === selectedClientId) : null;
-  const selectedInvoice = selectedInvoiceId ? invoices.find((i) => i.id === selectedInvoiceId) : null;
 
   // Close selection on view change
   useEffect(() => {
     setSelectedProjectId(null);
-    setSelectedClientId(null);
-    setSelectedInvoiceId(null);
     setSearchQuery('');
     setShowSearch(false);
   }, [activeView]);
@@ -90,8 +67,6 @@ export function ProjectsPage() {
           setSearchQuery('');
         } else {
           setSelectedProjectId(null);
-          setSelectedClientId(null);
-          setSelectedInvoiceId(null);
         }
       }
       const target = e.target as HTMLElement;
@@ -112,8 +87,6 @@ export function ProjectsPage() {
       case 'dashboard': return t('projects.sidebar.dashboard');
       case 'timeTracking': return t('projects.sidebar.timeTracking');
       case 'projects': return t('projects.sidebar.allProjects');
-      case 'clients': return t('projects.sidebar.clients');
-      case 'invoices': return t('projects.sidebar.invoices');
       case 'reports': return t('projects.sidebar.reports');
       case 'settings': return t('projects.sidebar.settings');
     }
@@ -121,17 +94,8 @@ export function ProjectsPage() {
 
   // Add handler
   const handleAdd = () => {
-    switch (activeView) {
-      case 'projects':
-        setShowCreateProject(true);
-        break;
-      case 'clients':
-        setShowCreateClient(true);
-        break;
-      case 'invoices':
-        setEditingInvoice(null);
-        setShowInvoiceBuilder(true);
-        break;
+    if (activeView === 'projects') {
+      setShowCreateProject(true);
     }
   };
 
@@ -139,17 +103,11 @@ export function ProjectsPage() {
     switch (activeView) {
       case 'dashboard': return t('projects.projects.newProject');
       case 'projects': return t('projects.projects.newProject');
-      case 'clients': return t('projects.clients.newClient');
-      case 'invoices': return t('projects.invoices.newInvoice');
       default: return '';
     }
   }, [activeView, t]);
 
-  const hasDetailPanel = !!(
-    (activeView === 'projects' && selectedProject) ||
-    (activeView === 'clients' && selectedClient) ||
-    (activeView === 'invoices' && selectedInvoice)
-  );
+  const hasDetailPanel = !!(activeView === 'projects' && selectedProject);
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -189,22 +147,6 @@ export function ProjectsPage() {
             onClick={() => setActiveView('projects')}
           />
           <SidebarItem
-            label={t('projects.sidebar.clients')}
-            icon={<Users size={14} />}
-            iconColor="#10b981"
-            isActive={activeView === 'clients'}
-            count={clients.length}
-            onClick={() => setActiveView('clients')}
-          />
-          <SidebarItem
-            label={t('projects.sidebar.invoices')}
-            icon={<FileText size={14} />}
-            iconColor="#3b82f6"
-            isActive={activeView === 'invoices'}
-            count={invoices.length}
-            onClick={() => setActiveView('invoices')}
-          />
-          <SidebarItem
             label={t('projects.sidebar.reports')}
             icon={<BarChart3 size={14} />}
             iconColor="#6366f1"
@@ -218,7 +160,7 @@ export function ProjectsPage() {
       <ContentArea
         title={sectionTitle ?? ''}
         actions={
-          activeView !== 'dashboard' && activeView !== 'timeTracking' && activeView !== 'reports' && activeView !== 'settings' ? (
+          activeView === 'projects' ? (
             <>
               <IconButton
                 icon={<Search size={14} />}
@@ -276,29 +218,8 @@ export function ProjectsPage() {
                 projects={projects}
                 searchQuery={searchQuery}
                 selectedId={selectedProjectId}
-                onSelect={(id) => { setSelectedProjectId(id); setSelectedClientId(null); setSelectedInvoiceId(null); }}
+                onSelect={(id) => { setSelectedProjectId(id); }}
                 onAdd={() => setShowCreateProject(true)}
-                clients={clients}
-              />
-            )}
-
-            {activeView === 'clients' && (
-              <ClientsListView
-                clients={clients}
-                searchQuery={searchQuery}
-                selectedId={selectedClientId}
-                onSelect={(id) => { setSelectedClientId(id); setSelectedProjectId(null); setSelectedInvoiceId(null); }}
-                onAdd={() => setShowCreateClient(true)}
-              />
-            )}
-
-            {activeView === 'invoices' && (
-              <InvoicesListView
-                invoices={invoices}
-                searchQuery={searchQuery}
-                selectedId={selectedInvoiceId}
-                onSelect={(id) => { setSelectedInvoiceId(id); setSelectedProjectId(null); setSelectedClientId(null); }}
-                onAdd={() => { setEditingInvoice(null); setShowInvoiceBuilder(true); }}
               />
             )}
 
@@ -313,34 +234,13 @@ export function ProjectsPage() {
               {activeView === 'projects' && selectedProject && (
                 <ProjectDetailPanel project={selectedProject} onClose={() => setSelectedProjectId(null)} />
               )}
-              {activeView === 'clients' && selectedClient && (
-                <ClientDetailPanel
-                  client={selectedClient}
-                  onClose={() => setSelectedClientId(null)}
-                  onNavigate={(view, selectId) => {
-                    setActiveView(view);
-                    setSelectedClientId(null);
-                    if (view === 'projects' && selectId) setSelectedProjectId(selectId);
-                    if (view === 'invoices' && selectId) setSelectedInvoiceId(selectId);
-                  }}
-                />
-              )}
-              {activeView === 'invoices' && selectedInvoice && (
-                <InvoiceDetailPanel
-                  invoice={selectedInvoice}
-                  onClose={() => setSelectedInvoiceId(null)}
-                  onEdit={() => { setEditingInvoice(selectedInvoice); setShowInvoiceBuilder(true); }}
-                />
-              )}
             </div>
           )}
         </div>
       </ContentArea>
 
       {/* Modals */}
-      <CreateProjectModal open={showCreateProject} onClose={() => setShowCreateProject(false)} clients={clients} />
-      <CreateClientModal open={showCreateClient} onClose={() => setShowCreateClient(false)} />
-      <InvoiceBuilder open={showInvoiceBuilder} onClose={() => { setShowInvoiceBuilder(false); setEditingInvoice(null); }} invoice={editingInvoice} />
+      <CreateProjectModal open={showCreateProject} onClose={() => setShowCreateProject(false)} />
     </div>
   );
 }

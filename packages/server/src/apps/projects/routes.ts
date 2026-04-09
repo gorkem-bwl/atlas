@@ -4,12 +4,7 @@ import { authMiddleware } from '../../middleware/auth';
 
 const router = Router();
 
-// ─── Portal routes (public, no auth) ───────────────────────────────
-router.get('/portal/:token', projectsController.portalGetClient);
-router.get('/portal/:token/invoices', projectsController.portalListInvoices);
-router.get('/portal/:token/invoices/:invoiceId', projectsController.portalGetInvoiceDetail);
-
-// ─── All other routes require auth ─────────────────────────────────
+// ─── All routes require auth ──────────────────────────────────────
 router.use(authMiddleware);
 
 // Widget (lightweight summary for home dashboard)
@@ -17,14 +12,6 @@ router.get('/widget', projectsController.getWidgetData);
 
 // Dashboard (rich data for in-app dashboard view)
 router.get('/dashboard', projectsController.getDashboardData);
-
-// Clients
-router.get('/clients/list', projectsController.listClients);
-router.post('/clients', projectsController.createClient);
-router.get('/clients/:id', projectsController.getClient);
-router.patch('/clients/:id', projectsController.updateClient);
-router.delete('/clients/:id', projectsController.deleteClient);
-router.post('/clients/:id/regenerate-token', projectsController.regeneratePortalToken);
 
 // Projects
 router.get('/projects/list', projectsController.listProjects);
@@ -50,31 +37,9 @@ router.get('/time-entries/:id', projectsController.getTimeEntry);
 router.patch('/time-entries/:id', projectsController.updateTimeEntry);
 router.delete('/time-entries/:id', projectsController.deleteTimeEntry);
 
-// Invoices
-router.post('/invoices/populate-from-time', projectsController.previewTimeEntryLineItems);
-router.get('/invoices/list', projectsController.listInvoices);
-router.get('/invoices/next-number', projectsController.getNextInvoiceNumber);
-router.post('/invoices', projectsController.createInvoice);
-router.get('/invoices/:id', projectsController.getInvoice);
-router.patch('/invoices/:id', projectsController.updateInvoice);
-router.delete('/invoices/:id', projectsController.deleteInvoice);
-router.post('/invoices/:id/send', projectsController.sendInvoice);
-router.post('/invoices/:id/paid', projectsController.markInvoicePaid);
-router.post('/invoices/:id/duplicate', projectsController.duplicateInvoice);
-router.post('/invoices/:id/waive', projectsController.waiveInvoice);
-
-// e-Fatura
-router.post('/invoices/:id/efatura/generate', projectsController.generateEFatura);
-router.get('/invoices/:id/efatura/xml', projectsController.getEFaturaXml);
-router.get('/invoices/:id/efatura/preview', projectsController.getEFaturaPreview);
-router.get('/invoices/:id/efatura/pdf', projectsController.getEFaturaPdf);
-
-// Line Items
-router.get('/invoices/:invoiceId/line-items', projectsController.listLineItems);
-router.post('/invoices/:invoiceId/line-items', projectsController.createLineItem);
-router.post('/invoices/:invoiceId/populate', projectsController.populateFromTimeEntries);
-router.patch('/line-items/:id', projectsController.updateLineItem);
-router.delete('/line-items/:id', projectsController.deleteLineItem);
+// Time Billing (populate invoices from time entries)
+router.post('/time-billing/preview', projectsController.previewTimeBillingLineItems);
+router.post('/time-billing/populate', projectsController.populateTimeBilling);
 
 // Reports
 router.get('/reports/time', projectsController.getTimeReport);

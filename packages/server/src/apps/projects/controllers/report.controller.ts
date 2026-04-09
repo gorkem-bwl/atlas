@@ -3,6 +3,52 @@ import * as projectService from '../service';
 import { logger } from '../../../utils/logger';
 import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
 
+// ─── Time Billing ──────────────────────────────────────────────────
+
+export async function previewTimeBillingLineItems(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const tenantId = req.auth!.tenantId;
+    const { companyId, clientId, startDate, endDate } = req.body;
+
+    const lineItems = await projectService.previewTimeEntryLineItems(
+      tenantId, companyId || clientId, startDate, endDate,
+    );
+
+    res.json({ success: true, data: { lineItems } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to preview time billing line items');
+    res.status(500).json({ success: false, error: 'Failed to preview line items' });
+  }
+}
+
+export async function populateTimeBilling(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const tenantId = req.auth!.tenantId;
+    const { invoiceId, companyId, clientId, startDate, endDate } = req.body;
+
+    const lineItems = await projectService.populateFromTimeEntries(
+      tenantId, invoiceId, companyId || clientId, startDate, endDate,
+    );
+
+    res.json({ success: true, data: { lineItems } });
+  } catch (error) {
+    logger.error({ error }, 'Failed to populate time billing');
+    res.status(500).json({ success: false, error: 'Failed to populate from time entries' });
+  }
+}
+
 // ─── Reports ────────────────────────────────────────────────────────
 
 export async function getTimeReport(req: Request, res: Response) {

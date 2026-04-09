@@ -2865,6 +2865,7 @@
       "newProjectSubtitle": "Crea un nuovo progetto per monitorare ore e budget",
       "projectName": "Nome progetto",
       "projectNamePlaceholder": "Redesign sito web",
+      "company": "Azienda",
       "hourlyRate": "Tariffa oraria",
       "budgetHours": "Ore budget",
       "budget": "Budget",
@@ -2980,7 +2981,7 @@
       "revenueVsCost": "Ricavi vs costi"
     },
     "settings": {
-      "invoiceSettings": "Impostazioni fatture",
+      "projectSettings": "Impostazioni progetto",
       "invoicePrefix": "Prefisso fattura",
       "invoicePrefixDesc": "Prefisso per i numeri fattura generati automaticamente",
       "defaultHourlyRate": "Tariffa oraria predefinita",

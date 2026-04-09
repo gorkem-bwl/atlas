@@ -4,7 +4,7 @@ import { formatCurrency, formatNumber } from '../../../../lib/format';
 import {
   FolderKanban, Clock, Users, BarChart3, Plus, DollarSign,
 } from 'lucide-react';
-import { type Project, type ProjectClient } from '../../hooks';
+import { type Project } from '../../hooks';
 import { Badge } from '../../../../components/ui/badge';
 import { DataTable, type DataTableColumn } from '../../../../components/ui/data-table';
 import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state';
@@ -16,14 +16,13 @@ export function ProjectsListView({ projects, searchQuery, onSelect, selectedId, 
   onSelect: (id: string) => void;
   selectedId: string | null;
   onAdd: () => void;
-  clients: ProjectClient[];
 }) {
   const { t } = useTranslation();
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return projects;
     const q = searchQuery.toLowerCase();
-    return projects.filter((p) => p.name.toLowerCase().includes(q) || (p.clientName?.toLowerCase().includes(q)));
+    return projects.filter((p) => p.name.toLowerCase().includes(q) || (p.companyName?.toLowerCase().includes(q)));
   }, [projects, searchQuery]);
 
   if (filtered.length === 0 && !searchQuery) {
@@ -59,14 +58,14 @@ export function ProjectsListView({ projects, searchQuery, onSelect, selectedId, 
       ),
     },
     {
-      key: 'clientName',
-      label: t('projects.invoices.client'),
+      key: 'companyName',
+      label: t('projects.projects.company'),
       icon: <Users size={12} />,
       width: 140,
       sortable: true,
       render: (project) => (
         <span className="dt-cell-secondary" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {project.clientName || '-'}
+          {project.companyName || '-'}
         </span>
       ),
     },

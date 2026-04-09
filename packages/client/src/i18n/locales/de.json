@@ -2865,6 +2865,7 @@
       "newProjectSubtitle": "Erstellen Sie ein neues Projekt zur Zeit- und Budgetverfolgung",
       "projectName": "Projektname",
       "projectNamePlaceholder": "Website-Redesign",
+      "company": "Unternehmen",
       "hourlyRate": "Stundensatz",
       "budgetHours": "Budgetstunden",
       "budget": "Budget",
@@ -2980,7 +2981,7 @@
       "revenueVsCost": "Umsatz vs. Kosten"
     },
     "settings": {
-      "invoiceSettings": "Rechnungseinstellungen",
+      "projectSettings": "Projekteinstellungen",
       "invoicePrefix": "Rechnungspraefix",
       "invoicePrefixDesc": "Praefix fur automatische Rechnungsnummern",
       "defaultHourlyRate": "Standard-Stundensatz",

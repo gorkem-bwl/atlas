@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectProjects, projectMembers, projectClients, users, accounts,
+  projectProjects, projectMembers, crmCompanies, users, accounts,
 } from '../../../db/schema';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
@@ -9,7 +9,7 @@ import { logger } from '../../../utils/logger';
 
 interface CreateProjectInput {
   name: string;
-  clientId?: string | null;
+  companyId?: string | null;
   description?: string | null;
   billable?: boolean;
   status?: string;
@@ -29,7 +29,7 @@ interface UpdateProjectInput extends Partial<CreateProjectInput> {
 
 export async function listProjects(userId: string, tenantId: string, filters?: {
   search?: string;
-  clientId?: string;
+  companyId?: string;
   status?: string;
   includeArchived?: boolean;
 }) {
@@ -37,8 +37,8 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
   if (!filters?.includeArchived) {
     conditions.push(eq(projectProjects.isArchived, false));
   }
-  if (filters?.clientId) {
-    conditions.push(eq(projectProjects.clientId, filters.clientId));
+  if (filters?.companyId) {
+    conditions.push(eq(projectProjects.companyId, filters.companyId));
   }
   if (filters?.status) {
     conditions.push(eq(projectProjects.status, filters.status));
@@ -53,7 +53,7 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
       id: projectProjects.id,
       tenantId: projectProjects.tenantId,
       userId: projectProjects.userId,
-      clientId: projectProjects.clientId,
+      companyId: projectProjects.companyId,
       name: projectProjects.name,
       description: projectProjects.description,
       billable: projectProjects.billable,
@@ -67,13 +67,13 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
       sortOrder: projectProjects.sortOrder,
       createdAt: projectProjects.createdAt,
       updatedAt: projectProjects.updatedAt,
-      clientName: projectClients.name,
+      companyName: crmCompanies.name,
       totalTrackedMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false), 0)`.as('total_tracked_minutes'),
-      totalBilledAmount: sql<number>`COALESCE((SELECT SUM(pli.amount) FROM project_invoice_line_items pli INNER JOIN project_time_entries pte ON pte.id = pli.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('total_billed_amount'),
-      unbilledMinutes: sql<number>`COALESCE((SELECT SUM(pte2.duration_minutes) FROM project_time_entries pte2 WHERE pte2.project_id = ${projectProjects.id} AND pte2.is_archived = false AND pte2.billable = true AND NOT EXISTS (SELECT 1 FROM project_invoice_line_items pli2 WHERE pli2.time_entry_id = pte2.id)), 0)`.as('unbilled_minutes'),
+      totalBilledAmount: sql<number>`COALESCE((SELECT SUM(ili.amount) FROM invoice_line_items ili INNER JOIN project_time_entries pte ON pte.id = ili.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('total_billed_amount'),
+      unbilledMinutes: sql<number>`COALESCE((SELECT SUM(pte2.duration_minutes) FROM project_time_entries pte2 WHERE pte2.project_id = ${projectProjects.id} AND pte2.is_archived = false AND pte2.billable = true AND NOT EXISTS (SELECT 1 FROM invoice_line_items ili2 WHERE ili2.time_entry_id = pte2.id)), 0)`.as('unbilled_minutes'),
     })
     .from(projectProjects)
-    .leftJoin(projectClients, eq(projectProjects.clientId, projectClients.id))
+    .leftJoin(crmCompanies, eq(projectProjects.companyId, crmCompanies.id))
     .where(and(...conditions))
     .orderBy(asc(projectProjects.sortOrder), asc(projectProjects.createdAt));
 }
@@ -84,7 +84,7 @@ export async function getProject(userId: string, tenantId: string, id: string) {
       id: projectProjects.id,
       tenantId: projectProjects.tenantId,
       userId: projectProjects.userId,
-      clientId: projectProjects.clientId,
+      companyId: projectProjects.companyId,
       name: projectProjects.name,
       description: projectProjects.description,
       billable: projectProjects.billable,
@@ -98,12 +98,12 @@ export async function getProject(userId: string, tenantId: string, id: string) {
       sortOrder: projectProjects.sortOrder,
       createdAt: projectProjects.createdAt,
       updatedAt: projectProjects.updatedAt,
-      clientName: projectClients.name,
+      companyName: crmCompanies.name,
       totalTrackedMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false), 0)`.as('total_tracked_minutes'),
-      totalBilledAmount: sql<number>`COALESCE((SELECT SUM(pli.amount) FROM project_invoice_line_items pli INNER JOIN project_time_entries pte ON pte.id = pli.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('total_billed_amount'),
+      totalBilledAmount: sql<number>`COALESCE((SELECT SUM(ili.amount) FROM invoice_line_items ili INNER JOIN project_time_entries pte ON pte.id = ili.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('total_billed_amount'),
     })
     .from(projectProjects)
-    .leftJoin(projectClients, eq(projectProjects.clientId, projectClients.id))
+    .leftJoin(crmCompanies, eq(projectProjects.companyId, crmCompanies.id))
     .where(and(eq(projectProjects.id, id), eq(projectProjects.tenantId, tenantId)))
     .limit(1);
 
@@ -124,7 +124,7 @@ export async function createProject(userId: string, tenantId: string, input: Cre
     .values({
       tenantId,
       userId,
-      clientId: input.clientId ?? null,
+      companyId: input.companyId ?? null,
       name: input.name,
       description: input.description ?? null,
       billable: input.billable ?? true,
@@ -149,7 +149,7 @@ export async function updateProject(userId: string, tenantId: string, id: string
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.name !== undefined) updates.name = input.name;
-  if (input.clientId !== undefined) updates.clientId = input.clientId;
+  if (input.companyId !== undefined) updates.companyId = input.companyId;
   if (input.description !== undefined) updates.description = input.description;
   if (input.billable !== undefined) updates.billable = input.billable;
   if (input.status !== undefined) updates.status = input.status;

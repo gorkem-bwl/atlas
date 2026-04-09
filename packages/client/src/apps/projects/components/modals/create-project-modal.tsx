@@ -1,33 +1,35 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCreateProject, type ProjectClient } from '../../hooks';
+import { useCreateProject } from '../../hooks';
+import { useCompanies } from '../../../crm/hooks';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
 import { Textarea } from '../../../../components/ui/textarea';
 import { Modal } from '../../../../components/ui/modal';
 
-export function CreateProjectModal({ open, onClose, clients }: {
+export function CreateProjectModal({ open, onClose }: {
   open: boolean;
   onClose: () => void;
-  clients: ProjectClient[];
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [clientId, setClientId] = useState('');
+  const [companyId, setCompanyId] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
   const [budgetHours, setBudgetHours] = useState('');
   const [description, setDescription] = useState('');
   const [isBillable, setIsBillable] = useState(true);
   const createProject = useCreateProject();
+  const { data: companiesData } = useCompanies();
+  const companies = companiesData?.companies ?? [];
 
-  const reset = () => { setName(''); setClientId(''); setHourlyRate(''); setBudgetHours(''); setDescription(''); setIsBillable(true); };
+  const reset = () => { setName(''); setCompanyId(''); setHourlyRate(''); setBudgetHours(''); setDescription(''); setIsBillable(true); };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
     createProject.mutate({
       name: name.trim(),
-      clientId: clientId || null,
+      companyId: companyId || null,
       hourlyRate: Number(hourlyRate) || 0,
       budgetHours: budgetHours ? Number(budgetHours) : null,
       description: description.trim() || null,
@@ -45,12 +47,12 @@ export function CreateProjectModal({ open, onClose, clients }: {
           <Input label={t('projects.projects.projectName')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('projects.projects.projectNamePlaceholder')} autoFocus />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
             <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-              {t('projects.invoices.client')}
+              {t('projects.projects.company')}
             </label>
             <Select
-              value={clientId}
-              onChange={setClientId}
-              options={[{ value: '', label: t('projects.common.none') }, ...clients.map((c) => ({ value: c.id, label: c.name }))]}
+              value={companyId}
+              onChange={setCompanyId}
+              options={[{ value: '', label: t('projects.common.none') }, ...companies.map((c) => ({ value: c.id, label: c.name }))]}
             />
           </div>
           <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>

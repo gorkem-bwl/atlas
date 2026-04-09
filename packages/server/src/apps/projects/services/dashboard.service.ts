@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectProjects, projectTimeEntries, projectInvoices, projectClients,
+  projectProjects, projectTimeEntries, invoices, crmCompanies,
 } from '../../../db/schema';
 import { eq, and, asc, desc, gte, lte, sql } from 'drizzle-orm';
 
@@ -38,24 +38,24 @@ export async function getWidgetData(tenantId: string) {
         lte(projectTimeEntries.workDate, todayStr),
       )),
 
-    // Pending invoice amount (sent + viewed + overdue)
+    // Pending invoice amount (sent + viewed + overdue) — from shared invoices table
     db.select({
-      amount: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('amount'),
+      amount: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('amount'),
     })
-      .from(projectInvoices)
+      .from(invoices)
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
-        sql`${projectInvoices.status} IN ('sent', 'viewed', 'overdue')`,
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
+        sql`${invoices.status} IN ('sent', 'viewed', 'overdue')`,
       )),
 
     // Overdue invoice count
     db.select({ count: sql<number>`COUNT(*)`.as('count') })
-      .from(projectInvoices)
+      .from(invoices)
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
-        eq(projectInvoices.status, 'overdue'),
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
+        eq(invoices.status, 'overdue'),
       )),
   ]);
 
@@ -121,37 +121,37 @@ export async function getDashboardData(userId: string, tenantId: string) {
     // Pending invoice amount (sent + viewed + overdue)
     db.select({
       count: sql<number>`COUNT(*)`.as('count'),
-      amount: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('amount'),
+      amount: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('amount'),
     })
-      .from(projectInvoices)
+      .from(invoices)
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
-        sql`${projectInvoices.status} IN ('sent', 'viewed', 'overdue')`,
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
+        sql`${invoices.status} IN ('sent', 'viewed', 'overdue')`,
       )),
 
     // Overdue invoice count + amount
     db.select({
       count: sql<number>`COUNT(*)`.as('count'),
-      amount: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('amount'),
+      amount: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('amount'),
     })
-      .from(projectInvoices)
+      .from(invoices)
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
-        eq(projectInvoices.status, 'overdue'),
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
+        eq(invoices.status, 'overdue'),
       )),
 
     // Revenue breakdown: invoiced, paid, outstanding
     db.select({
-      invoiced: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('invoiced'),
-      paid: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} = 'paid' THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('paid'),
-      outstanding: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} IN ('sent', 'viewed', 'overdue') THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('outstanding'),
+      invoiced: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('invoiced'),
+      paid: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'paid' THEN ${invoices.total} ELSE 0 END), 0)`.as('paid'),
+      outstanding: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} IN ('sent', 'viewed', 'overdue') THEN ${invoices.total} ELSE 0 END), 0)`.as('outstanding'),
     })
-      .from(projectInvoices)
+      .from(invoices)
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
       )),
 
     // Hours by day this week (Mon-Sun)
@@ -189,22 +189,22 @@ export async function getDashboardData(userId: string, tenantId: string) {
       .orderBy(desc(projectTimeEntries.createdAt))
       .limit(5),
 
-    // Recent invoice actions (last 5 non-draft invoices)
+    // Recent invoice actions (last 5 non-draft invoices) — from shared invoices table
     db.select({
-      id: projectInvoices.id,
-      invoiceNumber: projectInvoices.invoiceNumber,
-      clientName: projectClients.name,
-      status: projectInvoices.status,
-      amount: projectInvoices.amount,
-      updatedAt: projectInvoices.updatedAt,
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      clientName: crmCompanies.name,
+      status: invoices.status,
+      amount: invoices.total,
+      updatedAt: invoices.updatedAt,
     })
-      .from(projectInvoices)
-      .leftJoin(projectClients, eq(projectInvoices.clientId, projectClients.id))
+      .from(invoices)
+      .leftJoin(crmCompanies, eq(invoices.companyId, crmCompanies.id))
       .where(and(
-        eq(projectInvoices.tenantId, tenantId),
-        eq(projectInvoices.isArchived, false),
+        eq(invoices.tenantId, tenantId),
+        eq(invoices.isArchived, false),
       ))
-      .orderBy(desc(projectInvoices.updatedAt))
+      .orderBy(desc(invoices.updatedAt))
       .limit(5),
 
     // Unbilled billable hours (time entries not linked to any invoice line item)
@@ -216,7 +216,7 @@ export async function getDashboardData(userId: string, tenantId: string) {
         eq(projectTimeEntries.tenantId, tenantId),
         eq(projectTimeEntries.isArchived, false),
         eq(projectTimeEntries.billable, true),
-        sql`NOT EXISTS (SELECT 1 FROM project_invoice_line_items pli WHERE pli.time_entry_id = ${projectTimeEntries.id})`,
+        sql`NOT EXISTS (SELECT 1 FROM invoice_line_items ili WHERE ili.time_entry_id = ${projectTimeEntries.id})`,
       )),
   ]);
 

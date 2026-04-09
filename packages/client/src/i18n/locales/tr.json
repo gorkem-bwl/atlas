@@ -2865,6 +2865,7 @@
       "newProjectSubtitle": "Zaman ve bütçe takibi için yeni proje oluşturun",
       "projectName": "Proje adı",
       "projectNamePlaceholder": "Web sitesi yenileme",
+      "company": "Şirket",
       "hourlyRate": "Saatlik ücret",
       "budgetHours": "Bütçe saatleri",
       "budget": "Bütçe",
@@ -2980,7 +2981,7 @@
       "revenueVsCost": "Gelir ve maliyet"
     },
     "settings": {
-      "invoiceSettings": "Fatura ayarları",
+      "projectSettings": "Proje ayarları",
       "invoicePrefix": "Fatura ön eki",
       "invoicePrefixDesc": "Otomatik fatura numaraları için ön ek",
       "defaultHourlyRate": "Varsayılan saatlik ücret",

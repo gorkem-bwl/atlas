@@ -2,13 +2,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatCurrency, formatNumber } from '../../../../lib/format';
 import {
-  Clock, Users, X, Trash2, Pencil, Check, DollarSign,
+  Clock, Users, X, Trash2, Pencil, Check,
 } from 'lucide-react';
 import {
   useDeleteProject, useUpdateProject, useTimeEntries, useUpdateTimeEntry, useDeleteTimeEntry,
-  useInvoices,
   type Project, type TimeEntry,
-  getInvoiceStatusVariant,
 } from '../../hooks';
 import { IconButton } from '../../../../components/ui/icon-button';
 import { Badge } from '../../../../components/ui/badge';
@@ -29,8 +27,6 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
   const { addToast } = useToastStore();
   const { data: timeData } = useTimeEntries({ projectId: project.id });
   const recentEntries = (timeData?.entries ?? []).slice(0, 5);
-  const { data: invoicesData } = useInvoices({ clientId: project.clientId ?? undefined });
-  const clientInvoices = (invoicesData?.invoices ?? []).slice(0, 5);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editHours, setEditHours] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -76,15 +72,15 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-          {/* Status + client */}
+          {/* Status + company */}
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
             <Badge variant={project.status === 'active' ? 'success' : project.status === 'paused' ? 'warning' : project.status === 'completed' ? 'primary' : 'default'}>
               {t(`projects.status.${project.status}`)}
             </Badge>
-            {project.clientName && (
+            {project.companyName && (
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                 <Users size={13} style={{ color: 'var(--color-text-tertiary)' }} />
-                {project.clientName}
+                {project.companyName}
               </span>
             )}
           </div>
@@ -218,29 +214,6 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
             onConfirm={() => confirmDeleteEntryId && handleDeleteEntry(confirmDeleteEntryId)}
           />
 
-          {/* Linked invoices */}
-          {project.clientId && clientInvoices.length > 0 && (
-            <div className="projects-detail-field">
-              <span className="projects-detail-field-label">{t('projects.sidebar.invoices')}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 'var(--spacing-xs)' }}>
-                {clientInvoices.map((inv) => (
-                  <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
-                      {inv.invoiceNumber}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                      <span style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)', fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-primary)' }}>
-                        {formatCurrency(inv.total)}
-                      </span>
-                      <Badge variant={getInvoiceStatusVariant(inv.status)}>
-                        {t(`projects.status.${inv.status}`)}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

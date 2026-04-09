@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectTimeEntries, projectProjects, projectInvoices, projectClients, users,
+  projectTimeEntries, projectProjects, invoices, crmCompanies, users,
 } from '../../../db/schema';
 import { eq, and, asc, gte, lte, sql } from 'drizzle-orm';
 
@@ -82,45 +82,45 @@ export async function getRevenueReport(userId: string, tenantId: string, filters
   endDate?: string;
 }) {
   const conditions = [
-    eq(projectInvoices.tenantId, tenantId),
-    eq(projectInvoices.isArchived, false),
+    eq(invoices.tenantId, tenantId),
+    eq(invoices.isArchived, false),
   ];
-  if (filters?.startDate) conditions.push(gte(projectInvoices.issueDate, new Date(filters.startDate)));
-  if (filters?.endDate) conditions.push(lte(projectInvoices.issueDate, new Date(filters.endDate)));
+  if (filters?.startDate) conditions.push(gte(invoices.issueDate, new Date(filters.startDate)));
+  if (filters?.endDate) conditions.push(lte(invoices.issueDate, new Date(filters.endDate)));
 
   // Run all independent report queries in parallel
-  const [totalsResult, byMonth, byClient] = await Promise.all([
+  const [totalsResult, byMonth, byCompany] = await Promise.all([
     // Totals
     db.select({
-      totalInvoiced: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('total_invoiced'),
-      totalPaid: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} = 'paid' THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('total_paid'),
-      totalOutstanding: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} IN ('sent', 'viewed', 'overdue') THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('total_outstanding'),
+      totalInvoiced: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('total_invoiced'),
+      totalPaid: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'paid' THEN ${invoices.total} ELSE 0 END), 0)`.as('total_paid'),
+      totalOutstanding: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} IN ('sent', 'viewed', 'overdue') THEN ${invoices.total} ELSE 0 END), 0)`.as('total_outstanding'),
     })
-    .from(projectInvoices)
+    .from(invoices)
     .where(and(...conditions)),
 
     // By month
     db.select({
-      month: sql<string>`TO_CHAR(${projectInvoices.issueDate}, 'YYYY-MM')`.as('month'),
-      invoiced: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('invoiced'),
-      paid: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} = 'paid' THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('paid'),
+      month: sql<string>`TO_CHAR(${invoices.issueDate}, 'YYYY-MM')`.as('month'),
+      invoiced: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('invoiced'),
+      paid: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'paid' THEN ${invoices.total} ELSE 0 END), 0)`.as('paid'),
     })
-    .from(projectInvoices)
-    .where(and(...conditions, sql`${projectInvoices.issueDate} IS NOT NULL`))
-    .groupBy(sql`TO_CHAR(${projectInvoices.issueDate}, 'YYYY-MM')`)
-    .orderBy(sql`TO_CHAR(${projectInvoices.issueDate}, 'YYYY-MM')`),
+    .from(invoices)
+    .where(and(...conditions, sql`${invoices.issueDate} IS NOT NULL`))
+    .groupBy(sql`TO_CHAR(${invoices.issueDate}, 'YYYY-MM')`)
+    .orderBy(sql`TO_CHAR(${invoices.issueDate}, 'YYYY-MM')`),
 
-    // By client
+    // By company
     db.select({
-      clientId: projectInvoices.clientId,
-      clientName: projectClients.name,
-      invoiced: sql<number>`COALESCE(SUM(${projectInvoices.amount}), 0)`.as('invoiced'),
-      paid: sql<number>`COALESCE(SUM(CASE WHEN ${projectInvoices.status} = 'paid' THEN ${projectInvoices.amount} ELSE 0 END), 0)`.as('paid'),
+      clientId: invoices.companyId,
+      clientName: crmCompanies.name,
+      invoiced: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('invoiced'),
+      paid: sql<number>`COALESCE(SUM(CASE WHEN ${invoices.status} = 'paid' THEN ${invoices.total} ELSE 0 END), 0)`.as('paid'),
     })
-    .from(projectInvoices)
-    .leftJoin(projectClients, eq(projectInvoices.clientId, projectClients.id))
+    .from(invoices)
+    .leftJoin(crmCompanies, eq(invoices.companyId, crmCompanies.id))
     .where(and(...conditions))
-    .groupBy(projectInvoices.clientId, projectClients.name),
+    .groupBy(invoices.companyId, crmCompanies.name),
   ]);
 
   const totals = totalsResult[0];
@@ -130,7 +130,7 @@ export async function getRevenueReport(userId: string, tenantId: string, filters
     totalPaid: Number(totals?.totalPaid ?? 0),
     totalOutstanding: Number(totals?.totalOutstanding ?? 0),
     byMonth,
-    byClient,
+    byClient: byCompany,
   };
 }
 
@@ -142,8 +142,8 @@ export async function getProjectProfitability(userId: string, tenantId: string) 
       estimatedAmount: projectProjects.estimatedAmount,
       totalMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false), 0)`.as('total_minutes'),
       billableMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false AND billable = true), 0)`.as('billable_minutes'),
-      billedAmount: sql<number>`COALESCE((SELECT SUM(pli.amount) FROM project_invoice_line_items pli INNER JOIN project_time_entries pte ON pte.id = pli.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('billed_amount'),
-      paidAmount: sql<number>`COALESCE((SELECT SUM(pi.amount) FROM project_invoices pi WHERE pi.status = 'paid' AND pi.is_archived = false AND pi.client_id = ${projectProjects.clientId}), 0)`.as('paid_amount'),
+      billedAmount: sql<number>`COALESCE((SELECT SUM(ili.amount) FROM invoice_line_items ili INNER JOIN project_time_entries pte ON pte.id = ili.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('billed_amount'),
+      paidAmount: sql<number>`COALESCE((SELECT SUM(i.total) FROM invoices i WHERE i.status = 'paid' AND i.is_archived = false AND i.company_id = ${projectProjects.companyId}), 0)`.as('paid_amount'),
     })
     .from(projectProjects)
     .where(and(

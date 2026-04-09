@@ -4,28 +4,12 @@ import { queryKeys } from '../../config/query-keys';
 
 // ─── Inline Types ──────────────────────────────────────────────────
 
-export interface ProjectClient {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  portalToken: string | null;
-  isArchived: boolean;
-  sortOrder: number;
-  projectCount: number;
-  totalBilled: number;
-  outstandingAmount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Project {
   id: string;
   name: string;
   description: string | null;
-  clientId: string | null;
-  clientName: string | null;
+  companyId: string | null;
+  companyName: string | null;
   status: 'active' | 'paused' | 'completed' | 'archived';
   color: string;
   hourlyRate: number;
@@ -54,50 +38,6 @@ export interface TimeEntry {
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface InvoiceLineItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  amount: number;
-  taxRate?: number;
-}
-
-export interface Invoice {
-  id: string;
-  invoiceNumber: string;
-  clientId: string;
-  clientName: string | null;
-  status: 'draft' | 'sent' | 'viewed' | 'paid' | 'overdue' | 'waived';
-  issueDate: string;
-  dueDate: string;
-  lineItems: InvoiceLineItem[];
-  lineItemCount?: number;
-  subtotal: number;
-  taxPercent: number;
-  taxAmount: number;
-  discountPercent: number;
-  discountAmount: number;
-  total: number;
-  notes: string | null;
-  eFaturaType: string | null;
-  eFaturaUuid: string | null;
-  eFaturaStatus: string | null;
-  eFaturaXml: string | null;
-  isArchived: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProjectsDashboard {
-  hoursThisWeek: number;
-  activeProjects: number;
-  outstandingInvoices: number;
-  overdueInvoices: number;
-  totalOutstandingAmount: number;
-  totalOverdueAmount: number;
 }
 
 export interface EnhancedDashboard {
@@ -134,15 +74,9 @@ export interface EnhancedDashboard {
 }
 
 export interface ProjectSettings {
-  invoicePrefix: string;
   defaultHourlyRate: number;
   companyName: string;
   companyAddress: string;
-  eFaturaEnabled: boolean;
-  companyTaxId: string;
-  companyTaxOffice: string;
-  companyCity: string;
-  companyCountry: string;
 }
 
 export interface TimeReport {
@@ -188,20 +122,6 @@ export interface UtilizationReport {
   }>;
 }
 
-export interface PortalData {
-  clientName: string;
-  outstandingAmount: number;
-  invoices: Array<{
-    id: string;
-    invoiceNumber: string;
-    total: number;
-    status: string;
-    issueDate: string;
-    dueDate: string;
-    lineItems: InvoiceLineItem[];
-  }>;
-}
-
 // ─── Dashboard ────────────────────────────────────────────────────
 
 export function useDashboard() {
@@ -215,87 +135,6 @@ export function useDashboard() {
   });
 }
 
-// ─── Client Queries ───────────────────────────────────────────────
-
-export function useClients(filters?: { search?: string }) {
-  const filterKey = filters ? JSON.stringify(filters) : '';
-  return useQuery({
-    queryKey: [...queryKeys.projects.clients.all, filterKey],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.search) params.set('search', filters.search);
-      const qs = params.toString();
-      const { data } = await api.get(`/projects/clients/list${qs ? `?${qs}` : ''}`);
-      return data.data as { clients: ProjectClient[] };
-    },
-    staleTime: 15_000,
-  });
-}
-
-export function useClient(id: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.projects.clients.detail(id!),
-    queryFn: async () => {
-      const { data } = await api.get(`/projects/clients/${id}`);
-      return data.data as ProjectClient;
-    },
-    enabled: !!id,
-    staleTime: 10_000,
-  });
-}
-
-export function useCreateClient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { name: string; email?: string | null; phone?: string | null; address?: string | null }) => {
-      const { data } = await api.post('/projects/clients', input);
-      return data.data as ProjectClient;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useUpdateClient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; email: string | null; phone: string | null; address: string | null; isArchived: boolean }>) => {
-      const { data } = await api.patch(`/projects/clients/${id}`, input);
-      return data.data as ProjectClient;
-    },
-    onSuccess: (client) => {
-      queryClient.setQueryData(queryKeys.projects.clients.detail(client.id), client);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useDeleteClient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/projects/clients/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useRegeneratePortalToken() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (clientId: string) => {
-      const { data } = await api.post(`/projects/clients/${clientId}/regenerate-token`);
-      return data.data as { portalToken: string };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
 // ─── Project Queries ──────────────────────────────────────────────
 
 // Transform server project response to client types
@@ -304,8 +143,8 @@ function mapProject(raw: Record<string, unknown>): Project {
     id: raw.id as string,
     name: raw.name as string,
     description: (raw.description as string) ?? null,
-    clientId: (raw.clientId as string) ?? null,
-    clientName: (raw.clientName as string) ?? null,
+    companyId: (raw.companyId as string) ?? (raw.clientId as string) ?? null,
+    companyName: (raw.companyName as string) ?? (raw.clientName as string) ?? null,
     status: (raw.status as Project['status']) ?? 'active',
     color: (raw.color as string) ?? '#6b7280',
     hourlyRate: 0, // hourly rate is per-member in server model
@@ -322,7 +161,7 @@ function mapProject(raw: Record<string, unknown>): Project {
   };
 }
 
-export function useProjects(filters?: { search?: string; status?: string; clientId?: string }) {
+export function useProjects(filters?: { search?: string; status?: string; companyId?: string }) {
   const filterKey = filters ? JSON.stringify(filters) : '';
   return useQuery({
     queryKey: [...queryKeys.projects.projects.all, filterKey],
@@ -330,7 +169,7 @@ export function useProjects(filters?: { search?: string; status?: string; client
       const params = new URLSearchParams();
       if (filters?.search) params.set('search', filters.search);
       if (filters?.status) params.set('status', filters.status);
-      if (filters?.clientId) params.set('clientId', filters.clientId);
+      if (filters?.companyId) params.set('companyId', filters.companyId);
       const qs = params.toString();
       const { data } = await api.get(`/projects/projects/list${qs ? `?${qs}` : ''}`);
       const raw = data.data as { projects: Record<string, unknown>[] };
@@ -358,7 +197,7 @@ export function useCreateProject() {
     mutationFn: async (input: {
       name: string;
       description?: string | null;
-      clientId?: string | null;
+      companyId?: string | null;
       status?: string;
       color?: string;
       hourlyRate?: number;
@@ -369,7 +208,7 @@ export function useCreateProject() {
       const { data } = await api.post('/projects/projects', {
         name: input.name,
         description: input.description,
-        clientId: input.clientId,
+        companyId: input.companyId,
         status: input.status,
         color: input.color,
         billable: input.isBillable,
@@ -390,7 +229,7 @@ export function useUpdateProject() {
     mutationFn: async ({ id, ...input }: { id: string } & Partial<{
       name: string;
       description: string | null;
-      clientId: string | null;
+      companyId: string | null;
       status: string;
       color: string;
       hourlyRate: number;
@@ -402,7 +241,7 @@ export function useUpdateProject() {
       const payload: Record<string, unknown> = {};
       if (input.name !== undefined) payload.name = input.name;
       if (input.description !== undefined) payload.description = input.description;
-      if (input.clientId !== undefined) payload.clientId = input.clientId;
+      if (input.companyId !== undefined) payload.companyId = input.companyId;
       if (input.status !== undefined) payload.status = input.status;
       if (input.color !== undefined) payload.color = input.color;
       if (input.isBillable !== undefined) payload.billable = input.isBillable;
@@ -569,152 +408,13 @@ export function useCopyLastWeek() {
   });
 }
 
-// ─── Invoice Queries ──────────────────────────────────────────────
-
-export function useInvoices(filters?: { search?: string; status?: string; clientId?: string }) {
-  const filterKey = filters ? JSON.stringify(filters) : '';
-  return useQuery({
-    queryKey: [...queryKeys.projects.invoices.all, filterKey],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.search) params.set('search', filters.search);
-      if (filters?.status) params.set('status', filters.status);
-      if (filters?.clientId) params.set('clientId', filters.clientId);
-      const qs = params.toString();
-      const { data } = await api.get(`/projects/invoices/list${qs ? `?${qs}` : ''}`);
-      return data.data as { invoices: Invoice[] };
-    },
-    staleTime: 15_000,
-  });
-}
-
-export function useInvoice(id: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.projects.invoices.detail(id!),
-    queryFn: async () => {
-      const { data } = await api.get(`/projects/invoices/${id}`);
-      return data.data as Invoice;
-    },
-    enabled: !!id,
-    staleTime: 10_000,
-  });
-}
-
-export function useCreateInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: {
-      clientId: string;
-      issueDate: string;
-      dueDate: string;
-      lineItems: Array<{ description: string; quantity: number; unitPrice: number; taxRate?: number }>;
-      taxPercent?: number;
-      discountPercent?: number;
-      notes?: string | null;
-      eFaturaType?: string;
-    }) => {
-      const { data } = await api.post('/projects/invoices', input);
-      return data.data as Invoice;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useUpdateInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{
-      clientId: string;
-      issueDate: string;
-      dueDate: string;
-      lineItems: Array<{ description: string; quantity: number; unitPrice: number; taxRate?: number }>;
-      taxPercent: number;
-      discountPercent: number;
-      notes: string | null;
-      status: string;
-      eFaturaType: string;
-    }>) => {
-      const { data } = await api.patch(`/projects/invoices/${id}`, input);
-      return data.data as Invoice;
-    },
-    onSuccess: (invoice) => {
-      queryClient.setQueryData(queryKeys.projects.invoices.detail(invoice.id), invoice);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useDeleteInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/projects/invoices/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useSendInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await api.post(`/projects/invoices/${id}/send`);
-      return data.data as Invoice;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useMarkInvoicePaid() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await api.post(`/projects/invoices/${id}/paid`);
-      return data.data as Invoice;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-export function useWaiveInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await api.post(`/projects/invoices/${id}/waive`);
-      return data.data as Invoice;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
+// ─── Time Billing (populate invoices from time entries) ──────────
 
 export function usePopulateFromTimeEntries() {
   return useMutation({
-    mutationFn: async (input: { clientId: string; startDate: string; endDate: string }) => {
-      const { data } = await api.post('/projects/invoices/populate-from-time', input);
+    mutationFn: async (input: { companyId: string; startDate: string; endDate: string }) => {
+      const { data } = await api.post('/projects/time-billing/preview', input);
       return data.data as { lineItems: Array<{ description: string; quantity: number; unitPrice: number }> };
-    },
-  });
-}
-
-export function useDuplicateInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await api.post(`/projects/invoices/${id}/duplicate`);
-      return data.data as Invoice;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
     },
   });
 }
@@ -804,49 +504,5 @@ export function useUpdateProjectSettings() {
     onSuccess: (settings) => {
       queryClient.setQueryData(queryKeys.projects.settings, settings);
     },
-  });
-}
-
-// ─── Shared Utilities ─────────────────────────────────────────────
-
-export function getInvoiceStatusVariant(status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' {
-  switch (status) {
-    case 'draft': return 'default';
-    case 'sent': return 'primary';
-    case 'viewed': return 'warning';
-    case 'paid': return 'success';
-    case 'overdue': return 'error';
-    case 'waived': return 'default';
-    default: return 'default';
-  }
-}
-
-// ─── E-Fatura ────────────────────────────────────────────────────
-
-export function useGenerateEFatura() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (invoiceId: string) => {
-      const { data } = await api.post(`/projects/invoices/${invoiceId}/efatura/generate`);
-      return data.data as Invoice;
-    },
-    onSuccess: (invoice) => {
-      queryClient.setQueryData(queryKeys.projects.invoices.detail(invoice.id), invoice);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all });
-    },
-  });
-}
-
-// ─── Portal (public, no auth) ─────────────────────────────────────
-
-export function usePortalData(token: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.projects.portal(token!),
-    queryFn: async () => {
-      const { data } = await api.get(`/projects/portal/${token}`);
-      return data.data as PortalData;
-    },
-    enabled: !!token,
-    staleTime: 30_000,
   });
 }

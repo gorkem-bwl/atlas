@@ -1,49 +1,3 @@
-// ─── Project Client ─────────────────────────────────────────────────
-
-export interface ProjectClient {
-  id: string;
-  tenantId: string;
-  userId: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  country: string | null;
-  postalCode: string | null;
-  currency: string | null;
-  logo: string | null;
-  portalToken: string | null;
-  notes: string | null;
-  isArchived: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-  // Computed
-  projectCount?: number;
-  totalBilled?: number;
-}
-
-export interface CreateProjectClientInput {
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  currency?: string;
-  logo?: string;
-  notes?: string;
-}
-
-export interface UpdateProjectClientInput extends Partial<CreateProjectClientInput> {
-  sortOrder?: number;
-  isArchived?: boolean;
-}
-
 // ─── Project ────────────────────────────────────────────────────────
 
 export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived';
@@ -52,7 +6,7 @@ export interface Project {
   id: string;
   tenantId: string;
   userId: string;
-  clientId: string | null;
+  companyId: string | null;
   name: string;
   description: string | null;
   billable: boolean;
@@ -67,14 +21,14 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
   // Joined
-  clientName?: string;
+  companyName?: string;
   totalTrackedMinutes?: number;
   totalBilledAmount?: number;
 }
 
 export interface CreateProjInput {
   name: string;
-  clientId?: string;
+  companyId?: string;
   description?: string;
   billable?: boolean;
   status?: ProjectStatus;
@@ -152,103 +106,24 @@ export interface UpdateTimeEntryInput extends Partial<CreateTimeEntryInput> {
   isArchived?: boolean;
 }
 
-// ─── Invoice ────────────────────────────────────────────────────────
-
-export type InvoiceStatus = 'draft' | 'sent' | 'viewed' | 'overdue' | 'paid' | 'waived';
-
-export interface Invoice {
-  id: string;
-  tenantId: string;
-  userId: string;
-  clientId: string;
-  invoiceNumber: string;
-  status: InvoiceStatus;
-  amount: number;
-  tax: number;
-  taxAmount: number;
-  discount: number;
-  discountAmount: number;
-  currency: string;
-  issueDate: string | null;
-  dueDate: string | null;
-  notes: string | null;
-  sentAt: string | null;
-  viewedAt: string | null;
-  paidAt: string | null;
-  isArchived: boolean;
-  createdAt: string;
-  updatedAt: string;
-  // Joined
-  clientName?: string;
-  lineItems?: InvoiceLineItem[];
-}
-
-export interface CreateInvoiceInput {
-  clientId: string;
-  invoiceNumber?: string;
-  status?: InvoiceStatus;
-  amount?: number;
-  tax?: number;
-  taxAmount?: number;
-  discount?: number;
-  discountAmount?: number;
-  currency?: string;
-  issueDate?: string;
-  dueDate?: string;
-  notes?: string;
-}
-
-export interface UpdateInvoiceInput extends Partial<CreateInvoiceInput> {
-  isArchived?: boolean;
-}
-
-// ─── Invoice Line Item ──────────────────────────────────────────────
-
-export interface InvoiceLineItem {
-  id: string;
-  invoiceId: string;
-  timeEntryId: string | null;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  amount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateInvoiceLineItemInput {
-  invoiceId: string;
-  timeEntryId?: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  amount: number;
-}
-
-export interface UpdateInvoiceLineItemInput extends Partial<Omit<CreateInvoiceLineItemInput, 'invoiceId'>> {}
-
 // ─── Project Settings ───────────────────────────────────────────────
 
 export interface ProjectSettings {
   id: string;
   tenantId: string;
-  invoicePrefix: string;
   defaultHourlyRate: number;
   companyName: string | null;
   companyAddress: string | null;
   companyLogo: string | null;
-  nextInvoiceNumber: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UpdateProjectSettingsInput {
-  invoicePrefix?: string;
   defaultHourlyRate?: number;
   companyName?: string;
   companyAddress?: string;
   companyLogo?: string;
-  nextInvoiceNumber?: number;
 }
 
 // ─── Reports ────────────────────────────────────────────────────────
