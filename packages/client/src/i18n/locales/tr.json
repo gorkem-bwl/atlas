@@ -3570,6 +3570,7 @@
     "copyLink": "Fatura bağlantısını kopyala",
     "linkCopied": "Bağlantı kopyalandı!",
     "sendByEmail": "E-posta ile gönder",
+    "downloadPdf": "PDF indir",
     "efatura": {
       "type": "e-Fatura türü",
       "typeOptions": {

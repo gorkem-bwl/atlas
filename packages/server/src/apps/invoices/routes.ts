@@ -19,6 +19,7 @@ router.patch('/settings', invoiceController.updateSettings);
 router.get('/list', invoiceController.listInvoices);
 router.get('/next-number', invoiceController.getNextInvoiceNumber);
 router.post('/', invoiceController.createInvoice);
+router.get('/:id/pdf', invoiceController.getInvoicePdf);
 router.get('/:id', invoiceController.getInvoice);
 router.patch('/:id', invoiceController.updateInvoice);
 router.delete('/:id', invoiceController.deleteInvoice);

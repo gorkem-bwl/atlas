@@ -3575,6 +3575,7 @@
     "copyLink": "Copy invoice link",
     "linkCopied": "Link copied!",
     "sendByEmail": "Send by email",
+    "downloadPdf": "Download PDF",
     "efatura": {
       "type": "e-Fatura type",
       "typeOptions": {

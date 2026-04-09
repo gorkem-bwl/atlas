@@ -3570,6 +3570,7 @@
     "copyLink": "Rechnungslink kopieren",
     "linkCopied": "Link kopiert!",
     "sendByEmail": "Per E-Mail senden",
+    "downloadPdf": "PDF herunterladen",
     "efatura": {
       "type": "e-Fatura-Typ",
       "typeOptions": {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../../../lib/format';
 import {
-  X, Trash2, DollarSign, FileCode, FileDown, Link, Mail,
+  X, Trash2, DollarSign, FileCode, FileDown, Link, Mail, Download,
 } from 'lucide-react';
 import type { Invoice } from '@atlasmail/shared';
 import { getInvoiceStatusVariant } from '@atlasmail/shared';
@@ -18,6 +18,7 @@ import { IconButton } from '../../../components/ui/icon-button';
 import { Badge } from '../../../components/ui/badge';
 import { StatusTimeline } from '../../../components/shared/status-timeline';
 import { TotalsBlock } from '../../../components/shared/totals-block';
+import { useToastStore } from '../../../stores/toast-store';
 
 function getEFaturaStatusVariant(status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' {
   switch (status) {
@@ -44,6 +45,23 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invo
   const companies = companiesData?.companies ?? [];
   const company = companies.find((c) => c.id === invoice.companyId);
   const [linkCopied, setLinkCopied] = useState(false);
+  const addToast = useToastStore((s) => s.addToast);
+
+  const handleDownloadStandardPdf = async () => {
+    try {
+      const response = await api.get(`/invoices/${invoice.id}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      addToast({ type: 'error', message: t('common.error') });
+    }
+  };
 
   const statusOrder: Record<string, number> = { draft: 0, sent: 1, viewed: 2, paid: 3, overdue: 1, waived: 3 };
   const currentOrder = statusOrder[invoice.status] ?? 0;
@@ -298,6 +316,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit }: { invoice: Invo
             </>
           )}
           <Button variant="ghost" size="sm" onClick={() => duplicate.mutate(invoice.id)}>{t('invoices.detail.duplicate')}</Button>
+          <Button variant="secondary" size="sm" icon={<Download size={13} />} onClick={handleDownloadStandardPdf}>{t('invoices.downloadPdf')}</Button>
         </div>
       </div>
     </div>

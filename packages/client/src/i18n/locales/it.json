@@ -3570,6 +3570,7 @@
     "copyLink": "Copia link fattura",
     "linkCopied": "Link copiato!",
     "sendByEmail": "Invia per e-mail",
+    "downloadPdf": "Scarica PDF",
     "efatura": {
       "type": "Tipo e-Fatura",
       "typeOptions": {
