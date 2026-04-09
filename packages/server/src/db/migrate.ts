@@ -1208,6 +1208,40 @@ export async function runMigrations() {
       );
     `);
 
+    // ─── CRM: Proposals ──────────────────────────────────────────────
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS crm_proposals (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        user_id UUID NOT NULL,
+        deal_id UUID REFERENCES crm_deals(id) ON DELETE SET NULL,
+        contact_id UUID REFERENCES crm_contacts(id) ON DELETE SET NULL,
+        company_id UUID REFERENCES crm_companies(id) ON DELETE SET NULL,
+        title VARCHAR(500) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        content JSONB,
+        line_items JSONB NOT NULL DEFAULT '[]',
+        subtotal REAL NOT NULL DEFAULT 0,
+        tax_percent REAL NOT NULL DEFAULT 0,
+        tax_amount REAL NOT NULL DEFAULT 0,
+        discount_percent REAL NOT NULL DEFAULT 0,
+        discount_amount REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        valid_until TIMESTAMPTZ,
+        public_token UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+        sent_at TIMESTAMPTZ,
+        viewed_at TIMESTAMPTZ,
+        accepted_at TIMESTAMPTZ,
+        declined_at TIMESTAMPTZ,
+        notes TEXT,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // ─── Projects tables ────────────────────────────────────────────
 
     await client.query(`
@@ -1329,6 +1363,79 @@ export async function runMigrations() {
         company_address TEXT,
         company_logo TEXT,
         next_invoice_number INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    // ─── Invoices ──────────────────────────────────────────────────
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        user_id UUID NOT NULL,
+        company_id UUID NOT NULL REFERENCES crm_companies(id) ON DELETE CASCADE,
+        contact_id UUID REFERENCES crm_contacts(id) ON DELETE SET NULL,
+        deal_id UUID REFERENCES crm_deals(id) ON DELETE SET NULL,
+        proposal_id UUID REFERENCES crm_proposals(id) ON DELETE SET NULL,
+        invoice_number VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        subtotal REAL NOT NULL DEFAULT 0,
+        tax_percent REAL NOT NULL DEFAULT 0,
+        tax_amount REAL NOT NULL DEFAULT 0,
+        discount_percent REAL NOT NULL DEFAULT 0,
+        discount_amount REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        notes TEXT,
+        issue_date TIMESTAMPTZ NOT NULL,
+        due_date TIMESTAMPTZ NOT NULL,
+        sent_at TIMESTAMPTZ,
+        viewed_at TIMESTAMPTZ,
+        paid_at TIMESTAMPTZ,
+        e_fatura_type VARCHAR(20),
+        e_fatura_uuid VARCHAR(50),
+        e_fatura_status VARCHAR(20),
+        e_fatura_xml TEXT,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS invoice_line_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+        time_entry_id UUID REFERENCES project_time_entries(id) ON DELETE SET NULL,
+        description TEXT NOT NULL,
+        quantity REAL NOT NULL DEFAULT 1,
+        unit_price REAL NOT NULL DEFAULT 0,
+        amount REAL NOT NULL DEFAULT 0,
+        tax_rate REAL NOT NULL DEFAULT 20,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS invoice_settings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) UNIQUE,
+        invoice_prefix VARCHAR(20) NOT NULL DEFAULT 'INV',
+        next_invoice_number INTEGER NOT NULL DEFAULT 1,
+        default_currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        default_tax_rate REAL NOT NULL DEFAULT 0,
+        e_fatura_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        e_fatura_company_name VARCHAR(255),
+        e_fatura_company_tax_id VARCHAR(20),
+        e_fatura_company_tax_office VARCHAR(100),
+        e_fatura_company_address TEXT,
+        e_fatura_company_city VARCHAR(100),
+        e_fatura_company_country VARCHAR(100),
+        e_fatura_company_phone VARCHAR(50),
+        e_fatura_company_email VARCHAR(255),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
@@ -1639,6 +1746,12 @@ export async function runMigrations() {
       // CRM Lead Forms
       'CREATE INDEX IF NOT EXISTS idx_crm_lead_forms_token ON crm_lead_forms(token)',
       'CREATE INDEX IF NOT EXISTS idx_crm_lead_forms_tenant ON crm_lead_forms(tenant_id)',
+      // CRM Proposals
+      'CREATE INDEX IF NOT EXISTS idx_crm_proposals_tenant ON crm_proposals(tenant_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_proposals_deal ON crm_proposals(deal_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_proposals_company ON crm_proposals(company_id)',
+      'CREATE INDEX IF NOT EXISTS idx_crm_proposals_status ON crm_proposals(status)',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_proposals_token ON crm_proposals(public_token)',
       // Project Clients
       'CREATE INDEX IF NOT EXISTS idx_project_clients_tenant ON project_clients(tenant_id)',
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_clients_portal_token ON project_clients(portal_token)',
@@ -1664,6 +1777,13 @@ export async function runMigrations() {
       'CREATE INDEX IF NOT EXISTS idx_project_line_items_time_entry ON project_invoice_line_items(time_entry_id)',
       // Project Settings
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_project_settings_tenant ON project_settings(tenant_id)',
+      // Invoices
+      'CREATE INDEX IF NOT EXISTS idx_invoices_tenant ON invoices(tenant_id)',
+      'CREATE INDEX IF NOT EXISTS idx_invoices_company ON invoices(company_id)',
+      'CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status)',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_invoices_number ON invoices(tenant_id, invoice_number)',
+      // Invoice Line Items
+      'CREATE INDEX IF NOT EXISTS idx_invoice_line_items_invoice ON invoice_line_items(invoice_id)',
       // CRM Email/Calendar GIN indexes for JSONB containment queries
       'CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address)',
       // HR Leave Types

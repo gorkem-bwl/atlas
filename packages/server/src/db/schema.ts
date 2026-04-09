@@ -1619,6 +1619,43 @@ export const crmLeadForms = pgTable('crm_lead_forms', {
   tenantIdx: index('idx_crm_lead_forms_tenant').on(table.tenantId),
 }));
 
+// ─── CRM: Proposals ────────────────────────────────────────────────
+export const crmProposals = pgTable('crm_proposals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  userId: uuid('user_id').notNull(),
+  dealId: uuid('deal_id').references(() => crmDeals.id, { onDelete: 'set null' }),
+  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'set null' }),
+  companyId: uuid('company_id').references(() => crmCompanies.id, { onDelete: 'set null' }),
+  title: varchar('title', { length: 500 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  content: jsonb('content'),
+  lineItems: jsonb('line_items').$type<Array<{ description: string; quantity: number; unitPrice: number; taxRate: number }>>().notNull().default([]),
+  subtotal: real('subtotal').notNull().default(0),
+  taxPercent: real('tax_percent').notNull().default(0),
+  taxAmount: real('tax_amount').notNull().default(0),
+  discountPercent: real('discount_percent').notNull().default(0),
+  discountAmount: real('discount_amount').notNull().default(0),
+  total: real('total').notNull().default(0),
+  currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  validUntil: timestamp('valid_until', { withTimezone: true }),
+  publicToken: uuid('public_token').notNull().defaultRandom().unique(),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  viewedAt: timestamp('viewed_at', { withTimezone: true }),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+  declinedAt: timestamp('declined_at', { withTimezone: true }),
+  notes: text('notes'),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_crm_proposals_tenant').on(table.tenantId),
+  dealIdx: index('idx_crm_proposals_deal').on(table.dealId),
+  companyIdx: index('idx_crm_proposals_company').on(table.companyId),
+  statusIdx: index('idx_crm_proposals_status').on(table.status),
+  publicTokenIdx: uniqueIndex('idx_crm_proposals_token').on(table.publicToken),
+}));
+
 // ─── Projects: Clients ────────────────────────────────────────────
 export const projectClients = pgTable('project_clients', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -1784,6 +1821,79 @@ export const projectSettings = pgTable('project_settings', {
 }, (table) => ({
   tenantIdx: uniqueIndex('idx_project_settings_tenant').on(table.tenantId),
 }));
+
+// ─── Invoices ──────────────────────────────────────────────────────
+export const invoices = pgTable('invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  userId: uuid('user_id').notNull(),
+  companyId: uuid('company_id').notNull().references(() => crmCompanies.id, { onDelete: 'cascade' }),
+  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'set null' }),
+  dealId: uuid('deal_id').references(() => crmDeals.id, { onDelete: 'set null' }),
+  proposalId: uuid('proposal_id').references(() => crmProposals.id, { onDelete: 'set null' }),
+  invoiceNumber: varchar('invoice_number', { length: 50 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  subtotal: real('subtotal').notNull().default(0),
+  taxPercent: real('tax_percent').notNull().default(0),
+  taxAmount: real('tax_amount').notNull().default(0),
+  discountPercent: real('discount_percent').notNull().default(0),
+  discountAmount: real('discount_amount').notNull().default(0),
+  total: real('total').notNull().default(0),
+  notes: text('notes'),
+  issueDate: timestamp('issue_date', { withTimezone: true }).notNull(),
+  dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  viewedAt: timestamp('viewed_at', { withTimezone: true }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  eFaturaType: varchar('e_fatura_type', { length: 20 }),
+  eFaturaUuid: varchar('e_fatura_uuid', { length: 50 }),
+  eFaturaStatus: varchar('e_fatura_status', { length: 20 }),
+  eFaturaXml: text('e_fatura_xml'),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_invoices_tenant').on(table.tenantId),
+  companyIdx: index('idx_invoices_company').on(table.companyId),
+  statusIdx: index('idx_invoices_status').on(table.status),
+  uniqueNumber: uniqueIndex('idx_invoices_number').on(table.tenantId, table.invoiceNumber),
+}));
+
+export const invoiceLineItems = pgTable('invoice_line_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+  timeEntryId: uuid('time_entry_id').references(() => projectTimeEntries.id, { onDelete: 'set null' }),
+  description: text('description').notNull(),
+  quantity: real('quantity').notNull().default(1),
+  unitPrice: real('unit_price').notNull().default(0),
+  amount: real('amount').notNull().default(0),
+  taxRate: real('tax_rate').notNull().default(20),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  invoiceIdx: index('idx_invoice_line_items_invoice').on(table.invoiceId),
+}));
+
+export const invoiceSettings = pgTable('invoice_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id).unique(),
+  invoicePrefix: varchar('invoice_prefix', { length: 20 }).notNull().default('INV'),
+  nextInvoiceNumber: integer('next_invoice_number').notNull().default(1),
+  defaultCurrency: varchar('default_currency', { length: 10 }).notNull().default('USD'),
+  defaultTaxRate: real('default_tax_rate').notNull().default(0),
+  eFaturaEnabled: boolean('e_fatura_enabled').notNull().default(false),
+  eFaturaCompanyName: varchar('e_fatura_company_name', { length: 255 }),
+  eFaturaCompanyTaxId: varchar('e_fatura_company_tax_id', { length: 20 }),
+  eFaturaCompanyTaxOffice: varchar('e_fatura_company_tax_office', { length: 100 }),
+  eFaturaCompanyAddress: text('e_fatura_company_address'),
+  eFaturaCompanyCity: varchar('e_fatura_company_city', { length: 100 }),
+  eFaturaCompanyCountry: varchar('e_fatura_company_country', { length: 100 }),
+  eFaturaCompanyPhone: varchar('e_fatura_company_phone', { length: 50 }),
+  eFaturaCompanyEmail: varchar('e_fatura_company_email', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
 
 // ─── System Settings (admin-only, singleton row) ───────────────────
 
