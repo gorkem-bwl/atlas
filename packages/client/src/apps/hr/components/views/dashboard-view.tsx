@@ -5,6 +5,7 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 import { StatCard } from '../../../../components/ui/stat-card';
 import { Avatar } from '../../../../components/ui/avatar';
 import { formatDate } from '../../../../lib/format';
+import { ExpenseDashboardSection } from '../expenses/expense-dashboard-section';
 
 export function DashboardView() {
   const { t } = useTranslation();
@@ -159,6 +160,9 @@ export function DashboardView() {
           )}
         </div>
       </div>
+
+      {/* Expense overview */}
+      <ExpenseDashboardSection />
     </div>
   );
 }

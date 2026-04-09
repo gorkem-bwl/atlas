@@ -46,7 +46,7 @@ export function ExpenseReportsView({ onSelectReport }: ExpenseReportsViewProps) 
     return (
       <>
         <FeatureEmptyState
-          illustration="document"
+          illustration="documents"
           title={t('hr.expenses.reports.empty')}
           description={t('hr.expenses.reports.emptyDesc')}
           actionLabel={t('hr.expenses.reports.create')}
@@ -217,9 +217,7 @@ function CreateReportModal({
 
   return (
     <Modal open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <Modal.Header>
-        <Modal.Title>{t('hr.expenses.reports.create')}</Modal.Title>
-      </Modal.Header>
+      <Modal.Header title={t('hr.expenses.reports.create')} />
       <Modal.Body>
         <Input
           label={t('hr.expenses.reports.reportTitle')}

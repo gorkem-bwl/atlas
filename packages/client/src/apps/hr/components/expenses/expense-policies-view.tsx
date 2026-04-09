@@ -208,7 +208,7 @@ function PolicyDetail({ policyId, onDelete }: { policyId: string; onDelete: () =
 
   const employees = empData?.employees ?? [];
   const employeeOptions = employees.map((e) => ({ value: e.id, label: e.name }));
-  const departmentOptions = (departments ?? []).map((d) => ({ value: d.id, label: d.name }));
+  const departmentOptions = (departments?.departments ?? []).map((d) => ({ value: d.id, label: d.name }));
 
   return (
     <>
@@ -365,9 +365,7 @@ function PolicyDetail({ policyId, onDelete }: { policyId: string; onDelete: () =
       {/* Assign modal */}
       {showAssignModal && (
         <Modal open={showAssignModal} onOpenChange={(v) => { if (!v) { setShowAssignModal(false); setAssignId(''); } }}>
-          <Modal.Header>
-            <Modal.Title>{t('hr.expenses.policies.assign')}</Modal.Title>
-          </Modal.Header>
+          <Modal.Header title={t('hr.expenses.policies.assign')} />
           <Modal.Body>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
               <Select
@@ -451,9 +449,7 @@ function CreatePolicyModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal open onOpenChange={(v) => { if (!v) onClose(); }}>
-      <Modal.Header>
-        <Modal.Title>{t('hr.expenses.policies.add')}</Modal.Title>
-      </Modal.Header>
+      <Modal.Header title={t('hr.expenses.policies.add')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           <Input label={t('hr.fields.name')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('hr.expenses.policies.namePlaceholder')} autoFocus />

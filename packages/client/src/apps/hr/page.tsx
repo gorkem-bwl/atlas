@@ -7,6 +7,7 @@ import {
   LayoutDashboard, GitBranch,
   ClipboardList, Calendar, Shield,
   UserCheck, CheckSquare,
+  Receipt, ClipboardCheck, LayoutList, FolderOpen, Tag,
 } from 'lucide-react';
 import {
   useEmployeeList, useEmployeeCounts,
@@ -14,6 +15,7 @@ import {
   useTimeOffList, useUpdateTimeOff, useDeleteTimeOff,
   useSeedHrData, useDeleteDepartment,
   usePendingApprovals,
+  usePendingExpenseCount, useExpense,
   type HrEmployee, type HrDepartment,
 } from './hooks';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
@@ -46,15 +48,27 @@ import {
   AttendanceView,
   ApprovalsView,
 } from './components/views';
+import { MyExpensesView } from './components/expenses/my-expenses-view';
+import { ExpenseApprovalsView } from './components/expenses/expense-approvals-view';
+import { AllExpensesView } from './components/expenses/all-expenses-view';
+import { ExpenseReportsView } from './components/expenses/expense-reports-view';
+import { ExpenseReportDetail } from './components/expenses/expense-report-detail';
+import { ExpenseCategoriesView } from './components/expenses/expense-categories-view';
+import { ExpensePoliciesView } from './components/expenses/expense-policies-view';
+import { ExpenseFormModal } from './components/expenses/expense-form-modal';
+import { ExpenseDetailPanel } from './components/expenses/expense-detail-panel';
 import '../../styles/hr.css';
 
 // ─── Navigation ────────────────────────────────────────────────────
 
 type NavSection = 'dashboard' | 'employees' | 'employee-detail' | 'departments' | 'org-chart' | 'time-off'
   | 'attendance' | 'my-leave' | 'my-profile' | 'team-calendar' | 'leave-types' | 'holidays' | 'policies'
-  | 'approvals' | `dept:${string}`;
+  | 'approvals'
+  | 'my-expenses' | 'expense-approvals' | 'all-expenses' | 'expense-reports'
+  | 'expense-report-detail' | 'expense-categories' | 'expense-policies'
+  | `dept:${string}`;
 
-const PORTAL_VIEWS = new Set<string>(['my-profile', 'my-leave', 'team-calendar', 'holidays']);
+const PORTAL_VIEWS = new Set<string>(['my-profile', 'my-leave', 'team-calendar', 'holidays', 'my-expenses', 'expense-reports']);
 
 // ─── Main HR Page ──────────────────────────────────────────────────
 
@@ -89,6 +103,9 @@ export function HrPage() {
   const [showCreateDepartment, setShowCreateDepartment] = useState(false);
   const [showCreateTimeOff, setShowCreateTimeOff] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<HrDepartment | null>(null);
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showAllDepts, setShowAllDepts] = useState(false);
   const MAX_VISIBLE_DEPTS = 5;
 
@@ -120,6 +137,11 @@ export function HrPage() {
 
   const { data: pendingApprovalsData } = usePendingApprovals();
   const pendingApprovalCount = pendingApprovalsData?.length ?? 0;
+
+  const { data: pendingExpenseCountData } = usePendingExpenseCount();
+  const pendingExpenseCount = (pendingExpenseCountData as any)?.count || 0;
+
+  const { data: selectedExpense } = useExpense(selectedExpenseId ?? undefined);
 
   const updateTimeOff = useUpdateTimeOff();
   const deleteTimeOff = useDeleteTimeOff();
@@ -188,6 +210,12 @@ export function HrPage() {
     if (activeNav === 'leave-types') return t('hr.sidebar.leaveTypes');
     if (activeNav === 'holidays') return t('hr.sidebar.holidays');
     if (activeNav === 'policies') return t('hr.sidebar.policies');
+    if (activeNav === 'my-expenses') return t('hr.expenses.sidebar.myExpenses');
+    if (activeNav === 'expense-approvals') return t('hr.expenses.sidebar.expenseApprovals');
+    if (activeNav === 'all-expenses') return t('hr.expenses.sidebar.allExpenses');
+    if (activeNav === 'expense-reports' || activeNav === 'expense-report-detail') return t('hr.expenses.sidebar.expenseReports');
+    if (activeNav === 'expense-categories') return t('hr.expenses.sidebar.expenseCategories');
+    if (activeNav === 'expense-policies') return t('hr.expenses.sidebar.expensePolicies');
     if (activeNav.startsWith('dept:')) {
       const dept = departments.find((d) => d.id === activeNav.replace('dept:', ''));
       return dept?.name || t('hr.sidebar.department');
@@ -198,6 +226,7 @@ export function HrPage() {
   const handleAdd = () => {
     if (activeNav === 'departments') setShowCreateDepartment(true);
     else if (activeNav === 'time-off') setShowCreateTimeOff(true);
+    else if (activeNav === 'my-expenses') setShowExpenseForm(true);
     else setShowCreateEmployee(true);
   };
 
@@ -206,7 +235,7 @@ export function HrPage() {
   const handleDeleteTimeOff = (id: string) => { deleteTimeOff.mutate(id); };
   const handleDeleteDepartment = (id: string) => { deleteDepartment.mutate(id); };
 
-  const showAddButton = canCreate && (activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav.startsWith('dept:'));
+  const showAddButton = canCreate && (activeNav === 'employees' || activeNav === 'departments' || activeNav === 'time-off' || activeNav === 'my-expenses' || activeNav.startsWith('dept:'));
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -253,6 +282,20 @@ export function HrPage() {
               iconColor="#ef4444"
               isActive={activeNav === 'holidays'}
               onClick={() => setActiveNav('holidays')}
+            />
+            <SidebarItem
+              label={t('hr.expenses.sidebar.myExpenses')}
+              icon={<Receipt size={15} />}
+              iconColor="#f97316"
+              isActive={activeNav === 'my-expenses'}
+              onClick={() => setActiveNav('my-expenses')}
+            />
+            <SidebarItem
+              label={t('hr.expenses.sidebar.expenseReports')}
+              icon={<FolderOpen size={15} />}
+              iconColor="#f97316"
+              isActive={activeNav === 'expense-reports' || activeNav === 'expense-report-detail'}
+              onClick={() => setActiveNav('expense-reports')}
             />
           </SidebarSection>
         ) : (
@@ -378,6 +421,60 @@ export function HrPage() {
                 onClick={() => { setActiveNav('policies'); setSelectedEmployeeId(null); }}
               />
             </SidebarSection>
+
+            <SidebarSection title={t('hr.expenses.sidebar.myExpenses').split(' ')[0]}>
+              <SidebarItem
+                label={t('hr.expenses.sidebar.myExpenses')}
+                icon={<Receipt size={15} />}
+                iconColor="#f97316"
+                isActive={activeNav === 'my-expenses'}
+                onClick={() => { setActiveNav('my-expenses'); setSelectedEmployeeId(null); }}
+              />
+              {(pendingExpenseCount > 0 || hrPerm?.role === 'admin') && (
+                <SidebarItem
+                  label={t('hr.expenses.sidebar.expenseApprovals')}
+                  icon={<ClipboardCheck size={15} />}
+                  iconColor="#f97316"
+                  isActive={activeNav === 'expense-approvals'}
+                  onClick={() => { setActiveNav('expense-approvals'); setSelectedEmployeeId(null); }}
+                  count={pendingExpenseCount > 0 ? pendingExpenseCount : undefined}
+                />
+              )}
+              {hrPerm?.role === 'admin' && (
+                <SidebarItem
+                  label={t('hr.expenses.sidebar.allExpenses')}
+                  icon={<LayoutList size={15} />}
+                  iconColor="#f97316"
+                  isActive={activeNav === 'all-expenses'}
+                  onClick={() => { setActiveNav('all-expenses'); setSelectedEmployeeId(null); }}
+                />
+              )}
+              <SidebarItem
+                label={t('hr.expenses.sidebar.expenseReports')}
+                icon={<FolderOpen size={15} />}
+                iconColor="#f97316"
+                isActive={activeNav === 'expense-reports' || activeNav === 'expense-report-detail'}
+                onClick={() => { setActiveNav('expense-reports'); setSelectedEmployeeId(null); }}
+              />
+              {hrPerm?.role === 'admin' && (
+                <>
+                  <SidebarItem
+                    label={t('hr.expenses.sidebar.expenseCategories')}
+                    icon={<Tag size={15} />}
+                    iconColor="#f97316"
+                    isActive={activeNav === 'expense-categories'}
+                    onClick={() => { setActiveNav('expense-categories'); setSelectedEmployeeId(null); }}
+                  />
+                  <SidebarItem
+                    label={t('hr.expenses.sidebar.expensePolicies')}
+                    icon={<Shield size={15} />}
+                    iconColor="#f97316"
+                    isActive={activeNav === 'expense-policies'}
+                    onClick={() => { setActiveNav('expense-policies'); setSelectedEmployeeId(null); }}
+                  />
+                </>
+              )}
+            </SidebarSection>
           </>
         )}
       </AppSidebar>
@@ -476,6 +573,27 @@ export function HrPage() {
         {activeNav === 'leave-types' && <LeaveTypesView />}
         {activeNav === 'holidays' && <HolidaysView />}
         {activeNav === 'policies' && <LeavePoliciesView />}
+
+        {activeNav === 'my-expenses' && (
+          <MyExpensesView
+            onSelect={setSelectedExpenseId}
+            onAdd={() => setShowExpenseForm(true)}
+            searchQuery={searchQuery}
+            selectedId={selectedExpenseId}
+          />
+        )}
+        {activeNav === 'expense-approvals' && <ExpenseApprovalsView />}
+        {activeNav === 'all-expenses' && (
+          <AllExpensesView onSelect={setSelectedExpenseId} selectedId={selectedExpenseId} />
+        )}
+        {activeNav === 'expense-reports' && (
+          <ExpenseReportsView onSelectReport={(id) => { setSelectedReportId(id); setActiveNav('expense-report-detail'); }} />
+        )}
+        {activeNav === 'expense-report-detail' && selectedReportId && (
+          <ExpenseReportDetail reportId={selectedReportId} onBack={() => setActiveNav('expense-reports')} />
+        )}
+        {activeNav === 'expense-categories' && <ExpenseCategoriesView />}
+        {activeNav === 'expense-policies' && <ExpensePoliciesView />}
       </ContentArea>}
 
       {/* Full-page employee detail (rendered outside ContentArea to avoid double header) */}
@@ -495,6 +613,16 @@ export function HrPage() {
       <RequestTimeOffModal open={showCreateTimeOff} onClose={() => setShowCreateTimeOff(false)} employees={allEmployees} />
       {editingDepartment && (
         <EditDepartmentModal open={!!editingDepartment} onClose={() => setEditingDepartment(null)} department={editingDepartment} />
+      )}
+      {showExpenseForm && (
+        <ExpenseFormModal open={showExpenseForm} onClose={() => setShowExpenseForm(false)} />
+      )}
+      {selectedExpenseId && selectedExpense && (
+        <ExpenseDetailPanel
+          expense={selectedExpense}
+          onClose={() => setSelectedExpenseId(null)}
+          onEdit={() => { setShowExpenseForm(true); }}
+        />
       )}
     </div>
   );
