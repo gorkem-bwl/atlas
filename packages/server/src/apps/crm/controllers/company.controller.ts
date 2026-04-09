@@ -164,6 +164,31 @@ export async function importCompanies(req: Request, res: Response) {
   }
 }
 
+export async function regeneratePortalToken(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'companies', 'update', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission to update companies' });
+      return;
+    }
+
+    const company = await crmService.regeneratePortalToken(userId, tenantId, id, perm.recordAccess);
+    if (!company) {
+      res.status(404).json({ success: false, error: 'Company not found' });
+      return;
+    }
+
+    res.json({ success: true, data: company });
+  } catch (error) {
+    logger.error({ error }, 'Failed to regenerate portal token');
+    res.status(500).json({ success: false, error: 'Failed to regenerate portal token' });
+  }
+}
+
 export async function mergeCompanies(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;

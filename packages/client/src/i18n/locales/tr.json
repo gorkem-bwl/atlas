@@ -1320,7 +1320,16 @@
       "employees": "çalışan",
       "contactsDeals": "Kişiler / Anlaşmalar",
       "groupByIndustry": "Sektör",
-      "taxId": "Vergi kimlik no (VKN)"
+      "taxId": "Vergi kimlik no (VKN)",
+      "billing": "Faturalama",
+      "taxOffice": "Vergi dairesi",
+      "currency": "Para birimi",
+      "postalCode": "Posta kodu",
+      "state": "Eyalet / İl",
+      "country": "Ülke",
+      "logo": "Şirket logosu",
+      "portalToken": "Müşteri portal jetonu",
+      "regenerateToken": "Jetonu yenile"
     },
     "confirm": {
       "deleteDeal": "\"{{name}}\" anlaşmasını silmek istediğinizden emin misiniz?",

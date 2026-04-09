@@ -1320,7 +1320,16 @@
       "employees": "employés",
       "contactsDeals": "Contacts / Affaires",
       "groupByIndustry": "Secteur",
-      "taxId": "Numero fiscal (VKN)"
+      "taxId": "Numero fiscal (VKN)",
+      "billing": "Facturation",
+      "taxOffice": "Centre des impôts",
+      "currency": "Devise",
+      "postalCode": "Code postal",
+      "state": "Région / Province",
+      "country": "Pays",
+      "logo": "Logo de l'entreprise",
+      "portalToken": "Jeton du portail client",
+      "regenerateToken": "Régénérer le jeton"
     },
     "confirm": {
       "deleteDeal": "Voulez-vous vraiment supprimer \"{{name}}\" ? Cette action est irréversible.",

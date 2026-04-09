@@ -26,6 +26,7 @@ router.post('/companies', crmController.createCompany);
 router.get('/companies/:id', crmController.getCompany);
 router.patch('/companies/:id', crmController.updateCompany);
 router.delete('/companies/:id', crmController.deleteCompany);
+router.post('/companies/:id/regenerate-token', crmController.regeneratePortalToken);
 
 // Contacts
 router.get('/contacts/list', crmController.listContacts);

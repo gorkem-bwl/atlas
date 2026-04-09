@@ -1320,7 +1320,16 @@
       "employees": "Mitarbeiter",
       "contactsDeals": "Kontakte / Geschäfte",
       "groupByIndustry": "Branche",
-      "taxId": "Steuer-ID (VKN)"
+      "taxId": "Steuer-ID (VKN)",
+      "billing": "Abrechnung",
+      "taxOffice": "Finanzamt",
+      "currency": "Währung",
+      "postalCode": "Postleitzahl",
+      "state": "Bundesland / Kanton",
+      "country": "Land",
+      "logo": "Firmenlogo",
+      "portalToken": "Kundenportal-Token",
+      "regenerateToken": "Token erneuern"
     },
     "confirm": {
       "deleteDeal": "Möchten Sie \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",

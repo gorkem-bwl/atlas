@@ -54,7 +54,7 @@ export function InvoiceSettingsPanel() {
     updateSettings.mutate(form, { onSuccess: () => setDirty(false) });
   };
 
-  if (isLoading) return null;
+  if (isLoading) return <></>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 480 }}>
@@ -65,13 +65,17 @@ export function InvoiceSettingsPanel() {
         size="sm"
       />
 
-      <Select
-        label={t('invoices.settings.defaultCurrency')}
-        value={form.defaultCurrency ?? 'USD'}
-        onChange={(val) => update({ defaultCurrency: val })}
-        options={CURRENCY_OPTIONS}
-        size="sm"
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+        <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+          {t('invoices.settings.defaultCurrency')}
+        </label>
+        <Select
+          value={form.defaultCurrency ?? 'USD'}
+          onChange={(val) => update({ defaultCurrency: val })}
+          options={CURRENCY_OPTIONS}
+          size="sm"
+        />
+      </div>
 
       <Input
         label={t('invoices.settings.defaultTaxRate')}

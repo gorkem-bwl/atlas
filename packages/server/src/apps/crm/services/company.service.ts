@@ -3,6 +3,7 @@ import { crmCompanies, crmContacts, crmDeals, crmActivities, crmNotes } from '..
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import type { CrmRecordAccess } from '@atlasmail/shared';
+import { randomUUID } from 'crypto';
 
 // ─── Input types ────────────────────────────────────────────────────
 
@@ -49,25 +50,35 @@ export async function listCompanies(userId: string, tenantId: string, filters?: 
     conditions.push(eq(crmCompanies.industry, filters.industry));
   }
 
+  const companySelectFields = {
+    id: crmCompanies.id,
+    tenantId: crmCompanies.tenantId,
+    userId: crmCompanies.userId,
+    name: crmCompanies.name,
+    domain: crmCompanies.domain,
+    industry: crmCompanies.industry,
+    size: crmCompanies.size,
+    address: crmCompanies.address,
+    phone: crmCompanies.phone,
+    taxId: crmCompanies.taxId,
+    taxOffice: crmCompanies.taxOffice,
+    currency: crmCompanies.currency,
+    postalCode: crmCompanies.postalCode,
+    state: crmCompanies.state,
+    country: crmCompanies.country,
+    logo: crmCompanies.logo,
+    portalToken: crmCompanies.portalToken,
+    tags: crmCompanies.tags,
+    isArchived: crmCompanies.isArchived,
+    sortOrder: crmCompanies.sortOrder,
+    createdAt: crmCompanies.createdAt,
+    updatedAt: crmCompanies.updatedAt,
+    contactCount: sql<number>`(SELECT COUNT(*) FROM crm_contacts WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('contact_count'),
+    dealCount: sql<number>`(SELECT COUNT(*) FROM crm_deals WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('deal_count'),
+  };
+
   let query = db
-    .select({
-      id: crmCompanies.id,
-      tenantId: crmCompanies.tenantId,
-      userId: crmCompanies.userId,
-      name: crmCompanies.name,
-      domain: crmCompanies.domain,
-      industry: crmCompanies.industry,
-      size: crmCompanies.size,
-      address: crmCompanies.address,
-      phone: crmCompanies.phone,
-      tags: crmCompanies.tags,
-      isArchived: crmCompanies.isArchived,
-      sortOrder: crmCompanies.sortOrder,
-      createdAt: crmCompanies.createdAt,
-      updatedAt: crmCompanies.updatedAt,
-      contactCount: sql<number>`(SELECT COUNT(*) FROM crm_contacts WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('contact_count'),
-      dealCount: sql<number>`(SELECT COUNT(*) FROM crm_deals WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('deal_count'),
-    })
+    .select(companySelectFields)
     .from(crmCompanies)
     .where(and(...conditions))
     .orderBy(asc(crmCompanies.sortOrder), asc(crmCompanies.createdAt))
@@ -77,24 +88,7 @@ export async function listCompanies(userId: string, tenantId: string, filters?: 
     const searchTerm = `%${filters.search}%`;
     conditions.push(sql`(${crmCompanies.name} ILIKE ${searchTerm} OR ${crmCompanies.domain} ILIKE ${searchTerm})`);
     query = db
-      .select({
-        id: crmCompanies.id,
-        tenantId: crmCompanies.tenantId,
-        userId: crmCompanies.userId,
-        name: crmCompanies.name,
-        domain: crmCompanies.domain,
-        industry: crmCompanies.industry,
-        size: crmCompanies.size,
-        address: crmCompanies.address,
-        phone: crmCompanies.phone,
-        tags: crmCompanies.tags,
-        isArchived: crmCompanies.isArchived,
-        sortOrder: crmCompanies.sortOrder,
-        createdAt: crmCompanies.createdAt,
-        updatedAt: crmCompanies.updatedAt,
-        contactCount: sql<number>`(SELECT COUNT(*) FROM crm_contacts WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('contact_count'),
-        dealCount: sql<number>`(SELECT COUNT(*) FROM crm_deals WHERE company_id = ${crmCompanies.id} AND is_archived = false)`.as('deal_count'),
-      })
+      .select(companySelectFields)
       .from(crmCompanies)
       .where(and(...conditions))
       .orderBy(asc(crmCompanies.sortOrder), asc(crmCompanies.createdAt))
@@ -121,6 +115,14 @@ export async function getCompany(userId: string, tenantId: string, id: string, r
       size: crmCompanies.size,
       address: crmCompanies.address,
       phone: crmCompanies.phone,
+      taxId: crmCompanies.taxId,
+      taxOffice: crmCompanies.taxOffice,
+      currency: crmCompanies.currency,
+      postalCode: crmCompanies.postalCode,
+      state: crmCompanies.state,
+      country: crmCompanies.country,
+      logo: crmCompanies.logo,
+      portalToken: crmCompanies.portalToken,
       tags: crmCompanies.tags,
       isArchived: crmCompanies.isArchived,
       sortOrder: crmCompanies.sortOrder,
@@ -304,4 +306,27 @@ export async function mergeCompanies(userId: string, tenantId: string, primaryId
 
   logger.info({ userId, primaryId, secondaryId }, 'CRM companies merged');
   return getCompany(userId, tenantId, primaryId, 'all');
+}
+
+// ─── Portal Token ─────────────────────────────────────────────────
+
+export async function regeneratePortalToken(userId: string, tenantId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const newToken = randomUUID();
+  const now = new Date();
+
+  const conditions = [eq(crmCompanies.id, id), eq(crmCompanies.tenantId, tenantId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmCompanies.userId, userId));
+  }
+
+  const [updated] = await db
+    .update(crmCompanies)
+    .set({ portalToken: newToken, updatedAt: now })
+    .where(and(...conditions))
+    .returning();
+
+  if (!updated) return null;
+
+  logger.info({ userId, companyId: id }, 'CRM company portal token regenerated');
+  return updated;
 }

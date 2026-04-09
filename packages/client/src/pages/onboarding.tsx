@@ -213,8 +213,14 @@ export function OnboardingPage() {
                     })}
                   </div>
 
-                  <Select label={t('setup.dateFormat', 'Date format')} value={dateFormat} onChange={setDateFormat} options={DATE_FORMATS} size="md" />
-                  <Select label={t('setup.currency', 'Currency')} value={currency} onChange={setCurrency} options={CURRENCIES} size="md" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                    <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-family)' }}>{t('setup.dateFormat', 'Date format')}</label>
+                    <Select value={dateFormat} onChange={setDateFormat} options={DATE_FORMATS} size="md" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                    <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-family)' }}>{t('setup.currency', 'Currency')}</label>
+                    <Select value={currency} onChange={setCurrency} options={CURRENCIES} size="md" />
+                  </div>
                 </>
               )}
             </div>

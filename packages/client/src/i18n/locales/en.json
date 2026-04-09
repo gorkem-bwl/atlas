@@ -1349,7 +1349,16 @@
       "employees": "employees",
       "contactsDeals": "Contacts / Deals",
       "groupByIndustry": "Industry",
-      "taxId": "Tax ID (VKN)"
+      "taxId": "Tax ID (VKN)",
+      "billing": "Billing",
+      "taxOffice": "Tax office",
+      "currency": "Currency",
+      "postalCode": "Postal code",
+      "state": "State / Province",
+      "country": "Country",
+      "logo": "Company logo",
+      "portalToken": "Client portal token",
+      "regenerateToken": "Regenerate token"
     },
     "confirm": {
       "deleteDeal": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",

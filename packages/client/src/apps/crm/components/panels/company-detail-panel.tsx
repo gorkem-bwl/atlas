@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../../../lib/format';
-import { Phone as PhoneIcon, X, Trash2 } from 'lucide-react';
+import { Phone as PhoneIcon, X, Trash2, RefreshCw, Copy } from 'lucide-react';
 import {
-  useDeleteCompany, useActivities,
+  useDeleteCompany, useActivities, useRegeneratePortalToken,
   type CrmCompany, type CrmContact, type CrmDeal,
 } from '../../hooks';
 import { ActivityTimeline } from '../activity-timeline';
 import { IconButton } from '../../../../components/ui/icon-button';
+import { Button } from '../../../../components/ui/button';
 import { Chip } from '../../../../components/ui/chip';
 import { SmartButtonBar } from '../../../../components/shared/SmartButtonBar';
 import { PresenceAvatars } from '../../../../components/shared/presence-avatars';
@@ -26,7 +27,9 @@ export function CompanyDetailPanel({
 }) {
   const { t } = useTranslation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [tokenCopied, setTokenCopied] = useState(false);
   const deleteCompany = useDeleteCompany();
+  const regenerateToken = useRegeneratePortalToken();
   const { data: activitiesData } = useActivities({ companyId: company.id });
   const activities = activitiesData?.activities ?? [];
   const companyContacts = contacts.filter((c) => c.companyId === company.id);
@@ -119,6 +122,100 @@ export function CompanyDetailPanel({
             </div>
           )}
         </div>
+
+        {/* Billing */}
+        {(company.taxOffice || company.currency || company.postalCode || company.state || company.country || company.logo || company.portalToken) && (
+          <div style={{ marginTop: 'var(--spacing-sm)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)' }}>
+              {t('crm.companies.billing')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+              {company.taxOffice && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.taxOffice')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                    {company.taxOffice}
+                  </div>
+                </div>
+              )}
+              {company.currency && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.currency')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                    {company.currency}
+                  </div>
+                </div>
+              )}
+              {company.postalCode && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.postalCode')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                    {company.postalCode}
+                  </div>
+                </div>
+              )}
+              {company.state && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.state')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                    {company.state}
+                  </div>
+                </div>
+              )}
+              {company.country && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.country')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+                    {company.country}
+                  </div>
+                </div>
+              )}
+              {company.logo && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.logo')}</span>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', wordBreak: 'break-all' }}>
+                    {company.logo}
+                  </div>
+                </div>
+              )}
+              {company.portalToken && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.portalToken')}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                    <code style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontFamily: 'monospace', background: 'var(--color-bg-tertiary)', padding: '2px 6px', borderRadius: 'var(--radius-sm)', wordBreak: 'break-all', flex: 1 }}>
+                      {company.portalToken}
+                    </code>
+                    <IconButton
+                      icon={<Copy size={13} />}
+                      label={tokenCopied ? '✓' : t('crm.companies.portalToken')}
+                      size={24}
+                      onClick={() => {
+                        navigator.clipboard.writeText(company.portalToken!);
+                        setTokenCopied(true);
+                        setTimeout(() => setTokenCopied(false), 2000);
+                      }}
+                    />
+                    <IconButton
+                      icon={<RefreshCw size={13} />}
+                      label={t('crm.companies.regenerateToken')}
+                      size={24}
+                      onClick={() => regenerateToken.mutate(company.id)}
+                    />
+                  </div>
+                </div>
+              )}
+              {!company.portalToken && (
+                <div className="crm-detail-field">
+                  <span className="crm-detail-field-label">{t('crm.companies.portalToken')}</span>
+                  <Button variant="ghost" size="sm" onClick={() => regenerateToken.mutate(company.id)}>
+                    <RefreshCw size={13} style={{ marginRight: 4 }} />
+                    {t('crm.companies.regenerateToken')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Contacts */}
         {companyContacts.length > 0 && (

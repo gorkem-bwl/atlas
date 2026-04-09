@@ -1320,7 +1320,16 @@
       "employees": "dipendenti",
       "contactsDeals": "Contatti / Trattative",
       "groupByIndustry": "Settore",
-      "taxId": "Codice fiscale (VKN)"
+      "taxId": "Codice fiscale (VKN)",
+      "billing": "Fatturazione",
+      "taxOffice": "Ufficio delle imposte",
+      "currency": "Valuta",
+      "postalCode": "Codice postale",
+      "state": "Stato / Provincia",
+      "country": "Paese",
+      "logo": "Logo aziendale",
+      "portalToken": "Token portale clienti",
+      "regenerateToken": "Rigenera token"
     },
     "confirm": {
       "deleteDeal": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata.",
