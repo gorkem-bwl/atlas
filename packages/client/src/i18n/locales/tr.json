@@ -46,7 +46,24 @@
     "unknown": "Bilinmeyen",
     "settings": "Ayarlar",
     "selectAll": "Tümünü seç",
-    "deselectAll": "Seçimi kaldır"
+    "deselectAll": "Seçimi kaldır",
+    "totals": {
+      "subtotal": "Ara toplam",
+      "tax": "Vergi",
+      "taxPercent": "Vergi %",
+      "discount": "İndirim",
+      "discountPercent": "İndirim %",
+      "total": "Toplam"
+    },
+    "lineItems": {
+      "description": "Açıklama",
+      "quantity": "Miktar",
+      "unitPrice": "Birim fiyat",
+      "taxRate": "Vergi oranı",
+      "amount": "Tutar",
+      "addItem": "Kalem ekle",
+      "descriptionPlaceholder": "Kalem açıklaması..."
+    }
   },
   "auth": {
     "appName": "Atlas",

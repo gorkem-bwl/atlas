@@ -46,7 +46,24 @@
     "unknown": "Sconosciuto",
     "settings": "Impostazioni",
     "selectAll": "Seleziona tutto",
-    "deselectAll": "Deseleziona tutto"
+    "deselectAll": "Deseleziona tutto",
+    "totals": {
+      "subtotal": "Subtotale",
+      "tax": "Imposta",
+      "taxPercent": "Imposta %",
+      "discount": "Sconto",
+      "discountPercent": "Sconto %",
+      "total": "Totale"
+    },
+    "lineItems": {
+      "description": "Descrizione",
+      "quantity": "Qtà",
+      "unitPrice": "Prezzo unitario",
+      "taxRate": "Aliquota fiscale",
+      "amount": "Importo",
+      "addItem": "Aggiungi voce",
+      "descriptionPlaceholder": "Descrizione della voce..."
+    }
   },
   "auth": {
     "appName": "Atlas",
