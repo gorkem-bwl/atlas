@@ -129,3 +129,178 @@ export interface UpdateTimeOffRequestInput {
   sortOrder?: number;
   isArchived?: boolean;
 }
+
+// ─── Expenses ─────────────────────────────────────────────────────
+
+export type ExpenseStatus = 'draft' | 'submitted' | 'approved' | 'refused' | 'paid';
+export type PaymentMethod = 'personal_card' | 'company_card' | 'cash';
+
+export interface HrExpenseCategory {
+  id: string;
+  tenantId: string;
+  name: string;
+  icon: string;
+  color: string;
+  maxAmount?: number | null;
+  receiptRequired: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface HrExpensePolicy {
+  id: string;
+  tenantId: string;
+  name: string;
+  monthlyLimit?: number | null;
+  requireReceiptAbove?: number | null;
+  autoApproveBelow?: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HrExpensePolicyAssignment {
+  id: string;
+  tenantId: string;
+  policyId: string;
+  employeeId?: string | null;
+  departmentId?: string | null;
+  createdAt: string;
+  // Joined fields
+  employeeName?: string;
+  departmentName?: string;
+}
+
+export interface HrExpenseReport {
+  id: string;
+  tenantId: string;
+  userId: string;
+  employeeId: string;
+  title: string;
+  status: ExpenseStatus;
+  totalAmount: number;
+  currency: string;
+  submittedAt?: string | null;
+  approvedAt?: string | null;
+  refusedAt?: string | null;
+  paidAt?: string | null;
+  approverId?: string | null;
+  approverComment?: string | null;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  employeeName?: string;
+  expenseCount?: number;
+}
+
+export interface HrExpense {
+  id: string;
+  tenantId: string;
+  userId: string;
+  employeeId: string;
+  categoryId?: string | null;
+  projectId?: string | null;
+  reportId?: string | null;
+  description: string;
+  notes?: string | null;
+  amount: number;
+  taxAmount: number;
+  currency: string;
+  quantity: number;
+  expenseDate: string;
+  merchantName?: string | null;
+  paymentMethod: PaymentMethod;
+  receiptPath?: string | null;
+  status: ExpenseStatus;
+  submittedAt?: string | null;
+  approvedAt?: string | null;
+  refusedAt?: string | null;
+  paidAt?: string | null;
+  approverId?: string | null;
+  approverComment?: string | null;
+  policyViolation?: string | null;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  categoryName?: string;
+  categoryIcon?: string;
+  categoryColor?: string;
+  projectName?: string;
+  employeeName?: string;
+  employeeAvatar?: string;
+  reportTitle?: string;
+}
+
+export interface CreateExpenseInput {
+  categoryId?: string;
+  projectId?: string;
+  reportId?: string;
+  description: string;
+  notes?: string;
+  amount: number;
+  taxAmount?: number;
+  currency?: string;
+  quantity?: number;
+  expenseDate: string;
+  merchantName?: string;
+  paymentMethod?: PaymentMethod;
+  receiptPath?: string;
+}
+
+export interface UpdateExpenseInput {
+  categoryId?: string | null;
+  projectId?: string | null;
+  reportId?: string | null;
+  description?: string;
+  notes?: string | null;
+  amount?: number;
+  taxAmount?: number;
+  currency?: string;
+  quantity?: number;
+  expenseDate?: string;
+  merchantName?: string | null;
+  paymentMethod?: PaymentMethod;
+  receiptPath?: string | null;
+}
+
+export interface CreateExpenseReportInput {
+  title: string;
+  currency?: string;
+}
+
+export interface CreateExpenseCategoryInput {
+  name: string;
+  icon?: string;
+  color?: string;
+  maxAmount?: number | null;
+  receiptRequired?: boolean;
+}
+
+export interface CreateExpensePolicyInput {
+  name: string;
+  monthlyLimit?: number | null;
+  requireReceiptAbove?: number | null;
+  autoApproveBelow?: number | null;
+}
+
+export function getExpenseStatusVariant(
+  status: ExpenseStatus
+): 'default' | 'primary' | 'success' | 'warning' | 'error' {
+  switch (status) {
+    case 'draft':
+      return 'default';
+    case 'submitted':
+      return 'primary';
+    case 'approved':
+      return 'success';
+    case 'refused':
+      return 'error';
+    case 'paid':
+      return 'success';
+    default:
+      return 'default';
+  }
+}
