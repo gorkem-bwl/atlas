@@ -1344,6 +1344,119 @@ export const hrLifecycleEvents = pgTable('hr_lifecycle_events', {
   tenantIdx: index('idx_hr_lifecycle_tenant').on(table.tenantId),
 }));
 
+// ─── HR: Expense Categories ──────────────────────────────────────────
+
+export const hrExpenseCategories = pgTable('hr_expense_categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  icon: varchar('icon', { length: 50 }).notNull().default('receipt'),
+  color: varchar('color', { length: 20 }).notNull().default('#6b7280'),
+  maxAmount: real('max_amount'),
+  receiptRequired: boolean('receipt_required').notNull().default(false),
+  isActive: boolean('is_active').notNull().default(true),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_hr_expense_categories_tenant').on(table.tenantId),
+}));
+
+// ─── HR: Expense Policies ────────────────────────────────────────────
+
+export const hrExpensePolicies = pgTable('hr_expense_policies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  monthlyLimit: real('monthly_limit'),
+  requireReceiptAbove: real('require_receipt_above'),
+  autoApproveBelow: real('auto_approve_below'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_hr_expense_policies_tenant').on(table.tenantId),
+}));
+
+// ─── HR: Expense Policy Assignments ─────────────────────────────────
+
+export const hrExpensePolicyAssignments = pgTable('hr_expense_policy_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  policyId: uuid('policy_id').notNull().references(() => hrExpensePolicies.id, { onDelete: 'cascade' }),
+  employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'cascade' }),
+  departmentId: uuid('department_id').references(() => departments.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  policyIdx: index('idx_hr_expense_policy_assignments_policy').on(table.policyId),
+}));
+
+// ─── HR: Expense Reports ────────────────────────────────────────────
+
+export const hrExpenseReports = pgTable('hr_expense_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  userId: uuid('user_id').notNull(),
+  employeeId: uuid('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 500 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  totalAmount: real('total_amount').notNull().default(0),
+  currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  refusedAt: timestamp('refused_at', { withTimezone: true }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  approverId: uuid('approver_id'),
+  approverComment: text('approver_comment'),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_hr_expense_reports_tenant').on(table.tenantId),
+  employeeIdx: index('idx_hr_expense_reports_employee').on(table.employeeId),
+  statusIdx: index('idx_hr_expense_reports_status').on(table.status),
+}));
+
+// ─── HR: Expenses ───────────────────────────────────────────────────
+
+export const hrExpenses = pgTable('hr_expenses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  userId: uuid('user_id').notNull(),
+  employeeId: uuid('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  categoryId: uuid('category_id').references(() => hrExpenseCategories.id, { onDelete: 'set null' }),
+  projectId: uuid('project_id').references(() => projectProjects.id, { onDelete: 'set null' }),
+  reportId: uuid('report_id').references(() => hrExpenseReports.id, { onDelete: 'set null' }),
+  description: text('description').notNull(),
+  notes: text('notes'),
+  amount: real('amount').notNull(),
+  taxAmount: real('tax_amount').notNull().default(0),
+  currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  quantity: real('quantity').notNull().default(1),
+  expenseDate: timestamp('expense_date', { withTimezone: true }).notNull(),
+  merchantName: varchar('merchant_name', { length: 255 }),
+  paymentMethod: varchar('payment_method', { length: 20 }).notNull().default('personal_card'),
+  receiptPath: text('receipt_path'),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  refusedAt: timestamp('refused_at', { withTimezone: true }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  approverId: uuid('approver_id'),
+  approverComment: text('approver_comment'),
+  policyViolation: text('policy_violation'),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_hr_expenses_tenant').on(table.tenantId),
+  employeeIdx: index('idx_hr_expenses_employee').on(table.employeeId),
+  categoryIdx: index('idx_hr_expenses_category').on(table.categoryId),
+  statusIdx: index('idx_hr_expenses_status').on(table.status),
+  reportIdx: index('idx_hr_expenses_report').on(table.reportId),
+  projectIdx: index('idx_hr_expenses_project').on(table.projectId),
+  expenseDateIdx: index('idx_hr_expenses_date').on(table.expenseDate),
+}));
+
 // ─── CRM: Companies ────────────────────────────────────────────────
 export const crmCompanies = pgTable('crm_companies', {
   id: uuid('id').primaryKey().defaultRandom(),

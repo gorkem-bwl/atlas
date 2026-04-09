@@ -1509,6 +1509,96 @@ export async function runMigrations() {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
+      -- HR: Expense Categories
+      CREATE TABLE IF NOT EXISTS hr_expense_categories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        name VARCHAR(255) NOT NULL,
+        icon VARCHAR(50) NOT NULL DEFAULT 'receipt',
+        color VARCHAR(20) NOT NULL DEFAULT '#6b7280',
+        max_amount REAL,
+        receipt_required BOOLEAN NOT NULL DEFAULT FALSE,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      -- HR: Expense Policies
+      CREATE TABLE IF NOT EXISTS hr_expense_policies (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        name VARCHAR(255) NOT NULL,
+        monthly_limit REAL,
+        require_receipt_above REAL,
+        auto_approve_below REAL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      -- HR: Expense Policy Assignments
+      CREATE TABLE IF NOT EXISTS hr_expense_policy_assignments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        policy_id UUID NOT NULL REFERENCES hr_expense_policies(id) ON DELETE CASCADE,
+        employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+        department_id UUID REFERENCES departments(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      -- HR: Expense Reports
+      CREATE TABLE IF NOT EXISTS hr_expense_reports (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        user_id UUID NOT NULL,
+        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        title VARCHAR(500) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        total_amount REAL NOT NULL DEFAULT 0,
+        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        submitted_at TIMESTAMPTZ,
+        approved_at TIMESTAMPTZ,
+        refused_at TIMESTAMPTZ,
+        paid_at TIMESTAMPTZ,
+        approver_id UUID,
+        approver_comment TEXT,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      -- HR: Expenses
+      CREATE TABLE IF NOT EXISTS hr_expenses (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        user_id UUID NOT NULL,
+        employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+        category_id UUID REFERENCES hr_expense_categories(id) ON DELETE SET NULL,
+        project_id UUID REFERENCES project_projects(id) ON DELETE SET NULL,
+        report_id UUID REFERENCES hr_expense_reports(id) ON DELETE SET NULL,
+        description TEXT NOT NULL,
+        notes TEXT,
+        amount REAL NOT NULL,
+        tax_amount REAL NOT NULL DEFAULT 0,
+        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        quantity REAL NOT NULL DEFAULT 1,
+        expense_date TIMESTAMPTZ NOT NULL,
+        merchant_name VARCHAR(255),
+        payment_method VARCHAR(20) NOT NULL DEFAULT 'personal_card',
+        receipt_path TEXT,
+        status VARCHAR(20) NOT NULL DEFAULT 'draft',
+        submitted_at TIMESTAMPTZ,
+        approved_at TIMESTAMPTZ,
+        refused_at TIMESTAMPTZ,
+        paid_at TIMESTAMPTZ,
+        approver_id UUID,
+        approver_comment TEXT,
+        policy_violation TEXT,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       -- Add leave_type_id to leave_balances
       ALTER TABLE leave_balances ADD COLUMN IF NOT EXISTS leave_type_id UUID;
 
@@ -1737,6 +1827,24 @@ export async function runMigrations() {
       // HR Lifecycle Events
       'CREATE INDEX IF NOT EXISTS idx_hr_lifecycle_employee_date ON hr_lifecycle_events(employee_id, event_date)',
       'CREATE INDEX IF NOT EXISTS idx_hr_lifecycle_tenant ON hr_lifecycle_events(tenant_id)',
+      // HR Expense Categories
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_categories_tenant ON hr_expense_categories(tenant_id)',
+      // HR Expense Policies
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_policies_tenant ON hr_expense_policies(tenant_id)',
+      // HR Expense Policy Assignments
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_policy_assignments_policy ON hr_expense_policy_assignments(policy_id)',
+      // HR Expense Reports
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_reports_tenant ON hr_expense_reports(tenant_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_reports_employee ON hr_expense_reports(employee_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expense_reports_status ON hr_expense_reports(status)',
+      // HR Expenses
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_tenant ON hr_expenses(tenant_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_employee ON hr_expenses(employee_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_category ON hr_expenses(category_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_status ON hr_expenses(status)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_report ON hr_expenses(report_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_project ON hr_expenses(project_id)',
+      'CREATE INDEX IF NOT EXISTS idx_hr_expenses_date ON hr_expenses(expense_date)',
       // Additional HR composite indexes for common query patterns
       'CREATE INDEX IF NOT EXISTS idx_employees_tenant_status ON employees(tenant_id, status)',
       'CREATE INDEX IF NOT EXISTS idx_employees_tenant_dept ON employees(tenant_id, department_id)',
