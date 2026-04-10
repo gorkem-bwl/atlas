@@ -13,6 +13,7 @@ import {
 } from '../hooks';
 import { SendInvoiceModal } from './send-invoice-modal';
 import { ImportTimeEntriesModal } from './import-time-entries-modal';
+import { RecordPaymentModal } from './record-payment-modal';
 import { api } from '../../../lib/api-client';
 import { useCompanies } from '../../crm/hooks';
 import { Button } from '../../../components/ui/button';
@@ -50,6 +51,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
   const [importTimeModalOpen, setImportTimeModalOpen] = useState(false);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const addToast = useToastStore((s) => s.addToast);
 
   const handleConfirmDelete = () => {
@@ -327,6 +329,16 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
               <Button variant="ghost" size="sm" onClick={() => waive.mutate(invoice.id)}>{t('invoices.detail.waive')}</Button>
             </>
           )}
+          {invoice.status !== 'draft' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<DollarSign size={13} />}
+              onClick={() => setRecordPaymentOpen(true)}
+            >
+              {t('invoices.payments.recordPayment')}
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={() => duplicate.mutate(invoice.id)}>{t('invoices.detail.duplicate')}</Button>
           {onPreview && (
             <Button variant="secondary" size="sm" icon={<Eye size={13} />} onClick={onPreview}>{t('invoices.preview')}</Button>
@@ -334,6 +346,16 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
           <Button variant="secondary" size="sm" icon={<Download size={13} />} onClick={handleDownloadStandardPdf}>{t('invoices.downloadPdf')}</Button>
         </div>
       </div>
+
+      <RecordPaymentModal
+        open={recordPaymentOpen}
+        onOpenChange={setRecordPaymentOpen}
+        invoiceId={invoice.id}
+        invoiceNumber={invoice.invoiceNumber}
+        currency={invoice.currency}
+        total={invoice.total}
+        balanceDue={invoice.balanceDue ?? invoice.total}
+      />
 
       <SendInvoiceModal
         open={sendModalOpen}

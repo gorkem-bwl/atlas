@@ -229,6 +229,31 @@ export function useDuplicateInvoice() {
   });
 }
 
+// ─── Payments ────────────────────────────────────────────────────
+
+export function useRecordPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      invoiceId: string;
+      type: 'payment' | 'refund';
+      amount: number;
+      paymentDate: string;
+      method?: string;
+      reference?: string;
+      notes?: string;
+    }) => {
+      const { invoiceId, ...body } = input;
+      const { data } = await api.post(`/invoices/${invoiceId}/payments`, body);
+      return data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.detail(variables.invoiceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+    },
+  });
+}
+
 // ─── Settings ────────────────────────────────────────────────────
 
 export function useInvoiceSettings() {
