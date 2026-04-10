@@ -32,6 +32,14 @@ router.post('/:id/paid', invoiceController.markInvoicePaid);
 router.post('/:id/waive', invoiceController.waiveInvoice);
 router.post('/:id/duplicate', invoiceController.duplicateInvoice);
 
+// Payments
+// IMPORTANT: register /payments/:paymentId (literal) before any /:invoiceId/...
+// routes so Express never mistakes the literal "payments" segment for an invoice id.
+router.patch('/payments/:paymentId', invoiceController.updatePayment);
+router.delete('/payments/:paymentId', invoiceController.deletePayment);
+router.get('/:invoiceId/payments', invoiceController.listPayments);
+router.post('/:invoiceId/payments', invoiceController.recordPayment);
+
 // Line Items
 router.get('/:invoiceId/line-items', invoiceController.listLineItems);
 router.post('/:invoiceId/line-items', invoiceController.createLineItem);

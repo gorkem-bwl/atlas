@@ -5,3 +5,4 @@ export * from './controllers/pdf.controller';
 export * from './controllers/settings.controller';
 export * from './controllers/portal.controller';
 export * from './controllers/dashboard.controller';
+export * from './controllers/payment.controller';
