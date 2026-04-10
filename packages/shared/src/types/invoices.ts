@@ -154,6 +154,45 @@ export interface UpdateInvoiceSettingsInput {
   footerText?: string | null;
 }
 
+export type InvoicePaymentMethod = 'cash' | 'check' | 'bank_transfer' | 'card' | 'other';
+export type PaymentType = 'payment' | 'refund';
+
+export interface InvoicePayment {
+  id: string;
+  tenantId: string;
+  invoiceId: string;
+  userId: string;
+  type: PaymentType;
+  amount: number;
+  currency: string;
+  paymentDate: Date | string;
+  method: string | null;
+  reference: string | null;
+  notes: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface RecordPaymentInput {
+  invoiceId: string;
+  type?: PaymentType;
+  amount: number;
+  currency?: string;
+  paymentDate: Date | string;
+  method?: InvoicePaymentMethod | string | null;
+  reference?: string | null;
+  notes?: string | null;
+  sendConfirmation?: boolean;
+}
+
+export interface UpdatePaymentInput {
+  amount?: number;
+  paymentDate?: Date | string;
+  method?: InvoicePaymentMethod | string | null;
+  reference?: string | null;
+  notes?: string | null;
+}
+
 export function getInvoiceStatusVariant(status: InvoiceStatus): 'default' | 'primary' | 'success' | 'warning' | 'error' {
   switch (status) {
     case 'draft': return 'default';

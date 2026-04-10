@@ -1370,6 +1370,26 @@ export async function runMigrations() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS invoice_payments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id),
+        invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL,
+        type VARCHAR(20) NOT NULL DEFAULT 'payment',
+        amount REAL NOT NULL,
+        currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+        payment_date TIMESTAMPTZ NOT NULL,
+        method VARCHAR(50),
+        reference TEXT,
+        notes TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_invoice_payments_invoice ON invoice_payments(invoice_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_invoice_payments_tenant ON invoice_payments(tenant_id)`);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS invoice_settings (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID NOT NULL REFERENCES tenants(id) UNIQUE,

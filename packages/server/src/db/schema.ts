@@ -1906,6 +1906,25 @@ export const invoiceLineItems = pgTable('invoice_line_items', {
   invoiceIdx: index('idx_invoice_line_items_invoice').on(table.invoiceId),
 }));
 
+export const invoicePayments = pgTable('invoice_payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
+  type: varchar('type', { length: 20 }).notNull().default('payment'),
+  amount: real('amount').notNull(),
+  currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  paymentDate: timestamp('payment_date', { withTimezone: true }).notNull(),
+  method: varchar('method', { length: 50 }),
+  reference: text('reference'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  invoiceIdx: index('idx_invoice_payments_invoice').on(table.invoiceId),
+  tenantIdx: index('idx_invoice_payments_tenant').on(table.tenantId),
+}));
+
 export const invoiceSettings = pgTable('invoice_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id).unique(),
