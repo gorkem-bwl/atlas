@@ -1,7 +1,8 @@
-import { Receipt, Settings } from 'lucide-react';
+import { Receipt, Settings, FileText } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
 import { InvoicesPage } from './page';
 import { InvoiceSettingsPanel } from './components/invoice-settings-panel';
+import { InvoiceTemplatesPanel } from './components/invoice-templates-panel';
 
 export const invoicesManifest: ClientAppManifest = {
   id: 'invoices',
@@ -24,6 +25,7 @@ export const invoicesManifest: ClientAppManifest = {
     color: '#0ea5e9',
     panels: [
       { id: 'general', label: 'General', icon: Settings, component: InvoiceSettingsPanel, adminOnly: true },
+      { id: 'templates', label: 'Invoice templates', icon: FileText, component: InvoiceTemplatesPanel, adminOnly: true },
     ],
   },
 };

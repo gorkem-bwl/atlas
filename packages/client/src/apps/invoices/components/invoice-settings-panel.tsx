@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useInvoiceSettings, useUpdateInvoiceSettings } from '../hooks';
 import { Input } from '../../../components/ui/input';
-import { Textarea } from '../../../components/ui/textarea';
 import { Select } from '../../../components/ui/select';
 import { Button } from '../../../components/ui/button';
 import { useToastStore } from '../../../stores/toast-store';
@@ -46,12 +45,6 @@ export function InvoiceSettingsPanel() {
   const [form, setForm] = useState<UpdateInvoiceSettingsInput>({});
   const [dirty, setDirty] = useState(false);
 
-  const templates = [
-    { id: 'classic', name: t('invoices.settings.classic'), description: t('invoices.settings.classicDescription') },
-    { id: 'modern', name: t('invoices.settings.modern'), description: t('invoices.settings.modernDescription') },
-    { id: 'compact', name: t('invoices.settings.compact'), description: t('invoices.settings.compactDescription') },
-  ];
-
   useEffect(() => {
     if (settings) {
       setForm({
@@ -67,19 +60,6 @@ export function InvoiceSettingsPanel() {
         eFaturaCompanyCountry: settings.eFaturaCompanyCountry ?? '',
         eFaturaCompanyPhone: settings.eFaturaCompanyPhone ?? '',
         eFaturaCompanyEmail: settings.eFaturaCompanyEmail ?? '',
-        templateId: settings.templateId ?? 'classic',
-        accentColor: settings.accentColor ?? '#13715B',
-        companyName: settings.companyName ?? '',
-        companyAddress: settings.companyAddress ?? '',
-        companyCity: settings.companyCity ?? '',
-        companyCountry: settings.companyCountry ?? '',
-        companyPhone: settings.companyPhone ?? '',
-        companyEmail: settings.companyEmail ?? '',
-        companyWebsite: settings.companyWebsite ?? '',
-        companyTaxId: settings.companyTaxId ?? '',
-        paymentInstructions: settings.paymentInstructions ?? '',
-        bankDetails: settings.bankDetails ?? '',
-        footerText: settings.footerText ?? '',
       });
       setDirty(false);
     }
@@ -106,171 +86,33 @@ export function InvoiceSettingsPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 480 }}>
-      {/* General */}
-      <div style={sectionBoxStyle}>
-        <span style={sectionLabelStyle}>{t('invoices.settings.general')}</span>
-        <Input
-          label={t('invoices.settings.invoicePrefix')}
-          value={form.invoicePrefix ?? ''}
-          onChange={(e) => update({ invoicePrefix: e.target.value })}
-          size="sm"
-        />
+      <Input
+        label={t('invoices.settings.invoicePrefix')}
+        value={form.invoicePrefix ?? ''}
+        onChange={(e) => update({ invoicePrefix: e.target.value })}
+        size="sm"
+      />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-          <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-            {t('invoices.settings.defaultCurrency')}
-          </label>
-          <Select
-            value={form.defaultCurrency ?? 'USD'}
-            onChange={(val) => update({ defaultCurrency: val })}
-            options={CURRENCY_OPTIONS}
-            size="sm"
-          />
-        </div>
-
-        <Input
-          label={t('invoices.settings.defaultTaxRate')}
-          type="number"
-          step="0.1"
-          value={String(form.defaultTaxRate ?? 0)}
-          onChange={(e) => update({ defaultTaxRate: parseFloat(e.target.value) || 0 })}
-          size="sm"
-        />
-
-        {/* Template selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-          <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-            {t('invoices.settings.template')}
-          </label>
-          <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-            {templates.map((tpl) => (
-              <button
-                key={tpl.id}
-                onClick={() => update({ templateId: tpl.id })}
-                style={{
-                  flex: 1,
-                  padding: 'var(--spacing-md)',
-                  background: 'var(--color-bg-primary)',
-                  border: `2px solid ${form.templateId === tpl.id ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'var(--font-family)',
-                  transition: 'border-color 0.15s',
-                }}
-              >
-                <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-xs)' }}>
-                  {tpl.name}
-                </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-                  {tpl.description}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Accent color */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-          <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-            {t('invoices.settings.accentColor')}
-          </label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <input
-              type="color"
-              value={form.accentColor ?? '#13715B'}
-              onChange={(e) => update({ accentColor: e.target.value })}
-              style={{ width: 40, height: 32, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
-            />
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-              {form.accentColor ?? '#13715B'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Company details */}
-      <div style={sectionBoxStyle}>
-        <span style={sectionLabelStyle}>{t('invoices.settings.companyDetails')}</span>
-        <Input
-          label={t('invoices.settings.companyName')}
-          value={form.companyName ?? ''}
-          onChange={(e) => update({ companyName: e.target.value })}
-          size="sm"
-        />
-        <Input
-          label={t('invoices.settings.companyAddress')}
-          value={form.companyAddress ?? ''}
-          onChange={(e) => update({ companyAddress: e.target.value })}
-          size="sm"
-        />
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-          <Input
-            label={t('invoices.settings.companyCity')}
-            value={form.companyCity ?? ''}
-            onChange={(e) => update({ companyCity: e.target.value })}
-            size="sm"
-          />
-          <Input
-            label={t('invoices.settings.companyCountry')}
-            value={form.companyCountry ?? ''}
-            onChange={(e) => update({ companyCountry: e.target.value })}
-            size="sm"
-          />
-        </div>
-        <Input
-          label={t('invoices.settings.companyPhone')}
-          value={form.companyPhone ?? ''}
-          onChange={(e) => update({ companyPhone: e.target.value })}
-          size="sm"
-        />
-        <Input
-          label={t('invoices.settings.companyEmail')}
-          value={form.companyEmail ?? ''}
-          onChange={(e) => update({ companyEmail: e.target.value })}
-          size="sm"
-        />
-        <Input
-          label={t('invoices.settings.companyWebsite')}
-          value={form.companyWebsite ?? ''}
-          onChange={(e) => update({ companyWebsite: e.target.value })}
-          size="sm"
-        />
-        <Input
-          label={t('invoices.settings.companyTaxId')}
-          value={form.companyTaxId ?? ''}
-          onChange={(e) => update({ companyTaxId: e.target.value })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+        <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+          {t('invoices.settings.defaultCurrency')}
+        </label>
+        <Select
+          value={form.defaultCurrency ?? 'USD'}
+          onChange={(val) => update({ defaultCurrency: val })}
+          options={CURRENCY_OPTIONS}
           size="sm"
         />
       </div>
 
-      {/* Payment info */}
-      <div style={sectionBoxStyle}>
-        <span style={sectionLabelStyle}>{t('invoices.settings.payment')}</span>
-        <Textarea
-          label={t('invoices.settings.paymentInstructions')}
-          value={form.paymentInstructions ?? ''}
-          onChange={(e) => update({ paymentInstructions: e.target.value })}
-          rows={3}
-        />
-        <Textarea
-          label={t('invoices.settings.bankDetails')}
-          value={form.bankDetails ?? ''}
-          onChange={(e) => update({ bankDetails: e.target.value })}
-          rows={3}
-        />
-      </div>
-
-      {/* Footer */}
-      <div style={sectionBoxStyle}>
-        <span style={sectionLabelStyle}>{t('invoices.settings.footer')}</span>
-        <Textarea
-          label={t('invoices.settings.footerText')}
-          value={form.footerText ?? ''}
-          onChange={(e) => update({ footerText: e.target.value })}
-          rows={2}
-        />
-      </div>
+      <Input
+        label={t('invoices.settings.defaultTaxRate')}
+        type="number"
+        step="0.1"
+        value={String(form.defaultTaxRate ?? 0)}
+        onChange={(e) => update({ defaultTaxRate: parseFloat(e.target.value) || 0 })}
+        size="sm"
+      />
 
       {/* E-Fatura toggle */}
       <div>
