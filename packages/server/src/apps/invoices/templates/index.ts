@@ -23,3 +23,6 @@ registerTemplate('classic', ClassicTemplate);
 
 import { ModernTemplate } from './modern';
 registerTemplate('modern', ModernTemplate);
+
+import { CompactTemplate } from './compact';
+registerTemplate('compact', CompactTemplate);
