@@ -7,6 +7,7 @@ import {
 import { eq, and, asc, desc, inArray, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { getInvoiceSettings } from './settings.service';
+import { recordPayment } from './payment.service';
 
 // ─── Input types ────────────────────────────────────────────────────
 
@@ -361,14 +362,56 @@ export async function markInvoiceViewed(tenantId: string, id: string) {
 }
 
 export async function markInvoicePaid(userId: string, tenantId: string, id: string) {
-  const now = new Date();
-  const [invoice] = await db
-    .update(invoices)
-    .set({ status: 'paid', paidAt: now, updatedAt: now })
+  // Load the invoice first so we know the total and currency.
+  const [existing] = await db
+    .select()
+    .from(invoices)
     .where(and(eq(invoices.id, id), eq(invoices.tenantId, tenantId)))
-    .returning();
+    .limit(1);
 
-  return invoice ?? null;
+  if (!existing) return null;
+
+  // If already paid, nothing to do — return as-is to preserve idempotency.
+  if (existing.status === 'paid') {
+    return existing;
+  }
+
+  // Compute the remaining balance so "mark as paid" records only what's outstanding
+  // (not the full total) when partial payments already exist.
+  const [{ netPaid }] = await db
+    .select({
+      netPaid: sql<number>`COALESCE(SUM(CASE WHEN type = 'payment' THEN amount ELSE -amount END), 0)`,
+    })
+    .from(sql`invoice_payments`)
+    .where(sql`invoice_id = ${id}`);
+
+  const outstanding = Math.max(0, existing.total - (Number(netPaid) || 0));
+
+  if (outstanding > 0) {
+    await recordPayment(
+      {
+        invoiceId: id,
+        type: 'payment',
+        amount: outstanding,
+        currency: existing.currency,
+        paymentDate: new Date(),
+        method: 'other',
+        notes: 'Marked as paid',
+      },
+      userId,
+      tenantId,
+    );
+  }
+
+  // recordPayment calls updateInvoicePaidStatus which flips the invoice to 'paid'.
+  // Return the refreshed invoice row.
+  const [updated] = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.id, id), eq(invoices.tenantId, tenantId)))
+    .limit(1);
+
+  return updated ?? null;
 }
 
 export async function duplicateInvoice(userId: string, tenantId: string, id: string) {
