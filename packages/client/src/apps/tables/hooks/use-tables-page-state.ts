@@ -11,7 +11,7 @@ import type {
   ColumnMovedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import {
   useTableList,
   useTable,
@@ -930,24 +930,41 @@ export function useTablesPageState() {
     setLocalColumns(updated); triggerAutoSave({ columns: updated });
   }, [localColumns, triggerAutoSave]);
 
-  const handleExportExcel = useCallback(() => {
+  const handleExportExcel = useCallback(async () => {
     const hidden = new Set(localViewConfig.hiddenColumns || []);
     const visibleCols = localColumns.filter((c) => !hidden.has(c.id));
-    const exportData = sortedRows.map((row) => {
-      const obj: Record<string, unknown> = {};
-      if (tablesSettings.includeRowIdsInExport) obj['_id'] = row._id;
+    const headers: string[] = [];
+    if (tablesSettings.includeRowIdsInExport) headers.push('_id');
+    for (const col of visibleCols) headers.push(col.name);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+    worksheet.addRow(headers);
+
+    for (const row of sortedRows) {
+      const rowValues: unknown[] = [];
+      if (tablesSettings.includeRowIdsInExport) rowValues.push(row._id);
       for (const col of visibleCols) {
         let val = row[col.id];
         if (isFormulaValue(val)) val = getComputedValue(row._id, col.id, val);
         if (Array.isArray(val)) val = val.join(', ');
-        obj[col.name] = val ?? '';
+        rowValues.push(val ?? '');
       }
-      return obj;
+      worksheet.addRow(rowValues);
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, `${localTitle || 'table'}.xlsx`);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${localTitle || 'table'}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }, [localColumns, sortedRows, localViewConfig.hiddenColumns, localTitle, getComputedValue, tablesSettings.includeRowIdsInExport]);
 
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -958,9 +975,29 @@ export function useTablesPageState() {
     if (file.size > 50 * 1024 * 1024) { useToastStore.getState().addToast({ type: 'error', message: 'File must be under 50 MB' }); return; }
     try {
       const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer);
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.worksheets[0];
+      const jsonData: unknown[][] = [];
+      if (worksheet) {
+        worksheet.eachRow({ includeEmpty: false }, (row) => {
+          const values = row.values as unknown[];
+          // exceljs row.values is 1-indexed; slice off the leading undefined.
+          const rowArr = values.slice(1).map((v) => {
+            if (v instanceof Date) return v.toISOString();
+            if (v && typeof v === 'object' && 'text' in (v as Record<string, unknown>)) {
+              // Hyperlink / rich-text cell objects
+              return String((v as { text?: unknown }).text ?? '');
+            }
+            if (v && typeof v === 'object' && 'result' in (v as Record<string, unknown>)) {
+              // Formula cell; use the cached result
+              return (v as { result?: unknown }).result ?? '';
+            }
+            return v;
+          });
+          jsonData.push(rowArr);
+        });
+      }
       if (jsonData.length < 1) return;
       const firstRow = jsonData[0] as unknown[];
       const allStrings = firstRow.every((v) => typeof v === 'string' && v.trim().length > 0);
@@ -968,9 +1005,9 @@ export function useTablesPageState() {
       const headerRow = hasHeader ? firstRow.map((h) => String(h || 'Column')) : firstRow.map((_, i) => `Column ${i + 1}`);
       const dataRows = hasHeader ? jsonData.slice(1) : jsonData;
       const columnMappings = headerRow.map((name, idx) => {
-        const sampleValues = dataRows.slice(0, 10).map((r) => r[idx]).filter(Boolean);
+        const sampleValues = dataRows.slice(0, 10).map((r) => r[idx]).filter((v) => v !== null && v !== undefined && v !== '');
         let type: TableFieldType = 'text';
-        if (sampleValues.length > 0 && sampleValues.every((v) => typeof v === 'number' || !isNaN(Number(v)))) type = 'number';
+        if (sampleValues.length > 0 && sampleValues.every((v) => typeof v === 'number' || (typeof v === 'string' && !isNaN(Number(v))))) type = 'number';
         else if (sampleValues.length > 0 && sampleValues.every((v) => typeof v === 'boolean' || v === 'true' || v === 'false')) type = 'checkbox';
         return { name: String(name), type };
       });

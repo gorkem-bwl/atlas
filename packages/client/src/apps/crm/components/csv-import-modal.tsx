@@ -168,19 +168,31 @@ export function exportToXlsx<T extends Record<string, unknown>>(
   columns: { key: string; label: string }[],
   filename: string,
 ) {
-  import('xlsx').then((XLSX) => {
-    const mapped = data.map((row) => {
-      const obj: Record<string, unknown> = {};
+  import('exceljs').then(async (mod) => {
+    const ExcelJS = mod.default || mod;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+    worksheet.columns = columns.map((col) => ({ header: col.label, key: col.key }));
+    data.forEach((row) => {
+      const mappedRow: Record<string, unknown> = {};
       for (const col of columns) {
-        obj[col.label] = row[col.key] ?? '';
+        mappedRow[col.key] = row[col.key] ?? '';
       }
-      return obj;
+      worksheet.addRow(mappedRow);
     });
 
-    const ws = XLSX.utils.json_to_sheet(mapped);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, `${filename}.xlsx`);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   });
 }
 
