@@ -977,6 +977,14 @@ export async function runMigrations() {
       ALTER TABLE signature_documents ADD COLUMN IF NOT EXISTS redirect_url TEXT;
     `);
 
+    // Add document_type and counterparty_name columns to signature_documents (idempotent)
+    await client.query(`
+      ALTER TABLE signature_documents ADD COLUMN IF NOT EXISTS document_type VARCHAR(50) NOT NULL DEFAULT 'contract';
+    `);
+    await client.query(`
+      ALTER TABLE signature_documents ADD COLUMN IF NOT EXISTS counterparty_name VARCHAR(255);
+    `);
+
     // ─── Signature audit log ────────────────────────────────────────
     await client.query(`
       CREATE TABLE IF NOT EXISTS sign_audit_log (

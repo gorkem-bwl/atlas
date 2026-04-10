@@ -15,6 +15,8 @@ const objects: EntityObjectMeta[] = [
       { name: 'Storage path', slug: 'storage_path', fieldType: 'text', isRequired: true },
       { name: 'Page count', slug: 'page_count', fieldType: 'number', isRequired: true },
       { name: 'Status', slug: 'status', fieldType: 'select', isRequired: true },
+      { name: 'Document type', slug: 'document_type', fieldType: 'select', isRequired: true },
+      { name: 'Counterparty name', slug: 'counterparty_name', fieldType: 'text', isRequired: false },
       { name: 'Tags', slug: 'tags', fieldType: 'multi_select', isRequired: false },
       { name: 'Expires at', slug: 'expires_at', fieldType: 'date', isRequired: false },
       { name: 'Completed at', slug: 'completed_at', fieldType: 'date', isRequired: false },
