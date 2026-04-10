@@ -6,7 +6,7 @@ import type {
   CalendarEvent,
   CalendarEventCreateInput,
   CalendarEventUpdateInput,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 
 export function useCalendars() {
   return useQuery({

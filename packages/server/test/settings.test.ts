@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { settingsSchema } from '@atlasmail/shared';
+import { settingsSchema } from '@atlas-platform/shared';
 import { db } from '../src/config/database';
 
 // The settings routes are Express route handlers. We test them by directly

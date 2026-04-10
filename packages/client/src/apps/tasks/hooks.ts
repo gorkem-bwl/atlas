@@ -8,7 +8,7 @@ import type {
   Subtask, TaskActivity, TaskTemplate, TaskComment,
   CreateTaskTemplateInput, UpdateTaskTemplateInput,
   TaskAttachment, TaskDependency,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 
 // ─── Task Queries ───────────────────────────────────────────────────
 

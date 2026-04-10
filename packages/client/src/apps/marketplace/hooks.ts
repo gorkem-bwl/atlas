@@ -5,7 +5,7 @@ import type {
   MarketplaceCatalogItem,
   MarketplaceInstalledApp,
   MarketplaceAppStatus,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 
 // ─── Catalog ──────────────────────────────────────────────────────
 

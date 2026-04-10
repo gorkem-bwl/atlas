@@ -10,7 +10,7 @@ import { Tooltip } from '../../../components/ui/tooltip';
 import { getFileTypeIcon, formatBytes, formatRelativeDate } from '../../../lib/drive-utils';
 import { stripExtension } from '../lib/helpers';
 import type { DriveDataTableListProps } from '../lib/types';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 
 export function DriveDataTableList({
   displayItems,

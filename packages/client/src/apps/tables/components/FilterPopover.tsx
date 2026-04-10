@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Filter, Plus, X } from 'lucide-react';
-import type { TableColumn, TableViewConfig, TableFieldType } from '@atlasmail/shared';
+import type { TableColumn, TableViewConfig, TableFieldType } from '@atlas-platform/shared';
 import { Popover, PopoverTrigger, PopoverContent } from '../../../components/ui/popover';
 import { Select } from '../../../components/ui/select';
 

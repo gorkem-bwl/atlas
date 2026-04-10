@@ -17,7 +17,7 @@ import {
   Search,
   Calculator,
 } from 'lucide-react';
-import type { TableFieldType } from '@atlasmail/shared';
+import type { TableFieldType } from '@atlas-platform/shared';
 
 export const FIELD_TYPE_ICONS: Record<TableFieldType, React.ComponentType<{ size?: number }>> = {
   text: Type,

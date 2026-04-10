@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TableRow, TableColumn } from '@atlasmail/shared';
+import type { TableRow, TableColumn } from '@atlas-platform/shared';
 
 // ─── Column letter mapping ──────────────────────────────────────────
 

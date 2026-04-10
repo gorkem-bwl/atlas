@@ -3,7 +3,7 @@ import {
   Check, ChevronRight, GripVertical, Hash, Repeat, FileText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task, TaskProject, TenantUser } from '@atlasmail/shared';
+import type { Task, TaskProject, TenantUser } from '@atlas-platform/shared';
 import { useTasksSettingsStore } from '../settings-store';
 import { useAuthStore } from '../../../stores/auth-store';
 import { getDueBadgeClass, formatDueDate } from '../lib/helpers';

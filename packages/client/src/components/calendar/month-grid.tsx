@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 import { IconButton } from '../ui/icon-button';
 
 interface MonthGridProps {

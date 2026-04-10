@@ -23,7 +23,7 @@ import { useUIStore } from '../../stores/ui-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { useTenantUsers } from '../../hooks/use-platform';
 import { useQuery } from '@tanstack/react-query';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 
 import {
   PREVIEW_WIDTH_KEY, MIN_PREVIEW_WIDTH, MAX_PREVIEW_WIDTH, VIEW_MODE_KEY,

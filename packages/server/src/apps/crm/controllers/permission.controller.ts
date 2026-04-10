@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { listCrmPermissions, upsertCrmPermission } from '../permissions';
 import { logger } from '../../../utils/logger';
 import { getAppPermission } from '../../../services/app-permissions.service';
-import type { CrmRole, CrmRecordAccess } from '@atlasmail/shared';
+import type { CrmRole, CrmRecordAccess } from '@atlas-platform/shared';
 
 // ─── Permissions ──────────────────────────────────────────────────
 

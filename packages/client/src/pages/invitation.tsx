@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/auth-store';
 import { ROUTES } from '../config/routes';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 
 interface InvitationDetails {
   email: string;

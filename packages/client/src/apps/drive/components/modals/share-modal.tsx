@@ -12,7 +12,7 @@ import { Avatar } from '../../../../components/ui/avatar';
 import { Badge } from '../../../../components/ui/badge';
 import { Tooltip } from '../../../../components/ui/tooltip';
 import { formatRelativeDate } from '../../../../lib/drive-utils';
-import type { DriveItem, DriveShareLink, TenantUser } from '@atlasmail/shared';
+import type { DriveItem, DriveShareLink, TenantUser } from '@atlas-platform/shared';
 
 interface ShareModalProps {
   shareModalItem: DriveItem | null;

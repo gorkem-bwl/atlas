@@ -13,7 +13,7 @@ import { ContentArea } from '../../components/ui/content-area';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { IconButton } from '../../components/ui/icon-button';
-import type { Invoice } from '@atlasmail/shared';
+import type { Invoice } from '@atlas-platform/shared';
 
 export function InvoicesPage() {
   const { t } = useTranslation();

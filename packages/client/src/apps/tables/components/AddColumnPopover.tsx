@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
-import type { TableFieldType } from '@atlasmail/shared';
+import type { TableFieldType } from '@atlas-platform/shared';
 import { FIELD_TYPES } from '../lib/table-constants';
 import { FIELD_TYPE_ICONS } from '../../../lib/field-type-icons';
 import { Button } from '../../../components/ui/button';

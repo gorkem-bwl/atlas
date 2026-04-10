@@ -3,7 +3,7 @@ import { crmLeads, crmLeadForms } from '../../../db/schema';
 import { eq, and, asc, desc, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import crypto from 'crypto';
-import type { CrmRecordAccess } from '@atlasmail/shared';
+import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { createActivity } from './activity.service';
 import { createContact, updateContact } from './contact.service';
 import { createCompany } from './company.service';

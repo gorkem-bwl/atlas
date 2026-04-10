@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/avatar';
 import { useAuthStore } from '../../stores/auth-store';
 import { useTenantUsers } from '../../hooks/use-platform';
-import type { TenantUser } from '@atlasmail/shared';
+import type { TenantUser } from '@atlas-platform/shared';
 
 interface MentionInputProps {
   value: string;

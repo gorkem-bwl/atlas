@@ -34,7 +34,7 @@ import {
   Check,
   Settings2,
 } from 'lucide-react';
-import type { TableRow } from '@atlasmail/shared';
+import type { TableRow } from '@atlas-platform/shared';
 import { isGroupHeaderRow } from './hooks/use-row-grouping';
 import type { MaybeGroupedRow } from './hooks/use-row-grouping';
 import { isFormulaValue } from '../../lib/formula-engine';

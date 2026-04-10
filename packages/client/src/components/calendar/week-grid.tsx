@@ -1,6 +1,6 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { Copy, Mail, MapPin, Pencil, Trash2, Users, Video, X } from 'lucide-react';
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 import type { CSSProperties } from 'react';
 import { Button } from '../ui/button';
 import { IconButton } from '../ui/icon-button';

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Filter, X, Check } from 'lucide-react';
-import type { TableRow } from '@atlasmail/shared';
+import type { TableRow } from '@atlas-platform/shared';
 
 interface SetFilterPopoverProps {
   columnId: string;

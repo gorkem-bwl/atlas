@@ -7,7 +7,7 @@ import {
   useResolveDocComment,
   useDeleteDocComment,
 } from '../hooks/use-doc-comments';
-import type { DocumentComment } from '@atlasmail/shared';
+import type { DocumentComment } from '@atlas-platform/shared';
 import { Button } from '../../../components/ui/button';
 import { IconButton } from '../../../components/ui/icon-button';
 import { Textarea } from '../../../components/ui/textarea';

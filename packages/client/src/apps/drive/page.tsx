@@ -17,7 +17,7 @@ import { EmojiPicker } from '../../components/shared/emoji-picker';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
 import { formatBytes } from '../../lib/drive-utils';
 import { ROUTES } from '../../config/routes';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 import '../../styles/drive.css';
 
 import { DriveDataTableList } from './components/drive-data-table-list';

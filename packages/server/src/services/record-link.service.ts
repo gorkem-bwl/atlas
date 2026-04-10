@@ -1,7 +1,7 @@
 import { eq, and, or, sql } from 'drizzle-orm';
 import { db } from '../config/database';
 import { recordLinks } from '../db/schema';
-import type { LinkCount, LinkedRecord } from '@atlasmail/shared';
+import type { LinkCount, LinkedRecord } from '@atlas-platform/shared';
 
 export async function getLinksForRecord(appId: string, recordId: string) {
   return db.select().from(recordLinks)

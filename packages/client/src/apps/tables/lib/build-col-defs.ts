@@ -1,5 +1,5 @@
 import type { ColDef } from 'ag-grid-community';
-import type { TableColumn } from '@atlasmail/shared';
+import type { TableColumn } from '@atlas-platform/shared';
 import { TableCustomHeader } from '../components/TableCustomHeader';
 import { isCellInRange } from '../hooks/use-cell-range-selection';
 import type { CellRange } from '../hooks/use-cell-range-selection';

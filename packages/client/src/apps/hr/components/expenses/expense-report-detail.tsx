@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Send, AlertTriangle } from 'lucide-react';
-import { getExpenseStatusVariant } from '@atlasmail/shared';
+import { getExpenseStatusVariant } from '@atlas-platform/shared';
 import { useExpenseReport, useSubmitExpenseReport } from '../../hooks';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';

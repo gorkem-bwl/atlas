@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { TableColumn, TableRow } from '@atlasmail/shared';
+import type { TableColumn, TableRow } from '@atlas-platform/shared';
 import { getTagColor } from '../../../../lib/tag-colors';
 
 export function GalleryView({

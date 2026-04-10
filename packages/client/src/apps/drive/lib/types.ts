@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction, ReactNode } from 'react';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 
 export type ViewMode = 'list' | 'grid';
 export type SidebarView = 'files' | 'favourites' | 'recent' | 'trash' | 'shared' | 'images' | 'documents' | 'videos' | 'audio';
@@ -28,7 +28,7 @@ export interface DriveDataTableListProps {
   handleFolderDrop: (e: React.DragEvent, targetFolderId: string) => void;
   dragOverFolderId: string | null;
   sidebarView: SidebarView;
-  tenantUsersData: import('@atlasmail/shared').TenantUser[];
+  tenantUsersData: import('@atlas-platform/shared').TenantUser[];
   driveSettings: { showPreviewPanel: boolean; showFileExtensions: boolean; compactMode: boolean };
   renderTags: (item: DriveItem) => ReactNode;
 }

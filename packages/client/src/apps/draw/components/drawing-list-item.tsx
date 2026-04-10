@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2, Copy, RotateCcw } from 'lucide-react';
 import { IconButton } from '../../../components/ui/icon-button';
-import type { Drawing } from '@atlasmail/shared';
+import type { Drawing } from '@atlas-platform/shared';
 
 function SidebarButton({
   icon,

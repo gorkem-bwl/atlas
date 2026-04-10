@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TaskProject } from '@atlasmail/shared';
+import type { TaskProject } from '@atlas-platform/shared';
 import { useUpdateProject } from '../hooks';
 import { EmojiPicker } from '../../../components/shared/emoji-picker';
 

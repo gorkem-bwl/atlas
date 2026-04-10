@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useDocumentList } from '../../hooks';
 import { RotateCcw } from 'lucide-react';
 import { FlatDocRow } from './flat-doc-row';
-import type { DocumentTreeNode } from '@atlasmail/shared';
+import type { DocumentTreeNode } from '@atlas-platform/shared';
 
 // ─── SidebarButton ──────────────────────────────────────────────────────
 

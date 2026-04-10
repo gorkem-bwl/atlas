@@ -26,7 +26,7 @@ import { Chip } from '../../../components/ui/chip';
 import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';
 import { formatDate } from '../../../lib/format';
 import { STATUS_BADGE_MAP } from '../lib/helpers';
-import type { DocumentType, SignatureDocument } from '@atlasmail/shared';
+import type { DocumentType, SignatureDocument } from '@atlas-platform/shared';
 
 const TYPE_FILTERS: Array<{ value: DocumentType | 'all'; labelKey: string }> = [
   { value: 'all', labelKey: 'sign.filters.all' },

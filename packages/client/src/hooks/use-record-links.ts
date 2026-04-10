@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { LinkCount, LinkedRecord } from '@atlasmail/shared';
+import type { LinkCount, LinkedRecord } from '@atlas-platform/shared';
 
 export function useLinkCounts(appId: string | undefined, recordId: string | undefined) {
   return useQuery({

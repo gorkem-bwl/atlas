@@ -10,7 +10,7 @@ import { FieldOverlay } from '../apps/sign/components/field-overlay';
 import { SignatureModal } from '../apps/sign/components/signature-modal';
 import { usePublicSignDoc, submitPublicSign, submitPublicDecline } from '../apps/sign/hooks';
 import { config } from '../config/env';
-import type { SignatureFieldType, SignatureField } from '@atlasmail/shared';
+import type { SignatureFieldType, SignatureField } from '@atlas-platform/shared';
 import '../styles/sign.css';
 
 export function SignPublicPage() {

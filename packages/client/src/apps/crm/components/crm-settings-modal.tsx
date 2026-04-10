@@ -32,7 +32,7 @@ import type { CrmActivityTypeConfig } from '../hooks';
 import { api } from '../../../lib/api-client';
 import { formatRelativeDate } from '../../../lib/format';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
-import type { CrmDealStage } from '@atlasmail/shared';
+import type { CrmDealStage } from '@atlas-platform/shared';
 
 const STAGE_COLORS = [
   '#6b7280', '#3b82f6', '#f59e0b', '#f97316', '#10b981',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Trash2, Repeat, Check, Video } from 'lucide-react';
-import type { RecurringEditScope } from '@atlasmail/shared';
+import type { RecurringEditScope } from '@atlas-platform/shared';
 import { useCalendarStore } from '../../stores/calendar-store';
 import { useCalendars, useCreateCalendarEvent, useUpdateCalendarEvent, useDeleteCalendarEvent } from '../../hooks/use-calendar';
 import { SchedulingAssistant } from './scheduling-assistant';

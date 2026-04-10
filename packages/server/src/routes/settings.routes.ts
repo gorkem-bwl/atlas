@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 import { db } from '../config/database';
 import { userSettings, crmDeals, crmContacts, crmCompanies, crmLeads, crmActivities, crmNotes, crmWorkflows, crmLeadForms } from '../db/schema';
 import { employees, departments } from '../db/schema';
-import { settingsSchema } from '@atlasmail/shared';
+import { settingsSchema } from '@atlas-platform/shared';
 import { encrypt, decrypt } from '../utils/crypto';
 import { testApiKey } from '../services/ai.service';
 import { logger } from '../utils/logger';

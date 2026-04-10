@@ -1,7 +1,7 @@
 import {
   Inbox, Star, Calendar, Coffee, CircleDot, BookOpen, Users, Moon,
 } from 'lucide-react';
-import type { TaskWhen, RecurrenceRule } from '@atlasmail/shared';
+import type { TaskWhen, RecurrenceRule } from '@atlas-platform/shared';
 
 // ─── Navigation sections (Things 3 inspired) ────────────────────────
 

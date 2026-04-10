@@ -7,7 +7,7 @@ import type {
   SigningToken,
   SignAuditLogEntry,
   SignTemplate,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 import axios from 'axios';
 import { config } from '../../config/env';
 

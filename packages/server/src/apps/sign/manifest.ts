@@ -1,6 +1,6 @@
 import signRouter from './routes';
 import type { ServerAppManifest } from '../../config/app-manifest.server';
-import type { EntityObjectMeta } from '@atlasmail/shared';
+import type { EntityObjectMeta } from '@atlas-platform/shared';
 
 const objects: EntityObjectMeta[] = [
   {

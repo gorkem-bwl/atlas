@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 
 // Token storage helpers
 // Active account tokens always live in the legacy keys for api-client compatibility.

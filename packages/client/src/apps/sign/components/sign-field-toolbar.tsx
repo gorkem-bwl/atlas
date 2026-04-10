@@ -10,7 +10,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { Tooltip } from '../../../components/ui/tooltip';
-import type { SignatureFieldType } from '@atlasmail/shared';
+import type { SignatureFieldType } from '@atlas-platform/shared';
 
 export function SignFieldToolbar({
   onAddField,

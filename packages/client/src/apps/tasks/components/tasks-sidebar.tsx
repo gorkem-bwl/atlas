@@ -3,7 +3,7 @@ import {
   Plus, Hash, MoreHorizontal, Trash2, User, CalendarDays, ChevronDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { TaskProject } from '@atlasmail/shared';
+import type { TaskProject } from '@atlas-platform/shared';
 import { AppSidebar } from '../../../components/layout/app-sidebar';
 import { IconButton } from '../../../components/ui/icon-button';
 import { Button } from '../../../components/ui/button';

@@ -27,7 +27,7 @@ import {
   type CrmDeal, type CrmDealStage, type Proposal,
 } from '../hooks';
 import { useInvoices } from '../../invoices/hooks';
-import { getProposalStatusVariant } from '@atlasmail/shared';
+import { getProposalStatusVariant } from '@atlas-platform/shared';
 import { formatDate, formatCurrency } from '../../../lib/format';
 
 // ─── Stage pipeline with arrows ─────────────────────────────────

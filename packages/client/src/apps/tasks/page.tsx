@@ -15,7 +15,7 @@ import {
 } from './hooks';
 import { queryKeys } from '../../config/query-keys';
 import { api } from '../../lib/api-client';
-import type { Task, TaskWhen } from '@atlasmail/shared';
+import type { Task, TaskWhen } from '@atlas-platform/shared';
 import { ContentArea } from '../../components/ui/content-area';
 import { useTasksSettingsStore } from './settings-store';
 import { useUIStore } from '../../stores/ui-store';

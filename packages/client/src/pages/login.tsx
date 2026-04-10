@@ -7,7 +7,7 @@ import { useAuthStore } from '../stores/auth-store';
 import { ROUTES } from '../config/routes';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 
 // Mountain range — same wallpaper as setup page
 const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Upload } from 'lucide-react';
-import { type HrExpense, type PaymentMethod } from '@atlasmail/shared';
+import { type HrExpense, type PaymentMethod } from '@atlas-platform/shared';
 import {
   useCreateExpense,
   useUpdateExpense,

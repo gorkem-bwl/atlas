@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { ShortcutEngine } from '../lib/shortcut-engine';
-import { DEFAULT_SHORTCUTS } from '@atlasmail/shared';
+import { DEFAULT_SHORTCUTS } from '@atlas-platform/shared';
 import { useSettingsStore } from '../stores/settings-store';
 
 const ShortcutCtx = createContext<ShortcutEngine | null>(null);

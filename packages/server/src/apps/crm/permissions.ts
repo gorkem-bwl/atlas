@@ -2,7 +2,7 @@ import { db } from '../../config/database';
 import { crmPermissions } from '../../db/schema';
 import { accounts, tenantMembers } from '../../db/schema';
 import { eq, and, inArray, sql } from 'drizzle-orm';
-import type { CrmRole, CrmRecordAccess, CrmEntity, CrmOperation } from '@atlasmail/shared';
+import type { CrmRole, CrmRecordAccess, CrmEntity, CrmOperation } from '@atlas-platform/shared';
 
 // ─── Permission matrix ─────────────────────────────────────────────
 // Defines which operations each role can perform on each entity.

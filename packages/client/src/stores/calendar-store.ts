@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 
 interface PrefillData {
   summary?: string;

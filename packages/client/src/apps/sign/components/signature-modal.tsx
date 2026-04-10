@@ -5,7 +5,7 @@ import { Upload } from 'lucide-react';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import type { SignatureFieldType } from '@atlasmail/shared';
+import type { SignatureFieldType } from '@atlas-platform/shared';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

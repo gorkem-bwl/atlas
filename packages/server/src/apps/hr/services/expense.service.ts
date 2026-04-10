@@ -7,7 +7,7 @@ import { eq, and, desc, sql, ilike, gte, lte, inArray, ne } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { sendEmail } from '../../../services/email.service';
 import { getEmployeePolicy } from './expense-policy.service';
-import type { CreateExpenseInput, UpdateExpenseInput } from '@atlasmail/shared';
+import type { CreateExpenseInput, UpdateExpenseInput } from '@atlas-platform/shared';
 
 // ─── Email helper ───────────────────────────────────────────────
 

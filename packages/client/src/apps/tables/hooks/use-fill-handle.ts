@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { AgGridReact } from 'ag-grid-react';
-import type { TableRow } from '@atlasmail/shared';
+import type { TableRow } from '@atlas-platform/shared';
 
 interface UseFillHandleOptions {
   gridRef: React.RefObject<AgGridReact | null>;

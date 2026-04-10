@@ -9,7 +9,7 @@ import {
   useUpdateTenantUserRole,
   useInviteTenantUser,
 } from '../hooks/use-platform';
-import type { TenantMemberRole } from '@atlasmail/shared';
+import type { TenantMemberRole } from '@atlas-platform/shared';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Select } from '../components/ui/select';

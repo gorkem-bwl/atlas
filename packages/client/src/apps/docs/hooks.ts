@@ -7,7 +7,7 @@ import type {
   CreateDocumentInput,
   UpdateDocumentInput,
   MoveDocumentInput,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 import { useCallback, useRef } from 'react';
 
 // ─── Queries ─────────────────────────────────────────────────────────

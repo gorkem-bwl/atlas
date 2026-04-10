@@ -1,5 +1,5 @@
 {
-  "name": "@atlasmail/server",
+  "name": "@atlas-platform/server",
   "version": "1.9.0",
   "private": true,
   "scripts": {
@@ -28,7 +28,7 @@
     "@ai-sdk/perplexity": "^3.0.19",
     "@ai-sdk/togetherai": "^2.0.33",
     "@ai-sdk/xai": "^3.0.59",
-    "@atlasmail/shared": "*",
+    "@atlas-platform/shared": "*",
     "@kubernetes/client-node": "^1.4.0",
     "@react-pdf/renderer": "^4.4.0",
     "@types/archiver": "^7.0.0",

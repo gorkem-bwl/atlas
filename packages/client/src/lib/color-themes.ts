@@ -1,4 +1,4 @@
-import type { ColorThemeId } from '@atlasmail/shared';
+import type { ColorThemeId } from '@atlas-platform/shared';
 
 export interface ColorThemeVariant {
   accentPrimary: string;

@@ -21,7 +21,7 @@ import {
   useAutoSaveTable,
 } from '../hooks';
 import { ROUTES } from '../../../config/routes';
-import type { TableColumn, TableRow, TableFieldType, TableViewConfig, TableAttachment, TableViewTab } from '@atlasmail/shared';
+import type { TableColumn, TableRow, TableFieldType, TableViewConfig, TableAttachment, TableViewTab } from '@atlas-platform/shared';
 import { api } from '../../../lib/api-client';
 import { useCellRangeSelection } from '../hooks/use-cell-range-selection';
 import { useTablesSettingsStore } from '../settings-store';

@@ -1,5 +1,5 @@
 import { createAppSettingsHook } from '../../lib/create-app-settings-store';
-import type { TablesDefaultView, TablesDefaultSort, DateFormat } from '@atlasmail/shared';
+import type { TablesDefaultView, TablesDefaultSort, DateFormat } from '@atlas-platform/shared';
 
 export type { TablesDefaultView, TablesDefaultSort, DateFormat };
 

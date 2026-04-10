@@ -1031,7 +1031,7 @@ import type {
   CreateExpenseReportInput,
   CreateExpenseCategoryInput,
   CreateExpensePolicyInput,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 
 export function useExpenseCategories() {
   return useQuery({

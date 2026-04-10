@@ -1,4 +1,4 @@
-import type { SignAuditLogEntry } from '@atlasmail/shared';
+import type { SignAuditLogEntry } from '@atlas-platform/shared';
 
 // ─── Status helpers ─────────────────────────────────────────────────
 

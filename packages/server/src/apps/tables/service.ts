@@ -2,7 +2,7 @@ import { db } from '../../config/database';
 import { spreadsheets, tableRowComments, users } from '../../db/schema';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
-import type { CreateSpreadsheetInput, UpdateSpreadsheetInput } from '@atlasmail/shared';
+import type { CreateSpreadsheetInput, UpdateSpreadsheetInput } from '@atlas-platform/shared';
 
 // ─── List all spreadsheets (flat list) ───────────────────────────────
 

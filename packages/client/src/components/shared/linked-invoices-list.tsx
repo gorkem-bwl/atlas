@@ -4,8 +4,8 @@ import { Plus, ExternalLink } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Skeleton } from '../ui/skeleton';
-import type { Invoice } from '@atlasmail/shared';
-import { getInvoiceStatusVariant } from '@atlasmail/shared';
+import type { Invoice } from '@atlas-platform/shared';
+import { getInvoiceStatusVariant } from '@atlas-platform/shared';
 import { formatCurrency } from '../../lib/format';
 import { formatDate } from '../../lib/format';
 

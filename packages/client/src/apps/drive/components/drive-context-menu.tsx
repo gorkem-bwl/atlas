@@ -8,7 +8,7 @@ import {
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../../../components/ui/context-menu';
 import { useGoogleDriveStatus, useExportToGoogleDrive } from '../hooks';
 import { useToastStore } from '../../../stores/toast-store';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 import type { SidebarView } from '../lib/types';
 
 interface DriveContextMenuProps {

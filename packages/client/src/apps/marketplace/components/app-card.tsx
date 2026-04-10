@@ -13,7 +13,7 @@ import {
   MemoryStick,
   HardDrive,
 } from 'lucide-react';
-import type { MarketplaceCatalogItem } from '@atlasmail/shared';
+import type { MarketplaceCatalogItem } from '@atlas-platform/shared';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '../../../components/ui/popover';

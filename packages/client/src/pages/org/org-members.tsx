@@ -10,7 +10,7 @@ import {
   useInviteTenantUser,
   useMyTenants,
 } from '../../hooks/use-platform';
-import type { TenantMemberRole } from '@atlasmail/shared';
+import type { TenantMemberRole } from '@atlas-platform/shared';
 import { Avatar } from '../../components/ui/avatar';
 import { Button } from '../../components/ui/button';
 import { Chip } from '../../components/ui/chip';

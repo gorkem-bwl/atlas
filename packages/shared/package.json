@@ -1,5 +1,5 @@
 {
-  "name": "@atlasmail/shared",
+  "name": "@atlas-platform/shared",
   "version": "1.9.0",
   "private": true,
   "main": "./src/index.ts",

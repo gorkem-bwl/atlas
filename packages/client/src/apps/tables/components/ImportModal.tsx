@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { TableFieldType } from '@atlasmail/shared';
+import type { TableFieldType } from '@atlas-platform/shared';
 import { Modal } from '../../../components/ui/modal';
 import { Button } from '../../../components/ui/button';
 import { Select } from '../../../components/ui/select';

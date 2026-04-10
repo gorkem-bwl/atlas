@@ -6,7 +6,7 @@ import * as tenantAppService from '../services/platform/tenant-app.service';
 import { logger } from '../utils/logger';
 import { emitAppEvent, getTenantMemberUserIds } from '../services/event.service';
 import { validatePasswordStrength } from '../utils/password';
-import type { TenantMemberRole } from '@atlasmail/shared';
+import type { TenantMemberRole } from '@atlas-platform/shared';
 
 // ─── Zod Validation ──────────────────────────────────────────────────
 

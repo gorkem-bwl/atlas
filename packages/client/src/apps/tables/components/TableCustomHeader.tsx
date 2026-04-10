@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import type { IHeaderParams } from 'ag-grid-community';
 import { ChevronDown, Info } from 'lucide-react';
-import type { TableFieldType } from '@atlasmail/shared';
+import type { TableFieldType } from '@atlas-platform/shared';
 
 interface TableCustomHeaderParams extends IHeaderParams {
   fieldType?: TableFieldType;

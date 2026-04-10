@@ -4,7 +4,7 @@ import { Settings, Trash2 } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import { Select } from '../../../components/ui/select';
-import type { SignatureField, SignatureFieldType, FieldOptions } from '@atlasmail/shared';
+import type { SignatureField, SignatureFieldType, FieldOptions } from '@atlas-platform/shared';
 import type { Signer } from './signer-panel';
 
 const SIGNER_COLORS = ['#8b5cf6', '#3b82f6', '#ef4444', '#f59e0b', '#10b981'];

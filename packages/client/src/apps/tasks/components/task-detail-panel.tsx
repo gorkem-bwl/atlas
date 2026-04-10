@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatDate as formatDateGlobal } from '../../../lib/format';
-import type { Task, TaskProject, RecurrenceRule, TenantUser } from '@atlasmail/shared';
+import type { Task, TaskProject, RecurrenceRule, TenantUser } from '@atlas-platform/shared';
 import { useUpdateTask, useDeleteTask, useUpdateTaskVisibility } from '../hooks';
 import { useMyAppPermission } from '../../../hooks/use-app-permissions';
 import { useAuthStore } from '../../../stores/auth-store';

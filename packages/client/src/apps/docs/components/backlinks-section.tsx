@@ -2,7 +2,7 @@ import { Link2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDocBacklinks } from '../hooks/use-doc-comments';
 import { useNavigate } from 'react-router-dom';
-import type { Backlink } from '@atlasmail/shared';
+import type { Backlink } from '@atlas-platform/shared';
 
 interface BacklinksSectionProps {
   docId: string;

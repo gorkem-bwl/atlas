@@ -9,7 +9,7 @@ import {
 import { IconButton } from '../../../../components/ui/icon-button';
 import { SidebarButton } from './sidebar-helpers';
 import { DocContextMenu } from './context-menu';
-import type { DocumentTreeNode } from '@atlasmail/shared';
+import type { DocumentTreeNode } from '@atlas-platform/shared';
 
 // ─── TreeNode ───────────────────────────────────────────────────────────
 

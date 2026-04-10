@@ -4,8 +4,8 @@ import { formatDate, formatCurrency } from '../../../lib/format';
 import {
   FileText, Building2, Plus, DollarSign, Hash, Calendar, Link2,
 } from 'lucide-react';
-import type { Invoice } from '@atlasmail/shared';
-import { getInvoiceStatusVariant } from '@atlasmail/shared';
+import type { Invoice } from '@atlas-platform/shared';
+import { getInvoiceStatusVariant } from '@atlas-platform/shared';
 import { Badge } from '../../../components/ui/badge';
 import { DataTable, type DataTableColumn } from '../../../components/ui/data-table';
 import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';

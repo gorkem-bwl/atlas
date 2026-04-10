@@ -21,7 +21,7 @@ import { VisibilityToggle } from '../../components/shared/visibility-toggle';
 import { useAuthStore } from '../../stores/auth-store';
 import { useUIStore } from '../../stores/ui-store';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
-import type { Drawing } from '@atlasmail/shared';
+import type { Drawing } from '@atlas-platform/shared';
 
 // ─── Empty state ─────────────────────────────────────────────────────
 

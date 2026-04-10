@@ -7,7 +7,7 @@ import { Badge } from '../../../components/ui/badge';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';
 import { useProposals, type Proposal } from '../hooks';
-import { getProposalStatusVariant } from '@atlasmail/shared';
+import { getProposalStatusVariant } from '@atlas-platform/shared';
 import { formatCurrency, formatDate } from '../../../lib/format';
 
 interface ProposalsListViewProps {

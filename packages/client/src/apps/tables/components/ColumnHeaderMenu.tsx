@@ -7,7 +7,7 @@ import {
   Lock, Unlock, ArrowLeftToLine, ArrowRightToLine, FileText,
   Group, Ungroup,
 } from 'lucide-react';
-import type { TableFieldType } from '@atlasmail/shared';
+import type { TableFieldType } from '@atlas-platform/shared';
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator } from '../../../components/ui/context-menu';
 import { Textarea } from '../../../components/ui/textarea';
 

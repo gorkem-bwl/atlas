@@ -1,5 +1,5 @@
 {
-  "name": "atlasmail",
+  "name": "atlas",
   "private": true,
   "workspaces": [
     "packages/shared",
@@ -8,9 +8,9 @@
     "packages/desktop"
   ],
   "scripts": {
-    "dev": "turbo run dev --filter=@atlasmail/client --filter=@atlasmail/server --filter=@atlasmail/shared",
-    "dev:web": "turbo run dev --filter=@atlasmail/client --filter=@atlasmail/server",
-    "dev:desktop": "concurrently --kill-others \"npm run dev:web\" \"wait-on http://localhost:5180 && npm run dev --workspace=@atlasmail/desktop\"",
+    "dev": "turbo run dev --filter=@atlas-platform/client --filter=@atlas-platform/server --filter=@atlas-platform/shared",
+    "dev:web": "turbo run dev --filter=@atlas-platform/client --filter=@atlas-platform/server",
+    "dev:desktop": "concurrently --kill-others \"npm run dev:web\" \"wait-on http://localhost:5180 && npm run dev --workspace=@atlas-platform/desktop\"",
     "test": "turbo run test",
     "test:e2e": "playwright test",
     "build": "turbo run build",

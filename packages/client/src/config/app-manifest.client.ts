@@ -1,6 +1,6 @@
 import type { ComponentType, LazyExoticComponent } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import type { AppManifestBase } from '@atlasmail/shared';
+import type { AppManifestBase } from '@atlas-platform/shared';
 import type { SettingsCategory } from './settings-registry';
 
 export interface AppRoute {

@@ -7,7 +7,7 @@ import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { sendEmail } from '../../../services/email.service';
 import { getEmployeePolicy } from './expense-policy.service';
-import type { CreateExpenseReportInput } from '@atlasmail/shared';
+import type { CreateExpenseReportInput } from '@atlas-platform/shared';
 
 // ─── Shared select fields ──────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import type { ICellRendererParams } from 'ag-grid-community';
 import type { ColDef } from 'ag-grid-community';
 import { ExternalLink, Paperclip, FileIcon } from 'lucide-react';
-import type { TableAttachment } from '@atlasmail/shared';
+import type { TableAttachment } from '@atlas-platform/shared';
 import { getTagColor } from '../../../../lib/tag-colors';
 
 export function TagRenderer(params: ICellRendererParams) {

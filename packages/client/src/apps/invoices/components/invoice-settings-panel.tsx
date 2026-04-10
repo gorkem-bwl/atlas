@@ -5,7 +5,7 @@ import { Input } from '../../../components/ui/input';
 import { Select } from '../../../components/ui/select';
 import { Button } from '../../../components/ui/button';
 import { useToastStore } from '../../../stores/toast-store';
-import type { UpdateInvoiceSettingsInput } from '@atlasmail/shared';
+import type { UpdateInvoiceSettingsInput } from '@atlas-platform/shared';
 
 const CURRENCY_OPTIONS = [
   { value: 'USD', label: 'USD - US Dollar' },

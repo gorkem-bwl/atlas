@@ -11,7 +11,7 @@ import {
 import { Button } from '../../../components/ui/button';
 import { formatDate } from '../../../lib/format';
 import { getAuditActionLabel } from '../lib/helpers';
-import type { SignAuditLogEntry } from '@atlasmail/shared';
+import type { SignAuditLogEntry } from '@atlas-platform/shared';
 
 export function SignAuditView({
   auditEntries,

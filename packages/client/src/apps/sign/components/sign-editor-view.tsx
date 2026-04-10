@@ -16,7 +16,7 @@ import { FieldPropertiesPanel } from './field-properties-panel';
 import { SignFieldToolbar } from './sign-field-toolbar';
 import { SmartButtonBar } from '../../../components/shared/SmartButtonBar';
 import { STATUS_BADGE_MAP } from '../lib/helpers';
-import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atlasmail/shared';
+import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atlas-platform/shared';
 import type { Signer } from './signer-panel';
 
 export function SignEditorView({

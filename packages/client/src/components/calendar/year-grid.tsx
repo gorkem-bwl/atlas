@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useCalendarStore } from '../../stores/calendar-store';
 import { useCalendarEvents } from '../../hooks/use-calendar';
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 import type { CSSProperties } from 'react';
 
 interface YearGridProps {

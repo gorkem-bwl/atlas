@@ -19,7 +19,7 @@ import { InsertImageButton } from './insert-image-button';
 import { pickAppState, generateThumbnailDataUrl, THUMBNAIL_DEBOUNCE_MS } from '../lib/helpers';
 import { api as drawApi } from '../../../lib/api-client';
 import { DEFAULT_LIBRARY_ITEMS } from '../../../config/drawing-libraries';
-import type { Drawing } from '@atlasmail/shared';
+import type { Drawing } from '@atlas-platform/shared';
 
 // ─── Library persistence (server-backed) ─────────────────────────────
 

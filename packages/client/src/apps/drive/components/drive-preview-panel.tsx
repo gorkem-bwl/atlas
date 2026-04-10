@@ -20,7 +20,7 @@ import {
   getFriendlyTypeName, renderBasicMarkdown, parseCsvToRows, extractTextFromContent,
 } from '../lib/helpers';
 import { DrawingPreviewThumbnail } from './drawing-preview-thumbnail';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 
 interface DrivePreviewPanelProps {
   previewItem: DriveItem;

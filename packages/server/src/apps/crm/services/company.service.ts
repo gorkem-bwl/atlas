@@ -2,7 +2,7 @@ import { db } from '../../../config/database';
 import { crmCompanies, crmContacts, crmDeals, crmActivities, crmNotes } from '../../../db/schema';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
-import type { CrmRecordAccess } from '@atlasmail/shared';
+import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { randomUUID } from 'crypto';
 
 // ─── Input types ────────────────────────────────────────────────────

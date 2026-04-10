@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import type { TableRow, TableColumn } from '@atlasmail/shared';
+import type { TableRow, TableColumn } from '@atlas-platform/shared';
 
 export interface GroupHeaderRow {
   _id: string;

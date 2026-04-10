@@ -7,7 +7,7 @@ import type {
   UpdateDocumentInput,
   MoveDocumentInput,
   DocumentTreeNode,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 import { syncDocumentLinks } from './link.service';
 
 // ─── List all documents (flat) for building the tree ─────────────────

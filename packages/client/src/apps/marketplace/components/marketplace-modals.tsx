@@ -6,7 +6,7 @@ import {
   Download,
   Info,
 } from 'lucide-react';
-import type { MarketplaceCatalogItem } from '@atlasmail/shared';
+import type { MarketplaceCatalogItem } from '@atlas-platform/shared';
 import { Button } from '../../../components/ui/button';
 import { Modal } from '../../../components/ui/modal';
 import { Skeleton } from '../../../components/ui/skeleton';

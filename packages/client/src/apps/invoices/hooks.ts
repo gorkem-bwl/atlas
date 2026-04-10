@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
-import type { Invoice, InvoiceSettings, UpdateInvoiceSettingsInput } from '@atlasmail/shared';
+import type { Invoice, InvoiceSettings, UpdateInvoiceSettingsInput } from '@atlas-platform/shared';
 
 // ─── Dashboard ──────────────────────────────────────────────────
 

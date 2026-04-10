@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, CheckCircle2, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task, TaskProject, TaskWhen, TenantUser } from '@atlasmail/shared';
+import type { Task, TaskProject, TaskWhen, TenantUser } from '@atlas-platform/shared';
 import type { NavSection } from '../lib/constants';
 import { TaskItem } from './task-item';
 import { CollapsibleSection } from './collapsible-section';

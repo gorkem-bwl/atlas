@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, X, Link2, AlertTriangle, CheckCircle2, CircleDot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task } from '@atlasmail/shared';
+import type { Task } from '@atlas-platform/shared';
 import { useTaskDependencies, useAddDependency, useRemoveDependency } from '../hooks';
 import { IconButton } from '../../../components/ui/icon-button';
 

@@ -1,6 +1,6 @@
 import { Star, Moon, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { TaskWhen } from '@atlasmail/shared';
+import type { TaskWhen } from '@atlas-platform/shared';
 import { formatDueDate } from '../lib/helpers';
 
 export function WhenBadge({ when, dueDate, showBadge }: { when: TaskWhen; dueDate: string | null; showBadge: boolean }) {

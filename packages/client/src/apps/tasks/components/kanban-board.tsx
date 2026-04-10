@@ -23,7 +23,7 @@ import {
   Check, Inbox, Star, CircleDot, Coffee, Hash, Calendar, Repeat,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task, TaskProject, TaskWhen } from '@atlasmail/shared';
+import type { Task, TaskProject, TaskWhen } from '@atlas-platform/shared';
 import { useUpdateTask, useReorderTasks } from '../hooks';
 
 // ─── Column definitions ──────────────────────────────────────────────

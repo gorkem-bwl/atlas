@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 import type { SortBy, TypeFilter, ModifiedFilter } from './types';
 
 // ─── Constants ───────────────────────────────────────────────────────

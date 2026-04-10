@@ -5,7 +5,7 @@ import i18n from '../i18n';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
 import { useToastStore } from './toast-store';
-import type { ThemeMode, Density, ColorThemeId } from '@atlasmail/shared';
+import type { ThemeMode, Density, ColorThemeId } from '@atlas-platform/shared';
 
 export type FontFamilyId = 'inter' | 'geist' | 'system' | 'roboto' | 'open-sans' | 'lato';
 

@@ -4,7 +4,7 @@ import { useCustomFieldValues, useSaveCustomFieldValues } from '../../hooks/use-
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select } from '../ui/select';
-import type { CustomFieldWithValue } from '@atlasmail/shared';
+import type { CustomFieldWithValue } from '@atlas-platform/shared';
 
 interface CustomFieldsRendererProps {
   appId: string;

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { Tenant, CreateTenantInput, TenantUser, CreateTenantUserInput, TenantMemberRole } from '@atlasmail/shared';
+import type { Tenant, CreateTenantInput, TenantUser, CreateTenantUserInput, TenantMemberRole } from '@atlas-platform/shared';
 
 // ─── Tenants ─────────────────────────────────────────────────────────
 

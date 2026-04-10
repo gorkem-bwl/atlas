@@ -21,7 +21,7 @@ import {
   useDeleteTemplate,
 } from '../hooks';
 import { config } from '../../../config/env';
-import type { SignatureDocument, SignatureFieldType, SignatureField, DocumentType } from '@atlasmail/shared';
+import type { SignatureDocument, SignatureFieldType, SignatureField, DocumentType } from '@atlas-platform/shared';
 import type { Signer } from '../components/signer-panel';
 import { type FilterStatus, getDefaultExpiry } from './helpers';
 

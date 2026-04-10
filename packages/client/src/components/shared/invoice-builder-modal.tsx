@@ -14,7 +14,7 @@ import { Textarea } from '../ui/textarea';
 import { Modal } from '../ui/modal';
 import { LineItemsEditor, type LineItem } from './line-items-editor';
 import { TotalsBlock } from './totals-block';
-import type { Invoice } from '@atlasmail/shared';
+import type { Invoice } from '@atlas-platform/shared';
 
 // ─── Types ────────────────────────────────────────────────────────
 

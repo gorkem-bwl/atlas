@@ -19,7 +19,7 @@ import { Modal } from '../../../components/ui/modal';
 import { SIGNER_COLORS, type Signer } from './signer-panel';
 import { StatusDot } from '../../../components/ui/status-dot';
 import { formatDate } from '../../../lib/format';
-import type { DocumentType } from '@atlasmail/shared';
+import type { DocumentType } from '@atlas-platform/shared';
 
 interface SigningLink {
   id: string;

@@ -2,7 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../../config/database';
 import { tenants, tenantMembers } from '../../db/schema';
 import { logger } from '../../utils/logger';
-import type { CreateTenantInput, TenantPlan } from '@atlasmail/shared';
+import type { CreateTenantInput, TenantPlan } from '@atlas-platform/shared';
 
 export async function createTenant(input: CreateTenantInput, ownerId: string) {
   const k8sNamespace = `tenant-${input.slug}`;

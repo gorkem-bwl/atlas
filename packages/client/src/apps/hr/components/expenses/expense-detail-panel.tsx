@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import {
   X, Edit2, Send, Trash2, RotateCcw, AlertTriangle, ExternalLink,
 } from 'lucide-react';
-import { type HrExpense, type ExpenseStatus, getExpenseStatusVariant } from '@atlasmail/shared';
+import { type HrExpense, type ExpenseStatus, getExpenseStatusVariant } from '@atlas-platform/shared';
 import { useSubmitExpense, useRecallExpense, useDeleteExpense } from '../../hooks';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';

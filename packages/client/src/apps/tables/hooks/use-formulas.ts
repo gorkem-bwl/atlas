@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import type { TableRow, TableColumn } from '@atlasmail/shared';
+import type { TableRow, TableColumn } from '@atlas-platform/shared';
 import { evaluateFormula, buildColMap, isFormulaValue, colIndexToLetter } from '../../../lib/formula-engine';
 
 interface UseFormulasOptions {

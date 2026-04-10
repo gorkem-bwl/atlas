@@ -1,4 +1,4 @@
-import type { TableColumn, TableRow, TableFieldType } from '@atlasmail/shared';
+import type { TableColumn, TableRow, TableFieldType } from '@atlas-platform/shared';
 import {
   ClipboardList, Users, Package, DollarSign, CalendarDays, Bug, Plug, Rocket,
   Wrench, Calendar, Megaphone, Search, Target, Building2, CheckSquare, BookOpen,

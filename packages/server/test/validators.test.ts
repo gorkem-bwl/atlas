@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { settingsSchema, loginSchema, composeSchema, searchSchema } from '@atlasmail/shared';
+import { settingsSchema, loginSchema, composeSchema, searchSchema } from '@atlas-platform/shared';
 
 describe('settingsSchema', () => {
   it('accepts fully valid settings object', () => {

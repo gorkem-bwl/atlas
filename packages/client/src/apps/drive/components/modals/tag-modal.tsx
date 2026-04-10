@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '../../../../components/ui/modal';
 import { Button } from '../../../../components/ui/button';
 import { TAG_COLORS } from '../../lib/helpers';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 
 interface TagModalProps {
   tagModalItem: DriveItem | null;

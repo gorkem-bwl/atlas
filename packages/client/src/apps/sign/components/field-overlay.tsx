@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, type MouseEvent as ReactMouseEvent } from 'react';
 import { Rnd } from 'react-rnd';
 import { Trash2, CheckSquare, ChevronDown, PenTool, Type, Calendar, AlignLeft, User, Mail } from 'lucide-react';
-import type { SignatureField, SignatureFieldType } from '@atlasmail/shared';
+import type { SignatureField, SignatureFieldType } from '@atlas-platform/shared';
 
 // ─── Color map ──────────────────────────────────────────────────────
 

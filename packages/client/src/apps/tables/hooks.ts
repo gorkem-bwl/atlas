@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
-import type { Spreadsheet, CreateSpreadsheetInput, UpdateSpreadsheetInput } from '@atlasmail/shared';
+import type { Spreadsheet, CreateSpreadsheetInput, UpdateSpreadsheetInput } from '@atlas-platform/shared';
 import { useCallback, useEffect, useRef } from 'react';
 
 // ─── Queries ─────────────────────────────────────────────────────────

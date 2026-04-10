@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Plus, Globe, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { TaskWhen } from '@atlasmail/shared';
+import type { TaskWhen } from '@atlas-platform/shared';
 import { useCreateTask } from '../hooks';
 
 export function NewTaskCreator({

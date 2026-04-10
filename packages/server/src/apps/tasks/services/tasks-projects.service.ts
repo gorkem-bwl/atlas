@@ -6,7 +6,7 @@ import type {
   CreateTaskInput, UpdateTaskInput,
   CreateProjectInput, UpdateProjectInput,
   RecurrenceRule,
-} from '@atlasmail/shared';
+} from '@atlas-platform/shared';
 
 // ─── Recurrence helpers ──────────────────────────────────────────────
 

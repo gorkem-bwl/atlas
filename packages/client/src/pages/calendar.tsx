@@ -24,7 +24,7 @@ import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
 import { useCalendars, useCalendarEvents, useAggregatedEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
 import type { AggregatedEvent } from '../hooks/use-calendar';
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 import { useCalendarStore } from '../stores/calendar-store';
 import { useCalendarSettingsStore } from '../stores/calendar-settings-store';
 import { useToastStore } from '../stores/toast-store';

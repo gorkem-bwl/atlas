@@ -17,7 +17,7 @@ import {
   useDeleteProposal,
   type Proposal,
 } from '../hooks';
-import { getProposalStatusVariant } from '@atlasmail/shared';
+import { getProposalStatusVariant } from '@atlas-platform/shared';
 import { formatDate } from '../../../lib/format';
 import { useToastStore } from '../../../stores/toast-store';
 

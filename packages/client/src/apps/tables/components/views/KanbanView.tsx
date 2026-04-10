@@ -12,7 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { Kanban } from 'lucide-react';
-import type { TableColumn, TableRow, TableViewConfig } from '@atlasmail/shared';
+import type { TableColumn, TableRow, TableViewConfig } from '@atlas-platform/shared';
 import { getTagColor } from '../../../../lib/tag-colors';
 import { Select } from '../../../../components/ui/select';
 

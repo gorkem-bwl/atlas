@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { db } from '../config/database';
-import type { GlobalSearchResult } from '@atlasmail/shared';
+import type { GlobalSearchResult } from '@atlas-platform/shared';
 
 export async function searchGlobal(query: string, tenantId: string): Promise<GlobalSearchResult[]> {
   if (!query || query.length < 2) return [];

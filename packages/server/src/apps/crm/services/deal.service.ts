@@ -2,7 +2,7 @@ import { db } from '../../../config/database';
 import { crmCompanies, crmContacts, crmDealStages, crmDeals } from '../../../db/schema';
 import { eq, and, asc, desc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
-import type { CrmRecordAccess } from '@atlasmail/shared';
+import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { executeWorkflows } from './workflow.service';
 import { createActivity } from './activity.service';
 

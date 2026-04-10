@@ -5,7 +5,7 @@ import { Avatar } from '../../../components/ui/avatar';
 import { Badge } from '../../../components/ui/badge';
 import { getFileTypeIcon, formatBytes, formatRelativeDate, isImageFile } from '../../../lib/drive-utils';
 import { getTokenParam, stripExtension } from '../lib/helpers';
-import type { DriveItem } from '@atlasmail/shared';
+import type { DriveItem } from '@atlas-platform/shared';
 import type { SidebarView } from '../lib/types';
 import type { Dispatch, SetStateAction, ReactNode } from 'react';
 
@@ -28,7 +28,7 @@ interface DriveGridViewProps {
   handleFolderDrop: (e: React.DragEvent, targetFolderId: string) => void;
   dragOverFolderId: string | null;
   sidebarView: SidebarView;
-  tenantUsersData: import('@atlasmail/shared').TenantUser[];
+  tenantUsersData: import('@atlas-platform/shared').TenantUser[];
   driveSettings: { showThumbnails: boolean; showFileExtensions: boolean };
   renderTags: (item: DriveItem) => ReactNode;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@atlasmail/desktop",
+  "name": "@atlas-platform/desktop",
   "version": "0.1.0",
   "private": true,
   "main": "dist/main.js",
@@ -15,7 +15,7 @@
     "@types/node": "^22.0.0"
   },
   "build": {
-    "appId": "dev.atlasmail.app",
+    "appId": "dev.atlas.app",
     "productName": "Atlas",
     "files": [
       "dist/**/*",

@@ -1,5 +1,5 @@
 import { exportToBlob } from '@excalidraw/excalidraw';
-import type { Drawing } from '@atlasmail/shared';
+import type { Drawing } from '@atlas-platform/shared';
 import type { DrawSortOrder } from '../settings-store';
 
 export function sortDrawings(drawings: Drawing[], order: DrawSortOrder): Drawing[] {

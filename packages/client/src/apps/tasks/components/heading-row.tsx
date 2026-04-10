@@ -1,6 +1,6 @@
 import { ChevronDown, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task } from '@atlasmail/shared';
+import type { Task } from '@atlas-platform/shared';
 import { useMyAppPermission } from '../../../hooks/use-app-permissions';
 import { IconButton } from '../../../components/ui/icon-button';
 

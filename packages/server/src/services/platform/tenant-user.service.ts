@@ -7,7 +7,7 @@ import * as authService from '../auth.service';
 import { logger } from '../../utils/logger';
 import { getTenantById } from './tenant.service';
 import { setAppPermission, type AppRole, type AppRecordAccess } from '../app-permissions.service';
-import type { TenantMemberRole } from '@atlasmail/shared';
+import type { TenantMemberRole } from '@atlas-platform/shared';
 import { env } from '../../config/env';
 import { sendEmail } from '../email.service';
 

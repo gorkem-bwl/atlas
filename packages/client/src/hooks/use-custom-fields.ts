@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { CustomFieldWithValue } from '@atlasmail/shared';
+import type { CustomFieldWithValue } from '@atlas-platform/shared';
 
 /**
  * Fetch custom field definitions + current values for a specific record.

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronUp, Plus, LogOut, Check } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
 import { Avatar } from '../ui/avatar';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 import type { CSSProperties } from 'react';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 

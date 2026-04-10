@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { TableColumn, TableRow, TableViewConfig } from '@atlasmail/shared';
+import type { TableColumn, TableRow, TableViewConfig } from '@atlas-platform/shared';
 import { IconButton } from '../../../../components/ui/icon-button';
 import { Button } from '../../../../components/ui/button';
 import { Select } from '../../../../components/ui/select';

@@ -2,7 +2,7 @@ import { db } from '../../config/database';
 import { accounts, calendars, calendarEvents } from '../../db/schema';
 import { eq, and, gte, lte, sql, inArray, desc } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
-import type { CalendarEventCreateInput, CalendarEventUpdateInput } from '@atlasmail/shared';
+import type { CalendarEventCreateInput, CalendarEventUpdateInput } from '@atlas-platform/shared';
 import { getCalendarClient, upsertEvent, syncCalendarEvents } from './sync.service';
 
 // ─── Query helpers ───────────────────────────────────────────────────

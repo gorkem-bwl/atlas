@@ -5,8 +5,8 @@ import { formatDate } from '../../../lib/format';
 import {
   X, Trash2, DollarSign, FileCode, FileDown, Link, Mail, Download, Eye,
 } from 'lucide-react';
-import type { Invoice } from '@atlasmail/shared';
-import { getInvoiceStatusVariant } from '@atlasmail/shared';
+import type { Invoice } from '@atlas-platform/shared';
+import { getInvoiceStatusVariant } from '@atlas-platform/shared';
 import {
   useDeleteInvoice, useSendInvoice, useMarkInvoicePaid, useWaiveInvoice, useDuplicateInvoice,
   useInvoiceSettings,

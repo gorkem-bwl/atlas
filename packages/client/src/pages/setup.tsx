@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Select } from '../components/ui/select';
 import { CheckCircle2, ArrowRight, ArrowLeft, Globe, Building2, User, Settings, Rocket, ClipboardList } from 'lucide-react';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 
 // Wallpaper #4 — Mountain range
 const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';

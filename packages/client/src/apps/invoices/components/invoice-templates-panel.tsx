@@ -7,7 +7,7 @@ import { Textarea } from '../../../components/ui/textarea';
 import { Button } from '../../../components/ui/button';
 import { useToastStore } from '../../../stores/toast-store';
 import { api } from '../../../lib/api-client';
-import type { UpdateInvoiceSettingsInput } from '@atlasmail/shared';
+import type { UpdateInvoiceSettingsInput } from '@atlas-platform/shared';
 
 const sectionLabelStyle: React.CSSProperties = {
   fontSize: 'var(--font-size-xs)',

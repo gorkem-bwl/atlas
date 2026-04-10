@@ -1,4 +1,4 @@
-import type { TableColumn, TableRow } from '@atlasmail/shared';
+import type { TableColumn, TableRow } from '@atlas-platform/shared';
 
 // ─── Table template types & categories ───────────────────────────────
 

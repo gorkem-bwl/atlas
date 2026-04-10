@@ -1,5 +1,5 @@
 import type { Router } from 'express';
-import type { AppManifestBase } from '@atlasmail/shared';
+import type { AppManifestBase } from '@atlas-platform/shared';
 
 export interface ServerAppManifest extends AppManifestBase {
   /** Express router for this app's API routes */

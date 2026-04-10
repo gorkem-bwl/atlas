@@ -4,7 +4,7 @@ import { Modal } from '../ui/modal';
 import { useGlobalSearch } from '../../hooks/use-global-search';
 import { useCreateLink } from '../../hooks/use-record-links';
 import { appRegistry } from '../../apps';
-import type { GlobalSearchResult } from '@atlasmail/shared';
+import type { GlobalSearchResult } from '@atlas-platform/shared';
 
 interface LinkPickerProps {
   open: boolean;

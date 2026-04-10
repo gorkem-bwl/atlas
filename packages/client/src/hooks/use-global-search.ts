@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api-client';
 import { queryKeys } from '../config/query-keys';
-import type { GlobalSearchResult } from '@atlasmail/shared';
+import type { GlobalSearchResult } from '@atlas-platform/shared';
 
 function useDebounce(value: string, delay = 300): string {
   const [debounced, setDebounced] = useState(value);

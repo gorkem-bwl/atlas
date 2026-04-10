@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
-import type { DriveItem, DriveItemVersion, DriveShareLink, UpdateDriveItemInput, DriveActivityEntry, DriveComment } from '@atlasmail/shared';
+import type { DriveItem, DriveItemVersion, DriveShareLink, UpdateDriveItemInput, DriveActivityEntry, DriveComment } from '@atlas-platform/shared';
 
 // ─── Queries ─────────────────────────────────────────────────────────
 

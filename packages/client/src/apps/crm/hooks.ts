@@ -1452,7 +1452,7 @@ export function useCrmTeams() {
 }
 
 // ─── Proposal Types (from shared package) ───────────────────────
-import type { Proposal, ProposalStatus, ProposalLineItem, CreateProposalInput, UpdateProposalInput } from '@atlasmail/shared';
+import type { Proposal, ProposalStatus, ProposalLineItem, CreateProposalInput, UpdateProposalInput } from '@atlas-platform/shared';
 export type { Proposal, ProposalStatus, ProposalLineItem, CreateProposalInput, UpdateProposalInput };
 
 // ─── Proposal Queries ───────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../lib/api-client';
 import { queryKeys } from '../../../config/query-keys';
-import type { DocumentComment, CreateDocCommentInput, Backlink } from '@atlasmail/shared';
+import type { DocumentComment, CreateDocCommentInput, Backlink } from '@atlas-platform/shared';
 
 export function useDocComments(docId: string | undefined) {
   return useQuery({

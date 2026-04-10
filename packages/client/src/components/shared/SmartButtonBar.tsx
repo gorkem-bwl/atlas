@@ -5,7 +5,7 @@ import { useLinkCounts, useLinkedRecords, useDeleteLink } from '../../hooks/use-
 import { appRegistry } from '../../apps';
 import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
 import { LinkPicker } from './LinkPicker';
-import type { LinkedRecord } from '@atlasmail/shared';
+import type { LinkedRecord } from '@atlas-platform/shared';
 
 function getRecordUrl(appId: string, recordId: string): string {
   switch (appId) {

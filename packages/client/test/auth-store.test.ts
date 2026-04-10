@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { Account } from '@atlasmail/shared';
+import type { Account } from '@atlas-platform/shared';
 
 // We need to clear localStorage and re-import the store fresh for each test.
 // Since Zustand stores are singletons, we use setState to reset.

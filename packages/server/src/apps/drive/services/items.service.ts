@@ -5,7 +5,7 @@ import { logger } from '../../../utils/logger';
 import { unlinkSync, existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import type { CreateDriveItemInput, UpdateDriveItemInput } from '@atlasmail/shared';
+import type { CreateDriveItemInput, UpdateDriveItemInput } from '@atlas-platform/shared';
 import { hasSharedAccess } from './sharing.service';
 
 const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');

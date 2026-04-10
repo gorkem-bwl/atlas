@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import { type ExpenseStatus, getExpenseStatusVariant } from '@atlasmail/shared';
+import { type ExpenseStatus, getExpenseStatusVariant } from '@atlas-platform/shared';
 import { useMyExpenses } from '../../hooks';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';

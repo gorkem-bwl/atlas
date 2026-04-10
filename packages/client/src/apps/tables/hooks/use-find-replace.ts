@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { AgGridReact } from 'ag-grid-react';
-import type { TableColumn, TableRow } from '@atlasmail/shared';
+import type { TableColumn, TableRow } from '@atlas-platform/shared';
 
 export interface FindMatch {
   rowIndex: number;

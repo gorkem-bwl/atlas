@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Task } from '@atlasmail/shared';
+import type { Task } from '@atlas-platform/shared';
 import { getTodayStr } from '../lib/helpers';
 import { Button } from '../../../components/ui/button';
 

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   CheckCircle, XCircle, Clock, CheckSquare, AlertTriangle, ExternalLink,
 } from 'lucide-react';
-import { type HrExpense } from '@atlasmail/shared';
+import { type HrExpense } from '@atlas-platform/shared';
 import { usePendingExpenses, useApproveExpense, useRefuseExpense } from '../../hooks';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';

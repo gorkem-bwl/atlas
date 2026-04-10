@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { EyeOff } from 'lucide-react';
-import type { TableColumn, TableViewConfig } from '@atlasmail/shared';
+import type { TableColumn, TableViewConfig } from '@atlas-platform/shared';
 import { Popover, PopoverTrigger, PopoverContent } from '../../../components/ui/popover';
 
 interface HideFieldsPopoverProps {

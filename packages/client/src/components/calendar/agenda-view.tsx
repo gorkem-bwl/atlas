@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '@atlasmail/shared';
+import type { CalendarEvent } from '@atlas-platform/shared';
 import { MapPin, Video } from 'lucide-react';
 
 /*

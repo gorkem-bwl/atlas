@@ -15,7 +15,7 @@ import { AccountSwitcher } from './account-switcher';
 import { appRegistry } from '../../apps';
 import { ROUTES } from '../../config/routes';
 import { useMyAccessibleApps } from '../../hooks/use-app-permissions';
-import type { ThemeMode } from '@atlasmail/shared';
+import type { ThemeMode } from '@atlas-platform/shared';
 import type { CSSProperties } from 'react';
 
 const THEME_CYCLE: ThemeMode[] = ['light', 'dark', 'system'];
