@@ -223,6 +223,10 @@ export function SignPage() {
         onExpiryDateChange={s.setExpiryDate}
         signInOrder={s.signInOrder}
         onSignInOrderChange={s.setSignInOrder}
+        documentType={s.documentType}
+        onDocumentTypeChange={s.setDocumentType}
+        counterpartyName={s.counterpartyName}
+        onCounterpartyNameChange={s.setCounterpartyName}
         generatedLink={s.generatedLink}
         generatedLinks={s.generatedLinks}
         linkCopied={s.linkCopied}

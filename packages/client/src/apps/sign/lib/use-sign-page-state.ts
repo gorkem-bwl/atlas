@@ -21,7 +21,7 @@ import {
   useDeleteTemplate,
 } from '../hooks';
 import { config } from '../../../config/env';
-import type { SignatureDocument, SignatureFieldType, SignatureField } from '@atlasmail/shared';
+import type { SignatureDocument, SignatureFieldType, SignatureField, DocumentType } from '@atlasmail/shared';
 import type { Signer } from '../components/signer-panel';
 import { type FilterStatus, getDefaultExpiry } from './helpers';
 
@@ -54,6 +54,8 @@ export function useSignPageState() {
   const [emailMessage, setEmailMessage] = useState('');
   const [signInOrder, setSignInOrder] = useState(false);
   const [expiryDate, setExpiryDate] = useState(getDefaultExpiry);
+  const [documentType, setDocumentType] = useState<DocumentType>('contract');
+  const [counterpartyName, setCounterpartyName] = useState('');
   const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
   const [deleteTemplateOpen, setDeleteTemplateOpen] = useState(false);
   const [pageThumbnails, setPageThumbnails] = useState<Array<{ page: number; dataUrl: string; width: number; height: number }>>([]);
@@ -247,6 +249,14 @@ export function useSignPageState() {
     [sigFieldId, updateField],
   );
 
+  // Prefill document type + counterparty when opening the send modal
+  useEffect(() => {
+    if (sendModalOpen && selectedDoc) {
+      setDocumentType((selectedDoc.documentType as DocumentType) || 'contract');
+      setCounterpartyName(selectedDoc.counterpartyName || '');
+    }
+  }, [sendModalOpen, selectedDoc]);
+
   const handleSendForSigning = useCallback(async () => {
     const validSigners = signers.filter((s) => s.email.trim());
     if (validSigners.length === 0) return;
@@ -280,11 +290,15 @@ export function useSignPageState() {
         setGeneratedLink('__multi__');
       }
       setLinkCopied(false);
-      await updateDoc.mutateAsync({ status: 'pending' });
+      await updateDoc.mutateAsync({
+        status: 'pending',
+        documentType,
+        counterpartyName: counterpartyName.trim() || null,
+      });
     } catch {
       // Handled by RQ
     }
-  }, [signers, signInOrder, emailSubject, emailMessage, createSigningLink, updateDoc, expiryDate]);
+  }, [signers, signInOrder, emailSubject, emailMessage, createSigningLink, updateDoc, expiryDate, documentType, counterpartyName]);
 
   const handleCopyLink = useCallback((link: string) => {
     navigator.clipboard.writeText(link);
@@ -301,6 +315,8 @@ export function useSignPageState() {
       setExpiryDate(getDefaultExpiry());
       setEmailSubject('');
       setEmailMessage('');
+      setDocumentType('contract');
+      setCounterpartyName('');
     }
   }, []);
 
@@ -407,6 +423,8 @@ export function useSignPageState() {
     emailMessage, setEmailMessage,
     signInOrder, setSignInOrder,
     expiryDate, setExpiryDate,
+    documentType, setDocumentType,
+    counterpartyName, setCounterpartyName,
     deleteTemplateId, deleteTemplateOpen, setDeleteTemplateOpen,
     pageThumbnails, setPageThumbnails,
     scrollToPage, setScrollToPage,

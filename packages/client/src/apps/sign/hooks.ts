@@ -82,7 +82,7 @@ export function useUpdateSignDoc(id: string | undefined) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: Partial<Pick<SignatureDocument, 'title' | 'status' | 'tags' | 'pageCount'>> & { redirectUrl?: string | null }) => {
+    mutationFn: async (input: Partial<Pick<SignatureDocument, 'title' | 'status' | 'tags' | 'pageCount' | 'documentType'>> & { redirectUrl?: string | null; counterpartyName?: string | null }) => {
       const { data } = await api.put(`/sign/${id}`, input);
       return data.data as SignatureDocument;
     },

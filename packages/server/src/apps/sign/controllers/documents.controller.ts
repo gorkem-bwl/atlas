@@ -142,10 +142,10 @@ export async function updateDocument(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
-    const { title, status, expiresAt, tags, pageCount, redirectUrl } = req.body;
+    const { title, status, expiresAt, tags, pageCount, redirectUrl, documentType, counterpartyName } = req.body;
 
     const doc = await signService.updateDocument(userId, documentId, {
-      title, status, expiresAt, tags, pageCount, redirectUrl,
+      title, status, expiresAt, tags, pageCount, redirectUrl, documentType, counterpartyName,
     });
 
     if (!doc) {

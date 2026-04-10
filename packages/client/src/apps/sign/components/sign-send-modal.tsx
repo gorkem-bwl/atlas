@@ -19,6 +19,7 @@ import { Modal } from '../../../components/ui/modal';
 import { SIGNER_COLORS, type Signer } from './signer-panel';
 import { StatusDot } from '../../../components/ui/status-dot';
 import { formatDate } from '../../../lib/format';
+import type { DocumentType } from '@atlasmail/shared';
 
 interface SigningLink {
   id: string;
@@ -43,6 +44,10 @@ export function SignSendModal({
   onExpiryDateChange,
   signInOrder,
   onSignInOrderChange,
+  documentType,
+  onDocumentTypeChange,
+  counterpartyName,
+  onCounterpartyNameChange,
   generatedLink,
   generatedLinks,
   linkCopied,
@@ -64,6 +69,10 @@ export function SignSendModal({
   onExpiryDateChange: (v: string) => void;
   signInOrder: boolean;
   onSignInOrderChange: (v: boolean) => void;
+  documentType: DocumentType;
+  onDocumentTypeChange: (v: DocumentType) => void;
+  counterpartyName: string;
+  onCounterpartyNameChange: (v: string) => void;
   generatedLink: string | null;
   generatedLinks: { email: string; link: string }[];
   linkCopied: boolean;
@@ -75,12 +84,60 @@ export function SignSendModal({
 }) {
   const { t } = useTranslation();
 
+  const typeOptions = [
+    { value: 'contract', label: t('sign.types.contract') },
+    { value: 'nda', label: t('sign.types.nda') },
+    { value: 'offer_letter', label: t('sign.types.offer_letter') },
+    { value: 'acknowledgment', label: t('sign.types.acknowledgment') },
+    { value: 'waiver', label: t('sign.types.waiver') },
+    { value: 'other', label: t('sign.types.other') },
+  ];
+
   return (
     <Modal open={open} onOpenChange={onOpenChange} width={520} title={t('sign.editor.sendForSigning')}>
       <Modal.Header title={t('sign.editor.sendForSigning')} />
       <Modal.Body>
         {!generatedLink ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <div style={{ flex: '0 0 180px' }}>
+                <div
+                  style={{
+                    fontSize: 'var(--font-size-xs)',
+                    fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
+                    color: 'var(--color-text-secondary)',
+                    marginBottom: 4,
+                  }}
+                >
+                  {t('sign.documentType')}
+                </div>
+                <Select
+                  value={documentType}
+                  onChange={(val) => onDocumentTypeChange(val as DocumentType)}
+                  options={typeOptions}
+                  size="md"
+                  width="100%"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Input
+                  label={t('sign.counterpartyOptional')}
+                  placeholder={t('sign.counterparty')}
+                  value={counterpartyName}
+                  onChange={(e) => onCounterpartyNameChange(e.target.value)}
+                  size="md"
+                />
+                <div
+                  style={{
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-tertiary)',
+                    marginTop: 4,
+                  }}
+                >
+                  {t('sign.send.counterpartyHint')}
+                </div>
+              </div>
+            </div>
             <Input
               label={t('sign.send.emailSubject')}
               placeholder={t('sign.send.emailSubjectPlaceholder')}

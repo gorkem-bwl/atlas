@@ -195,6 +195,8 @@ export async function updateDocument(
     tags?: string[];
     pageCount?: number;
     redirectUrl?: string | null;
+    documentType?: string;
+    counterpartyName?: string | null;
   },
 ) {
   const now = new Date();
@@ -206,6 +208,8 @@ export async function updateDocument(
   if (data.tags !== undefined) updates.tags = data.tags;
   if (data.pageCount !== undefined) updates.pageCount = data.pageCount;
   if (data.redirectUrl !== undefined) updates.redirectUrl = data.redirectUrl;
+  if (data.documentType !== undefined) updates.documentType = data.documentType;
+  if (data.counterpartyName !== undefined) updates.counterpartyName = data.counterpartyName;
 
   await db
     .update(signatureDocuments)
