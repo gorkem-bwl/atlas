@@ -322,7 +322,7 @@ export { apiClient };
 ## 7.2 Electron Auth Flow
 
 Electron cannot use standard browser redirects. Instead, it registers a custom
-protocol (`atlasmail://`) as a deep link handler.
+protocol (`atlas://`) as a deep link handler.
 
 ```
   ┌─────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -333,7 +333,7 @@ protocol (`atlasmail://`) as a deep link handler.
          │ 1. Generate PKCE   │                    │
          │    + auth URL with │                    │
          │    redirect_uri=   │                    │
-         │    atlasmail://     │                    │
+         │    atlas://     │                    │
          │    auth/callback   │                    │
          │                    │                    │
          │ 2. Open system     │                    │
@@ -345,7 +345,7 @@ protocol (`atlasmail://`) as a deep link handler.
          │                    │ ──────────────────>│
          │                    │                    │
          │                    │ 4. Google redirects│
-         │                    │    to atlasmail:// │
+         │                    │    to atlas:// │
          │                    │    auth/callback   │
          │                    │    ?code=xxx       │
          │                    │ <──────────────────│
@@ -382,12 +382,12 @@ import { app, BrowserWindow } from 'electron';
 // Register custom protocol for deep links
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('atlasmail', process.execPath, [
+    app.setAsDefaultProtocolClient('atlas', process.execPath, [
       path.resolve(process.argv[1]),
     ]);
   }
 } else {
-  app.setAsDefaultProtocolClient('atlasmail');
+  app.setAsDefaultProtocolClient('atlas');
 }
 
 // Handle the deep link on macOS
@@ -402,7 +402,7 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.on('second-instance', (event, commandLine) => {
-    const url = commandLine.find(arg => arg.startsWith('atlasmail://'));
+    const url = commandLine.find(arg => arg.startsWith('atlas://'));
     if (url) handleDeepLink(url);
 
     // Focus the existing window
@@ -439,7 +439,7 @@ export async function initiateLogin(): Promise<void> {
     access_type: 'offline',
     prompt: 'consent',
     scope: GMAIL_SCOPES,
-    redirect_uri: 'atlasmail://auth/callback',
+    redirect_uri: 'atlas://auth/callback',
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
   });
@@ -464,7 +464,7 @@ export async function handleAuthCallback(callbackUrl: string): Promise<void> {
   const { tokens } = await oauth2Client.getToken({
     code,
     codeVerifier: pendingCodeVerifier,
-    redirect_uri: 'atlasmail://auth/callback',
+    redirect_uri: 'atlas://auth/callback',
   });
 
   pendingCodeVerifier = null;

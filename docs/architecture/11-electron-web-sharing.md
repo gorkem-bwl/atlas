@@ -46,7 +46,7 @@ how the build pipeline works.
 |-------------------|------------------------------|--------------------------------|
 | Data fetching     | HTTP to Express API          | IPC to main process            |
 | Local database    | sql.js (WASM in Web Worker)  | better-sqlite3 (native)        |
-| Auth flow         | Browser redirect             | Deep link (atlasmail://)       |
+| Auth flow         | Browser redirect             | Deep link (atlas://)       |
 | Token storage     | httpOnly cookie / memory     | OS keychain                    |
 | Notifications     | Web Notifications API        | Electron native notifications  |
 | Auto-update       | N/A (Vercel deploys)         | electron-updater               |
@@ -387,7 +387,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      '@atlasmail/shared': path.resolve(__dirname, '..', 'shared', 'src'),
+      '@atlas-platform/shared': path.resolve(__dirname, '..', 'shared', 'src'),
     },
   },
   build: {
@@ -421,7 +421,7 @@ These features exist only in Electron and are not available in the web app:
 4. **Auto-updater** — checks for updates via electron-updater (GitHub Releases).
 5. **Offline mode** — full app works without internet (reads from SQLite).
 6. **Menu bar** — native application menu with all actions.
-7. **Deep links** — `atlasmail://compose?to=alice@example.com` opens compose.
+7. **Deep links** — `atlas://compose?to=alice@example.com` opens compose.
 
 ### Conditional imports:
 

@@ -463,7 +463,7 @@ CREATE TABLE sync_metadata (
 ### JSON Columns
 PostgreSQL uses native JSONB with GIN indexes for label arrays and rule
 conditions. SQLite stores the same data as JSON text and parses it in
-application code. The `@atlasmail/shared` package provides typed helpers for
+application code. The `@atlas-platform/shared` package provides typed helpers for
 both.
 
 ### Why Denormalize Thread Metadata

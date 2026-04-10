@@ -287,7 +287,7 @@ via Google Cloud Pub/Sub.
 
 ### Setup (one-time):
 
-1. Create a Google Cloud Pub/Sub topic: `projects/atlasmail/topics/gmail-push`
+1. Create a Google Cloud Pub/Sub topic: `projects/atlas/topics/gmail-push`
 2. Create a subscription that pushes to our webhook:
    `POST /api/v1/sync/webhook`
 3. Grant Gmail's service account publish permission on the topic.
@@ -301,7 +301,7 @@ async function registerGmailWatch(accountId: string): Promise<void> {
   const response = await gmail.users.watch({
     userId: 'me',
     requestBody: {
-      topicName: 'projects/atlasmail/topics/gmail-push',
+      topicName: 'projects/atlas/topics/gmail-push',
       labelIds: ['INBOX'],
     },
   });

@@ -490,7 +490,7 @@ Cloud Pub/Sub, not by the client.
     "messageId": "...",
     "publishTime": "..."
   },
-  "subscription": "projects/atlasmail/subscriptions/gmail-push"
+  "subscription": "projects/atlas/subscriptions/gmail-push"
 }
 ```
 

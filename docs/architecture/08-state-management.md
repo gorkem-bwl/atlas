@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
         set({ accessToken: null, account: null, isAuthenticated: false }),
     }),
     {
-      name: 'atlasmail-auth',
+      name: 'atlas-auth',
       // Only persist account info, not the access token
       partialize: (state) => ({ account: state.account }),
     },
@@ -262,7 +262,7 @@ export const useSettingsStore = create<SettingsState>()(
           customShortcuts: { ...s.customShortcuts, [action]: keys },
         })),
     }),
-    { name: 'atlasmail-settings' },
+    { name: 'atlas-settings' },
   ),
 );
 ```

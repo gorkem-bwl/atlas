@@ -9,7 +9,7 @@ package.json to avoid surprise breaking changes.
 
 ```jsonc
 {
-  "name": "atlasmail",
+  "name": "atlas",
   "private": true,
   "workspaces": [
     "packages/shared",
@@ -42,7 +42,7 @@ package.json to avoid surprise breaking changes.
 
 ```jsonc
 {
-  "name": "@atlasmail/shared",
+  "name": "@atlas-platform/shared",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -73,7 +73,7 @@ package.json to avoid surprise breaking changes.
 
 ```jsonc
 {
-  "name": "@atlasmail/server",
+  "name": "@atlas-platform/server",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -129,7 +129,7 @@ package.json to avoid surprise breaking changes.
     "date-fns": "^4.1.0",         // Date manipulation
 
     // ── Workspace dependency ────────────────────────
-    "@atlasmail/shared": "workspace:*"
+    "@atlas-platform/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
@@ -154,7 +154,7 @@ package.json to avoid surprise breaking changes.
 
 ```jsonc
 {
-  "name": "@atlasmail/client",
+  "name": "@atlas-platform/client",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -216,7 +216,7 @@ package.json to avoid surprise breaking changes.
     "react-hot-toast": "^2.4.0",  // Toast notifications (undo actions)
 
     // ── Workspace dependency ────────────────────────
-    "@atlasmail/shared": "workspace:*"
+    "@atlas-platform/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
@@ -251,7 +251,7 @@ package.json to avoid surprise breaking changes.
 
 ```jsonc
 {
-  "name": "@atlasmail/desktop",
+  "name": "@atlas-platform/desktop",
   "version": "0.1.0",
   "private": true,
   "main": "dist/main.js",
@@ -283,7 +283,7 @@ package.json to avoid surprise breaking changes.
     "date-fns": "^4.1.0",
 
     // ── Workspace dependency ────────────────────────
-    "@atlasmail/shared": "workspace:*"
+    "@atlas-platform/shared": "workspace:*"
   },
   "devDependencies": {
     "electron": "^33.0.0",
@@ -380,7 +380,7 @@ NODE_ENV=development
 PORT=3001
 
 # ── PostgreSQL ──────────────────────────────────────
-DATABASE_URL=postgresql://atlasmail:password@localhost:5432/atlasmail
+DATABASE_URL=postgresql://atlas:password@localhost:5432/atlas
 
 # ── Redis (for BullMQ) ─────────────────────────────
 REDIS_URL=redis://localhost:6379
@@ -397,7 +397,7 @@ JWT_REFRESH_SECRET=your-other-256-bit-secret
 TOKEN_ENCRYPTION_KEY=32-byte-hex-key
 
 # ── Google Cloud Pub/Sub ────────────────────────────
-GOOGLE_CLOUD_PROJECT=atlasmail
+GOOGLE_CLOUD_PROJECT=atlas
 GOOGLE_PUBSUB_TOPIC=gmail-push
 
 # ── Client (Vite) ──────────────────────────────────

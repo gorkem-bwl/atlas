@@ -415,7 +415,7 @@ export class ShortcutEngine {
 
 import { createContext, useContext, useEffect, useRef } from 'react';
 import { ShortcutEngine } from '../lib/shortcut-engine';
-import { DEFAULT_SHORTCUTS } from '@atlasmail/shared';
+import { DEFAULT_SHORTCUTS } from '@atlas-platform/shared';
 import { useSettingsStore } from '../stores/settings-store';
 
 const ShortcutContext = createContext<ShortcutEngine | null>(null);
@@ -565,7 +565,7 @@ search inside it. It lists all available shortcuts plus additional commands
 // packages/client/src/components/ui/command-palette.tsx
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { DEFAULT_SHORTCUTS } from '@atlasmail/shared';
+import { DEFAULT_SHORTCUTS } from '@atlas-platform/shared';
 import { useState, useMemo } from 'react';
 
 export function CommandPalette() {

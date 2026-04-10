@@ -681,7 +681,7 @@ React error boundary class component. Also exports `QueryErrorFallback` for TanS
 
 #### SendAnimation (`send-animation.tsx`)
 
-Paper-plane fly-out animation triggered via `atlasmail:email_sent` custom event. Disabled via settings.
+Paper-plane fly-out animation triggered via `atlas:email_sent` custom event. Disabled via settings.
 
 ---
 
@@ -889,7 +889,7 @@ Atlas uses `react-i18next` with 5 supported languages.
 ### Configuration
 
 Setup in `packages/client/src/i18n/index.ts`:
-- Uses `i18next-browser-languagedetector` with `localStorage` (`atlasmail-language` key) and `navigator` detection
+- Uses `i18next-browser-languagedetector` with `localStorage` (`atlas-language` key) and `navigator` detection
 - Fallback language: `en`
 - Interpolation: `escapeValue: false` (React handles escaping)
 

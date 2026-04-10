@@ -3,7 +3,7 @@
 ## Root Layout
 
 ```
-atlasmail/
+atlas/
 ├── package.json                  # Workspace root (npm workspaces)
 ├── tsconfig.base.json            # Shared TypeScript config
 ├── turbo.json                    # Turborepo pipeline config
@@ -215,7 +215,7 @@ atlasmail/
 │           │   ├── migrations/       # SQLite migration SQL files
 │           │   └── schema.sql        # Full SQLite schema
 │           └── utils/
-│               ├── deep-link.ts      # Custom protocol (atlasmail://)
+│               ├── deep-link.ts      # Custom protocol (atlas://)
 │               └── tray.ts           # System tray icon + menu
 │
 ├── docs/
