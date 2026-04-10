@@ -27,6 +27,7 @@ router.get('/:id', invoiceController.getInvoice);
 router.patch('/:id', invoiceController.updateInvoice);
 router.delete('/:id', invoiceController.deleteInvoice);
 router.post('/:id/send', invoiceController.sendInvoice);
+router.post('/:id/email', invoiceController.emailInvoice);
 router.post('/:id/paid', invoiceController.markInvoicePaid);
 router.post('/:id/waive', invoiceController.waiveInvoice);
 router.post('/:id/duplicate', invoiceController.duplicateInvoice);

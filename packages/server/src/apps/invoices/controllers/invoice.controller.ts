@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as invoiceService from '../services/invoice.service';
+import { sendInvoiceEmail } from '../services/invoice-email.service';
 import { logger } from '../../../utils/logger';
 import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
 import { emitAppEvent } from '../../../services/event.service';
@@ -182,7 +183,19 @@ export async function sendInvoice(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
+    const {
+      customSubject,
+      customMessage,
+      ccEmails,
+      skipEmail,
+    } = (req.body ?? {}) as {
+      customSubject?: string;
+      customMessage?: string;
+      ccEmails?: string[];
+      skipEmail?: boolean;
+    };
 
+    // 1. Flip status to 'sent' and stamp sentAt (existing behavior).
     const invoice = await invoiceService.sendInvoice(userId, tenantId, id);
     if (!invoice) {
       res.status(404).json({ success: false, error: 'Invoice not found' });
@@ -203,10 +216,96 @@ export async function sendInvoice(req: Request, res: Response) {
       }).catch(() => {});
     }
 
-    res.json({ success: true, data: invoice });
+    // 2. "Just mark as sent" path — skip email dispatch.
+    if (skipEmail === true) {
+      res.json({
+        success: true,
+        data: { invoice, emailSent: false, reason: 'skipped' },
+      });
+      return;
+    }
+
+    // 3. Attempt the email dispatch. The status flip already succeeded,
+    //    so any email failure is a partial success reported in `data`,
+    //    never a 500.
+    const emailResult = await sendInvoiceEmail(id, tenantId, {
+      customSubject,
+      customMessage,
+      ccEmails,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        invoice,
+        emailSent: emailResult.sent,
+        ...(emailResult.reason ? { reason: emailResult.reason } : {}),
+        ...(emailResult.recipient ? { recipient: emailResult.recipient } : {}),
+      },
+    });
   } catch (error) {
     logger.error({ error }, 'Failed to send invoice');
     res.status(500).json({ success: false, error: 'Failed to send invoice' });
+  }
+}
+
+export async function emailInvoice(req: Request, res: Response) {
+  try {
+    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to email invoices' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+    const {
+      customSubject,
+      customMessage,
+      ccEmails,
+      recipientOverride,
+    } = (req.body ?? {}) as {
+      customSubject?: string;
+      customMessage?: string;
+      ccEmails?: string[];
+      recipientOverride?: string;
+    };
+
+    // Verify the invoice exists and is not in draft status.
+    const existing = await invoiceService.getInvoice(userId, tenantId, id);
+    if (!existing) {
+      res.status(404).json({ success: false, error: 'Invoice not found' });
+      return;
+    }
+
+    if (existing.status === 'draft') {
+      res.status(400).json({
+        success: false,
+        error: 'Cannot email a draft invoice. Send it first.',
+      });
+      return;
+    }
+
+    // Re-send the email without touching status.
+    const emailResult = await sendInvoiceEmail(id, tenantId, {
+      customSubject,
+      customMessage,
+      ccEmails,
+      recipientOverride,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        emailSent: emailResult.sent,
+        ...(emailResult.reason ? { reason: emailResult.reason } : {}),
+        ...(emailResult.recipient ? { recipient: emailResult.recipient } : {}),
+      },
+    });
+  } catch (error) {
+    logger.error({ error }, 'Failed to email invoice');
+    res.status(500).json({ success: false, error: 'Failed to email invoice' });
   }
 }
 
