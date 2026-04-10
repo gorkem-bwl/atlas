@@ -182,33 +182,37 @@ export async function createDocumentFromTemplate(
   return doc;
 }
 
-export async function seedStarterTemplates(userId: string, tenantId: string) {
+export async function seedStarterTemplates(
+  userId: string,
+  tenantId: string,
+): Promise<{ created: string[]; skipped: string[]; failed: string[] }> {
   const created: string[] = [];
   const skipped: string[] = [];
+  const failed: string[] = [];
 
   const tenantDir = path.join(UPLOADS_DIR, tenantId);
   await mkdir(tenantDir, { recursive: true });
 
   for (const template of STARTER_TEMPLATES) {
-    // Idempotency: skip if a template with the same title already exists
-    const existing = await db
-      .select()
-      .from(signTemplates)
-      .where(
-        and(
-          eq(signTemplates.tenantId, tenantId),
-          eq(signTemplates.title, template.title),
-          eq(signTemplates.isArchived, false),
-        ),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      skipped.push(template.title);
-      continue;
-    }
-
     try {
+      // Idempotency: skip if a template with the same title already exists
+      const existing = await db
+        .select()
+        .from(signTemplates)
+        .where(
+          and(
+            eq(signTemplates.tenantId, tenantId),
+            eq(signTemplates.title, template.title),
+            eq(signTemplates.isArchived, false),
+          ),
+        )
+        .limit(1);
+
+      if (existing.length > 0) {
+        skipped.push(template.title);
+        continue;
+      }
+
       const buffer = await template.render();
       const safeKey = template.key.replace(/[^a-zA-Z0-9_]/g, '_');
       const fileName = `${userId}_${Date.now()}_${safeKey}.pdf`;
@@ -216,13 +220,33 @@ export async function seedStarterTemplates(userId: string, tenantId: string) {
       await writeFile(absPath, buffer);
 
       const storagePath = `${tenantId}/${fileName}`;
-      const pageCount = template.key === 'offer_letter' ? 1 : 2;
+
+      // Second idempotency check immediately before insert to narrow the race
+      // window between two rapid clicks on "seed starter templates". This
+      // doesn't fully close the race (no unique index) but is good enough for
+      // a manual seed button that's rarely clicked twice.
+      const existingBeforeInsert = await db
+        .select()
+        .from(signTemplates)
+        .where(
+          and(
+            eq(signTemplates.tenantId, tenantId),
+            eq(signTemplates.title, template.title),
+            eq(signTemplates.isArchived, false),
+          ),
+        )
+        .limit(1);
+
+      if (existingBeforeInsert.length > 0) {
+        skipped.push(template.title);
+        continue;
+      }
 
       await createTemplate(userId, tenantId, {
         title: template.title,
         fileName: `${safeKey}.pdf`,
         storagePath,
-        pageCount,
+        pageCount: template.pageCount,
         fields: template.fields,
       });
 
@@ -232,15 +256,22 @@ export async function seedStarterTemplates(userId: string, tenantId: string) {
         { err, templateKey: template.key },
         'Failed to seed starter template',
       );
+      failed.push(template.title);
     }
   }
 
   logger.info(
-    { userId, tenantId, created: created.length, skipped: skipped.length },
+    {
+      userId,
+      tenantId,
+      created: created.length,
+      skipped: skipped.length,
+      failed: failed.length,
+    },
     'Starter sign templates seeded',
   );
 
-  return { created, skipped };
+  return { created, skipped, failed };
 }
 
 export async function deleteTemplate(userId: string, tenantId: string, templateId: string) {

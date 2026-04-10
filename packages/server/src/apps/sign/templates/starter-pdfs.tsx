@@ -24,6 +24,7 @@ export interface StarterTemplate {
   key: string;
   title: string;
   documentType: 'contract' | 'nda' | 'offer_letter';
+  pageCount: number;
   render: () => Promise<Buffer>;
   fields: StarterFieldSpec[];
 }
@@ -460,6 +461,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     key: 'mutual_nda',
     title: 'Mutual NDA',
     documentType: 'nda',
+    pageCount: 2,
     render: () => renderToBuffer(<MutualNdaDoc />),
     fields: TWO_PARTY_PAGE2_FIELDS,
   },
@@ -467,6 +469,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     key: 'oneway_nda',
     title: 'One-way NDA',
     documentType: 'nda',
+    pageCount: 2,
     render: () => renderToBuffer(<OneWayNdaDoc />),
     fields: TWO_PARTY_PAGE2_FIELDS,
   },
@@ -474,6 +477,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     key: 'consulting_agreement',
     title: 'Consulting Agreement',
     documentType: 'contract',
+    pageCount: 2,
     render: () => renderToBuffer(<ConsultingAgreementDoc />),
     fields: TWO_PARTY_PAGE2_FIELDS,
   },
@@ -481,6 +485,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     key: 'simple_sow',
     title: 'Simple SOW',
     documentType: 'contract',
+    pageCount: 2,
     render: () => renderToBuffer(<SimpleSowDoc />),
     fields: TWO_PARTY_PAGE2_FIELDS,
   },
@@ -488,6 +493,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     key: 'offer_letter',
     title: 'Offer Letter',
     documentType: 'offer_letter',
+    pageCount: 1,
     render: () => renderToBuffer(<OfferLetterDoc />),
     fields: OFFER_LETTER_FIELDS,
   },

@@ -410,21 +410,29 @@ export async function saveAsTemplate(req: Request, res: Response) {
 
 export async function seedStarterTemplates(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'create')) {
-      res.status(403).json({ success: false, error: 'No permission to create sign templates' });
-      return;
-    }
-
-    const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     if (!tenantId) {
       res.status(400).json({ success: false, error: 'Tenant context required' });
       return;
     }
 
+    const perm = await getAppPermission(tenantId, req.auth!.userId, 'sign');
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to create sign templates' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+
     const result = await signService.seedStarterTemplates(userId, tenantId);
-    res.json({ success: true, data: result });
+    res.json({
+      success: true,
+      data: {
+        created: result.created,
+        skipped: result.skipped,
+        failed: result.failed,
+      },
+    });
   } catch (error) {
     logger.error({ error }, 'Failed to seed starter sign templates');
     res.status(500).json({ success: false, error: 'Failed to seed starter sign templates' });
