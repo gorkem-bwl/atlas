@@ -3691,6 +3691,28 @@
       "markedOnly": "Fattura segnata come inviata",
       "sendFailed": "Impossibile inviare l'email: {{reason}}"
     },
+    "importTime": {
+      "importTimeEntries": "Importa voci di tempo",
+      "dateRange": "Intervallo di date",
+      "from": "Da",
+      "to": "A",
+      "projectFilter": "Progetto",
+      "allProjects": "Tutti i progetti",
+      "refresh": "Aggiorna",
+      "tableHeaderProject": "Progetto",
+      "tableHeaderDate": "Data",
+      "tableHeaderDescription": "Descrizione",
+      "tableHeaderHours": "Ore",
+      "tableHeaderRate": "Tariffa",
+      "tableHeaderAmount": "Importo",
+      "selectedSummary": "{{selected}} di {{total}} voci selezionate",
+      "totalLabel": "Totale",
+      "addToInvoice": "Aggiungi alla fattura",
+      "cancel": "Annulla",
+      "importSuccess": "Aggiunte {{count}} righe dalle voci di tempo",
+      "importFailed": "Importazione non riuscita: {{reason}}",
+      "noUnbilledEntries": "Nessuna voce di tempo non fatturata trovata per questa azienda nell'intervallo di date selezionato."
+    },
     "settings": {
       "general": "Generale",
       "saved": "Impostazioni salvate",

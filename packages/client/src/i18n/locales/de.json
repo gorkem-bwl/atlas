@@ -3691,6 +3691,28 @@
       "markedOnly": "Rechnung als gesendet markiert",
       "sendFailed": "E-Mail konnte nicht zugestellt werden: {{reason}}"
     },
+    "importTime": {
+      "importTimeEntries": "Zeiteinträge importieren",
+      "dateRange": "Zeitraum",
+      "from": "Von",
+      "to": "Bis",
+      "projectFilter": "Projekt",
+      "allProjects": "Alle Projekte",
+      "refresh": "Aktualisieren",
+      "tableHeaderProject": "Projekt",
+      "tableHeaderDate": "Datum",
+      "tableHeaderDescription": "Beschreibung",
+      "tableHeaderHours": "Stunden",
+      "tableHeaderRate": "Satz",
+      "tableHeaderAmount": "Betrag",
+      "selectedSummary": "{{selected}} von {{total}} Einträgen ausgewählt",
+      "totalLabel": "Gesamt",
+      "addToInvoice": "Zur Rechnung hinzufügen",
+      "cancel": "Abbrechen",
+      "importSuccess": "{{count}} Positionen aus Zeiteinträgen hinzugefügt",
+      "importFailed": "Import fehlgeschlagen: {{reason}}",
+      "noUnbilledEntries": "Keine unverrechneten Zeiteinträge für dieses Unternehmen in diesem Zeitraum gefunden."
+    },
     "settings": {
       "general": "Allgemein",
       "saved": "Einstellungen gespeichert",

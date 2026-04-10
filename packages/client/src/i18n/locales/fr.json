@@ -3691,6 +3691,28 @@
       "markedOnly": "Facture marquée comme envoyée",
       "sendFailed": "L'email n'a pas pu être envoyé : {{reason}}"
     },
+    "importTime": {
+      "importTimeEntries": "Importer les saisies de temps",
+      "dateRange": "Plage de dates",
+      "from": "Du",
+      "to": "Au",
+      "projectFilter": "Projet",
+      "allProjects": "Tous les projets",
+      "refresh": "Actualiser",
+      "tableHeaderProject": "Projet",
+      "tableHeaderDate": "Date",
+      "tableHeaderDescription": "Description",
+      "tableHeaderHours": "Heures",
+      "tableHeaderRate": "Taux",
+      "tableHeaderAmount": "Montant",
+      "selectedSummary": "{{selected}} saisies sur {{total}} sélectionnées",
+      "totalLabel": "Total",
+      "addToInvoice": "Ajouter à la facture",
+      "cancel": "Annuler",
+      "importSuccess": "{{count}} lignes ajoutées depuis les saisies de temps",
+      "importFailed": "Échec de l'import : {{reason}}",
+      "noUnbilledEntries": "Aucune saisie de temps non facturée trouvée pour cette entreprise sur cette période."
+    },
     "settings": {
       "general": "Général",
       "saved": "Paramètres enregistrés",

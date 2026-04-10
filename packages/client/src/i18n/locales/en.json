@@ -3696,6 +3696,28 @@
       "markedOnly": "Invoice marked as sent",
       "sendFailed": "Email could not be delivered: {{reason}}"
     },
+    "importTime": {
+      "importTimeEntries": "Import time entries",
+      "dateRange": "Date range",
+      "from": "From",
+      "to": "To",
+      "projectFilter": "Project",
+      "allProjects": "All projects",
+      "refresh": "Refresh",
+      "tableHeaderProject": "Project",
+      "tableHeaderDate": "Date",
+      "tableHeaderDescription": "Description",
+      "tableHeaderHours": "Hours",
+      "tableHeaderRate": "Rate",
+      "tableHeaderAmount": "Amount",
+      "selectedSummary": "{{selected}} of {{total}} entries selected",
+      "totalLabel": "Total",
+      "addToInvoice": "Add to invoice",
+      "cancel": "Cancel",
+      "importSuccess": "Added {{count}} line items from time entries",
+      "importFailed": "Failed to import: {{reason}}",
+      "noUnbilledEntries": "No unbilled time entries found for this company in this date range."
+    },
     "settings": {
       "general": "General",
       "saved": "Settings saved",

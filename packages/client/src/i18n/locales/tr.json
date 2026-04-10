@@ -3691,6 +3691,28 @@
       "markedOnly": "Fatura gönderildi olarak işaretlendi",
       "sendFailed": "E-posta gönderilemedi: {{reason}}"
     },
+    "importTime": {
+      "importTimeEntries": "Zaman girdilerini içe aktar",
+      "dateRange": "Tarih aralığı",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "projectFilter": "Proje",
+      "allProjects": "Tüm projeler",
+      "refresh": "Yenile",
+      "tableHeaderProject": "Proje",
+      "tableHeaderDate": "Tarih",
+      "tableHeaderDescription": "Açıklama",
+      "tableHeaderHours": "Saat",
+      "tableHeaderRate": "Ücret",
+      "tableHeaderAmount": "Tutar",
+      "selectedSummary": "{{total}} girdiden {{selected}} tanesi seçildi",
+      "totalLabel": "Toplam",
+      "addToInvoice": "Faturaya ekle",
+      "cancel": "İptal",
+      "importSuccess": "{{count}} kalem zaman girdisinden eklendi",
+      "importFailed": "İçe aktarılamadı: {{reason}}",
+      "noUnbilledEntries": "Bu şirket için seçilen tarih aralığında faturalanmamış zaman girdisi bulunamadı."
+    },
     "settings": {
       "general": "Genel",
       "saved": "Ayarlar kaydedildi",
