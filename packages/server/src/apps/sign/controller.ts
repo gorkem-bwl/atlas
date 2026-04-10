@@ -32,4 +32,5 @@ export {
   useTemplate,
   saveAsTemplate,
   deleteTemplate,
+  seedStarterTemplates,
 } from './controllers/fields-public.controller';

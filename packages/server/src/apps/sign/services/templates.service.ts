@@ -3,10 +3,11 @@ import { signatureDocuments, signTemplates } from '../../../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import crypto from 'node:crypto';
-import { copyFile } from 'node:fs/promises';
+import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createDocument } from './documents.service';
 import { createField, listFields } from './fields-tokens.service';
+import { STARTER_TEMPLATES } from '../templates/starter-pdfs';
 
 const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');
 
@@ -179,6 +180,67 @@ export async function createDocumentFromTemplate(
   }
 
   return doc;
+}
+
+export async function seedStarterTemplates(userId: string, tenantId: string) {
+  const created: string[] = [];
+  const skipped: string[] = [];
+
+  const tenantDir = path.join(UPLOADS_DIR, tenantId);
+  await mkdir(tenantDir, { recursive: true });
+
+  for (const template of STARTER_TEMPLATES) {
+    // Idempotency: skip if a template with the same title already exists
+    const existing = await db
+      .select()
+      .from(signTemplates)
+      .where(
+        and(
+          eq(signTemplates.tenantId, tenantId),
+          eq(signTemplates.title, template.title),
+          eq(signTemplates.isArchived, false),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      skipped.push(template.title);
+      continue;
+    }
+
+    try {
+      const buffer = await template.render();
+      const safeKey = template.key.replace(/[^a-zA-Z0-9_]/g, '_');
+      const fileName = `${userId}_${Date.now()}_${safeKey}.pdf`;
+      const absPath = path.join(tenantDir, fileName);
+      await writeFile(absPath, buffer);
+
+      const storagePath = `${tenantId}/${fileName}`;
+      const pageCount = template.key === 'offer_letter' ? 1 : 2;
+
+      await createTemplate(userId, tenantId, {
+        title: template.title,
+        fileName: `${safeKey}.pdf`,
+        storagePath,
+        pageCount,
+        fields: template.fields,
+      });
+
+      created.push(template.title);
+    } catch (err) {
+      logger.error(
+        { err, templateKey: template.key },
+        'Failed to seed starter template',
+      );
+    }
+  }
+
+  logger.info(
+    { userId, tenantId, created: created.length, skipped: skipped.length },
+    'Starter sign templates seeded',
+  );
+
+  return { created, skipped };
 }
 
 export async function deleteTemplate(userId: string, tenantId: string, templateId: string) {

@@ -39,4 +39,5 @@ export {
   saveAsTemplate,
   createDocumentFromTemplate,
   deleteTemplate,
+  seedStarterTemplates,
 } from './services/templates.service';

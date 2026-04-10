@@ -43,6 +43,7 @@ router.post('/reminders/send', signController.triggerReminders);
 // ─── Templates ─────────────────────────────────────────────────────
 router.get('/templates', signController.listTemplates);
 router.post('/templates', signController.createTemplate);
+router.post('/templates/seed-starter', signController.seedStarterTemplates);
 router.post('/templates/:id/use', signController.useTemplate);
 router.delete('/templates/:id', signController.deleteTemplate);
 
