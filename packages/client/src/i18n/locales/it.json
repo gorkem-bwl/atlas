@@ -3578,6 +3578,7 @@
     "print": "Stampa",
     "billTo": "Fatturare a",
     "invoicePreview": "Anteprima fattura",
+    "previewError": "Impossibile caricare l'anteprima della fattura",
     "efatura": {
       "type": "Tipo e-Fatura",
       "typeOptions": {

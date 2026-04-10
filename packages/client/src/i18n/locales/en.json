@@ -3583,6 +3583,7 @@
     "print": "Print",
     "billTo": "Bill to",
     "invoicePreview": "Invoice preview",
+    "previewError": "Failed to load invoice preview",
     "efatura": {
       "type": "e-Fatura type",
       "typeOptions": {

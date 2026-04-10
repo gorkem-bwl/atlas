@@ -3578,6 +3578,7 @@
     "print": "Yazdır",
     "billTo": "Fatura adresi",
     "invoicePreview": "Fatura önizleme",
+    "previewError": "Fatura önizlemesi yüklenemedi",
     "efatura": {
       "type": "e-Fatura türü",
       "typeOptions": {

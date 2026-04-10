@@ -3578,6 +3578,7 @@
     "print": "Drucken",
     "billTo": "Rechnungsempfänger",
     "invoicePreview": "Rechnungsvorschau",
+    "previewError": "Rechnungsvorschau konnte nicht geladen werden",
     "efatura": {
       "type": "e-Fatura-Typ",
       "typeOptions": {

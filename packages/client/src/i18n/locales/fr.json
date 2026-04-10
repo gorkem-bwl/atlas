@@ -3578,6 +3578,7 @@
     "print": "Imprimer",
     "billTo": "Facturer à",
     "invoicePreview": "Aperçu de la facture",
+    "previewError": "Impossible de charger l'aperçu de la facture",
     "efatura": {
       "type": "Type e-Fatura",
       "typeOptions": {
