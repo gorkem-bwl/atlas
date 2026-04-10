@@ -14,6 +14,7 @@ function getRecordUrl(appId: string, recordId: string): string {
     case 'tables': return `/tables/${recordId}`;
     case 'tasks': return `/tasks`;
     case 'drive': return `/drive`;
+    case 'sign': return `/sign-app/${recordId}`;
     default: return `/${appId}`;
   }
 }
