@@ -17,3 +17,6 @@ export function getAvailableTemplates(): Array<{ id: string; name: string }> {
 }
 
 export type { InvoiceTemplateProps };
+
+import { ClassicTemplate } from './classic';
+registerTemplate('classic', ClassicTemplate);
