@@ -3855,7 +3855,19 @@
       "bankDetailsPlaceholder": "es. Nome banca, IBAN, SWIFT",
       "footer": "Piè di pagina",
       "footerText": "Testo del piè di pagina",
-      "footerTextPlaceholder": "es. Grazie per la vostra fiducia!"
+      "footerTextPlaceholder": "es. Grazie per la vostra fiducia!",
+      "reminders": {
+        "sectionTitle": "Promemoria",
+        "sectionDescription": "Invia automaticamente promemoria via e-mail ai clienti per le fatture scadute.",
+        "enableToggle": "Invia promemoria automatici per le fatture scadute",
+        "reminder1Label": "Primo promemoria",
+        "reminder2Label": "Secondo promemoria",
+        "reminder3Label": "Terzo promemoria",
+        "daysAfterDueSuffix": "giorni dopo la data di scadenza",
+        "endlessLabel": "Promemoria successivi",
+        "endlessSuffix": "giorni",
+        "endlessHelp": "Dopo il terzo promemoria, ne viene inviato un altro ogni N giorni fino al pagamento della fattura."
+      }
     },
     "status": {
       "draft": "Bozza",

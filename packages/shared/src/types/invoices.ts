@@ -162,6 +162,11 @@ export interface UpdateInvoiceSettingsInput {
   paymentInstructions?: string | null;
   bankDetails?: string | null;
   footerText?: string | null;
+  reminderEnabled?: boolean;
+  reminder1Days?: number;
+  reminder2Days?: number;
+  reminder3Days?: number;
+  endlessReminderDays?: number;
 }
 
 export type InvoicePaymentMethod = 'cash' | 'check' | 'bank_transfer' | 'card' | 'other';

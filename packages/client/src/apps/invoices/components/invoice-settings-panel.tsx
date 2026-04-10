@@ -60,6 +60,11 @@ export function InvoiceSettingsPanel() {
         eFaturaCompanyCountry: settings.eFaturaCompanyCountry ?? '',
         eFaturaCompanyPhone: settings.eFaturaCompanyPhone ?? '',
         eFaturaCompanyEmail: settings.eFaturaCompanyEmail ?? '',
+        reminderEnabled: settings.reminderEnabled ?? false,
+        reminder1Days: settings.reminder1Days ?? 7,
+        reminder2Days: settings.reminder2Days ?? 14,
+        reminder3Days: settings.reminder3Days ?? 30,
+        endlessReminderDays: settings.endlessReminderDays ?? 14,
       });
       setDirty(false);
     }
@@ -188,6 +193,97 @@ export function InvoiceSettingsPanel() {
           />
         </div>
       )}
+
+      {/* Reminders section */}
+      <div style={sectionBoxStyle}>
+        <span style={sectionLabelStyle}>{t('invoices.settings.reminders.sectionTitle')}</span>
+        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.5, fontFamily: 'var(--font-family)' }}>
+          {t('invoices.settings.reminders.sectionDescription')}
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)', color: 'var(--color-text-primary)' }}>
+          <input
+            type="checkbox"
+            checked={form.reminderEnabled ?? false}
+            onChange={(e) => update({ reminderEnabled: e.target.checked })}
+          />
+          {t('invoices.settings.reminders.enableToggle')}
+        </label>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', opacity: form.reminderEnabled ? 1 : 0.5, pointerEvents: form.reminderEnabled ? 'auto' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--spacing-sm)' }}>
+            <div style={{ flex: '0 0 140px' }}>
+              <Input
+                label={t('invoices.settings.reminders.reminder1Label')}
+                type="number"
+                min={0}
+                max={365}
+                value={String(form.reminder1Days ?? 7)}
+                onChange={(e) => update({ reminder1Days: Math.max(0, Math.min(365, parseInt(e.target.value, 10) || 0)) })}
+                size="md"
+              />
+            </div>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', paddingBottom: '8px' }}>
+              {t('invoices.settings.reminders.daysAfterDueSuffix')}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--spacing-sm)' }}>
+            <div style={{ flex: '0 0 140px' }}>
+              <Input
+                label={t('invoices.settings.reminders.reminder2Label')}
+                type="number"
+                min={0}
+                max={365}
+                value={String(form.reminder2Days ?? 14)}
+                onChange={(e) => update({ reminder2Days: Math.max(0, Math.min(365, parseInt(e.target.value, 10) || 0)) })}
+                size="md"
+              />
+            </div>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', paddingBottom: '8px' }}>
+              {t('invoices.settings.reminders.daysAfterDueSuffix')}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--spacing-sm)' }}>
+            <div style={{ flex: '0 0 140px' }}>
+              <Input
+                label={t('invoices.settings.reminders.reminder3Label')}
+                type="number"
+                min={0}
+                max={365}
+                value={String(form.reminder3Days ?? 30)}
+                onChange={(e) => update({ reminder3Days: Math.max(0, Math.min(365, parseInt(e.target.value, 10) || 0)) })}
+                size="md"
+              />
+            </div>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', paddingBottom: '8px' }}>
+              {t('invoices.settings.reminders.daysAfterDueSuffix')}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'var(--spacing-sm)' }}>
+              <div style={{ flex: '0 0 140px' }}>
+                <Input
+                  label={t('invoices.settings.reminders.endlessLabel')}
+                  type="number"
+                  min={0}
+                  max={365}
+                  value={String(form.endlessReminderDays ?? 14)}
+                  onChange={(e) => update({ endlessReminderDays: Math.max(0, Math.min(365, parseInt(e.target.value, 10) || 0)) })}
+                  size="md"
+                />
+              </div>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)', paddingBottom: '8px' }}>
+                {t('invoices.settings.reminders.endlessSuffix')}
+              </span>
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', lineHeight: 1.5, fontFamily: 'var(--font-family)' }}>
+              {t('invoices.settings.reminders.endlessHelp')}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {dirty && (
         <div>

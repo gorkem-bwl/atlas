@@ -44,6 +44,11 @@ export async function updateInvoiceSettings(tenantId: string, input: {
   paymentInstructions?: string | null;
   bankDetails?: string | null;
   footerText?: string | null;
+  reminderEnabled?: boolean;
+  reminder1Days?: number;
+  reminder2Days?: number;
+  reminder3Days?: number;
+  endlessReminderDays?: number;
 }) {
   const now = new Date();
 
@@ -95,6 +100,11 @@ export async function updateInvoiceSettings(tenantId: string, input: {
   if (input.paymentInstructions !== undefined) updates.paymentInstructions = input.paymentInstructions;
   if (input.bankDetails !== undefined) updates.bankDetails = input.bankDetails;
   if (input.footerText !== undefined) updates.footerText = input.footerText;
+  if (input.reminderEnabled !== undefined) updates.reminderEnabled = input.reminderEnabled;
+  if (input.reminder1Days !== undefined) updates.reminder1Days = input.reminder1Days;
+  if (input.reminder2Days !== undefined) updates.reminder2Days = input.reminder2Days;
+  if (input.reminder3Days !== undefined) updates.reminder3Days = input.reminder3Days;
+  if (input.endlessReminderDays !== undefined) updates.endlessReminderDays = input.endlessReminderDays;
 
   const [updated] = await db
     .update(invoiceSettings)

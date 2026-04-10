@@ -3855,7 +3855,19 @@
       "bankDetailsPlaceholder": "örn. Banka adı, IBAN, SWIFT",
       "footer": "Alt bilgi",
       "footerText": "Alt bilgi metni",
-      "footerTextPlaceholder": "örn. İş birliğiniz için teşekkürler!"
+      "footerTextPlaceholder": "örn. İş birliğiniz için teşekkürler!",
+      "reminders": {
+        "sectionTitle": "Hatırlatmalar",
+        "sectionDescription": "Vadesi geçmiş faturalar için müşterilere otomatik e-posta hatırlatmaları gönderin.",
+        "enableToggle": "Vadesi geçmiş faturalar için otomatik hatırlatmalar gönder",
+        "reminder1Label": "Birinci hatırlatma",
+        "reminder2Label": "İkinci hatırlatma",
+        "reminder3Label": "Üçüncü hatırlatma",
+        "daysAfterDueSuffix": "vade tarihinden sonra gün",
+        "endlessLabel": "Sonraki hatırlatmalar",
+        "endlessSuffix": "gün",
+        "endlessHelp": "Üçüncü hatırlatmadan sonra, fatura ödenene kadar N günde bir yeni bir hatırlatma gönderilir."
+      }
     },
     "status": {
       "draft": "Taslak",

@@ -3855,7 +3855,19 @@
       "bankDetailsPlaceholder": "z.B. Bankname, IBAN, SWIFT",
       "footer": "Fußzeile",
       "footerText": "Fußzeilentext",
-      "footerTextPlaceholder": "z.B. Vielen Dank für Ihr Vertrauen!"
+      "footerTextPlaceholder": "z.B. Vielen Dank für Ihr Vertrauen!",
+      "reminders": {
+        "sectionTitle": "Erinnerungen",
+        "sectionDescription": "Senden Sie automatisch E-Mail-Erinnerungen an Kunden für überfällige Rechnungen.",
+        "enableToggle": "Automatische Erinnerungen für überfällige Rechnungen senden",
+        "reminder1Label": "Erste Erinnerung",
+        "reminder2Label": "Zweite Erinnerung",
+        "reminder3Label": "Dritte Erinnerung",
+        "daysAfterDueSuffix": "Tage nach Fälligkeitsdatum",
+        "endlessLabel": "Weitere Erinnerungen",
+        "endlessSuffix": "Tage",
+        "endlessHelp": "Nach der dritten Erinnerung wird bis zur Zahlung der Rechnung alle N Tage eine weitere gesendet."
+      }
     },
     "status": {
       "draft": "Entwurf",

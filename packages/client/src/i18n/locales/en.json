@@ -3860,7 +3860,19 @@
       "bankDetailsPlaceholder": "e.g. Bank name, IBAN, SWIFT",
       "footer": "Footer",
       "footerText": "Footer text",
-      "footerTextPlaceholder": "e.g. Thank you for your business!"
+      "footerTextPlaceholder": "e.g. Thank you for your business!",
+      "reminders": {
+        "sectionTitle": "Reminders",
+        "sectionDescription": "Automatically send email reminders to customers for overdue invoices.",
+        "enableToggle": "Send automatic reminders for overdue invoices",
+        "reminder1Label": "First reminder",
+        "reminder2Label": "Second reminder",
+        "reminder3Label": "Third reminder",
+        "daysAfterDueSuffix": "days after due date",
+        "endlessLabel": "Subsequent reminders",
+        "endlessSuffix": "days",
+        "endlessHelp": "After the third reminder, send another every N days until the invoice is paid."
+      }
     },
     "status": {
       "draft": "Draft",

@@ -3855,7 +3855,19 @@
       "bankDetailsPlaceholder": "ex. Nom de la banque, IBAN, SWIFT",
       "footer": "Pied de page",
       "footerText": "Texte du pied de page",
-      "footerTextPlaceholder": "ex. Merci pour votre confiance!"
+      "footerTextPlaceholder": "ex. Merci pour votre confiance!",
+      "reminders": {
+        "sectionTitle": "Rappels",
+        "sectionDescription": "Envoyez automatiquement des rappels par e-mail aux clients pour les factures en retard.",
+        "enableToggle": "Envoyer des rappels automatiques pour les factures en retard",
+        "reminder1Label": "Premier rappel",
+        "reminder2Label": "Deuxième rappel",
+        "reminder3Label": "Troisième rappel",
+        "daysAfterDueSuffix": "jours après la date d'échéance",
+        "endlessLabel": "Rappels suivants",
+        "endlessSuffix": "jours",
+        "endlessHelp": "Après le troisième rappel, un autre est envoyé tous les N jours jusqu'au paiement de la facture."
+      }
     },
     "status": {
       "draft": "Brouillon",

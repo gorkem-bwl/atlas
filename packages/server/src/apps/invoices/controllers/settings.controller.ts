@@ -40,6 +40,7 @@ export async function updateSettings(req: Request, res: Response) {
       companyName, companyAddress, companyCity, companyCountry,
       companyPhone, companyEmail, companyWebsite, companyTaxId,
       paymentInstructions, bankDetails, footerText,
+      reminderEnabled, reminder1Days, reminder2Days, reminder3Days, endlessReminderDays,
     } = req.body;
 
     const settings = await settingsService.updateInvoiceSettings(tenantId, {
@@ -51,6 +52,7 @@ export async function updateSettings(req: Request, res: Response) {
       companyName, companyAddress, companyCity, companyCountry,
       companyPhone, companyEmail, companyWebsite, companyTaxId,
       paymentInstructions, bankDetails, footerText,
+      reminderEnabled, reminder1Days, reminder2Days, reminder3Days, endlessReminderDays,
     });
 
     res.json({ success: true, data: settings });
