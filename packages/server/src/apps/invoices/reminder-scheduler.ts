@@ -36,7 +36,7 @@ function daysSince(from: Date, to: Date): number {
  * Determine the next reminder stage to send for an overdue invoice, or
  * null if the invoice is not yet eligible for its next reminder.
  */
-function computeEligibleStage(params: {
+export function computeEligibleStage(params: {
   dueDate: Date;
   lastReminderStage: number;
   lastReminderAt: Date | null;
