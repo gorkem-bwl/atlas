@@ -14,10 +14,11 @@ export async function previewTimeBillingLineItems(req: Request, res: Response) {
     }
 
     const tenantId = req.auth!.tenantId;
-    const { companyId, clientId, startDate, endDate } = req.body;
+    const { companyId, clientId, startDate, endDate, timeEntryIds } = req.body;
 
     const lineItems = await projectService.previewTimeEntryLineItems(
       tenantId, companyId || clientId, startDate, endDate,
+      Array.isArray(timeEntryIds) ? timeEntryIds : undefined,
     );
 
     res.json({ success: true, data: { lineItems } });
@@ -36,10 +37,11 @@ export async function populateTimeBilling(req: Request, res: Response) {
     }
 
     const tenantId = req.auth!.tenantId;
-    const { invoiceId, companyId, clientId, startDate, endDate } = req.body;
+    const { invoiceId, companyId, clientId, startDate, endDate, timeEntryIds } = req.body;
 
     const lineItems = await projectService.populateFromTimeEntries(
       tenantId, invoiceId, companyId || clientId, startDate, endDate,
+      Array.isArray(timeEntryIds) ? timeEntryIds : undefined,
     );
 
     res.json({ success: true, data: { lineItems } });

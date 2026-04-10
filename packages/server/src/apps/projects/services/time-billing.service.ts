@@ -8,17 +8,20 @@ import { getSettings } from './settings.service';
 
 /**
  * Preview what line items would be generated from unbilled time entries
- * for a given company within a date range.
+ * for a given company within a date range. When `timeEntryIds` is provided,
+ * it replaces the date-range filter with an ID whitelist (still guarded by
+ * tenant, company, billable/unbilled/unarchived).
  */
 export async function previewTimeEntryLineItems(
   tenantId: string,
   companyId: string,
   startDate: string,
   endDate: string,
+  timeEntryIds?: string[],
 ) {
   // Find all company's projects
   const companyProjects = await db
-    .select({ id: projectProjects.id })
+    .select({ id: projectProjects.id, name: projectProjects.name })
     .from(projectProjects)
     .where(and(
       eq(projectProjects.companyId, companyId),
@@ -28,7 +31,34 @@ export async function previewTimeEntryLineItems(
   const projectIds = companyProjects.map(p => p.id);
   if (projectIds.length === 0) return [];
 
-  // Find unbilled billable time entries in date range
+  const projectNameMap = new Map<string, string>();
+  for (const p of companyProjects) {
+    projectNameMap.set(p.id, p.name);
+  }
+
+  // If explicit IDs provided but empty, nothing to return
+  if (timeEntryIds && timeEntryIds.length === 0) return [];
+
+  // Find unbilled billable time entries — by explicit IDs or by date range
+  const whereConditions = timeEntryIds
+    ? and(
+        eq(projectTimeEntries.tenantId, tenantId),
+        eq(projectTimeEntries.billable, true),
+        eq(projectTimeEntries.billed, false),
+        eq(projectTimeEntries.isArchived, false),
+        inArray(projectTimeEntries.projectId, projectIds),
+        inArray(projectTimeEntries.id, timeEntryIds),
+      )
+    : and(
+        eq(projectTimeEntries.tenantId, tenantId),
+        eq(projectTimeEntries.billable, true),
+        eq(projectTimeEntries.billed, false),
+        eq(projectTimeEntries.isArchived, false),
+        inArray(projectTimeEntries.projectId, projectIds),
+        gte(projectTimeEntries.workDate, startDate),
+        lte(projectTimeEntries.workDate, endDate),
+      );
+
   const entries = await db
     .select({
       id: projectTimeEntries.id,
@@ -40,15 +70,7 @@ export async function previewTimeEntryLineItems(
       projectId: projectTimeEntries.projectId,
     })
     .from(projectTimeEntries)
-    .where(and(
-      eq(projectTimeEntries.tenantId, tenantId),
-      eq(projectTimeEntries.billable, true),
-      eq(projectTimeEntries.billed, false),
-      eq(projectTimeEntries.isArchived, false),
-      inArray(projectTimeEntries.projectId, projectIds),
-      gte(projectTimeEntries.workDate, startDate),
-      lte(projectTimeEntries.workDate, endDate),
-    ));
+    .where(whereConditions);
 
   // Batch: collect all unique (projectId, userId) pairs for member rate lookup
   const memberKeys = new Set<string>();
@@ -85,7 +107,15 @@ export async function previewTimeEntryLineItems(
     const rate = memberRateMap.get(`${entry.projectId}:${entry.userId}`) ?? defaultRate;
     const hours = entry.durationMinutes / 60;
     const description = entry.taskDescription || entry.notes || `Time entry ${entry.workDate}`;
-    return { description, quantity: hours, unitPrice: rate };
+    return {
+      id: entry.id,
+      description,
+      quantity: hours,
+      unitPrice: rate,
+      projectId: entry.projectId,
+      projectName: projectNameMap.get(entry.projectId) ?? '',
+      workDate: entry.workDate,
+    };
   });
 
   return lineItems;
@@ -101,6 +131,7 @@ export async function populateFromTimeEntries(
   companyId: string,
   startDate: string,
   endDate: string,
+  timeEntryIds?: string[],
 ) {
   // Find all company's projects
   const companyProjects = await db
@@ -114,7 +145,29 @@ export async function populateFromTimeEntries(
   const projectIds = companyProjects.map(p => p.id);
   if (projectIds.length === 0) return [];
 
-  // Find unbilled billable time entries in date range
+  // If explicit IDs provided but empty, nothing to insert
+  if (timeEntryIds && timeEntryIds.length === 0) return [];
+
+  // Find unbilled billable time entries — by explicit IDs or by date range
+  const whereConditions = timeEntryIds
+    ? and(
+        eq(projectTimeEntries.tenantId, tenantId),
+        eq(projectTimeEntries.billable, true),
+        eq(projectTimeEntries.billed, false),
+        eq(projectTimeEntries.isArchived, false),
+        inArray(projectTimeEntries.projectId, projectIds),
+        inArray(projectTimeEntries.id, timeEntryIds),
+      )
+    : and(
+        eq(projectTimeEntries.tenantId, tenantId),
+        eq(projectTimeEntries.billable, true),
+        eq(projectTimeEntries.billed, false),
+        eq(projectTimeEntries.isArchived, false),
+        inArray(projectTimeEntries.projectId, projectIds),
+        gte(projectTimeEntries.workDate, startDate),
+        lte(projectTimeEntries.workDate, endDate),
+      );
+
   const entries = await db
     .select({
       id: projectTimeEntries.id,
@@ -126,15 +179,7 @@ export async function populateFromTimeEntries(
       projectId: projectTimeEntries.projectId,
     })
     .from(projectTimeEntries)
-    .where(and(
-      eq(projectTimeEntries.tenantId, tenantId),
-      eq(projectTimeEntries.billable, true),
-      eq(projectTimeEntries.billed, false),
-      eq(projectTimeEntries.isArchived, false),
-      inArray(projectTimeEntries.projectId, projectIds),
-      gte(projectTimeEntries.workDate, startDate),
-      lte(projectTimeEntries.workDate, endDate),
-    ));
+    .where(whereConditions);
 
   const now = new Date();
 
@@ -202,12 +247,12 @@ export async function populateFromTimeEntries(
   }
 
   // Batch update: mark all time entries as billed and locked
-  const timeEntryIds = entries.map(e => e.id);
-  if (timeEntryIds.length > 0) {
+  const processedEntryIds = entries.map(e => e.id);
+  if (processedEntryIds.length > 0) {
     await db
       .update(projectTimeEntries)
       .set({ billed: true, locked: true, updatedAt: now })
-      .where(inArray(projectTimeEntries.id, timeEntryIds));
+      .where(inArray(projectTimeEntries.id, processedEntryIds));
 
     // Set invoiceLineItemId for each entry individually (different value per row)
     for (const [entryId, lineItemId] of entryToLineItem) {
