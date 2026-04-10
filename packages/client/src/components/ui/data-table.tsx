@@ -18,6 +18,7 @@ export interface DataTableColumn<T> {
   label: string;
   icon?: ReactNode;
   width?: number | string;
+  minWidth?: number | string;
   sortable?: boolean;
   align?: 'left' | 'right';
   render: (item: T, index: number) => ReactNode;
@@ -327,6 +328,7 @@ export function DataTable<T extends { id: string }>({
             key={col.key}
             style={{
               width: col.width ?? undefined,
+              minWidth: col.minWidth ?? undefined,
               flex: col.width ? undefined : 1,
               flexShrink: col.width ? 0 : undefined,
               textAlign: col.align,
@@ -396,6 +398,7 @@ export function DataTable<T extends { id: string }>({
               onSort={handleSort}
               style={{
                 width: col.width ?? undefined,
+                minWidth: col.minWidth ?? undefined,
                 flex: col.width ? undefined : 1,
                 flexShrink: col.width ? 0 : undefined,
                 textAlign: col.align,

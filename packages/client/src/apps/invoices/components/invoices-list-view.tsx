@@ -126,7 +126,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'invoiceNumber',
       label: t('invoices.list.invoiceNumber'),
       icon: <Hash size={12} />,
-      width: 120,
+      minWidth: 160,
       sortable: true,
       render: (invoice) => (
         <span style={{ fontWeight: 'var(--font-weight-medium)' }}>{invoice.invoiceNumber}</span>
@@ -136,7 +136,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'companyName',
       label: t('invoices.list.company'),
       icon: <Building2 size={12} />,
-      width: 160,
+      minWidth: 160,
       sortable: true,
       render: (invoice) => (
         <span className="dt-cell-secondary" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -159,7 +159,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'total',
       label: t('invoices.list.amount'),
       icon: <DollarSign size={12} />,
-      width: 110,
+      minWidth: 110,
       sortable: true,
       align: 'right',
       render: (invoice) => (
@@ -172,7 +172,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'lineItemCount',
       label: t('invoices.list.items'),
       icon: <Hash size={12} />,
-      width: 70,
+      minWidth: 90,
       sortable: true,
       align: 'right',
       render: (invoice) => (
@@ -184,7 +184,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
     {
       key: 'status',
       label: t('invoices.list.status'),
-      width: 100,
+      minWidth: 110,
       sortable: true,
       render: (invoice) => (
         <Badge variant={getInvoiceStatusVariant(invoice.status)}>
@@ -196,6 +196,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'issueDate',
       label: t('invoices.list.issueDate'),
       icon: <Calendar size={12} />,
+      minWidth: 150,
       sortable: true,
       render: (invoice) => (
         <span className="dt-cell-secondary">{formatDate(invoice.issueDate)}</span>
@@ -205,6 +206,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
       key: 'dueDate',
       label: t('invoices.list.dueDate'),
       icon: <Calendar size={12} />,
+      minWidth: 140,
       sortable: true,
       render: (invoice) => (
         <span className="dt-cell-secondary">{formatDate(invoice.dueDate)}</span>
