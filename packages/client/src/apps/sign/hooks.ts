@@ -272,6 +272,20 @@ export function useDeleteTemplate() {
   });
 }
 
+export function useSeedStarterTemplates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post('/sign/templates/seed-starter');
+      return data.data as { created: string[]; skipped: string[]; failed: string[] };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sign.templates });
+    },
+  });
+}
+
 // ─── Public (no auth) ────────────────────────────────────────────────
 
 export function usePublicSignDoc(token: string | undefined) {

@@ -2970,6 +2970,7 @@
       "loadStarter": "Load starter templates",
       "starterLoaded": "{{count}} starter templates loaded",
       "starterLoadedSkipped": "{{count}} added, {{skipped}} already existed",
+      "starterLoadFailed": "Failed to load starter templates: {{titles}}",
       "starterNames": {
         "mutualNda": "Mutual NDA",
         "onewayNda": "One-way NDA",

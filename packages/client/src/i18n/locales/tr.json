@@ -2938,6 +2938,7 @@
       "loadStarter": "Başlangıç şablonlarını yükle",
       "starterLoaded": "{{count}} başlangıç şablonu yüklendi",
       "starterLoadedSkipped": "{{count}} eklendi, {{skipped}} zaten mevcut",
+      "starterLoadFailed": "Başlangıç şablonları yüklenemedi: {{titles}}",
       "starterNames": {
         "mutualNda": "Karşılıklı gizlilik sözleşmesi",
         "onewayNda": "Tek taraflı gizlilik sözleşmesi",

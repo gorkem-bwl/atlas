@@ -2938,6 +2938,7 @@
       "loadStarter": "Startvorlagen laden",
       "starterLoaded": "{{count}} Startvorlagen geladen",
       "starterLoadedSkipped": "{{count}} hinzugefügt, {{skipped}} bereits vorhanden",
+      "starterLoadFailed": "Startvorlagen konnten nicht geladen werden: {{titles}}",
       "starterNames": {
         "mutualNda": "Gegenseitige Geheimhaltungsvereinbarung",
         "onewayNda": "Einseitige Geheimhaltungsvereinbarung",

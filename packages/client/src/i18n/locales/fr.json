@@ -2938,6 +2938,7 @@
       "loadStarter": "Charger les modèles de démarrage",
       "starterLoaded": "{{count}} modèles de démarrage chargés",
       "starterLoadedSkipped": "{{count}} ajoutés, {{skipped}} existaient déjà",
+      "starterLoadFailed": "Échec du chargement des modèles de démarrage : {{titles}}",
       "starterNames": {
         "mutualNda": "Accord de confidentialité mutuel",
         "onewayNda": "Accord de confidentialité unilatéral",

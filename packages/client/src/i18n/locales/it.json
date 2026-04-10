@@ -2938,6 +2938,7 @@
       "loadStarter": "Carica modelli iniziali",
       "starterLoaded": "{{count}} modelli iniziali caricati",
       "starterLoadedSkipped": "{{count}} aggiunti, {{skipped}} già esistenti",
+      "starterLoadFailed": "Impossibile caricare i modelli iniziali: {{titles}}",
       "starterNames": {
         "mutualNda": "Accordo di riservatezza reciproco",
         "onewayNda": "Accordo di riservatezza unilaterale",
