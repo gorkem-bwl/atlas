@@ -40,7 +40,7 @@ export async function sendSigningInviteEmail(data: {
     `This link expires on ${expiryStr}.`,
     '',
     'Thank you,',
-    'Atlas Sign',
+    'Atlas Agreements',
   ].join('\n');
 
   const htmlBodyMessage = data.customMessage
@@ -62,7 +62,7 @@ export async function sendSigningInviteEmail(data: {
         This link expires on ${expiryStr}.
       </p>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-      <p style="color: #9ca3af; font-size: 12px;">Atlas Sign</p>
+      <p style="color: #9ca3af; font-size: 12px;">Atlas Agreements</p>
     </div>
   `.trim();
 
@@ -88,10 +88,10 @@ export async function sendDocumentCompletedEmail(data: {
     '',
     `"${data.documentTitle}" has been signed by all parties. The document is now complete.`,
     '',
-    'You can view and download the signed document from your Atlas Sign dashboard.',
+    'You can view and download the signed document from your Atlas Agreements dashboard.',
     '',
     'Thank you,',
-    'Atlas Sign',
+    'Atlas Agreements',
   ].join('\n');
 
   const clientUrl = env.CLIENT_PUBLIC_URL || 'http://localhost:5180';
@@ -108,7 +108,7 @@ export async function sendDocumentCompletedEmail(data: {
         </a>
       </div>
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-      <p style="color: #9ca3af; font-size: 12px;">Atlas Sign</p>
+      <p style="color: #9ca3af; font-size: 12px;">Atlas Agreements</p>
     </div>
   `.trim();
 

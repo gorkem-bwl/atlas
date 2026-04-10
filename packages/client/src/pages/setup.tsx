@@ -208,7 +208,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
 
     if (preview) {
       // Preview mode — simulate seeding without DB changes
-      const steps = ['CRM', 'HRM', 'Tasks', 'Projects', 'Sign', 'Drive', 'Write'];
+      const steps = ['CRM', 'HRM', 'Tasks', 'Projects', 'Agreements', 'Drive', 'Write'];
       for (let i = 0; i < steps.length; i++) {
         setSeedingStep(steps[i]);
         setSeedingProgress(Math.round(((i + 1) / steps.length) * 100));
@@ -251,7 +251,7 @@ export function SetupPage({ preview = false }: { preview?: boolean }) {
           { label: 'Drive', url: '/drive/seed' },
           { label: 'Docs', url: '/docs/seed' },
           { label: 'Draw', url: '/drawings/seed' },
-          { label: 'Sign', url: '/sign/seed' },
+          { label: 'Agreements', url: '/sign/seed' },
         ];
 
         for (let i = 0; i < seedSteps.length; i++) {

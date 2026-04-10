@@ -24,7 +24,7 @@ export async function searchGlobal(query: string, tenantId: string): Promise<Glo
      FROM spreadsheets WHERE tenant_id = ${tenantId} AND is_archived = false AND title ILIKE ${term}
      ORDER BY updated_at DESC LIMIT 5)
     UNION ALL
-    (SELECT id::text AS record_id, title, 'sign' AS app_id, 'Sign' AS app_name
+    (SELECT id::text AS record_id, title, 'sign' AS app_id, 'Agreements' AS app_name
      FROM signature_documents WHERE tenant_id = ${tenantId} AND is_archived = false AND title ILIKE ${term}
      ORDER BY updated_at DESC LIMIT 5)
     UNION ALL

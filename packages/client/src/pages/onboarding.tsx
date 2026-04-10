@@ -81,7 +81,7 @@ export function OnboardingPage() {
           { label: 'Drive', url: '/drive/seed' },
           { label: 'Docs', url: '/docs/seed' },
           { label: 'Draw', url: '/drawings/seed' },
-          { label: 'Sign', url: '/sign/seed' },
+          { label: 'Agreements', url: '/sign/seed' },
         ];
 
         for (let i = 0; i < seedSteps.length; i++) {
