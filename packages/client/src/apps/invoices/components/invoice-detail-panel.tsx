@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../../../lib/format';
 import {
-  X, Trash2, DollarSign, FileCode, FileDown, Link, Mail, Download, Eye,
+  X, Trash2, DollarSign, FileCode, FileDown, Link, Mail, Download, Eye, Clock,
 } from 'lucide-react';
 import type { Invoice } from '@atlas-platform/shared';
 import { getInvoiceStatusVariant } from '@atlas-platform/shared';
@@ -12,6 +12,7 @@ import {
   useInvoiceSettings,
 } from '../hooks';
 import { SendInvoiceModal } from './send-invoice-modal';
+import { ImportTimeEntriesModal } from './import-time-entries-modal';
 import { api } from '../../../lib/api-client';
 import { useCompanies } from '../../crm/hooks';
 import { Button } from '../../../components/ui/button';
@@ -48,6 +49,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
   const [linkCopied, setLinkCopied] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [importTimeModalOpen, setImportTimeModalOpen] = useState(false);
   const addToast = useToastStore((s) => s.addToast);
 
   const handleConfirmDelete = () => {
@@ -219,9 +221,21 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
 
         {/* Line items */}
         <div>
-          <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
-            {t('invoices.detail.lineItems')}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
+              {t('invoices.detail.lineItems')}
+            </span>
+            {invoice.status === 'draft' && invoice.companyId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Clock size={13} />}
+                onClick={() => setImportTimeModalOpen(true)}
+              >
+                {t('invoices.importTime.importTimeEntries')}
+              </Button>
+            )}
+          </div>
           <div style={{ marginTop: 'var(--spacing-sm)' }}>
             {(invoice.lineItems || []).map((li, i) => (
               <div key={li.id || i} style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-xs) 0', borderBottom: '1px solid var(--color-border-secondary)', fontSize: 'var(--font-size-sm)', fontFamily: 'var(--font-family)' }}>
@@ -329,6 +343,16 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
         defaultRecipient={invoice.contactEmail ?? undefined}
         companyName={invoice.companyName ?? undefined}
       />
+
+      {invoice.companyId && (
+        <ImportTimeEntriesModal
+          open={importTimeModalOpen}
+          onOpenChange={setImportTimeModalOpen}
+          invoiceId={invoice.id}
+          companyId={invoice.companyId}
+          currency={invoice.currency}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmDeleteOpen}
