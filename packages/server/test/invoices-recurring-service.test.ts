@@ -259,11 +259,10 @@ describe('generateInvoiceFromRecurring', () => {
     expect(next.getDate()).toBe(15);
   });
 
-  it('monthly edge case: Jan 31 overflows to March (not clamped to Feb end) — documents current behavior', async () => {
-    // addFrequency uses JS Date.setMonth with no end-of-month clamp.
-    // Jan 31 + 1 month => Date tries "Feb 31" which rolls into March.
-    // This test pins the current semantics so a future "correct" clamp
-    // surfaces as an intentional change.
+  it('monthly edge case: Jan 31 clamps to Feb 28 in a non-leap year', async () => {
+    // addMonthsClamped clamps the day to the last day of the target month so
+    // month-end recurring invoices stay anchored to month-end instead of
+    // bleeding into the next month.
     vi.setSystemTime(new Date(2026, 0, 31, 12, 0, 0)); // Jan 31 2026 local
     vi.mocked(invoiceService.getNextInvoiceNumber).mockResolvedValue('INV-0004');
     const capture: any = {};
@@ -275,13 +274,13 @@ describe('generateInvoiceFromRecurring', () => {
 
     await generateInvoiceFromRecurring('rec1', 't1');
     const next: Date = capture.recurringUpdate.nextRunAt;
-    // 2026 is not a leap year => Feb has 28 days => overflow into March.
-    expect(next.getMonth()).toBe(2); // March, NOT February
-    expect(next.getDate()).toBe(3); // 31 - 28 = 3
+    // 2026 is not a leap year => Feb has 28 days => clamp to Feb 28.
+    expect(next.getMonth()).toBe(1); // February
+    expect(next.getDate()).toBe(28);
   });
 
-  it('yearly edge case: Feb 29 leap year rolls to Mar 1 next year (JS overflow)', async () => {
-    // Feb 29 2024 + 1 year => Date tries "Feb 29 2025" => Mar 1 2025.
+  it('yearly edge case: Feb 29 leap year clamps to Feb 28 next year', async () => {
+    // Feb 29 2024 + 1 year => Feb 28 2025 (clamped, since 2025 is not a leap year).
     vi.setSystemTime(new Date(2024, 1, 29, 12, 0, 0));
     vi.mocked(invoiceService.getNextInvoiceNumber).mockResolvedValue('INV-0005');
     const capture: any = {};
@@ -294,8 +293,8 @@ describe('generateInvoiceFromRecurring', () => {
     await generateInvoiceFromRecurring('rec1', 't1');
     const next: Date = capture.recurringUpdate.nextRunAt;
     expect(next.getFullYear()).toBe(2025);
-    expect(next.getMonth()).toBe(2); // March
-    expect(next.getDate()).toBe(1);
+    expect(next.getMonth()).toBe(1); // February
+    expect(next.getDate()).toBe(28);
   });
 
   it('deactivates when maxRuns is hit', async () => {

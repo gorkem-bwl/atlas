@@ -24,22 +24,36 @@ import type {
 const VALID_FREQUENCIES: RecurrenceFrequency[] = ['weekly', 'monthly', 'quarterly', 'yearly'];
 
 function addFrequency(from: Date, frequency: RecurrenceFrequency): Date {
-  const d = new Date(from);
   switch (frequency) {
     case 'weekly':
       return new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000);
     case 'monthly':
-      d.setMonth(d.getMonth() + 1);
-      return d;
+      return addMonthsClamped(from, 1);
     case 'quarterly':
-      d.setMonth(d.getMonth() + 3);
-      return d;
+      return addMonthsClamped(from, 3);
     case 'yearly':
-      d.setFullYear(d.getFullYear() + 1);
-      return d;
+      return addMonthsClamped(from, 12);
     default:
       throw new AppError(400, 'Invalid frequency');
   }
+}
+
+// Adds `months` to `from`, clamping the day-of-month to the last day of the
+// target month so that month-end dates do not bleed into the next month.
+// Examples:
+//   Jan 31 + 1 month → Feb 28 (or Feb 29 in a leap year)
+//   Feb 29 (leap)   + 12 months → Feb 28
+//   Mar 31 + 1 month → Apr 30
+function addMonthsClamped(from: Date, months: number): Date {
+  const year = from.getFullYear();
+  const month = from.getMonth() + months;
+  const day = from.getDate();
+  // Last day of the target month: day 0 of the *following* month.
+  const lastDayOfTargetMonth = new Date(year, month + 1, 0).getDate();
+  const clampedDay = Math.min(day, lastDayOfTargetMonth);
+  const result = new Date(from);
+  result.setFullYear(year, month, clampedDay);
+  return result;
 }
 
 function round2(n: number): number {
