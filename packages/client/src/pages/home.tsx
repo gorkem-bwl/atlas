@@ -35,6 +35,11 @@ const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
   calendar: 'linear-gradient(145deg, #5dadff 0%, #2563eb 50%, #1e3a8a 100%)',
 };
 
+// Base render size of a dock icon when the dock item is at its idle 52px
+// width. The hover handler scales this proportionally up to the magnified
+// item size via a CSS variable.
+const BASE_DOCK_ICON_SIZE = 30;
+
 // ---------------------------------------------------------------------------
 // Background images — curated nature collection (Unsplash, free to use)
 // ---------------------------------------------------------------------------
@@ -669,7 +674,7 @@ export function HomePage() {
     const BASE = 52;
     const MAX = 82;
     const RANGE = 200;
-    const ICON_RATIO = 26 / BASE; // base icon size 26px in a 52px card
+    const ICON_RATIO = BASE_DOCK_ICON_SIZE / BASE; // icon size relative to card width
     const items = dock.querySelectorAll<HTMLElement>('.dock-item');
     items.forEach((item) => {
       item.classList.remove('dock-resetting');
@@ -684,7 +689,7 @@ export function HomePage() {
       item.style.height = `${size}px`;
       item.style.marginTop = `${mt}px`;
       // Drive the inner icon size from a CSS variable so the icon scales
-      // proportionally with the card. Without this the 26px icon stays put
+      // proportionally with the card. Without this the base icon stays put
       // while the card grows to 82px, making the artwork look small.
       item.style.setProperty('--dock-icon-size', `${Math.round(size * ICON_RATIO)}px`);
     });
@@ -699,7 +704,7 @@ export function HomePage() {
       item.style.width = '52px';
       item.style.height = '52px';
       item.style.marginTop = '0px';
-      item.style.setProperty('--dock-icon-size', '26px');
+      item.style.setProperty('--dock-icon-size', `${BASE_DOCK_ICON_SIZE}px`);
     });
     // Clean up after transition completes
     setTimeout(() => {
@@ -1312,7 +1317,7 @@ export function HomePage() {
                   // Initial value of the icon-size CSS variable. The hover
                   // handler updates this so the icon scales with the card.
                   // Brand icons get +20% to look more present in the dock.
-                  ['--dock-icon-size' as string]: '26px',
+                  ['--dock-icon-size' as string]: `${BASE_DOCK_ICON_SIZE}px`,
                 }}
               >
                 <div
@@ -1326,25 +1331,30 @@ export function HomePage() {
                       : `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
                   }}
                 >
-                  {isBrandIcon ? (
+                  {isBrandIcon ? (() => {
+                    // Brand icons render at 120% of the lucide size for
+                    // visual parity (the brand artwork has more internal
+                    // padding than lucide line icons). Calendar gets an
+                    // extra 20% bump (1.44× total) because its dark body
+                    // + white type needs more presence in the dock.
+                    const brandScale = app.id === 'calendar' ? 1.44 : 1.2;
+                    return (
+                      <Icon
+                        size={Math.round(BASE_DOCK_ICON_SIZE * brandScale)}
+                        style={{
+                          width: `calc(var(--dock-icon-size, ${BASE_DOCK_ICON_SIZE}px) * ${brandScale})`,
+                          height: `calc(var(--dock-icon-size, ${BASE_DOCK_ICON_SIZE}px) * ${brandScale})`,
+                        }}
+                      />
+                    );
+                  })() : (
                     <Icon
-                      // Brand icons render at 120% of the lucide size for
-                      // visual parity (the brand artwork has more internal
-                      // padding than lucide line icons).
-                      size={Math.round(26 * 1.2)}
-                      style={{
-                        width: 'calc(var(--dock-icon-size, 26px) * 1.2)',
-                        height: 'calc(var(--dock-icon-size, 26px) * 1.2)',
-                      }}
-                    />
-                  ) : (
-                    <Icon
-                      size={26}
+                      size={BASE_DOCK_ICON_SIZE}
                       color="#fff"
                       strokeWidth={1.6}
                       style={{
-                        width: 'var(--dock-icon-size, 26px)',
-                        height: 'var(--dock-icon-size, 26px)',
+                        width: `var(--dock-icon-size, ${BASE_DOCK_ICON_SIZE}px)`,
+                        height: `var(--dock-icon-size, ${BASE_DOCK_ICON_SIZE}px)`,
                         filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
                       }}
                     />
@@ -1392,9 +1402,9 @@ export function HomePage() {
                   justifyContent: 'center',
                 }}>
                   {isBrandIcon ? (
-                    <Icon size={Math.round(26 * 1.2)} />
+                    <Icon size={Math.round(BASE_DOCK_ICON_SIZE * (app.id === 'calendar' ? 1.44 : 1.2))} />
                   ) : (
-                    <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                    <Icon size={BASE_DOCK_ICON_SIZE} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                   )}
                 </div>
               </div>
@@ -1444,9 +1454,9 @@ export function HomePage() {
                 transition: isDropping ? 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease' : 'none',
               }}>
                 {isBrandIcon ? (
-                  <Icon size={Math.round(26 * 1.2)} />
+                  <Icon size={Math.round(BASE_DOCK_ICON_SIZE * (app.id === 'calendar' ? 1.44 : 1.2))} />
                 ) : (
-                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                  <Icon size={BASE_DOCK_ICON_SIZE} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                 )}
               </div>
             </div>

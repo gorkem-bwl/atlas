@@ -110,8 +110,8 @@ function NavButton({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 22,
-            height: 22,
+            width: 24,
+            height: 24,
             flexShrink: 0,
             background: brandBg,
             borderRadius: 'var(--radius-sm)',
@@ -119,11 +119,13 @@ function NavButton({
           }}
         >
           {/* Brand SVGs render at 120% of the lucide size — the source
-              artwork has more internal padding than lucide line icons. */}
-          <Icon size={Math.round(16 * 1.2)} />
+              artwork has more internal padding than lucide line icons.
+              Calendar gets an extra bump (1.44× total) because its dark
+              body + white type needs more presence. */}
+          <Icon size={Math.round(18 * (id === 'calendar' ? 1.44 : 1.2))} />
         </span>
       ) : (
-        <Icon size={16} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />
+        <Icon size={18} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />
       )}
       <span style={{ flex: 1 }}>{label}</span>
     </button>
