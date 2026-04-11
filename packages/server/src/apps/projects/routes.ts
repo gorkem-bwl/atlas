@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import * as projectsController from './controller';
 import { authMiddleware } from '../../middleware/auth';
+import { requireProjectsPermission } from './middleware/permission';
 
 const router = Router();
 
 // ─── All routes require auth ──────────────────────────────────────
 router.use(authMiddleware);
+router.use(requireProjectsPermission('view'));
 
 // Widget (lightweight summary for home dashboard)
 router.get('/widget', projectsController.getWidgetData);

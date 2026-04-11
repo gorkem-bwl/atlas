@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import * as signController from './controller';
 import { authMiddleware } from '../../middleware/auth';
+import { requireSignPermission } from './middleware/permission';
 
 const uploadsDir = path.join(__dirname, '../../../uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -39,6 +40,7 @@ router.get('/public/:token/view', signController.viewPDFByToken);
 
 // ─── Auth middleware for all routes below ────────────────────────────
 router.use(authMiddleware);
+router.use(requireSignPermission('view'));
 
 // ─── Widget (lightweight summary for home dashboard) ────────────────
 router.get('/widget', signController.getWidgetData);

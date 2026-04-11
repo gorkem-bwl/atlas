@@ -13,12 +13,6 @@ const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');
 
 export async function getWidgetData(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const data = await signService.getWidgetData(userId, tenantId);
@@ -33,12 +27,6 @@ export async function getWidgetData(req: Request, res: Response) {
 
 export async function listDocuments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const docs = await signService.listDocuments(userId, tenantId);
@@ -113,12 +101,6 @@ export async function uploadPDF(req: Request, res: Response) {
 
 export async function getDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -199,12 +181,6 @@ export async function deleteDocument(req: Request, res: Response) {
 
 export async function viewPDF(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -235,12 +211,6 @@ export async function viewPDF(req: Request, res: Response) {
 
 export async function downloadPDF(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -327,12 +297,6 @@ export async function seedSampleData(req: Request, res: Response) {
 
 export async function getAuditLog(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const documentId = req.params.id as string;
     const entries = await signService.getAuditLog(documentId);
     res.json({ success: true, data: { entries } });

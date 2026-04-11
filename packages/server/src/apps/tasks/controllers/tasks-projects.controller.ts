@@ -8,12 +8,6 @@ import { getAppPermission, canAccess, decideRecordDelete } from '../../../servic
 
 export async function getWidgetData(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tasks' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const data = await taskService.getWidgetData(userId);
     res.json({ success: true, data });
@@ -27,12 +21,6 @@ export async function getWidgetData(req: Request, res: Response) {
 
 export async function listTasks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tasks' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const { status, when, projectId, includeArchived, assigneeId, visibility } = req.query;
 
@@ -55,12 +43,6 @@ export async function listTasks(req: Request, res: Response) {
 
 export async function getTask(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tasks' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const taskId = req.params.id as string;
 
@@ -233,12 +215,6 @@ export async function reorderTasks(req: Request, res: Response) {
 
 export async function searchTasks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tasks' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 
@@ -257,12 +233,6 @@ export async function searchTasks(req: Request, res: Response) {
 
 export async function getTaskCounts(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tasks' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const counts = await taskService.getTaskCounts(userId, req.auth!.tenantId ?? null);
     res.json({ success: true, data: counts });
@@ -276,12 +246,6 @@ export async function getTaskCounts(req: Request, res: Response) {
 
 export async function listProjects(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const includeArchived = req.query.includeArchived === 'true';
 

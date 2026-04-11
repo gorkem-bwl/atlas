@@ -11,12 +11,6 @@ const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');
 // GET /api/drive/:id/download-zip
 export async function downloadZip(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -55,12 +49,6 @@ export async function downloadZip(req: Request, res: Response) {
 // GET /api/drive/:id/download
 export async function downloadFile(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -93,12 +81,6 @@ export async function downloadFile(req: Request, res: Response) {
 // GET /api/drive/:id/view — inline view (for PDF/video/audio preview)
 export async function viewFile(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -145,12 +127,6 @@ function isPreviewable(mimeType: string | null, name: string): boolean {
 
 export async function previewFile(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 

@@ -1,11 +1,7 @@
 import type { Request, Response } from 'express';
 import { listCrmPermissions, upsertCrmPermission } from '../permissions';
 import { logger } from '../../../utils/logger';
-import {
-  getAppPermission,
-  type AppRole,
-  type AppRecordAccess,
-} from '../../../services/app-permissions.service';
+import { getAppPermission, type AppRole, type AppRecordAccess } from '../../../services/app-permissions.service';
 
 // Legacy role names the old CRM admin UI might still send. Map to the
 // canonical app_permissions roles before writing.

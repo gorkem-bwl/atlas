@@ -8,12 +8,6 @@ import { parseMentionsAndNotify } from '../../../utils/mentions';
 
 export async function listSubtasks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view subtasks' });
-      return;
-    }
-
     const taskId = req.params.id as string;
     const subtasks = await taskService.listSubtasks(taskId);
     res.json({ success: true, data: subtasks });
@@ -124,12 +118,6 @@ export async function reorderSubtasks(req: Request, res: Response) {
 
 export async function listActivities(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view activities' });
-      return;
-    }
-
     const taskId = req.params.id as string;
     const activities = await taskService.listActivities(taskId);
     res.json({ success: true, data: activities });
@@ -143,12 +131,6 @@ export async function listActivities(req: Request, res: Response) {
 
 export async function listTemplates(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view templates' });
-      return;
-    }
-
     const templates = await taskService.listTemplates(req.auth!.userId);
     res.json({ success: true, data: templates });
   } catch (error) {
@@ -246,12 +228,6 @@ export async function createTaskFromTemplate(req: Request, res: Response) {
 
 export async function listComments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view comments' });
-      return;
-    }
-
     const taskId = req.params.taskId as string;
     const comments = await taskService.listComments(taskId);
     res.json({ success: true, data: comments });
@@ -300,12 +276,6 @@ export async function createComment(req: Request, res: Response) {
 
 export async function deleteComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const commentId = req.params.commentId as string;
 
@@ -326,12 +296,6 @@ export async function deleteComment(req: Request, res: Response) {
 
 export async function listAttachments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view attachments' });
-      return;
-    }
-
     const taskId = req.params.taskId as string;
     const attachments = await taskService.listAttachments(taskId);
     res.json({ success: true, data: attachments });
@@ -369,12 +333,6 @@ export async function uploadAttachment(req: Request, res: Response) {
 
 export async function deleteAttachment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const attachmentId = req.params.attachmentId as string;
 
@@ -393,12 +351,6 @@ export async function deleteAttachment(req: Request, res: Response) {
 
 export async function downloadAttachment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const attachmentId = req.params.attachmentId as string;
     const attachment = await taskService.getAttachment(attachmentId);
 
@@ -424,12 +376,6 @@ export async function downloadAttachment(req: Request, res: Response) {
 
 export async function listDependencies(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view dependencies' });
-      return;
-    }
-
     const taskId = req.params.taskId as string;
     const deps = await taskService.listDependencies(taskId);
     res.json({ success: true, data: deps });
@@ -492,12 +438,6 @@ export async function removeDependency(req: Request, res: Response) {
 
 export async function getBlockedTaskIds(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const ids = await taskService.getBlockedTaskIds(req.auth!.userId);
     res.json({ success: true, data: ids });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as invoiceController from './controller';
 import { authMiddleware } from '../../middleware/auth';
+import { requireInvoicesPermission } from './middleware/permission';
 
 const router = Router();
 
@@ -10,6 +11,7 @@ router.get('/portal/:token/:invoiceId', invoiceController.getPortalInvoice);
 
 // Auth middleware
 router.use(authMiddleware);
+router.use(requireInvoicesPermission('view'));
 
 // Settings
 router.get('/settings', invoiceController.getSettings);

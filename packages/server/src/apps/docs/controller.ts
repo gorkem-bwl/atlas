@@ -7,12 +7,6 @@ import { parseMentionsAndNotify } from '../../utils/mentions';
 // GET /api/docs
 export async function listDocuments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
@@ -57,12 +51,6 @@ export async function createDocument(req: Request, res: Response) {
 // GET /api/docs/:id
 export async function getDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -238,12 +226,6 @@ export async function restoreDocument(req: Request, res: Response) {
 // GET /api/docs/search?q=...
 export async function searchDocuments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 
@@ -263,12 +245,6 @@ export async function searchDocuments(req: Request, res: Response) {
 // GET /api/docs/:id/versions
 export async function listVersions(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const documentId = req.params.id as string;
 
@@ -350,12 +326,6 @@ export async function seedSampleData(req: Request, res: Response) {
 
 export async function listComments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const comments = await documentService.listComments(req.auth!.userId, req.params.id as string);
     res.json({ success: true, data: comments });
   } catch (error) {
@@ -468,12 +438,6 @@ export async function resolveComment(req: Request, res: Response) {
 
 export async function getBacklinks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view docs' });
-      return;
-    }
-
     const backlinks = await documentService.getBacklinks(req.auth!.userId, req.params.id as string);
     res.json({ success: true, data: backlinks });
   } catch (error) {

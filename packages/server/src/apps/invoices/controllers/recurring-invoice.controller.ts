@@ -16,11 +16,6 @@ export async function listRecurring(req: Request, res: Response) {
     return;
   }
   const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
-  if (!canAccess(perm.role, 'view')) {
-    res.status(403).json({ success: false, error: 'No permission to view invoices' });
-    return;
-  }
-
   const isAdmin = perm.role === 'admin';
   const list = await recurringService.listRecurringInvoices(tenantId, req.auth!.userId, isAdmin);
   res.json({ success: true, data: list });
@@ -33,11 +28,6 @@ export async function getRecurring(req: Request, res: Response) {
     return;
   }
   const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
-  if (!canAccess(perm.role, 'view')) {
-    res.status(403).json({ success: false, error: 'No permission to view invoices' });
-    return;
-  }
-
   const id = req.params.id as string;
   const isAdmin = perm.role === 'admin';
   const data = await recurringService.getRecurringInvoice(id, tenantId, isAdmin ? undefined : req.auth!.userId);

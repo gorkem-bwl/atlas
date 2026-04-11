@@ -6,12 +6,6 @@ import { getAppPermission, canAccess, decideRecordDelete } from '../../services/
 // GET /api/tables
 export async function listSpreadsheets(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tables' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
@@ -57,12 +51,6 @@ export async function createSpreadsheet(req: Request, res: Response) {
 // GET /api/tables/:id
 export async function getSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tables' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const spreadsheetId = req.params.id as string;
 
@@ -202,12 +190,6 @@ export async function seedSampleData(req: Request, res: Response) {
 // GET /api/tables/:id/rows/:rowId/comments
 export async function listRowComments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view comments' });
-      return;
-    }
-
     const spreadsheetId = req.params.id as string;
     const rowId = req.params.rowId as string;
     const comments = await tableService.listRowComments(spreadsheetId, rowId);
@@ -249,12 +231,6 @@ export async function createRowComment(req: Request, res: Response) {
 // DELETE /api/tables/comments/:commentId
 export async function deleteRowComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const commentId = req.params.commentId as string;
 
@@ -274,12 +250,6 @@ export async function deleteRowComment(req: Request, res: Response) {
 // GET /api/tables/search?q=...
 export async function searchSpreadsheets(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view tables' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 

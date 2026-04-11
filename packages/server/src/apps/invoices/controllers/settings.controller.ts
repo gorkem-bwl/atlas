@@ -7,12 +7,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 
 export async function getSettings(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const settings = await settingsService.getInvoiceSettings(tenantId);
     res.json({ success: true, data: settings });

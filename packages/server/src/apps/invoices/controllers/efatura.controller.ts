@@ -47,11 +47,6 @@ export async function generateEFatura(req: Request, res: Response) {
 export async function getEFaturaXml(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
@@ -79,11 +74,6 @@ export async function getEFaturaXml(req: Request, res: Response) {
 export async function getEFaturaPreview(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
@@ -111,11 +101,6 @@ export async function getEFaturaPreview(req: Request, res: Response) {
 export async function getEFaturaPdf(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 

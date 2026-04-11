@@ -10,11 +10,6 @@ import { emitAppEvent } from '../../../services/event.service';
 export async function listInvoices(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { companyId, contactId, dealId, status, search, includeArchived } = req.query;
@@ -40,11 +35,6 @@ export async function listInvoices(req: Request, res: Response) {
 export async function getInvoice(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
@@ -65,12 +55,6 @@ export async function getInvoice(req: Request, res: Response) {
 
 export async function getNextInvoiceNumber(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view invoices' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const invoiceNumber = await invoiceService.getNextInvoiceNumber(tenantId);
     res.json({ success: true, data: { invoiceNumber } });

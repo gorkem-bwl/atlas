@@ -8,12 +8,6 @@ import { parseMentionsAndNotify } from '../../../utils/mentions';
 // GET /api/drive/:id/versions
 export async function listVersions(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -110,12 +104,6 @@ export async function restoreVersion(req: Request, res: Response) {
 // GET /api/drive/:id/versions/:versionId/download
 export async function downloadVersion(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const versionId = req.params.versionId as string;
 
@@ -192,12 +180,6 @@ export async function createShareLink(req: Request, res: Response) {
 // GET /api/drive/:id/share — list share links
 export async function listShareLinks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -257,12 +239,6 @@ export async function shareWithUser(req: Request, res: Response) {
 // GET /api/drive/:id/shares — list shares for an item
 export async function listShares(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const itemId = req.params.id as string;
     const shares = await driveService.listItemShares(itemId);
     res.json({ success: true, data: shares });
@@ -294,12 +270,6 @@ export async function revokeShare(req: Request, res: Response) {
 // GET /api/drive/shared-with-me — list items shared with current user
 export async function getSharedWithMe(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const items = await driveService.listSharedWithMe(userId, tenantId);
@@ -313,12 +283,6 @@ export async function getSharedWithMe(req: Request, res: Response) {
 // GET /api/drive/:id/activity — file activity log
 export async function getActivityLog(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const itemId = req.params.id as string;
     const activities = await driveService.getActivityLog(itemId);
     res.json({ success: true, data: activities });
@@ -331,12 +295,6 @@ export async function getActivityLog(req: Request, res: Response) {
 // GET /api/drive/:id/comments — list comments
 export async function listComments(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const itemId = req.params.id as string;
     const comments = await driveService.listComments(itemId);
     res.json({ success: true, data: comments });
@@ -349,12 +307,6 @@ export async function listComments(req: Request, res: Response) {
 // POST /api/drive/:id/comments — create comment
 export async function createComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const itemId = req.params.id as string;

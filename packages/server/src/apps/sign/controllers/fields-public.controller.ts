@@ -12,12 +12,6 @@ const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');
 
 export async function listFields(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign documents' });
-      return;
-    }
-
     const documentId = req.params.id as string;
     const fields = await signService.listFields(documentId);
     res.json({ success: true, data: { fields } });
@@ -163,12 +157,6 @@ export async function createSigningToken(req: Request, res: Response) {
 
 export async function listSigningTokens(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view signing tokens' });
-      return;
-    }
-
     const documentId = req.params.id as string;
     const tokens = await signService.listSigningTokens(documentId);
     res.json({ success: true, data: { tokens } });
@@ -341,12 +329,6 @@ export async function viewPDFByToken(req: Request, res: Response) {
 
 export async function listTemplates(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view sign templates' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const templates = await signService.listTemplates(userId, tenantId);

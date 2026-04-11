@@ -17,11 +17,6 @@ export async function listPayments(req: Request, res: Response) {
     return;
   }
   const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
-  if (!canAccess(perm.role, 'view')) {
-    res.status(403).json({ success: false, error: 'No permission to view invoices' });
-    return;
-  }
-
   const invoiceId = req.params.invoiceId as string;
   const isAdmin = perm.role === 'admin';
   const parent = await invoiceService.getInvoice(req.auth!.userId, tenantId, invoiceId, isAdmin ? undefined : req.auth!.userId);

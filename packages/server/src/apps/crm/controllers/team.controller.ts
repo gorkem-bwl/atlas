@@ -7,8 +7,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 
 export async function listTeams(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'crm');
-    if (!canAccess(perm.role, 'view')) { res.status(403).json({ success: false, error: 'No permission' }); return; }
     const data = await crmService.listTeams(req.auth!.tenantId);
     res.json({ success: true, data });
   } catch (error) {
@@ -62,8 +60,6 @@ export async function deleteTeam(req: Request, res: Response) {
 
 export async function listTeamMembers(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'crm');
-    if (!canAccess(perm.role, 'view')) { res.status(403).json({ success: false, error: 'No permission' }); return; }
     const teamId = req.params.id as string;
     const data = await crmService.listTeamMembers(teamId, req.auth!.tenantId);
     res.json({ success: true, data });
@@ -103,8 +99,6 @@ export async function removeTeamMember(req: Request, res: Response) {
 
 export async function getUserTeams(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'crm');
-    if (!canAccess(perm.role, 'view')) { res.status(403).json({ success: false, error: 'No permission' }); return; }
     const userId = req.params.userId as string;
     const teamIds = await crmService.getUserTeamIds(userId, req.auth!.tenantId);
     res.json({ success: true, data: teamIds });

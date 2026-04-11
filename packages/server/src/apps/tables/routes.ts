@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import * as tableController from './controller';
 import { authMiddleware } from '../../middleware/auth';
+import { requireTablesPermission } from './middleware/permission';
 
 const router = Router();
 router.use(authMiddleware);
+router.use(requireTablesPermission('view'));
 
 router.get('/', tableController.listSpreadsheets);
 router.post('/', tableController.createSpreadsheet);

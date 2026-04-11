@@ -7,12 +7,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 
 export async function previewTimeBillingLineItems(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const { companyId, clientId, startDate, endDate, timeEntryIds } = req.body;
 
@@ -55,12 +49,6 @@ export async function populateTimeBilling(req: Request, res: Response) {
 
 export async function getTimeReport(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { startDate, endDate, projectId } = req.query;
@@ -80,12 +68,6 @@ export async function getTimeReport(req: Request, res: Response) {
 
 export async function getRevenueReport(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { startDate, endDate } = req.query;
@@ -104,12 +86,6 @@ export async function getRevenueReport(req: Request, res: Response) {
 
 export async function getProjectProfitability(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
@@ -123,12 +99,6 @@ export async function getProjectProfitability(req: Request, res: Response) {
 
 export async function getTeamUtilization(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { startDate, endDate } = req.query;

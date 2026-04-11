@@ -7,12 +7,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 
 export async function getWidgetData(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const data = await projectService.getWidgetData(tenantId);
     res.json({ success: true, data });
@@ -24,12 +18,6 @@ export async function getWidgetData(req: Request, res: Response) {
 
 export async function getDashboardData(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const data = await projectService.getDashboardData(userId, tenantId);
@@ -44,12 +32,6 @@ export async function getDashboardData(req: Request, res: Response) {
 
 export async function getSettings(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view project settings' });
-      return;
-    }
-
     const tenantId = req.auth!.tenantId;
     const settings = await projectService.getSettings(tenantId);
     res.json({ success: true, data: settings });

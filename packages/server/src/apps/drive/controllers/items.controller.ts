@@ -7,12 +7,6 @@ import { getAppPermission, canAccess, decideRecordDelete } from '../../../servic
 // GET /api/drive/widget
 export async function getWidgetData(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const data = await driveService.getWidgetData(userId);
     res.json({ success: true, data });
@@ -25,12 +19,6 @@ export async function getWidgetData(req: Request, res: Response) {
 // GET /api/drive
 export async function listItems(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const parentId = (req.query.parentId as string) || null;
@@ -128,12 +116,6 @@ export async function uploadFiles(req: Request, res: Response) {
 // GET /api/drive/search?q=
 export async function searchItems(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 
@@ -153,12 +135,6 @@ export async function searchItems(req: Request, res: Response) {
 // GET /api/drive/trash
 export async function listTrash(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const items = await driveService.listTrash(userId);
     res.json({ success: true, data: { items } });
@@ -171,12 +147,6 @@ export async function listTrash(req: Request, res: Response) {
 // GET /api/drive/favourites
 export async function listFavourites(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const items = await driveService.listFavourites(userId);
     res.json({ success: true, data: { items } });
@@ -189,12 +159,6 @@ export async function listFavourites(req: Request, res: Response) {
 // GET /api/drive/recent
 export async function listRecent(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const limit = parseInt(req.query.limit as string) || 20;
     const items = await driveService.listRecent(userId, limit);
@@ -208,12 +172,6 @@ export async function listRecent(req: Request, res: Response) {
 // GET /api/drive/folders
 export async function listFolders(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const folders = await driveService.listFolders(userId);
     res.json({ success: true, data: { folders } });
@@ -226,12 +184,6 @@ export async function listFolders(req: Request, res: Response) {
 // GET /api/drive/storage
 export async function getStorageUsage(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const usage = await driveService.getStorageUsage(userId);
     res.json({ success: true, data: usage });
@@ -244,12 +196,6 @@ export async function getStorageUsage(req: Request, res: Response) {
 // GET /api/drive/:id
 export async function getItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -269,12 +215,6 @@ export async function getItem(req: Request, res: Response) {
 // GET /api/drive/:id/breadcrumbs
 export async function getBreadcrumbs(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const itemId = req.params.id as string;
 
@@ -591,12 +531,6 @@ export async function batchFavourite(req: Request, res: Response) {
 // GET /api/drive/by-type?type=images|documents|videos|audio
 export async function listItemsByType(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drive' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const typeCategory = (req.query.type as string) || '';
 

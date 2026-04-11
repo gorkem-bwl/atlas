@@ -20,12 +20,6 @@ export async function seedSampleData(req: Request, res: Response) {
 // GET /api/drawings
 export async function listDrawings(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drawings' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const includeArchived = req.query.includeArchived === 'true';
@@ -67,12 +61,6 @@ export async function createDrawing(req: Request, res: Response) {
 // GET /api/drawings/:id
 export async function getDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drawings' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const drawingId = req.params.id as string;
 
@@ -201,12 +189,6 @@ export async function restoreDrawing(req: Request, res: Response) {
 // GET /api/drawings/search?q=...
 export async function searchDrawings(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view drawings' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const query = (req.query.q as string) || '';
 

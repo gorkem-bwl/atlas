@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as crmController from './controller';
 import { authMiddleware } from '../../middleware/auth';
+import { requireCrmPermission } from './middleware/permission';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.post('/proposals/public/:token/decline', crmController.declinePublicPropo
 
 // ─── Auth middleware for all routes below ────────────────────────────
 router.use(authMiddleware);
+router.use(requireCrmPermission('view'));
 
 // Widget (lightweight summary for home dashboard)
 router.get('/widget', crmController.getWidgetData);
