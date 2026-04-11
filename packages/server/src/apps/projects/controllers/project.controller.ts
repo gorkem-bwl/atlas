@@ -18,11 +18,17 @@ export async function listProjects(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { search, companyId, clientId, status, includeArchived } = req.query;
 
+    // Only callers with blanket update permission (editor+) see every
+    // project in the tenant. Everyone else is scoped to projects they
+    // own or are a member of.
+    const isAdmin = canAccess(perm.role, 'update');
+
     const projects = await projectService.listProjects(userId, tenantId, {
       search: search as string | undefined,
       companyId: (companyId || clientId) as string | undefined,
       status: status as string | undefined,
       includeArchived: includeArchived === 'true',
+      isAdmin,
     });
 
     res.json({ success: true, data: { projects } });
@@ -48,6 +54,15 @@ export async function getProject(req: Request, res: Response) {
     if (!project) {
       res.status(404).json({ success: false, error: 'Project not found' });
       return;
+    }
+
+    // Non-admins may only see projects they own or are a member of.
+    if (!canAccess(perm.role, 'update')) {
+      const allowed = await projectService.userCanAccessProject(userId, tenantId, id);
+      if (!allowed) {
+        res.status(403).json({ success: false, error: 'No permission to view this project' });
+        return;
+      }
     }
 
     res.json({ success: true, data: project });
@@ -136,6 +151,16 @@ export async function deleteProject(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
+
+    // Non-admins (delete_own only) may only delete projects they
+    // own or are a member of.
+    if (!canAccess(perm.role, 'delete')) {
+      const allowed = await projectService.userCanAccessProject(userId, tenantId, id);
+      if (!allowed) {
+        res.status(403).json({ success: false, error: 'No permission to delete this project' });
+        return;
+      }
+    }
 
     await projectService.deleteProject(userId, tenantId, id);
     res.json({ success: true, data: null });

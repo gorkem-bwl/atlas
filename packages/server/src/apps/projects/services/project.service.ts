@@ -32,6 +32,7 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
   companyId?: string;
   status?: string;
   includeArchived?: boolean;
+  isAdmin?: boolean;
 }) {
   const conditions = [eq(projectProjects.tenantId, tenantId)];
   if (!filters?.includeArchived) {
@@ -46,6 +47,13 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
   if (filters?.search) {
     const searchTerm = `%${filters.search}%`;
     conditions.push(sql`${projectProjects.name} ILIKE ${searchTerm}`);
+  }
+  // Non-admins only see projects they own OR are a member of.
+  // Admins (role with blanket `update` access) see everything in the tenant.
+  if (!filters?.isAdmin) {
+    conditions.push(
+      sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
+    );
   }
 
   return db
@@ -78,6 +86,26 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
     .leftJoin(crmCompanies, eq(projectProjects.companyId, crmCompanies.id))
     .where(and(...conditions))
     .orderBy(asc(projectProjects.sortOrder), asc(projectProjects.createdAt));
+}
+
+/**
+ * Returns true if the user owns the project OR is a member of it.
+ * Used by the controller to enforce ownership scoping for non-admin
+ * callers on get/update/delete operations.
+ */
+export async function userCanAccessProject(userId: string, tenantId: string, projectId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: projectProjects.id })
+    .from(projectProjects)
+    .where(
+      and(
+        eq(projectProjects.id, projectId),
+        eq(projectProjects.tenantId, tenantId),
+        sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
+      ),
+    )
+    .limit(1);
+  return !!row;
 }
 
 export async function getProject(userId: string, tenantId: string, id: string) {
