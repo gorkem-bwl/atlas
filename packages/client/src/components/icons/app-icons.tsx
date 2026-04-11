@@ -445,22 +445,26 @@ export function SystemIcon({ size = 24, className, style }: IconProps) {
       className={className}
       style={style}
     >
-      <path fillRule="evenodd" clipRule="evenodd" d="M78.6343 103.38C74.0773 105.074 69.1468 106 64 106C40.804 106 22 87.196 22 64C22 40.804 40.804 22 64 22C87.196 22 106 40.804 106 64C106 69.1468 105.074 74.0773 103.38 78.6343C105.211 79.7542 106.826 81.1921 108.148 82.871C110.628 77.0785 112 70.6996 112 64C112 37.4904 90.5096 16 64 16C37.4904 16 16 37.4904 16 64C16 90.5096 37.4904 112 64 112C70.6996 112 77.0785 110.628 82.871 108.148C81.1921 106.826 79.7542 105.211 78.6343 103.38Z" fill="url(#system_paint0_linear_1103_173)"/>
-      <path d="M76.8174 35.5525C76.8174 39.7236 71.0079 43.105 63.8416 43.105C56.6752 43.105 50.8657 39.7236 50.8657 35.5525C50.8657 31.3814 56.6752 28 63.8416 28C71.0079 28 76.8174 31.3814 76.8174 35.5525Z" fill="#E6007A"/>
-      <path d="M94.9541 61.0139C98.5652 58.9284 98.5878 52.2051 95.0046 45.9971C91.4214 39.789 85.5893 36.4471 81.9783 38.5327C78.3672 40.6182 78.3446 47.3415 81.9278 53.5496C85.511 59.7576 91.343 63.0995 94.9541 61.0139Z" fill="#E6007A"/>
-      <path d="M45.7538 74.4463C49.337 80.6543 49.3144 87.3776 45.7034 89.4632C42.0923 91.5487 36.2602 88.2068 32.6771 81.9988C29.0939 75.7907 29.1165 69.0675 32.7275 66.9819C36.3386 64.8963 42.1707 68.2383 45.7538 74.4463Z" fill="#E6007A"/>
-      <path d="M63.8416 99.9995C71.0079 99.9995 76.8174 96.6181 76.8174 92.447C76.8174 88.2759 71.0079 84.8945 63.8416 84.8945C56.6752 84.8945 50.8657 88.2759 50.8657 92.447C50.8657 96.6181 56.6752 99.9995 63.8416 99.9995Z" fill="#E6007A"/>
-      <path d="M94.9578 66.9858C98.5688 69.0714 98.5914 75.7947 95.0082 82.0027C91.4251 88.2107 85.593 91.5526 81.9819 89.4671C78.3709 87.3815 78.3483 80.6582 81.9315 74.4502C85.5146 68.2422 91.3467 64.9002 94.9578 66.9858Z" fill="#E6007A"/>
-      <path d="M45.7017 38.5366C49.3127 40.6222 49.3353 47.3454 45.7521 53.5535C42.169 59.7615 36.3369 63.1034 32.7258 61.0178C29.1148 58.9323 29.0922 52.209 32.6754 46.001C36.2585 39.7929 42.0906 36.451 45.7017 38.5366Z" fill="#E6007A"/>
+      {/* Three horizontal slider tracks with handles at different positions —
+          a settings/control-panel metaphor in the SignIcon visual language. */}
+      {/* Track 1 */}
+      <rect x="16" y="34" width="96" height="6" rx="3" fill="url(#system_track)" />
+      <circle cx="84" cy="37" r="11" fill="url(#system_handle)" />
+      {/* Track 2 */}
+      <rect x="16" y="62" width="96" height="6" rx="3" fill="url(#system_track)" />
+      <circle cx="40" cy="65" r="11" fill="url(#system_handle)" />
+      {/* Track 3 */}
+      <rect x="16" y="90" width="96" height="6" rx="3" fill="url(#system_track)" />
+      <circle cx="68" cy="93" r="11" fill="url(#system_handle)" />
       <defs>
-      <linearGradient id="system_paint0_linear_1103_173" x1="64.0001" y1="16" x2="64.0001" y2="112" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#7AEDCF"/>
-      <stop offset="0.201333" stopColor="#68CEFA"/>
-      <stop offset="0.403244" stopColor="#689CF8"/>
-      <stop offset="0.602076" stopColor="#AC57C0"/>
-      <stop offset="0.801867" stopColor="#E65659"/>
-      <stop offset="1" stopColor="#F2C241"/>
-      </linearGradient>
+        <linearGradient id="system_track" x1="16" y1="64" x2="112" y2="64" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#cbd5e1" />
+          <stop offset="1" stopColor="#94a3b8" />
+        </linearGradient>
+        <linearGradient id="system_handle" x1="40" y1="24" x2="84" y2="104" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#60a5fa" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
       </defs>
     </svg>
   );
@@ -627,210 +631,3 @@ export function InvoicesIcon({ size = 24, className, style }: IconProps) {
 }
 
 
-// ─── System alternatives (preview at /dev/system-icons) ───────────────
-//
-// Five hand-authored System icons in the SignIcon style — 1-3 paths,
-// 2-stop gradients, 128×128 viewBox. The user picks one in the preview
-// page; the winner becomes SystemIcon and the rest get deleted along
-// with the preview route.
-
-// (A) Control Center — rounded square with a 2×2 grid of toggle dots.
-export function SystemIconA({ size = 24, className, style }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-    >
-      <rect x="14" y="14" width="100" height="100" rx="22" fill="url(#sysA_paint0)" />
-      {/* 2×2 grid of toggle dots */}
-      <circle cx="46" cy="46" r="11" fill="#ffffff" opacity="0.9" />
-      <circle cx="82" cy="46" r="11" fill="#ffffff" opacity="0.4" />
-      <circle cx="46" cy="82" r="11" fill="#ffffff" opacity="0.4" />
-      <circle cx="82" cy="82" r="11" fill="#ffffff" opacity="0.9" />
-      <defs>
-        <linearGradient id="sysA_paint0" x1="64" y1="14" x2="64" y2="114" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#94a3b8" />
-          <stop offset="1" stopColor="#475569" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-// (B) Gear — classic 8-tooth cog with a centre hole.
-export function SystemIconB({ size = 24, className, style }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-    >
-      {/* Gear body — 8 evenly-spaced teeth around a circular core. The path
-          alternates between tooth corners and rounded indents. */}
-      <path
-        d="M64 14
-           L 76 18
-           L 84 12 L 92 22
-           L 100 22 L 102 34
-           L 112 38 L 108 50
-           L 116 60 L 108 70
-           L 112 82 L 102 86
-           L 100 98 L 92 98
-           L 84 108 L 76 102
-           L 64 106
-           L 52 102 L 44 108
-           L 36 98 L 28 98
-           L 26 86 L 16 82
-           L 20 70 L 12 60
-           L 20 50 L 16 38
-           L 26 34 L 28 22
-           L 36 22 L 44 12
-           L 52 18 Z"
-        fill="url(#sysB_paint0)"
-      />
-      {/* Centre hole */}
-      <circle cx="64" cy="60" r="22" fill="url(#sysB_paint1)" />
-      <defs>
-        <linearGradient id="sysB_paint0" x1="64" y1="12" x2="64" y2="108" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#94a3b8" />
-          <stop offset="1" stopColor="#334155" />
-        </linearGradient>
-        <linearGradient id="sysB_paint1" x1="64" y1="38" x2="64" y2="82" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#cbd5e1" />
-          <stop offset="1" stopColor="#64748b" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-// (C) Sliders — three horizontal slider tracks with handles at different positions.
-export function SystemIconC({ size = 24, className, style }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-    >
-      {/* Track 1 */}
-      <rect x="16" y="34" width="96" height="6" rx="3" fill="url(#sysC_track)" />
-      <circle cx="84" cy="37" r="11" fill="url(#sysC_handle)" />
-      {/* Track 2 */}
-      <rect x="16" y="62" width="96" height="6" rx="3" fill="url(#sysC_track)" />
-      <circle cx="40" cy="65" r="11" fill="url(#sysC_handle)" />
-      {/* Track 3 */}
-      <rect x="16" y="90" width="96" height="6" rx="3" fill="url(#sysC_track)" />
-      <circle cx="68" cy="93" r="11" fill="url(#sysC_handle)" />
-      <defs>
-        <linearGradient id="sysC_track" x1="16" y1="64" x2="112" y2="64" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#cbd5e1" />
-          <stop offset="1" stopColor="#94a3b8" />
-        </linearGradient>
-        <linearGradient id="sysC_handle" x1="40" y1="24" x2="84" y2="104" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#60a5fa" />
-          <stop offset="1" stopColor="#1d4ed8" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-// (D) Power button — circle with the standard power glyph (vertical bar above
-// an open arc), in a teal hue family.
-export function SystemIconD({ size = 24, className, style }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-    >
-      {/* Outer power button disc */}
-      <circle cx="64" cy="64" r="50" fill="url(#sysD_paint0)" />
-      {/* Inner well so the glyph reads */}
-      <circle cx="64" cy="64" r="38" fill="url(#sysD_paint1)" />
-      {/* Power glyph: open arc */}
-      <path
-        d="M40 56 A 28 28 0 1 0 88 56"
-        stroke="#ffffff"
-        strokeWidth="9"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* Power glyph: vertical bar */}
-      <rect x="59" y="32" width="10" height="34" rx="5" fill="#ffffff" />
-      <defs>
-        <linearGradient id="sysD_paint0" x1="64" y1="14" x2="64" y2="114" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#5eead4" />
-          <stop offset="1" stopColor="#0f766e" />
-        </linearGradient>
-        <linearGradient id="sysD_paint1" x1="64" y1="26" x2="64" y2="102" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#14b8a6" />
-          <stop offset="1" stopColor="#134e4a" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-// (E) CPU chip — square chip with 3 pins on each side, suggesting hardware.
-export function SystemIconE({ size = 24, className, style }: IconProps) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-    >
-      {/* Pins — top */}
-      <rect x="42" y="14" width="6" height="14" rx="2" fill="#94a3b8" />
-      <rect x="61" y="14" width="6" height="14" rx="2" fill="#94a3b8" />
-      <rect x="80" y="14" width="6" height="14" rx="2" fill="#94a3b8" />
-      {/* Pins — bottom */}
-      <rect x="42" y="100" width="6" height="14" rx="2" fill="#94a3b8" />
-      <rect x="61" y="100" width="6" height="14" rx="2" fill="#94a3b8" />
-      <rect x="80" y="100" width="6" height="14" rx="2" fill="#94a3b8" />
-      {/* Pins — left */}
-      <rect x="14" y="42" width="14" height="6" rx="2" fill="#94a3b8" />
-      <rect x="14" y="61" width="14" height="6" rx="2" fill="#94a3b8" />
-      <rect x="14" y="80" width="14" height="6" rx="2" fill="#94a3b8" />
-      {/* Pins — right */}
-      <rect x="100" y="42" width="14" height="6" rx="2" fill="#94a3b8" />
-      <rect x="100" y="61" width="14" height="6" rx="2" fill="#94a3b8" />
-      <rect x="100" y="80" width="14" height="6" rx="2" fill="#94a3b8" />
-      {/* Chip body */}
-      <rect x="28" y="28" width="72" height="72" rx="10" fill="url(#sysE_paint0)" />
-      {/* Inner core square */}
-      <rect x="46" y="46" width="36" height="36" rx="4" fill="url(#sysE_paint1)" />
-      <defs>
-        <linearGradient id="sysE_paint0" x1="64" y1="28" x2="64" y2="100" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#a78bfa" />
-          <stop offset="1" stopColor="#5b21b6" />
-        </linearGradient>
-        <linearGradient id="sysE_paint1" x1="64" y1="46" x2="64" y2="82" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#c4b5fd" />
-          <stop offset="1" stopColor="#7c3aed" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
