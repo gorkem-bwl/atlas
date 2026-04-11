@@ -117,7 +117,9 @@ function NavButton({
             boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.04)',
           }}
         >
-          <Icon size={16} />
+          {/* Brand SVGs render at 120% of the lucide size — the source
+              artwork has more internal padding than lucide line icons. */}
+          <Icon size={Math.round(16 * 1.2)} />
         </span>
       ) : (
         <Icon size={16} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />

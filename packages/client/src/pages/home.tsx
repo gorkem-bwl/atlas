@@ -23,6 +23,16 @@ import { DockPet, type PetType } from '../components/home/dock-pet';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import '../styles/home.css';
 
+// App ids that use multicolor brand SVGs in the dock instead of lucide icons.
+// They render on a light/white card so the artwork reads clearly, replacing
+// the per-app gradient. Other apps keep their gradient cards.
+const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
+  crm: '#ffffff',
+  projects: '#ffffff',
+  hr: '#fff1ea',
+  calendar: '#f4f4f5',
+};
+
 // ---------------------------------------------------------------------------
 // Background images — curated nature collection (Unsplash, free to use)
 // ---------------------------------------------------------------------------
@@ -657,6 +667,7 @@ export function HomePage() {
     const BASE = 52;
     const MAX = 82;
     const RANGE = 200;
+    const ICON_RATIO = 26 / BASE; // base icon size 26px in a 52px card
     const items = dock.querySelectorAll<HTMLElement>('.dock-item');
     items.forEach((item) => {
       item.classList.remove('dock-resetting');
@@ -670,6 +681,10 @@ export function HomePage() {
       item.style.width = `${size}px`;
       item.style.height = `${size}px`;
       item.style.marginTop = `${mt}px`;
+      // Drive the inner icon size from a CSS variable so the icon scales
+      // proportionally with the card. Without this the 26px icon stays put
+      // while the card grows to 82px, making the artwork look small.
+      item.style.setProperty('--dock-icon-size', `${Math.round(size * ICON_RATIO)}px`);
     });
   }, []);
 
@@ -682,6 +697,7 @@ export function HomePage() {
       item.style.width = '52px';
       item.style.height = '52px';
       item.style.marginTop = '0px';
+      item.style.setProperty('--dock-icon-size', '26px');
     });
     // Clean up after transition completes
     setTimeout(() => {
@@ -1268,6 +1284,8 @@ export function HomePage() {
           {orderedDockApps.map((app) => {
             const Icon = app.icon;
             const isBeingDragged = dockDragState?.isDragging && dockDragState.id === app.id;
+            const brandBg = BRAND_ICON_BACKGROUNDS[app.id];
+            const isBrandIcon = brandBg !== undefined;
             return (
               <div
                 key={app.id}
@@ -1289,19 +1307,52 @@ export function HomePage() {
                   opacity: isBeingDragged ? 0.3 : 1,
                   transform: getDockItemTransform(app.id),
                   transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s',
+                  // Initial value of the icon-size CSS variable. The hover
+                  // handler updates this so the icon scales with the card.
+                  // Brand icons get +20% to look more present in the dock.
+                  ['--dock-icon-size' as string]: '26px',
                 }}
               >
                 <div
                   className="dock-icon-inner"
                   style={{
-                    background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
-                    boxShadow: `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
+                    background: isBrandIcon
+                      ? brandBg
+                      : `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                    boxShadow: isBrandIcon
+                      ? `0 3px 10px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.05)`
+                      : `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.2)`,
                   }}
                 >
-                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                  {isBrandIcon ? (
+                    <Icon
+                      // Brand icons render at 120% of the lucide size for
+                      // visual parity (the brand artwork has more internal
+                      // padding than lucide line icons).
+                      size={Math.round(26 * 1.2)}
+                      style={{
+                        width: 'calc(var(--dock-icon-size, 26px) * 1.2)',
+                        height: 'calc(var(--dock-icon-size, 26px) * 1.2)',
+                      }}
+                    />
+                  ) : (
+                    <Icon
+                      size={26}
+                      color="#fff"
+                      strokeWidth={1.6}
+                      style={{
+                        width: 'var(--dock-icon-size, 26px)',
+                        height: 'var(--dock-icon-size, 26px)',
+                        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+                      }}
+                    />
+                  )}
                 </div>
                 {/* Reflection */}
-                <div className="dock-icon-reflection" style={{ background: app.color }} />
+                <div
+                  className="dock-icon-reflection"
+                  style={{ background: isBrandIcon ? '#000' : app.color }}
+                />
                 <span className="dock-tooltip">{app.label}</span>
               </div>
             );
@@ -1311,6 +1362,8 @@ export function HomePage() {
             const app = orderedDockApps.find(a => a.id === dockDragState.id);
             if (!app) return null;
             const Icon = app.icon;
+            const brandBg = BRAND_ICON_BACKGROUNDS[app.id];
+            const isBrandIcon = brandBg !== undefined;
             return (
               <div style={{
                 position: 'fixed',
@@ -1322,8 +1375,12 @@ export function HomePage() {
                 pointerEvents: 'none',
               }}>
                 <div className="dock-icon-inner" style={{
-                  background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
-                  boxShadow: `0 8px 20px ${app.color}66`,
+                  background: isBrandIcon
+                    ? brandBg
+                    : `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                  boxShadow: isBrandIcon
+                    ? '0 8px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.05)'
+                    : `0 8px 20px ${app.color}66`,
                   transform: 'scale(1.15)',
                   width: 52,
                   height: 52,
@@ -1332,7 +1389,11 @@ export function HomePage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                  {isBrandIcon ? (
+                    <Icon size={Math.round(26 * 1.2)} />
+                  ) : (
+                    <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                  )}
                 </div>
               </div>
             );
@@ -1344,6 +1405,8 @@ export function HomePage() {
           const app = orderedDockApps.find(a => a.id === dockDragState.id);
           if (!app) return null;
           const Icon = app.icon;
+          const brandBg = BRAND_ICON_BACKGROUNDS[app.id];
+          const isBrandIcon = brandBg !== undefined;
           const dockRect = dockRef.current?.getBoundingClientRect();
           const isDropping = dockDragState.isDropping;
           const xPos = isDropping ? dockDragState.dropTargetX : dockDragState.currentX;
@@ -1365,14 +1428,24 @@ export function HomePage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
-                boxShadow: isDropping
-                  ? `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25)`
-                  : `0 8px 24px ${app.color}88, 0 4px 12px rgba(0,0,0,0.3)`,
+                background: isBrandIcon
+                  ? brandBg
+                  : `linear-gradient(145deg, color-mix(in srgb, ${app.color} 85%, #fff) 0%, ${app.color} 50%, color-mix(in srgb, ${app.color} 70%, #000) 100%)`,
+                boxShadow: isBrandIcon
+                  ? (isDropping
+                      ? '0 3px 10px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.05)'
+                      : '0 8px 24px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.3)')
+                  : (isDropping
+                      ? `0 3px 10px ${app.color}55, inset 0 1px 1px rgba(255,255,255,0.25)`
+                      : `0 8px 24px ${app.color}88, 0 4px 12px rgba(0,0,0,0.3)`),
                 transform: isDropping ? 'scale(1)' : 'scale(1.15)',
                 transition: isDropping ? 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease' : 'none',
               }}>
-                <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                {isBrandIcon ? (
+                  <Icon size={Math.round(26 * 1.2)} />
+                ) : (
+                  <Icon size={26} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
+                )}
               </div>
             </div>
           );
