@@ -50,7 +50,20 @@ export async function listEmployees(req: Request, res: Response) {
       userEmail: req.auth!.email,
     });
 
-    res.json({ success: true, data: { employees } });
+    // Strip sensitive salary fields for non-admins — matches the
+    // single-row getEmployee endpoint's stripping behaviour. A non-admin
+    // viewer is typically scoped to just their own row, but we defend
+    // here anyway so any leaked row from the service doesn't expose pay.
+    const sanitised = isAdmin
+      ? employees
+      : employees.map((e) => ({
+          ...e,
+          salary: undefined,
+          salaryCurrency: undefined,
+          salaryPeriod: undefined,
+        }));
+
+    res.json({ success: true, data: { employees: sanitised } });
   } catch (error) {
     logger.error({ error }, 'Failed to list employees');
     res.status(500).json({ success: false, error: 'Failed to list employees' });

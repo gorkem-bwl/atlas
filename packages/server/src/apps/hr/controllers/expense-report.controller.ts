@@ -68,14 +68,17 @@ export async function getExpenseReport(req: Request, res: Response) {
 
 // ─── Create Expense Report ─────────────────────────────────────
 
+// Expense reports are a self-service HR feature — every user with a
+// linked employee record can create their own report, even viewers.
+// This mirrors the createExpense bypass in expense.controller.ts.
 export async function createExpenseReport(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
     const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
-    if (!canAccess(perm.role, 'create')) {
-      res.status(403).json({ success: false, error: 'No permission to create HR records' });
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to access HR records' });
       return;
     }
 

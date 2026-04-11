@@ -3,23 +3,50 @@ import * as leaveService from '../leave.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
-import { getLinkedUserIdForEmployee, getManagerLinkedUserId } from '../services/employee.service';
+import { findEmployeeIdByLinkedUser, getLinkedUserIdForEmployee, getManagerLinkedUserId } from '../services/employee.service';
 
 // ─── Leave Applications ───────────────────────────────────────────
+//
+// Self-service pattern (mirrors expense.controller.ts):
+//   - 'view' permission is the baseline gate — every HR user has it.
+//   - Privileged roles (editor/manager/admin with 'update' or 'create')
+//     can see and act on every leave application in the tenant.
+//   - Viewers (portal users) can only see + mutate their OWN leave
+//     applications. The controller forces an employeeId filter on
+//     list, and ownership-checks the single-row mutations against
+//     the caller's linked employee.
 
 export async function listLeaveApplications(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
     if (!canAccess(perm.role, 'view')) {
       res.status(403).json({ success: false, error: 'No permission to view HR data' });
       return;
     }
 
     const { employeeId, status, startDate, endDate } = req.query;
+
+    // For non-privileged roles (viewers who only have 'view' perm),
+    // force-scope the list to the caller's own employee record. Even
+    // if the client passes a different employeeId in the query, we
+    // override it — no way to peek at another employee's leave.
+    let effectiveEmployeeId = employeeId as string | undefined;
+    if (!canAccess(perm.role, 'update')) {
+      const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
+      if (!callerEmployeeId) {
+        // Viewer with no linked employee — return empty list (matches
+        // the "you don't have an employee record yet" state).
+        res.json({ success: true, data: [] });
+        return;
+      }
+      effectiveEmployeeId = callerEmployeeId;
+    }
+
     const data = await leaveService.listLeaveApplications(tenantId, {
-      employeeId: employeeId as string | undefined,
+      employeeId: effectiveEmployeeId,
       status: status as string | undefined,
       startDate: startDate as string | undefined,
       endDate: endDate as string | undefined,
@@ -34,14 +61,29 @@ export async function listLeaveApplications(req: Request, res: Response) {
 export async function createLeaveApplication(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
-    if (!canAccess(perm.role, 'create')) {
-      res.status(403).json({ success: false, error: 'No permission to create HR records' });
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to access HR records' });
       return;
     }
 
-    const { employeeId, leaveTypeId, startDate, endDate, halfDay, halfDayDate, reason } = req.body;
+    const { leaveTypeId, startDate, endDate, halfDay, halfDayDate, reason } = req.body;
+    let { employeeId } = req.body;
+
+    // For non-privileged roles, always force employeeId to the caller's
+    // own linked employee — a viewer cannot create a leave application
+    // on behalf of anyone else, even if they pass a different id.
+    if (!canAccess(perm.role, 'create')) {
+      const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
+      if (!callerEmployeeId) {
+        res.status(400).json({ success: false, error: 'No employee record found for current user' });
+        return;
+      }
+      employeeId = callerEmployeeId;
+    }
+
     if (!employeeId || !leaveTypeId || !startDate || !endDate) {
       res.status(400).json({ success: false, error: 'employeeId, leaveTypeId, startDate, endDate are required' });
       return;
@@ -73,11 +115,26 @@ export async function createLeaveApplication(req: Request, res: Response) {
 export async function updateLeaveApplication(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
-    if (!canAccess(perm.role, 'update')) {
-      res.status(403).json({ success: false, error: 'No permission to update HR records' });
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to access HR records' });
       return;
+    }
+
+    // Ownership check for non-privileged roles.
+    if (!canAccess(perm.role, 'update')) {
+      const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
+      if (!callerEmployeeId) {
+        res.status(400).json({ success: false, error: 'No employee record found for current user' });
+        return;
+      }
+      const existing = await leaveService.getLeaveApplication(tenantId, req.params.id as string);
+      if (!existing || existing.employeeId !== callerEmployeeId) {
+        res.status(403).json({ success: false, error: 'No permission to update this leave application' });
+        return;
+      }
     }
 
     const data = await leaveService.updateLeaveApplication(tenantId, req.params.id as string, req.body);
@@ -92,11 +149,27 @@ export async function updateLeaveApplication(req: Request, res: Response) {
 export async function submitLeaveApplication(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
-    if (!canAccess(perm.role, 'update')) {
-      res.status(403).json({ success: false, error: 'No permission to update HR records' });
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to access HR records' });
       return;
+    }
+
+    // Ownership check for non-privileged roles — a viewer may submit
+    // their own draft leave application but not anyone else's.
+    if (!canAccess(perm.role, 'update')) {
+      const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
+      if (!callerEmployeeId) {
+        res.status(400).json({ success: false, error: 'No employee record found for current user' });
+        return;
+      }
+      const existing = await leaveService.getLeaveApplication(tenantId, req.params.id as string);
+      if (!existing || existing.employeeId !== callerEmployeeId) {
+        res.status(403).json({ success: false, error: 'No permission to submit this leave application' });
+        return;
+      }
     }
 
     const data = await leaveService.submitLeaveApplication(tenantId, req.params.id as string);
@@ -195,11 +268,26 @@ export async function rejectLeaveApplication(req: Request, res: Response) {
 export async function cancelLeaveApplication(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
+    const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
-    if (!canAccess(perm.role, 'update')) {
-      res.status(403).json({ success: false, error: 'No permission to update HR records' });
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to access HR records' });
       return;
+    }
+
+    // Ownership check for non-privileged roles.
+    if (!canAccess(perm.role, 'update')) {
+      const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
+      if (!callerEmployeeId) {
+        res.status(400).json({ success: false, error: 'No employee record found for current user' });
+        return;
+      }
+      const existing = await leaveService.getLeaveApplication(tenantId, req.params.id as string);
+      if (!existing || existing.employeeId !== callerEmployeeId) {
+        res.status(403).json({ success: false, error: 'No permission to cancel this leave application' });
+        return;
+      }
     }
 
     const data = await leaveService.cancelLeaveApplication(tenantId, req.params.id as string);

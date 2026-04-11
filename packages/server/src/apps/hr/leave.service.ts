@@ -12,6 +12,23 @@ function remainingBalance(b: { allocated: number; used: number; carried: number 
 
 // ─── Leave Applications ───────────────────────────────────────────
 
+/** Fetch a single leave application by id — used by the controller to
+ * check ownership before allowing a mutation from a non-privileged role. */
+export async function getLeaveApplication(tenantId: string, id: string) {
+  const [row] = await db.select({
+    id: hrLeaveApplications.id,
+    employeeId: hrLeaveApplications.employeeId,
+    status: hrLeaveApplications.status,
+  })
+    .from(hrLeaveApplications)
+    .where(and(
+      eq(hrLeaveApplications.id, id),
+      eq(hrLeaveApplications.tenantId, tenantId),
+    ))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function listLeaveApplications(tenantId: string, filters?: {
   employeeId?: string; status?: string; startDate?: string; endDate?: string;
 }) {

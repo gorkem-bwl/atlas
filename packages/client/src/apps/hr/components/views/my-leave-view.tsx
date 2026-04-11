@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Check, XCircle, X } from 'lucide-react';
 import {
@@ -17,6 +17,8 @@ import { Modal } from '../../../../components/ui/modal';
 import { StatusDot } from '../../../../components/ui/status-dot';
 import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state';
 import { formatDate } from '../../../../lib/format';
+import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
+import { useAuthStore } from '../../../../stores/auth-store';
 
 export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
   const { t } = useTranslation();
@@ -27,6 +29,17 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
   const cancelApp = useCancelLeaveApplication();
   const approveApp = useApproveLeaveApplication();
   const rejectApp = useRejectLeaveApplication();
+
+  // Permission + self-identification used to gate the approve/reject
+  // icon buttons. Viewers can never approve; even privileged roles
+  // should never approve their own records.
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canApprove = hrPerm?.role === 'admin' || hrPerm?.role === 'manager' || hrPerm?.role === 'editor';
+  const authAccount = useAuthStore((s) => s.account);
+  const myEmployee = employees.find(
+    (e) => e.email?.toLowerCase() === authAccount?.email?.toLowerCase(),
+  );
+
   const [showRequest, setShowRequest] = useState(false);
   const [reqEmployeeId, setReqEmployeeId] = useState('');
   const [reqLeaveTypeId, setReqLeaveTypeId] = useState('');
@@ -34,6 +47,16 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
   const [reqEndDate, setReqEndDate] = useState('');
   const [reqReason, setReqReason] = useState('');
   const [reqHalfDay, setReqHalfDay] = useState(false);
+
+  // Auto-fill reqEmployeeId with the current user's employee record
+  // when the modal opens. For viewers this is the only employee they
+  // can submit for anyway; for admins it's a sensible default they
+  // can change via the dropdown.
+  useEffect(() => {
+    if (showRequest && !reqEmployeeId && myEmployee) {
+      setReqEmployeeId(myEmployee.id);
+    }
+  }, [showRequest, reqEmployeeId, myEmployee]);
 
   const handleRequest = () => {
     if (!reqEmployeeId || !reqLeaveTypeId || !reqStartDate || !reqEndDate) return;
@@ -97,13 +120,16 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
               {app.reason || '-'}
             </span>
             <div style={{ width: 80, flexShrink: 0, display: 'flex', gap: 2 }}>
-              {app.status === 'pending' && (
+              {/* Approve/reject buttons only for privileged roles on records
+                  that belong to someone OTHER than the current user. Viewers
+                  never see these, and no one can approve their own leave. */}
+              {app.status === 'pending' && canApprove && app.employeeId !== myEmployee?.id && (
                 <>
                   <IconButton icon={<Check size={14} />} label={t('hr.actions.approve')} size={26} onClick={() => approveApp.mutate({ id: app.id })} style={{ color: 'var(--color-success)' }} />
                   <IconButton icon={<XCircle size={14} />} label={t('hr.actions.reject')} size={26} destructive onClick={() => rejectApp.mutate({ id: app.id })} />
                 </>
               )}
-              {app.status === 'approved' && (
+              {app.status === 'approved' && app.employeeId === myEmployee?.id && (
                 <IconButton icon={<X size={14} />} label={t('hr.myLeave.cancel')} size={26} destructive onClick={() => cancelApp.mutate(app.id)} />
               )}
             </div>
