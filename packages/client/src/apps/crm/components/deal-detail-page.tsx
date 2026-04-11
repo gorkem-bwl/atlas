@@ -24,6 +24,7 @@ import {
   useStages, useContacts, useCompanies,
   useActivities, useCreateActivity, useUpdateActivity, useDeleteActivity, useCompleteActivity,
   useProposals,
+  useMyCrmPermission, canAccess,
   type CrmDeal, type CrmDealStage, type Proposal,
 } from '../hooks';
 import { useInvoices } from '../../invoices/hooks';
@@ -97,6 +98,11 @@ interface DealDetailPageProps {
 
 export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPageProps) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canUpdateDeal = canAccess(perm?.role, 'deals', 'update');
+  const canDeleteDeal = canAccess(perm?.role, 'deals', 'delete');
+  const canCreateActivity = canAccess(perm?.role, 'activities', 'create');
+  const canCreateProposal = canAccess(perm?.role, 'proposals', 'create');
   const { data: dealsData } = useDeals({});
   const deals = dealsData?.deals ?? [];
   const deal = deals.find(d => d.id === dealId);
@@ -165,7 +171,7 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
         <div style={{ flex: 1 }} />
 
         {/* Won / Lost */}
-        {!deal.wonAt && !deal.lostAt && (
+        {!deal.wonAt && !deal.lostAt && canUpdateDeal && (
           <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
             <Button variant="primary" size="sm" icon={<Trophy size={13} />} onClick={() => markWon.mutate(deal.id)}>
               {t('crm.deals.markWon')}
@@ -284,9 +290,11 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
               <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)' as never, color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
                 {t('crm.proposals.title')}
               </span>
-              <Button variant="ghost" size="sm" onClick={() => setShowProposalEditor(true)}>
-                {t('crm.proposals.create')}
-              </Button>
+              {canCreateProposal && (
+                <Button variant="ghost" size="sm" onClick={() => setShowProposalEditor(true)}>
+                  {t('crm.proposals.create')}
+                </Button>
+              )}
             </div>
             {dealProposals.length === 0 ? (
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
@@ -334,11 +342,13 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
           </div>
 
           {/* Delete */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 'var(--spacing-lg)' }}>
-            <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDeleteConfirm(true)}>
-              {t('crm.deals.deleteDeal')}
-            </Button>
-          </div>
+          {canDeleteDeal && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 'var(--spacing-lg)' }}>
+              <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDeleteConfirm(true)}>
+                {t('crm.deals.deleteDeal')}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Right column — Activity */}
@@ -357,31 +367,33 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
           </div>
 
           {/* Log activity */}
-          <div style={{ display: 'flex', gap: 'var(--spacing-xs)', alignItems: 'flex-end' }}>
-            <Select
-              value={newActivityType}
-              onChange={setNewActivityType}
-              options={[
-                { value: 'note', label: t('crm.activities.note') },
-                { value: 'call', label: t('crm.activities.call') },
-                { value: 'email', label: t('crm.activities.email') },
-                { value: 'meeting', label: t('crm.activities.meeting') },
-              ]}
-              size="sm"
-              width={100}
-            />
-            <Input
-              value={newActivityBody}
-              onChange={(e) => setNewActivityBody(e.target.value)}
-              placeholder={t('crm.activities.logActivity')}
-              size="sm"
-              style={{ flex: 1 }}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleLogActivity(); }}
-            />
-            <Button variant="primary" size="sm" onClick={handleLogActivity} disabled={!newActivityBody.trim()}>
-              {t('crm.activities.logActivity')}
-            </Button>
-          </div>
+          {canCreateActivity && (
+            <div style={{ display: 'flex', gap: 'var(--spacing-xs)', alignItems: 'flex-end' }}>
+              <Select
+                value={newActivityType}
+                onChange={setNewActivityType}
+                options={[
+                  { value: 'note', label: t('crm.activities.note') },
+                  { value: 'call', label: t('crm.activities.call') },
+                  { value: 'email', label: t('crm.activities.email') },
+                  { value: 'meeting', label: t('crm.activities.meeting') },
+                ]}
+                size="sm"
+                width={100}
+              />
+              <Input
+                value={newActivityBody}
+                onChange={(e) => setNewActivityBody(e.target.value)}
+                placeholder={t('crm.activities.logActivity')}
+                size="sm"
+                style={{ flex: 1 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleLogActivity(); }}
+              />
+              <Button variant="primary" size="sm" onClick={handleLogActivity} disabled={!newActivityBody.trim()}>
+                {t('crm.activities.logActivity')}
+              </Button>
+            </div>
+          )}
 
           {/* Timeline */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>

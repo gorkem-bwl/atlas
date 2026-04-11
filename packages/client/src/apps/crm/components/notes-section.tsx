@@ -8,6 +8,7 @@ import Underline from '@tiptap/extension-underline';
 import TiptapLink from '@tiptap/extension-link';
 import {
   useNotes, useCreateNote, useUpdateNote, useDeleteNote,
+  useMyCrmPermission, canAccess,
   type CrmNote,
 } from '../hooks';
 import { Button } from '../../../components/ui/button';
@@ -94,6 +95,9 @@ function NoteEditor({
 
 function NoteCard({ note }: { note: CrmNote }) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canUpdate = canAccess(perm?.role, 'notes', 'update');
+  const canDelete = canAccess(perm?.role, 'notes', 'delete');
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
   const [isEditing, setIsEditing] = useState(false);
@@ -119,11 +123,11 @@ function NoteCard({ note }: { note: CrmNote }) {
   return (
     <div
       className="crm-note-card"
-      onClick={() => setIsEditing(true)}
+      onClick={() => canUpdate && setIsEditing(true)}
       role="button"
       tabIndex={0}
       aria-label={t('crm.notes.title') + ': ' + (note.title || extractText(note.content).slice(0, 50))}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsEditing(true); } }}
+      onKeyDown={(e) => { if (canUpdate && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setIsEditing(true); } }}
       style={{
         padding: 'var(--spacing-md)',
         border: '1px solid var(--color-border-secondary)',
@@ -145,19 +149,23 @@ function NoteCard({ note }: { note: CrmNote }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 2, marginLeft: 'var(--spacing-sm)' }} onClick={(e) => e.stopPropagation()}>
-          <IconButton
-            icon={note.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
-            label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
-            aria-label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
-            onClick={() => updateNote.mutate({ id: note.id, isPinned: !note.isPinned })}
-          />
-          <IconButton
-            icon={<Trash2 size={12} />}
-            label={t('crm.notes.delete')}
-            aria-label={t('crm.notes.delete')}
-            destructive
-            onClick={() => deleteNote.mutate(note.id)}
-          />
+          {canUpdate && (
+            <IconButton
+              icon={note.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+              label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
+              aria-label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
+              onClick={() => updateNote.mutate({ id: note.id, isPinned: !note.isPinned })}
+            />
+          )}
+          {canDelete && (
+            <IconButton
+              icon={<Trash2 size={12} />}
+              label={t('crm.notes.delete')}
+              aria-label={t('crm.notes.delete')}
+              destructive
+              onClick={() => deleteNote.mutate(note.id)}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -182,6 +190,8 @@ export function NotesSection({
   dealId, contactId, companyId,
 }: { dealId?: string; contactId?: string; companyId?: string }) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canCreate = canAccess(perm?.role, 'notes', 'create');
   const { data: notesData, isLoading } = useNotes({ dealId, contactId, companyId });
   const notes = notesData?.notes ?? [];
   const createNote = useCreateNote();
@@ -193,10 +203,12 @@ export function NotesSection({
         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)' }}>
           {t('crm.notes.title')}
         </span>
-        <Button variant="ghost" size="sm" onClick={() => setShowEditor(true)}>
-          <Plus size={13} style={{ marginRight: 4 }} />
-          {t('crm.notes.newNote')}
-        </Button>
+        {canCreate && (
+          <Button variant="ghost" size="sm" onClick={() => setShowEditor(true)}>
+            <Plus size={13} style={{ marginRight: 4 }} />
+            {t('crm.notes.newNote')}
+          </Button>
+        )}
       </div>
 
       {showEditor && (

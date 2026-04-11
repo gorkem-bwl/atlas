@@ -4,6 +4,7 @@ import { formatDate, formatCurrency } from '../../../../lib/format';
 import { Building2, Mail, Phone as PhoneIcon, X, Trash2, Users } from 'lucide-react';
 import {
   useUpdateContact, useDeleteContact, useActivities,
+  useMyCrmPermission, canAccess,
   type CrmContact, type CrmDeal,
 } from '../../hooks';
 import { ActivityTimeline } from '../activity-timeline';
@@ -26,6 +27,8 @@ export function ContactDetailPanel({
   onDealClick?: (dealId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canDelete = canAccess(perm?.role, 'contacts', 'delete');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
@@ -54,7 +57,7 @@ export function ContactDetailPanel({
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <PresenceAvatars appId="crm" recordId={contact.id} />
-          <IconButton icon={<Trash2 size={14} />} label={t('crm.contacts.deleteContact')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />
+          {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('crm.contacts.deleteContact')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>

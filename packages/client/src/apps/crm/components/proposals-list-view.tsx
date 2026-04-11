@@ -6,7 +6,7 @@ import { Input } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';
-import { useProposals, type Proposal } from '../hooks';
+import { useProposals, useMyCrmPermission, canAccess, type Proposal } from '../hooks';
 import { getProposalStatusVariant } from '@atlas-platform/shared';
 import { formatCurrency, formatDate } from '../../../lib/format';
 
@@ -17,6 +17,8 @@ interface ProposalsListViewProps {
 
 export function ProposalsListView({ onSelect, onCreateNew }: ProposalsListViewProps) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canCreate = canAccess(perm?.role, 'proposals', 'create');
   const { data, isLoading } = useProposals();
   const proposals = data?.proposals ?? [];
   const [search, setSearch] = useState('');
@@ -48,8 +50,8 @@ export function ProposalsListView({ onSelect, onCreateNew }: ProposalsListViewPr
         illustration="documents"
         title={t('crm.proposals.emptyTitle')}
         description={t('crm.proposals.emptyDesc')}
-        actionLabel={t('crm.proposals.create')}
-        onAction={() => onCreateNew()}
+        actionLabel={canCreate ? t('crm.proposals.create') : undefined}
+        onAction={canCreate ? () => onCreateNew() : undefined}
       />
     );
   }
@@ -76,9 +78,11 @@ export function ProposalsListView({ onSelect, onCreateNew }: ProposalsListViewPr
           style={{ maxWidth: 240 }}
         />
         <div style={{ flex: 1 }} />
-        <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => onCreateNew()}>
-          {t('crm.proposals.create')}
-        </Button>
+        {canCreate && (
+          <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => onCreateNew()}>
+            {t('crm.proposals.create')}
+          </Button>
+        )}
       </div>
 
       {/* Table */}

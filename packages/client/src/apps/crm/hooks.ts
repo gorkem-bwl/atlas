@@ -834,7 +834,8 @@ const ROLE_MATRIX: Record<CrmRole, Record<CrmEntity, Set<CrmOperation>>> = {
   },
 };
 
-export function canAccess(role: CrmRole, entity: CrmEntity, operation: CrmOperation): boolean {
+export function canAccess(role: CrmRole | undefined, entity: CrmEntity, operation: CrmOperation): boolean {
+  if (!role) return false;
   return ROLE_MATRIX[role]?.[entity]?.has(operation) ?? false;
 }
 

@@ -4,6 +4,7 @@ import { formatCurrency } from '../../../../lib/format';
 import { Phone as PhoneIcon, X, Trash2, RefreshCw, Copy } from 'lucide-react';
 import {
   useDeleteCompany, useActivities, useRegeneratePortalToken,
+  useMyCrmPermission, canAccess,
   type CrmCompany, type CrmContact, type CrmDeal,
 } from '../../hooks';
 import { ActivityTimeline } from '../activity-timeline';
@@ -26,6 +27,8 @@ export function CompanyDetailPanel({
   onDealClick?: (dealId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canDelete = canAccess(perm?.role, 'companies', 'delete');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tokenCopied, setTokenCopied] = useState(false);
   const deleteCompany = useDeleteCompany();
@@ -56,7 +59,7 @@ export function CompanyDetailPanel({
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <PresenceAvatars appId="crm" recordId={company.id} />
-          <IconButton icon={<Trash2 size={14} />} label={t('crm.companies.deleteCompany')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />
+          {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('crm.companies.deleteCompany')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>

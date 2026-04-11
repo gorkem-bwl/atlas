@@ -15,6 +15,8 @@ import {
   useSendProposal,
   useDuplicateProposal,
   useDeleteProposal,
+  useMyCrmPermission,
+  canAccess,
   type Proposal,
 } from '../hooks';
 import { getProposalStatusVariant } from '@atlas-platform/shared';
@@ -29,6 +31,10 @@ interface ProposalDetailPanelProps {
 
 export function ProposalDetailPanel({ proposalId, onBack, onEdit }: ProposalDetailPanelProps) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canUpdate = canAccess(perm?.role, 'proposals', 'update');
+  const canCreate = canAccess(perm?.role, 'proposals', 'create');
+  const canDelete = canAccess(perm?.role, 'proposals', 'delete');
   const { data: proposal, isLoading } = useProposal(proposalId);
   const sendProposal = useSendProposal();
   const duplicateProposal = useDuplicateProposal();
@@ -218,20 +224,26 @@ export function ProposalDetailPanel({ proposalId, onBack, onEdit }: ProposalDeta
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-          <Button variant="secondary" size="sm" icon={<Edit3 size={14} />} onClick={() => onEdit(proposal)}>
-            {t('crm.proposals.edit')}
-          </Button>
-          {proposal.status === 'draft' && (
+          {canUpdate && (
+            <Button variant="secondary" size="sm" icon={<Edit3 size={14} />} onClick={() => onEdit(proposal)}>
+              {t('crm.proposals.edit')}
+            </Button>
+          )}
+          {canUpdate && proposal.status === 'draft' && (
             <Button variant="primary" size="sm" icon={<Send size={14} />} onClick={() => sendProposal.mutate(proposal.id)} disabled={sendProposal.isPending}>
               {t('crm.proposals.send')}
             </Button>
           )}
-          <Button variant="secondary" size="sm" icon={<Copy size={14} />} onClick={() => duplicateProposal.mutate(proposal.id)} disabled={duplicateProposal.isPending}>
-            {t('crm.proposals.duplicate')}
-          </Button>
-          <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDeleteConfirm(true)}>
-            {t('crm.proposals.delete')}
-          </Button>
+          {canCreate && (
+            <Button variant="secondary" size="sm" icon={<Copy size={14} />} onClick={() => duplicateProposal.mutate(proposal.id)} disabled={duplicateProposal.isPending}>
+              {t('crm.proposals.duplicate')}
+            </Button>
+          )}
+          {canDelete && (
+            <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDeleteConfirm(true)}>
+              {t('crm.proposals.delete')}
+            </Button>
+          )}
         </div>
       </div>
 

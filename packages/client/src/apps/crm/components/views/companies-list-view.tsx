@@ -86,9 +86,9 @@ export function CompaniesListView({
           { icon: <Globe size={14} />, title: t('crm.empty.companiesH2Title'), description: t('crm.empty.companiesH2Desc') },
           { icon: <Users size={14} />, title: t('crm.empty.companiesH3Title'), description: t('crm.empty.companiesH3Desc') },
         ]}
-        actionLabel={t('crm.empty.addCompany')}
-        actionIcon={<Plus size={14} />}
-        onAction={onAdd}
+        actionLabel={canEdit ? t('crm.empty.addCompany') : undefined}
+        actionIcon={canEdit ? <Plus size={14} /> : undefined}
+        onAction={canEdit ? onAdd : undefined}
       />
     );
   }
@@ -160,7 +160,7 @@ export function CompaniesListView({
       onSortChange={onSortChange}
       activeRowId={selectedId}
       onRowClick={(c) => { if (!editingCell) onSelect(c.id); }}
-      onAddRow={onAdd}
+      onAddRow={canEdit ? onAdd : undefined}
       addRowLabel={t('crm.actions.addNew')}
       emptyTitle={t('crm.empty.noMatchingCompanies')}
     />

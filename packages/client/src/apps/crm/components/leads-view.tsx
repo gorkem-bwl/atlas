@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { UserPlus, Search, ChevronRight, Trash2, ArrowRightLeft, User, Mail, Building2, Globe, Tag, Plus, Phone, X } from 'lucide-react';
 import {
   useLeads, useCreateLead, useUpdateLead, useDeleteLead, useConvertLead, useStages,
+  useMyCrmPermission, canAccess,
   type CrmLead, type CrmLeadStatus, type CrmLeadSource,
 } from '../hooks';
 import { Button } from '../../../components/ui/button';
@@ -323,6 +324,10 @@ function LeadDetailPanel({
 
 export function LeadsView() {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canCreateLead = canAccess(perm?.role, 'leads', 'create');
+  const canUpdateLead = canAccess(perm?.role, 'leads', 'update');
+  const canDeleteLead = canAccess(perm?.role, 'leads', 'delete');
   const [, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -348,6 +353,7 @@ export function LeadsView() {
 
   const handleCellClick = (rowId: string, column: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!canUpdateLead) return;
     setEditingCell({ rowId, column });
   };
 
@@ -425,13 +431,13 @@ export function LeadsView() {
       searchValue: (lead) => formatDate(lead.createdAt),
       render: (lead) => <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{formatDate(lead.createdAt)}</span>,
     },
-    {
+    ...(canDeleteLead ? [{
       key: 'actions', label: '', width: 36,
       searchValue: () => '',
-      render: (lead) => (
+      render: (lead: CrmLead) => (
         <IconButton icon={<Trash2 size={13} />} label={t('crm.actions.delete')} size={24} destructive onClick={(e) => { e.stopPropagation(); setDeletingId(lead.id); }} />
       ),
-    },
+    } as DataTableColumn<CrmLead>] : []),
   ];
 
   return (
@@ -468,10 +474,12 @@ export function LeadsView() {
                 size="sm"
                 width={140}
               />
-              <Button variant="primary" onClick={() => setShowCreateModal(true)} size="sm">
-                <UserPlus size={14} style={{ marginRight: 4 }} />
-                {t('crm.leads.newLead')}
-              </Button>
+              {canCreateLead && (
+                <Button variant="primary" onClick={() => setShowCreateModal(true)} size="sm">
+                  <UserPlus size={14} style={{ marginRight: 4 }} />
+                  {t('crm.leads.newLead')}
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -485,7 +493,7 @@ export function LeadsView() {
             columns={leadColumns}
             activeRowId={selectedLeadId}
             onRowClick={(lead) => setSearchParams({ view: 'lead-detail', leadId: lead.id })}
-            onAddRow={() => setShowCreateModal(true)}
+            onAddRow={canCreateLead ? () => setShowCreateModal(true) : undefined}
             addRowLabel={t('crm.actions.addNew')}
             emptyTitle={t('crm.leads.noLeads')}
             paginated={false}

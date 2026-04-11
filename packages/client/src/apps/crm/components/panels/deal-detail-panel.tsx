@@ -4,6 +4,7 @@ import { formatDate, formatCurrency } from '../../../../lib/format';
 import { Building2, Users, X, Trash2, Trophy, XCircle } from 'lucide-react';
 import {
   useUpdateDeal, useDeleteDeal, useActivities,
+  useMyCrmPermission, canAccess,
   type CrmDeal, type CrmDealStage,
 } from '../../hooks';
 import { ActivityTimeline } from '../activity-timeline';
@@ -30,6 +31,9 @@ export function DealDetailPanel({
   onCompanyClick?: (companyId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canUpdate = canAccess(perm?.role, 'deals', 'update');
+  const canDelete = canAccess(perm?.role, 'deals', 'delete');
   const [stageId, setStageId] = useState(deal.stageId);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const updateDeal = useUpdateDeal();
@@ -62,7 +66,7 @@ export function DealDetailPanel({
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <PresenceAvatars appId="crm" recordId={deal.id} />
-          <IconButton icon={<Trash2 size={14} />} label={t('crm.deals.deleteDeal')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />
+          {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('crm.deals.deleteDeal')} size={28} destructive onClick={() => setShowDeleteConfirm(true)} />}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>
@@ -86,6 +90,7 @@ export function DealDetailPanel({
             <span className="crm-detail-field-label">{t('crm.deals.stage')}</span>
             <Select
               value={stageId}
+              disabled={!canUpdate}
               onChange={(v) => {
                 setStageId(v);
                 updateDeal.mutate({ id: deal.id, stageId: v });
@@ -155,7 +160,7 @@ export function DealDetailPanel({
             </div>
           )}
 
-          {!deal.wonAt && !deal.lostAt && (
+          {!deal.wonAt && !deal.lostAt && canUpdate && (
             <div className="crm-deal-action-buttons">
               <Button variant="primary" size="sm" icon={<Trophy size={14} />} onClick={onMarkWon}>
                 {t('crm.deals.markWon')}

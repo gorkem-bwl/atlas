@@ -93,9 +93,9 @@ export function ContactsListView({
           { icon: <Mail size={14} />, title: t('crm.empty.contactsH2Title'), description: t('crm.empty.contactsH2Desc') },
           { icon: <TrendingUp size={14} />, title: t('crm.empty.contactsH3Title'), description: t('crm.empty.contactsH3Desc') },
         ]}
-        actionLabel={t('crm.empty.addContact')}
-        actionIcon={<Plus size={14} />}
-        onAction={onAdd}
+        actionLabel={canEdit ? t('crm.empty.addContact') : undefined}
+        actionIcon={canEdit ? <Plus size={14} /> : undefined}
+        onAction={canEdit ? onAdd : undefined}
       />
     );
   }
@@ -166,7 +166,7 @@ export function ContactsListView({
       onSortChange={onSortChange}
       activeRowId={selectedId}
       onRowClick={(c) => { if (!editingCell) onSelect(c.id); }}
-      onAddRow={onAdd}
+      onAddRow={canEdit ? onAdd : undefined}
       addRowLabel={t('crm.actions.addNew')}
       emptyTitle={t('crm.empty.noMatchingContacts')}
       searchable

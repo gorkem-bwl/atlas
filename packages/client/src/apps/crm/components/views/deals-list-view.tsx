@@ -98,9 +98,9 @@ export function DealsListView({
           { icon: <BarChart3 size={14} />, title: t('crm.empty.pipelineH2Title'), description: t('crm.empty.pipelineH2Desc') },
           { icon: <Target size={14} />, title: t('crm.empty.pipelineH3Title'), description: t('crm.empty.pipelineH3Desc') },
         ]}
-        actionLabel={t('crm.empty.createDeal')}
-        actionIcon={<Plus size={14} />}
-        onAction={onAdd}
+        actionLabel={canEdit ? t('crm.empty.createDeal') : undefined}
+        actionIcon={canEdit ? <Plus size={14} /> : undefined}
+        onAction={canEdit ? onAdd : undefined}
       />
     );
   }
@@ -190,7 +190,7 @@ export function DealsListView({
       onSortChange={onSortChange}
       activeRowId={selectedId}
       onRowClick={(deal) => { if (!editingCell) onSelect(deal.id); }}
-      onAddRow={onAdd}
+      onAddRow={canEdit ? onAdd : undefined}
       addRowLabel={t('crm.actions.addNew')}
       aggregations={[
         { label: t('crm.deals.total'), compute: (rows) => formatCurrency(rows.reduce((s, d) => s + d.value, 0)) },
