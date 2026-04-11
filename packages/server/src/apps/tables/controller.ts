@@ -1,14 +1,8 @@
 import type { Request, Response } from 'express';
 import * as tableService from './service';
 import { logger } from '../../utils/logger';
-import { canAccess } from '../../services/app-permissions.service';
+import { canAccess, isAdminCaller } from '../../services/app-permissions.service';
 import { assertCanDelete } from '../../middleware/assert-can-delete';
-
-// Helper: caller is an admin with tenant-wide record access.
-function isAdminCaller(req: Request): boolean {
-  const perm = req.tablesPerm!;
-  return perm.role === 'admin' && perm.recordAccess === 'all';
-}
 
 // GET /api/tables
 export async function listSpreadsheets(req: Request, res: Response) {
@@ -16,7 +10,7 @@ export async function listSpreadsheets(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const includeArchived = req.query.includeArchived === 'true';
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
 
     const spreadsheets = await tableService.listSpreadsheets(
       tenantId,
@@ -66,7 +60,7 @@ export async function getSpreadsheet(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const spreadsheetId = req.params.id as string;
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
 
     const spreadsheet = await tableService.getSpreadsheet(
       tenantId,
@@ -98,7 +92,7 @@ export async function updateSpreadsheet(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const spreadsheetId = req.params.id as string;
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
     const { title, columns, rows, viewConfig, isArchived, color, icon, guide } = req.body;
 
     const spreadsheet = await tableService.updateSpreadsheet(
@@ -141,11 +135,8 @@ export async function deleteSpreadsheet(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const spreadsheetId = req.params.id as string;
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
 
-    // Load existing with admin-aware scope so we can feed the real owner to
-    // assertCanDelete. Non-admins with delete_own can only ever see their
-    // own rows, but we still scope the lookup by tenant.
     const existing = await tableService.getSpreadsheet(
       tenantId,
       spreadsheetId,
@@ -183,7 +174,7 @@ export async function restoreSpreadsheet(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const spreadsheetId = req.params.id as string;
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
 
     const spreadsheet = await tableService.restoreSpreadsheet(
       tenantId,
@@ -295,7 +286,7 @@ export async function searchSpreadsheets(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const query = (req.query.q as string) || '';
-    const isAdmin = isAdminCaller(req);
+    const isAdmin = isAdminCaller(req.tablesPerm);
 
     if (!query.trim()) {
       res.json({ success: true, data: [] });

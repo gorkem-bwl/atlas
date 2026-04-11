@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as signService from '../service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { canAccess } from '../../../services/app-permissions.service';
+import { canAccess, isAdminCaller } from '../../../services/app-permissions.service';
 import { assertCanDelete } from '../../../middleware/assert-can-delete';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
@@ -14,7 +14,7 @@ const UPLOADS_DIR = path.join(__dirname, '../../../../uploads');
 export async function listFields(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -141,7 +141,7 @@ export async function createSigningToken(req: Request, res: Response) {
     );
 
     if (req.auth!.tenantId) {
-      const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+      const isAdmin = isAdminCaller(perm);
       const doc = await signService.getDocument(
         req.auth!.tenantId,
         documentId,
@@ -167,7 +167,7 @@ export async function createSigningToken(req: Request, res: Response) {
 export async function listSigningTokens(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -415,7 +415,7 @@ export async function saveAsTemplate(req: Request, res: Response) {
       return;
     }
 
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const documentId = req.params.id as string;

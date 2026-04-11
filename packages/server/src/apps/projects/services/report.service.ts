@@ -2,26 +2,23 @@ import { db } from '../../../config/database';
 import {
   projectTimeEntries, projectProjects, invoices, crmCompanies, users,
 } from '../../../db/schema';
-import { eq, and, asc, gte, lte, sql, inArray } from 'drizzle-orm';
+import { eq, and, asc, gte, lte, sql } from 'drizzle-orm';
 
 // ─── Reports ────────────────────────────────────────────────────────
 
-/**
- * Returns the set of project IDs in this tenant that the given user
- * owns OR is a member of. Used to member-scope reports for non-admin
- * callers so they never see data from projects they cannot access.
- *
- * Pass `userId = undefined` to opt out of scoping (admin callers).
- */
-async function getAccessibleProjectIds(tenantId: string, userId: string): Promise<string[]> {
-  const rows = await db
-    .select({ id: projectProjects.id })
-    .from(projectProjects)
-    .where(and(
-      eq(projectProjects.tenantId, tenantId),
-      sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
-    ));
-  return rows.map(r => r.id);
+function accessibleProjectExists(projectIdCol: unknown, tenantId: string, userId: string) {
+  return sql`EXISTS (
+    SELECT 1 FROM project_projects pp
+    WHERE pp.id = ${projectIdCol}
+      AND pp.tenant_id = ${tenantId}
+      AND (
+        pp.user_id = ${userId}
+        OR EXISTS (
+          SELECT 1 FROM project_members pm
+          WHERE pm.project_id = pp.id AND pm.user_id = ${userId}
+        )
+      )
+  )`;
 }
 
 export async function getTimeReport(
@@ -42,19 +39,9 @@ export async function getTimeReport(
   if (filters?.projectId) conditions.push(eq(projectTimeEntries.projectId, filters.projectId));
 
   // Non-admin callers: restrict to projects they own or are a member of.
+  // Inline EXISTS avoids a separate SELECT round-trip.
   if (userId) {
-    const accessibleProjectIds = await getAccessibleProjectIds(tenantId, userId);
-    if (accessibleProjectIds.length === 0) {
-      return {
-        totalMinutes: 0,
-        billableMinutes: 0,
-        nonBillableMinutes: 0,
-        byProject: [],
-        byUser: [],
-        byDay: [],
-      };
-    }
-    conditions.push(inArray(projectTimeEntries.projectId, accessibleProjectIds));
+    conditions.push(accessibleProjectExists(projectTimeEntries.projectId, tenantId, userId));
   }
 
   // Run all independent report queries in parallel
@@ -131,30 +118,22 @@ export async function getRevenueReport(
   if (filters?.endDate) conditions.push(lte(invoices.issueDate, new Date(filters.endDate)));
 
   // Non-admin callers: restrict to invoices for companies tied to
-  // projects they own or are a member of.
+  // projects they own or are a member of. Inline EXISTS avoids a
+  // separate SELECT round-trip.
   if (userId) {
-    const accessibleCompanyRows = await db
-      .selectDistinct({ companyId: projectProjects.companyId })
-      .from(projectProjects)
-      .where(and(
-        eq(projectProjects.tenantId, tenantId),
-        sql`${projectProjects.companyId} IS NOT NULL`,
-        sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
-      ));
-    const accessibleCompanyIds = accessibleCompanyRows
-      .map(r => r.companyId)
-      .filter((id): id is string => !!id);
-    if (accessibleCompanyIds.length === 0) {
-      return {
-        invoiced: 0,
-        outstanding: 0,
-        overdue: 0,
-        paid: 0,
-        byMonth: [],
-        byClient: [],
-      };
-    }
-    conditions.push(inArray(invoices.companyId, accessibleCompanyIds));
+    conditions.push(sql`EXISTS (
+      SELECT 1 FROM project_projects pp
+      WHERE pp.tenant_id = ${tenantId}
+        AND pp.company_id = ${invoices.companyId}
+        AND pp.company_id IS NOT NULL
+        AND (
+          pp.user_id = ${userId}
+          OR EXISTS (
+            SELECT 1 FROM project_members pm
+            WHERE pm.project_id = pp.id AND pm.user_id = ${userId}
+          )
+        )
+    )`);
   }
 
   // Run all independent report queries in parallel
@@ -258,11 +237,9 @@ export async function getTeamUtilization(
   if (filters?.endDate) conditions.push(lte(projectTimeEntries.workDate, filters.endDate));
 
   // Non-admin callers: restrict to time entries for projects they own
-  // or are a member of.
+  // or are a member of. Inline EXISTS avoids a separate SELECT round-trip.
   if (userId) {
-    const accessibleProjectIds = await getAccessibleProjectIds(tenantId, userId);
-    if (accessibleProjectIds.length === 0) return [];
-    conditions.push(inArray(projectTimeEntries.projectId, accessibleProjectIds));
+    conditions.push(accessibleProjectExists(projectTimeEntries.projectId, tenantId, userId));
   }
 
   const utilization = await db

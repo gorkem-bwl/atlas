@@ -201,9 +201,6 @@ export async function getWeeklyView(req: Request, res: Response) {
 export async function bulkSaveTimeEntries(req: Request, res: Response) {
   try {
     const perm = req.projectsPerm!;
-    // bulkSave deletes the caller's existing (unlocked) entries in the
-    // affected date range before inserting replacements, so the caller
-    // also needs delete_own (they always own the rows being deleted).
     if (!canAccess(perm.role, 'create') || !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to create in projects' });
       return;

@@ -2,39 +2,37 @@ import { db } from '../../../config/database';
 import {
   projectProjects, projectTimeEntries, invoices, crmCompanies,
 } from '../../../db/schema';
-import { eq, and, asc, desc, gte, lte, inArray, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, gte, lte, sql } from 'drizzle-orm';
 
-/**
- * Returns the set of project IDs in this tenant that the given user
- * owns OR is a member of. Used to member-scope widget/dashboard data
- * for non-admin callers.
- */
-async function getAccessibleProjectIds(tenantId: string, userId: string): Promise<string[]> {
-  const rows = await db
-    .select({ id: projectProjects.id })
-    .from(projectProjects)
-    .where(and(
-      eq(projectProjects.tenantId, tenantId),
-      sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
-    ));
-  return rows.map(r => r.id);
+function accessibleProjectExists(projectIdCol: unknown, tenantId: string, userId: string) {
+  return sql`EXISTS (
+    SELECT 1 FROM project_projects pp
+    WHERE pp.id = ${projectIdCol}
+      AND pp.tenant_id = ${tenantId}
+      AND (
+        pp.user_id = ${userId}
+        OR EXISTS (
+          SELECT 1 FROM project_members pm
+          WHERE pm.project_id = pp.id AND pm.user_id = ${userId}
+        )
+      )
+  )`;
 }
 
-/**
- * Returns the set of CRM company IDs tied to projects the user can
- * access. Used to scope invoice queries so a non-admin never sees
- * revenue/billing info from outside their projects.
- */
-async function getAccessibleCompanyIds(tenantId: string, userId: string): Promise<string[]> {
-  const rows = await db
-    .selectDistinct({ companyId: projectProjects.companyId })
-    .from(projectProjects)
-    .where(and(
-      eq(projectProjects.tenantId, tenantId),
-      sql`${projectProjects.companyId} IS NOT NULL`,
-      sql`(${projectProjects.userId} = ${userId} OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = ${projectProjects.id} AND pm.user_id = ${userId}))`,
-    ));
-  return rows.map(r => r.companyId).filter((id): id is string => !!id);
+function accessibleCompanyExists(companyIdCol: unknown, tenantId: string, userId: string) {
+  return sql`EXISTS (
+    SELECT 1 FROM project_projects pp
+    WHERE pp.tenant_id = ${tenantId}
+      AND pp.company_id = ${companyIdCol}
+      AND pp.company_id IS NOT NULL
+      AND (
+        pp.user_id = ${userId}
+        OR EXISTS (
+          SELECT 1 FROM project_members pm
+          WHERE pm.project_id = pp.id AND pm.user_id = ${userId}
+        )
+      )
+  )`;
 }
 
 // ─── Widget ─────────────────────────────────────────────────────────
@@ -49,26 +47,15 @@ export async function getWidgetData(tenantId: string, userId?: string) {
   const todayStr = now.toISOString().split('T')[0];
 
   // Non-admins: restrict to projects they own or are a member of, and
-  // to invoices for companies tied to those projects.
-  let accessibleProjectIds: string[] | null = null;
-  let accessibleCompanyIds: string[] | null = null;
-  if (userId) {
-    [accessibleProjectIds, accessibleCompanyIds] = await Promise.all([
-      getAccessibleProjectIds(tenantId, userId),
-      getAccessibleCompanyIds(tenantId, userId),
-    ]);
-  }
-  const noProjects = accessibleProjectIds !== null && accessibleProjectIds.length === 0;
-  const noCompanies = accessibleCompanyIds !== null && accessibleCompanyIds.length === 0;
-
-  // Build project-scoped and invoice-scoped condition arrays.
-  const projectScope = (extra: ReturnType<typeof eq>[]) => {
-    const base = [
+  // to invoices for companies tied to those projects. Inline EXISTS
+  // predicates avoid preliminary round-trips for accessible IDs.
+  const projectScope = (extra: any[]) => {
+    const base: any[] = [
       eq(projectProjects.tenantId, tenantId),
       eq(projectProjects.isArchived, false),
       ...extra,
     ];
-    if (accessibleProjectIds) base.push(inArray(projectProjects.id, accessibleProjectIds));
+    if (userId) base.push(accessibleProjectExists(projectProjects.id, tenantId, userId));
     return and(...base);
   };
   const timeEntryScope = (extra: any[]) => {
@@ -77,7 +64,7 @@ export async function getWidgetData(tenantId: string, userId?: string) {
       eq(projectTimeEntries.isArchived, false),
       ...extra,
     ];
-    if (accessibleProjectIds) base.push(inArray(projectTimeEntries.projectId, accessibleProjectIds));
+    if (userId) base.push(accessibleProjectExists(projectTimeEntries.projectId, tenantId, userId));
     return and(...base);
   };
   const invoiceScope = (extra: any[]) => {
@@ -86,47 +73,38 @@ export async function getWidgetData(tenantId: string, userId?: string) {
       eq(invoices.isArchived, false),
       ...extra,
     ];
-    if (accessibleCompanyIds) base.push(inArray(invoices.companyId, accessibleCompanyIds));
+    if (userId) base.push(accessibleCompanyExists(invoices.companyId, tenantId, userId));
     return and(...base);
   };
 
-  // Run all independent widget queries in parallel (short-circuited
-  // to empty results when the caller has no accessible projects).
+  // Run all independent widget queries in parallel.
   const [projectCountResult, weekHoursResult, pendingInvoiceResult, overdueCountResult] = await Promise.all([
     // Active projects count
-    noProjects
-      ? Promise.resolve([{ count: 0 }] as Array<{ count: number }>)
-      : db.select({ count: sql<number>`COUNT(*)`.as('count') })
-          .from(projectProjects)
-          .where(projectScope([eq(projectProjects.status, 'active')])),
+    db.select({ count: sql<number>`COUNT(*)`.as('count') })
+      .from(projectProjects)
+      .where(projectScope([eq(projectProjects.status, 'active')])),
 
     // Total tracked hours this week
-    noProjects
-      ? Promise.resolve([{ totalMinutes: 0 }] as Array<{ totalMinutes: number }>)
-      : db.select({
-          totalMinutes: sql<number>`COALESCE(SUM(${projectTimeEntries.durationMinutes}), 0)`.as('total_minutes'),
-        })
-          .from(projectTimeEntries)
-          .where(timeEntryScope([
-            gte(projectTimeEntries.workDate, weekStartStr),
-            lte(projectTimeEntries.workDate, todayStr),
-          ])),
+    db.select({
+      totalMinutes: sql<number>`COALESCE(SUM(${projectTimeEntries.durationMinutes}), 0)`.as('total_minutes'),
+    })
+      .from(projectTimeEntries)
+      .where(timeEntryScope([
+        gte(projectTimeEntries.workDate, weekStartStr),
+        lte(projectTimeEntries.workDate, todayStr),
+      ])),
 
     // Pending invoice amount (sent + viewed + overdue) — from shared invoices table
-    noCompanies
-      ? Promise.resolve([{ amount: 0 }] as Array<{ amount: number }>)
-      : db.select({
-          amount: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('amount'),
-        })
-          .from(invoices)
-          .where(invoiceScope([sql`${invoices.status} IN ('sent', 'viewed', 'overdue')`])),
+    db.select({
+      amount: sql<number>`COALESCE(SUM(${invoices.total}), 0)`.as('amount'),
+    })
+      .from(invoices)
+      .where(invoiceScope([sql`${invoices.status} IN ('sent', 'viewed', 'overdue')`])),
 
     // Overdue invoice count
-    noCompanies
-      ? Promise.resolve([{ count: 0 }] as Array<{ count: number }>)
-      : db.select({ count: sql<number>`COUNT(*)`.as('count') })
-          .from(invoices)
-          .where(invoiceScope([eq(invoices.status, 'overdue')])),
+    db.select({ count: sql<number>`COUNT(*)`.as('count') })
+      .from(invoices)
+      .where(invoiceScope([eq(invoices.status, 'overdue')])),
   ]);
 
   const projectCount = projectCountResult[0];

@@ -34,6 +34,7 @@ vi.mock('../src/services/app-permissions.service', () => ({
   getAppPermission: vi.fn().mockResolvedValue({ role: 'owner' }),
   canAccess: vi.fn().mockReturnValue(true),
   canAccessEntity: vi.fn().mockReturnValue(true),
+  isAdminCaller: vi.fn((perm: any) => perm?.role === 'admin' && perm?.recordAccess === 'all'),
 }));
 
 vi.mock('../src/middleware/assert-can-delete', () => ({

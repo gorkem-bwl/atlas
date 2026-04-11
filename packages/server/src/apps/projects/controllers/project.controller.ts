@@ -13,8 +13,6 @@ export async function listProjects(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { search, companyId, clientId, status, includeArchived } = req.query;
 
-    // Only admins see every project in the tenant. Editors and
-    // viewers are scoped to projects they own or are a member of.
     const isAdmin = perm.role === 'admin';
 
     const projects = await projectService.listProjects(userId, tenantId, {

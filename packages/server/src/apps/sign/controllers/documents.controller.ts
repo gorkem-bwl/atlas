@@ -3,7 +3,7 @@ import * as signService from '../service';
 import { sendPendingReminders } from '../reminder';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { canAccess } from '../../../services/app-permissions.service';
+import { canAccess, isAdminCaller } from '../../../services/app-permissions.service';
 import { assertCanDelete } from '../../../middleware/assert-can-delete';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
@@ -29,7 +29,7 @@ export async function getWidgetData(req: Request, res: Response) {
 export async function listDocuments(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const docs = await signService.listDocuments(tenantId, isAdmin ? undefined : userId);
@@ -105,7 +105,7 @@ export async function uploadPDF(req: Request, res: Response) {
 export async function getDocument(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -131,7 +131,7 @@ export async function updateDocument(req: Request, res: Response) {
       return;
     }
 
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -161,14 +161,11 @@ export async function deleteDocument(req: Request, res: Response) {
       return;
     }
 
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
 
-    // Admins with recordAccess 'all' can see any doc in the tenant; owners see
-    // only their own. assertCanDelete then enforces the role-level delete rule
-    // (delete vs delete_own) against the real owner fetched from the DB.
     const existing = await signService.getDocument(tenantId, documentId, isAdmin ? undefined : userId);
     if (!existing) {
       res.status(404).json({ success: false, error: 'Document not found' });
@@ -187,7 +184,7 @@ export async function deleteDocument(req: Request, res: Response) {
 export async function viewPDF(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -220,7 +217,7 @@ export async function viewPDF(req: Request, res: Response) {
 export async function downloadPDF(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -259,7 +256,7 @@ export async function voidDocument(req: Request, res: Response) {
       return;
     }
 
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;
@@ -316,7 +313,7 @@ export async function seedSampleData(req: Request, res: Response) {
 export async function getAuditLog(req: Request, res: Response) {
   try {
     const perm = req.signPerm!;
-    const isAdmin = perm.role === 'admin' && perm.recordAccess === 'all';
+    const isAdmin = isAdminCaller(perm);
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId!;
     const documentId = req.params.id as string;

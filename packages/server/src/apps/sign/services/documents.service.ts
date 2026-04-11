@@ -275,7 +275,6 @@ export async function voidDocument(
 
   logger.info({ actorUserId, documentId }, 'Signature document voided');
 
-  // Audit: document.voided — actor is the caller, not the owner
   const voider = await getUser(actorUserId);
   logAuditEvent({
     documentId,

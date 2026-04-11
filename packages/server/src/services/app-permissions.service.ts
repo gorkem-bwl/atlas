@@ -66,6 +66,10 @@ export function canAccess(role: AppRole, operation: AppOperation): boolean {
   return ROLE_MATRIX[role]?.has(operation) ?? false;
 }
 
+export function isAdminCaller(perm: ResolvedAppPermission | undefined): boolean {
+  return perm?.role === 'admin' && perm?.recordAccess === 'all';
+}
+
 export function canAccessEntity(
   role: AppRole,
   entity: string,
