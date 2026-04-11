@@ -1,5 +1,6 @@
 import { Users, Settings, Eye } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
+import { HrmIcon } from '../../components/icons/app-icons';
 import { HrPage } from './page';
 import { HrGeneralPanel, HrAppearancePanel } from './components/hr-settings-modal';
 import { TeamWidget } from './widgets/team-widget';
@@ -9,7 +10,7 @@ export const hrManifest: ClientAppManifest = {
   name: 'HR',
   labelKey: 'sidebar.hr',
   iconName: 'Users',
-  icon: Users,
+  icon: HrmIcon,
   color: '#10b981',
   minPlan: 'starter',
   category: 'productivity',

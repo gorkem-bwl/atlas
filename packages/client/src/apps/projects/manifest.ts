@@ -1,5 +1,5 @@
-import { FolderKanban } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
+import { ProjectsIcon } from '../../components/icons/app-icons';
 import { ProjectsPage } from './page';
 
 export const projectsManifest: ClientAppManifest = {
@@ -7,7 +7,7 @@ export const projectsManifest: ClientAppManifest = {
   name: 'Projects',
   labelKey: 'sidebar.projects',
   iconName: 'FolderKanban',
-  icon: FolderKanban,
+  icon: ProjectsIcon,
   color: '#0ea5e9',
   minPlan: 'starter',
   category: 'productivity',

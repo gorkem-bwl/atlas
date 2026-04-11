@@ -1,5 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
-import type { ClientAppManifest, AppRoute, ClientAppWidget } from './app-manifest.client';
+import type { AppIconComponent, ClientAppManifest, AppRoute, ClientAppWidget } from './app-manifest.client';
 import type { SettingsCategory } from './settings-registry';
 
 class AppRegistry {
@@ -30,7 +29,7 @@ class AppRegistry {
     return this.getAll().flatMap(app => app.routes.map(r => ({ ...r, appId: app.id })));
   }
 
-  getNavItems(): Array<{ id: string; labelKey: string; icon: LucideIcon; color: string; route: string }> {
+  getNavItems(): Array<{ id: string; labelKey: string; icon: AppIconComponent; color: string; route: string }> {
     return this.getAll().map(app => ({
       id: app.id,
       labelKey: app.labelKey,

@@ -1,7 +1,17 @@
-import type { ComponentType, LazyExoticComponent } from 'react';
+import type { ComponentType, CSSProperties, LazyExoticComponent } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { AppManifestBase } from '@atlas-platform/shared';
 import type { SettingsCategory } from './settings-registry';
+
+/**
+ * Icon component shape used by the manifest. Either a `LucideIcon` (for the
+ * vast majority of features) or a custom React component that accepts the
+ * same minimal `size`/`className`/`style` props — used by the brand icons
+ * in the dockbar (CRM, HRM, Projects, Calendar).
+ */
+export type AppIconComponent =
+  | LucideIcon
+  | ComponentType<{ size?: number; className?: string; style?: CSSProperties }>;
 
 export interface AppRoute {
   path: string;
@@ -40,8 +50,8 @@ export interface ClientAppWidget {
 // ─── Client App Manifest ───────────────────────────────────────────
 
 export interface ClientAppManifest extends AppManifestBase {
-  /** Lucide icon component for rendering */
-  icon: LucideIcon;
+  /** Icon component for rendering — either a lucide icon or a custom brand component */
+  icon: AppIconComponent;
 
   /** Client routes this app registers */
   routes: AppRoute[];

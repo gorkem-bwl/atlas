@@ -1,5 +1,5 @@
-import { CalendarDays } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
+import { CalendarIcon } from '../../components/icons/app-icons';
 import { CalendarPage } from '../../pages/calendar';
 
 export const calendarManifest: ClientAppManifest = {
@@ -7,7 +7,7 @@ export const calendarManifest: ClientAppManifest = {
   name: 'Calendar',
   labelKey: 'sidebar.calendar',
   iconName: 'CalendarDays',
-  icon: CalendarDays,
+  icon: CalendarIcon,
   color: '#f97316',
   minPlan: 'starter',
   category: 'productivity',

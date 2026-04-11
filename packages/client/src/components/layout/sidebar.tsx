@@ -13,6 +13,7 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { AccountSwitcher } from './account-switcher';
 import { appRegistry } from '../../apps';
+import type { AppIconComponent } from '../../config/app-manifest.client';
 import { ROUTES } from '../../config/routes';
 import { useMyAccessibleApps } from '../../hooks/use-app-permissions';
 import type { ThemeMode } from '@atlas-platform/shared';
@@ -36,15 +37,28 @@ function getNavItems() {
   ];
 }
 
+// App ids whose icons are multicolor brand SVGs (not lucide). They get a
+// small rounded background card behind the icon so the brand artwork reads
+// clearly against the dock row, and they skip the lucide shake animation
+// (sub-pixel transforms wreck SVGs that contain masks/gradients/filters).
+const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
+  crm: '#ffffff',
+  projects: '#ffffff',
+  hr: '#fff1ea',
+  calendar: '#f4f4f5',
+};
+
 function NavButton({
+  id,
   label,
   icon: Icon,
   isActive,
   color,
   onClick,
 }: {
+  id: string;
   label: string;
-  icon: typeof Building2;
+  icon: AppIconComponent;
   isActive: boolean;
   color: string;
   onClick: () => void;
@@ -57,6 +71,9 @@ function NavButton({
       ? 'var(--color-surface-hover)'
       : 'transparent';
   const fg = isActive ? 'var(--color-text-primary)' : hovered ? 'var(--color-text-primary)' : 'var(--color-text-secondary)';
+
+  const brandBg = BRAND_ICON_BACKGROUNDS[id];
+  const isBrandIcon = brandBg !== undefined;
 
   return (
     <button
@@ -85,7 +102,26 @@ function NavButton({
         textAlign: 'left',
       }}
     >
-      <Icon size={16} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />
+      {isBrandIcon ? (
+        <span
+          className="sidebar-nav-brand-icon"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 22,
+            height: 22,
+            flexShrink: 0,
+            background: brandBg,
+            borderRadius: 'var(--radius-sm)',
+            boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.04)',
+          }}
+        >
+          <Icon size={16} />
+        </span>
+      ) : (
+        <Icon size={16} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />
+      )}
       <span style={{ flex: 1 }}>{label}</span>
     </button>
   );
@@ -266,6 +302,7 @@ export function Sidebar() {
         {navItems.map(({ id, labelKey, icon, color, route }) => (
           <NavButton
             key={id}
+            id={id}
             label={t(labelKey, id.charAt(0).toUpperCase() + id.slice(1))}
             icon={icon}
             isActive={location.pathname.startsWith(route)}

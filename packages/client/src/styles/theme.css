@@ -198,6 +198,16 @@
   animation: iconShake 400ms ease;
 }
 
+/* Brand SVG icons (CRM, HRM, Projects, Calendar) sit on a white card and
+   contain masks/gradients/filters that don't tolerate sub-pixel transform
+   animation — so they skip the shake and just stay still on hover. */
+.sidebar-nav-brand-icon {
+  flex-shrink: 0;
+}
+.sidebar-nav-btn:hover .sidebar-nav-brand-icon {
+  animation: none;
+}
+
 /* ---- Global smooth transitions ------------------------------------------- */
 
 /* Focus ring on interactive elements */
