@@ -144,6 +144,12 @@ export async function enrichLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
     const data = await crmService.enrichLead(userId, tenantId, id);
     res.json({ success: true, data });
   } catch (error: any) {
@@ -160,6 +166,16 @@ export async function convertLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
     const { dealTitle, dealStageId, dealValue } = req.body;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+    if (!canAccessEntity(perm.role, 'deals', 'create', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission to create deals' });
+      return;
+    }
 
     if (!dealTitle?.trim()) {
       res.status(400).json({ success: false, error: 'Deal title is required' });
@@ -203,6 +219,13 @@ export async function seedSampleLeads(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (perm.role !== 'admin') {
+      res.status(403).json({ success: false, error: 'Admin only' });
+      return;
+    }
+
     const result = await crmService.seedSampleLeads(userId, tenantId);
     res.json({ success: true, data: { message: 'Seeded CRM sample leads', ...result } });
   } catch (error) {
@@ -218,6 +241,12 @@ export async function listLeadForms(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
     const forms = await crmService.listLeadForms(userId, tenantId);
     res.json({ success: true, data: { forms } });
   } catch (error) {
@@ -231,6 +260,12 @@ export async function createLeadForm(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { name } = req.body;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
 
     const form = await crmService.createLeadForm(userId, tenantId, name || 'Default Lead Form');
     res.json({ success: true, data: form });
@@ -246,6 +281,12 @@ export async function updateLeadForm(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
     const { name, fields, isActive } = req.body;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
 
     const form = await crmService.updateLeadForm(userId, tenantId, id, {
       name, fields, isActive,
@@ -267,6 +308,12 @@ export async function deleteLeadForm(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
+
+    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
 
     await crmService.deleteLeadForm(userId, tenantId, id);
     res.json({ success: true, data: null });
