@@ -27,11 +27,13 @@ export const FULL_BLEED_BRAND_ICONS = new Set<string>(['draw', 'docs', 'sign']);
  *   - calendar: 1.44× (dark body + small white type needs to read at small sizes)
  *   - system:   1.79× (colourful glyph has lots of internal whitespace, +15% bump)
  *   - tasks:    1.56× (checklist artwork has wide internal margins)
- *   - drive:    1.38× (folder artwork needs more presence on the tinted card) */
+ *   - drive:    1.38× (folder artwork needs more presence on the tinted card)
+ *   - invoices: 1.56× (stacked-pages glyph reads small at 1.2×, +30% bump) */
 export function getBrandIconScale(appId: string): number {
   if (appId === 'calendar') return 1.44;
   if (appId === 'system') return 1.79;
   if (appId === 'tasks') return 1.56;
+  if (appId === 'invoices') return 1.56;
   if (appId === 'drive') return 1.38;
   return 1.2;
 }
@@ -549,9 +551,10 @@ export function SignIcon({ size = 24, className, style }: IconProps) {
 
       <defs>
         <linearGradient id="sign_paint0" x1="64" y1="0" x2="64" y2="128" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#A78BFA" />
-          <stop offset="0.5" stopColor="#8B5CF6" />
-          <stop offset="1" stopColor="#5B21B6" />
+          {/* Tighter gradient — light end pulled down toward the dark end so
+              the contrast is subtle, like the CRM/HRM/Projects icons. */}
+          <stop stopColor="#9061F9" />
+          <stop offset="1" stopColor="#6D28D9" />
         </linearGradient>
         <linearGradient id="sign_paint2" x1="64" y1="0" x2="64" y2="40" gradientUnits="userSpaceOnUse">
           <stop stopColor="#ffffff" stopOpacity="0.25" />
@@ -568,6 +571,11 @@ export function SignIcon({ size = 24, className, style }: IconProps) {
 }
 
 export function InvoicesIcon({ size = 24, className, style }: IconProps) {
+  // Visual language matches CRM / HRM / Projects: 2 paths, 2-stop linear
+  // gradients, a single brand-colour hue family, simple geometric form.
+  // The form is two offset rounded slabs suggesting a stack of pages — the
+  // back slab in deep navy, the front slab in sky blue (matching the
+  // Invoices brand colour #0ea5e9).
   return (
     <svg
       width={size}
@@ -578,77 +586,41 @@ export function InvoicesIcon({ size = 24, className, style }: IconProps) {
       className={className}
       style={style}
     >
-      {/* Receipt body — upright with a scalloped/torn bottom edge, sky-blue
-          gradient matching the Invoices app brand colour. */}
+      {/* Back slab — deeper navy, slightly offset right and down */}
       <path
-        d="M30 16
-           C 30 13.7909 31.7909 12 34 12
-           H 94
-           C 96.2091 12 98 13.7909 98 16
-           V 108
-           L 91 102
-           L 84 108
-           L 77 102
-           L 70 108
-           L 64 102
-           L 58 108
-           L 51 102
-           L 44 108
-           L 37 102
-           L 30 108
+        d="M40 24
+           C 40 19.582 43.582 16 48 16
+           H 100
+           C 104.418 16 108 19.582 108 24
+           V 96
+           C 108 100.418 104.418 104 100 104
+           H 48
+           C 43.582 104 40 100.418 40 96
            Z"
         fill="url(#invoices_paint0)"
-        stroke="url(#invoices_paint1)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
       />
-      {/* Top highlight strip */}
+      {/* Front slab — sky blue, offset left and up over the back slab */}
       <path
-        d="M30 16
-           C 30 13.7909 31.7909 12 34 12
-           H 94
-           C 96.2091 12 98 13.7909 98 16
-           V 28
-           H 30 Z"
-        fill="url(#invoices_paint2)"
+        d="M20 32
+           C 20 27.582 23.582 24 28 24
+           H 80
+           C 84.418 24 88 27.582 88 32
+           V 104
+           C 88 108.418 84.418 112 80 112
+           H 28
+           C 23.582 112 20 108.418 20 104
+           Z"
+        fill="url(#invoices_paint1)"
       />
-
-      {/* Currency mark — circle with vertical line through it (S-curve) */}
-      <circle cx="64" cy="50" r="13" fill="#ffffff" opacity="0.18" />
-      <path
-        d="M68 44 C 64 42, 60 43, 60 47 C 60 50, 64 50, 64 50 C 68 50, 68 53, 68 53 C 68 57, 64 58, 60 56
-           M 64 41 V 60"
-        stroke="#ffffff"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        fill="none"
-      />
-
-      {/* Line items — three horizontal rows with a "value" rect on the right */}
-      <rect x="34" y="74" width="34" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55" />
-      <rect x="78" y="74" width="16" height="3.5" rx="1.75" fill="#ffffff" opacity="0.85" />
-
-      <rect x="34" y="84" width="34" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55" />
-      <rect x="78" y="84" width="16" height="3.5" rx="1.75" fill="#ffffff" opacity="0.85" />
-
-      {/* Total row — slightly thicker, full opacity */}
-      <rect x="34" y="95" width="60" height="1.5" rx="0.75" fill="#ffffff" opacity="0.4" />
-      <rect x="34" y="100" width="22" height="4" rx="2" fill="#ffffff" opacity="0.7" />
-      <rect x="74" y="100" width="20" height="4" rx="2" fill="#ffffff" />
 
       <defs>
-        <linearGradient id="invoices_paint0" x1="64" y1="12" x2="64" y2="108" gradientUnits="userSpaceOnUse">
+        <linearGradient id="invoices_paint0" x1="74" y1="16" x2="74" y2="104" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#1E5A8E" />
+          <stop offset="1" stopColor="#0C2D4A" />
+        </linearGradient>
+        <linearGradient id="invoices_paint1" x1="54" y1="24" x2="54" y2="112" gradientUnits="userSpaceOnUse">
           <stop stopColor="#7DD3FC" />
-          <stop offset="0.5" stopColor="#0EA5E9" />
-          <stop offset="1" stopColor="#0C4A6E" />
-        </linearGradient>
-        <linearGradient id="invoices_paint1" x1="64" y1="12" x2="64" y2="108" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#BAE6FD" stopOpacity="0.9" />
-          <stop offset="1" stopColor="#0C4A6E" stopOpacity="0.6" />
-        </linearGradient>
-        <linearGradient id="invoices_paint2" x1="64" y1="12" x2="64" y2="28" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#ffffff" stopOpacity="0.3" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="1" stopColor="#0EA5E9" />
         </linearGradient>
       </defs>
     </svg>
