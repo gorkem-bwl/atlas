@@ -9,11 +9,15 @@ export function DocContextMenu({
   onDuplicate,
   onToggleFavorite,
   isFavorite,
+  canCreate = true,
+  canDelete = true,
 }: {
   onDelete: () => void;
   onDuplicate: () => void;
   onToggleFavorite: () => void;
   isFavorite: boolean;
+  canCreate?: boolean;
+  canDelete?: boolean;
 }) {
   const { t } = useTranslation();
   return (
@@ -39,9 +43,15 @@ export function DocContextMenu({
         label={isFavorite ? t('docs.removeFromFavorites') : t('docs.addToFavorites')}
         onClick={onToggleFavorite}
       />
-      <MenuButton icon={<Copy size={14} />} label={t('docs.duplicate')} onClick={onDuplicate} />
-      <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 0' }} />
-      <MenuButton icon={<Trash2 size={14} />} label={t('common.delete')} onClick={onDelete} danger />
+      {canCreate && (
+        <MenuButton icon={<Copy size={14} />} label={t('docs.duplicate')} onClick={onDuplicate} />
+      )}
+      {canDelete && (
+        <>
+          <div style={{ height: 1, background: 'var(--color-border-primary)', margin: '4px 0' }} />
+          <MenuButton icon={<Trash2 size={14} />} label={t('common.delete')} onClick={onDelete} danger />
+        </>
+      )}
     </div>
   );
 }

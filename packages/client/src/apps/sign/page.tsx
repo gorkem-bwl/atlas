@@ -21,11 +21,15 @@ import { SignAuditView } from './components/sign-audit-view';
 import { SignSendModal } from './components/sign-send-modal';
 import { SignSignersModal } from './components/sign-signers-modal';
 import { useSignPageState } from './lib/use-sign-page-state';
+import { useAppActions } from '../../hooks/use-app-permissions';
+import { useAuthStore } from '../../stores/auth-store';
 import '../../styles/sign.css';
 
 export function SignPage() {
   const { t } = useTranslation();
   const s = useSignPageState();
+  const { canCreate, canDelete, canDeleteOwn } = useAppActions('sign');
+  const currentUserId = useAuthStore((st) => st.account?.userId);
 
   return (
     <div className="sign-page">
@@ -111,7 +115,7 @@ export function SignPage() {
             : t(`sign.status.${s.filterStatus}`)
         }
         actions={
-          s.view === 'list' ? (
+          s.view === 'list' && canCreate ? (
             <Button variant="primary" size="sm" icon={<Upload size={14} />} onClick={s.handleUpload}>
               {t('sign.editor.uploadPdf')}
             </Button>
@@ -133,6 +137,10 @@ export function SignPage() {
             onOpenDoc={s.handleOpenDoc}
             onDownload={s.handleDownload}
             onRequestDelete={s.handleRequestDelete}
+            canCreate={canCreate}
+            canDelete={canDelete}
+            canDeleteOwn={canDeleteOwn}
+            currentUserId={currentUserId}
           />
         )}
 

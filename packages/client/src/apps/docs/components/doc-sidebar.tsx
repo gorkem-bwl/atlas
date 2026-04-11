@@ -22,6 +22,8 @@ import {
 } from '../hooks';
 import { useDocSettingsStore } from '../settings-store';
 import { useToastStore } from '../../../stores/toast-store';
+import { useAppActions } from '../../../hooks/use-app-permissions';
+import { useAuthStore } from '../../../stores/auth-store';
 import { AppSidebar } from '../../../components/layout/app-sidebar';
 import { useDocFavoritesAndRecent } from './sidebar/use-doc-favorites-recent';
 import { QuickLink } from './sidebar/quick-link';
@@ -44,6 +46,8 @@ interface DocSidebarProps {
 
 
 export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }: DocSidebarProps) {
+  const { canCreate, canDelete, canDeleteOwn } = useAppActions('docs');
+  const currentUserId = useAuthStore((s) => s.account?.userId);
   const { data, isLoading } = useDocumentList();
   const createDoc = useCreateDocument();
   const deleteDoc = useDeleteDocument();
@@ -164,6 +168,17 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
   const tree = data?.tree ?? [];
   const allDocs = data?.documents ?? [];
 
+  // Permission helper: admin deletes any; editor deletes own; viewer none.
+  const canDeleteDoc = useCallback(
+    (id: string) => {
+      if (canDelete) return true;
+      if (!canDeleteOwn) return false;
+      const doc = allDocs.find((d) => d.id === id);
+      return !!doc && doc.userId === currentUserId;
+    },
+    [canDelete, canDeleteOwn, allDocs, currentUserId],
+  );
+
   // Filter tree by search
   const filteredTree = searchQuery.trim()
     ? filterTree(tree, searchQuery.toLowerCase())
@@ -211,7 +226,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
     </div>
   );
 
-  const footerContent = view === 'tree' ? (
+  const footerContent = view === 'tree' && canCreate ? (
     <div
       style={{
         display: 'flex',
@@ -317,12 +332,14 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
           >
             {t('docs.private')}
           </span>
-          <SidebarButton
-            icon={<Plus size={13} />}
-            onClick={handleNewPage}
-            tooltip={t('docs.newPage')}
-            disabled={createDoc.isPending}
-          />
+          {canCreate && (
+            <SidebarButton
+              icon={<Plus size={13} />}
+              onClick={handleNewPage}
+              tooltip={t('docs.newPage')}
+              disabled={createDoc.isPending}
+            />
+          )}
         </div>
       )}
 
@@ -374,6 +391,8 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
                 allFavorites={favorites}
                 dragOverId={dragOverId}
                 onDragOverChange={setDragOverId}
+                canCreate={canCreate}
+                canDeleteNode={canDeleteDoc}
               />
             ))
           )

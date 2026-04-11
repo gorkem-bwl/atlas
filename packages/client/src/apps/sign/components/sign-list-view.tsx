@@ -58,6 +58,10 @@ export function SignListView({
   onOpenDoc,
   onDownload,
   onRequestDelete,
+  canCreate = true,
+  canDelete = true,
+  canDeleteOwn = true,
+  currentUserId,
 }: {
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -72,6 +76,10 @@ export function SignListView({
   onOpenDoc: (doc: SignatureDocument) => void;
   onDownload: (id: string) => void;
   onRequestDelete: (id: string) => void;
+  canCreate?: boolean;
+  canDelete?: boolean;
+  canDeleteOwn?: boolean;
+  currentUserId?: string;
 }) {
   const { t } = useTranslation();
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all');
@@ -138,9 +146,9 @@ export function SignListView({
               { icon: <Send size={14} />, title: t('sign.empty.h2Title'), description: t('sign.empty.h2Desc') },
               { icon: <CheckCircle size={14} />, title: t('sign.empty.h3Title'), description: t('sign.empty.h3Desc') },
             ]}
-            actionLabel={t('sign.empty.upload')}
-            actionIcon={<Upload size={14} />}
-            onAction={onUpload}
+            actionLabel={canCreate ? t('sign.empty.upload') : undefined}
+            actionIcon={canCreate ? <Upload size={14} /> : undefined}
+            onAction={canCreate ? onUpload : undefined}
           />
         ) : (
           <DataTable<DocWithSigners>
@@ -239,28 +247,34 @@ export function SignListView({
                 label: t('sign.list.actions'),
                 width: 80,
                 searchValue: () => '',
-                render: (doc) => (
-                  <div
-                    style={{ display: 'flex', gap: 2 }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {doc.status === 'signed' && (
-                      <IconButton
-                        icon={<Download size={14} />}
-                        label={t('sign.editor.downloadPdf')}
-                        size={26}
-                        onClick={() => onDownload(doc.id)}
-                      />
-                    )}
-                    <IconButton
-                      icon={<Trash2 size={14} />}
-                      label={t('sign.editor.deleteDocument')}
-                      size={26}
-                      destructive
-                      onClick={() => onRequestDelete(doc.id)}
-                    />
-                  </div>
-                ),
+                render: (doc) => {
+                  const isOwner = !!currentUserId && doc.userId === currentUserId;
+                  const rowCanDelete = canDelete || (canDeleteOwn && isOwner);
+                  return (
+                    <div
+                      style={{ display: 'flex', gap: 2 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {doc.status === 'signed' && (
+                        <IconButton
+                          icon={<Download size={14} />}
+                          label={t('sign.editor.downloadPdf')}
+                          size={26}
+                          onClick={() => onDownload(doc.id)}
+                        />
+                      )}
+                      {rowCanDelete && (
+                        <IconButton
+                          icon={<Trash2 size={14} />}
+                          label={t('sign.editor.deleteDocument')}
+                          size={26}
+                          destructive
+                          onClick={() => onRequestDelete(doc.id)}
+                        />
+                      )}
+                    </div>
+                  );
+                },
               },
             ] as DataTableColumn<DocWithSigners>[]}
             onRowClick={onOpenDoc}

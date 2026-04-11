@@ -8,6 +8,8 @@ import {
   ArrowDownAZ,
 } from 'lucide-react';
 import { AppSidebar } from '../../../components/layout/app-sidebar';
+import { useAppActions } from '../../../hooks/use-app-permissions';
+import { useAuthStore } from '../../../stores/auth-store';
 import {
   useDrawingList,
   useDeleteDrawing,
@@ -184,6 +186,8 @@ export function DrawSidebar({
   isCreating?: boolean;
 }) {
   const { t } = useTranslation();
+  const { canCreate, canDelete, canDeleteOwn } = useAppActions('draw');
+  const currentUserId = useAuthStore((s) => s.account?.userId);
   const { data, isLoading } = useDrawingList();
   const { data: archivedData } = useDrawingList(true);
   const deleteDrawing = useDeleteDrawing();
@@ -244,12 +248,14 @@ export function DrawSidebar({
             onClick={onOpenSettings}
             tooltip={t('draw.settings')}
           />
-          <SidebarButton
-            icon={<Plus size={14} />}
-            onClick={onNewFromTemplate}
-            tooltip={t('draw.newDrawing')}
-            disabled={isCreating}
-          />
+          {canCreate && (
+            <SidebarButton
+              icon={<Plus size={14} />}
+              onClick={onNewFromTemplate}
+              tooltip={t('draw.newDrawing')}
+              disabled={isCreating}
+            />
+          )}
         </div>
       }
       search={
@@ -371,16 +377,20 @@ export function DrawSidebar({
             </div>
           )
         ) : (
-          filteredDrawings.map((drawing) => (
-            <DrawingListItem
-              key={drawing.id}
-              drawing={drawing}
-              isSelected={drawing.id === selectedId}
-              onClick={() => onSelect(drawing.id)}
-              onDelete={() => handleDelete(drawing.id)}
-              onDuplicate={() => handleDuplicate(drawing.id)}
-            />
-          ))
+          filteredDrawings.map((drawing) => {
+            const isOwner = drawing.userId === currentUserId;
+            const rowCanDelete = canDelete || (canDeleteOwn && isOwner);
+            return (
+              <DrawingListItem
+                key={drawing.id}
+                drawing={drawing}
+                isSelected={drawing.id === selectedId}
+                onClick={() => onSelect(drawing.id)}
+                onDelete={rowCanDelete ? () => handleDelete(drawing.id) : undefined}
+                onDuplicate={canCreate ? () => handleDuplicate(drawing.id) : undefined}
+              />
+            );
+          })
         )
       ) : (
         /* Trash view */
@@ -396,17 +406,21 @@ export function DrawSidebar({
             {t('draw.trashEmpty')}
           </div>
         ) : (
-          archivedDrawings.map((drawing) => (
-            <DrawingListItem
-              key={drawing.id}
-              drawing={drawing}
-              isSelected={drawing.id === selectedId}
-              onClick={() => onSelect(drawing.id)}
-              onDelete={() => handleDelete(drawing.id)}
-              onRestore={() => handleRestore(drawing.id)}
-              isTrash
-            />
-          ))
+          archivedDrawings.map((drawing) => {
+            const isOwner = drawing.userId === currentUserId;
+            const rowCanDelete = canDelete || (canDeleteOwn && isOwner);
+            return (
+              <DrawingListItem
+                key={drawing.id}
+                drawing={drawing}
+                isSelected={drawing.id === selectedId}
+                onClick={() => onSelect(drawing.id)}
+                onDelete={rowCanDelete ? () => handleDelete(drawing.id) : undefined}
+                onRestore={canCreate ? () => handleRestore(drawing.id) : undefined}
+                isTrash
+              />
+            );
+          })
         )
       )}
     </AppSidebar>

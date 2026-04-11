@@ -27,6 +27,8 @@ export interface TreeNodeProps {
   allFavorites: string[];
   dragOverId: string | null;
   onDragOverChange: (id: string | null) => void;
+  canCreate: boolean;
+  canDeleteNode: (id: string) => boolean;
 }
 
 export function TreeNode({
@@ -43,7 +45,10 @@ export function TreeNode({
   allFavorites,
   dragOverId,
   onDragOverChange,
+  canCreate,
+  canDeleteNode,
 }: TreeNodeProps) {
+  const canDeleteThis = canDeleteNode(node.id);
   const [expanded, setExpanded] = useState(depth < 1);
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -196,11 +201,13 @@ export function TreeNode({
               marginLeft: 4,
             }}
           >
-            <SidebarButton
-              icon={<Plus size={12} />}
-              onClick={() => { onNewSubPage(node.id); }}
-              tooltip="Add sub-page"
-            />
+            {canCreate && (
+              <SidebarButton
+                icon={<Plus size={12} />}
+                onClick={() => { onNewSubPage(node.id); }}
+                tooltip="Add sub-page"
+              />
+            )}
             <div ref={menuRef} style={{ position: 'relative' }}>
               <SidebarButton
                 icon={<MoreHorizontal size={12} />}
@@ -213,6 +220,8 @@ export function TreeNode({
                   onDuplicate={() => { onDuplicate(node.id); setMenuOpen(false); }}
                   onToggleFavorite={() => { onToggleFavorite(node.id); setMenuOpen(false); }}
                   isFavorite={isFavorite}
+                  canCreate={canCreate}
+                  canDelete={canDeleteThis}
                 />
               )}
             </div>
@@ -239,6 +248,8 @@ export function TreeNode({
               allFavorites={allFavorites}
               dragOverId={dragOverId}
               onDragOverChange={onDragOverChange}
+              canCreate={canCreate}
+              canDeleteNode={canDeleteNode}
             />
           ))}
         </div>

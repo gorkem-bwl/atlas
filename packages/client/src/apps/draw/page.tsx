@@ -18,6 +18,7 @@ import { DrawSidebar } from './components/draw-sidebar';
 import { TemplatePicker } from './components/template-picker';
 import { ExcalidrawCanvas } from './components/excalidraw-canvas';
 import { VisibilityToggle } from '../../components/shared/visibility-toggle';
+import { useAppActions } from '../../hooks/use-app-permissions';
 import { useAuthStore } from '../../stores/auth-store';
 import { useUIStore } from '../../stores/ui-store';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
@@ -25,7 +26,7 @@ import type { Drawing } from '@atlas-platform/shared';
 
 // ─── Empty state ─────────────────────────────────────────────────────
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function EmptyState({ onCreate, canCreate }: { onCreate: () => void; canCreate: boolean }) {
   const { t } = useTranslation();
 
   return (
@@ -38,9 +39,9 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
         { icon: <Layers size={14} />, title: t('draw.empty.h2Title'), description: t('draw.empty.h2Desc') },
         { icon: <Share2 size={14} />, title: t('draw.empty.h3Title'), description: t('draw.empty.h3Desc') },
       ]}
-      actionLabel={t('draw.newDrawing')}
-      actionIcon={<Plus size={14} />}
-      onAction={onCreate}
+      actionLabel={canCreate ? t('draw.newDrawing') : undefined}
+      actionIcon={canCreate ? <Plus size={14} /> : undefined}
+      onAction={canCreate ? onCreate : undefined}
     />
   );
 }
@@ -60,6 +61,7 @@ export function DrawPage() {
   const createDrawing = useCreateDrawing();
   const updateDrawing = useUpdateDrawing();
   const updateVisibility = useUpdateDrawingVisibility();
+  const { canCreate } = useAppActions('draw');
   const { account } = useAuthStore();
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -184,7 +186,7 @@ export function DrawPage() {
         }}
       >
         {!selectedId ? (
-          <EmptyState onCreate={handleCreateNew} />
+          <EmptyState onCreate={handleCreateNew} canCreate={canCreate} />
         ) : isLoading ? (
           <div
             style={{

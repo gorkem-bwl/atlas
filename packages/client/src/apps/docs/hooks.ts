@@ -15,6 +15,7 @@ import { useCallback, useRef } from 'react';
 interface ListDocsResponse {
   documents: Array<{
     id: string;
+    userId: string;
     parentId: string | null;
     title: string;
     icon: string | null;
