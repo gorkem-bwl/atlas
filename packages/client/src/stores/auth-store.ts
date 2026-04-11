@@ -244,17 +244,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Removes just the active account, or all if it's the last one.
   logout: () => {
     const { account } = get();
-    if (!account) return;
+    // Clear the session-expired flag unconditionally so the modal can
+    // dismiss even if account is already null (which otherwise makes
+    // the "Sign back in" button appear to do nothing).
+    set({ sessionExpired: false });
+
+    if (!account) {
+      // No active account — still scrub any lingering auth state and
+      // bounce to login. This is the path hit when the expired-session
+      // modal fires in a broken/partial state.
+      clearActiveTokens();
+      localStorage.removeItem('atlasmail_accounts');
+      localStorage.removeItem('atlasmail_tokens');
+      set({ account: null, accounts: [], isAuthenticated: false, tenantRole: null, isSuperAdmin: false });
+      window.location.href = '/login';
+      return;
+    }
+
     // Capture count BEFORE removeAccount mutates the list
     const accountCount = get().accounts.length;
     get().removeAccount(account.id);
-    // If this was the last account, guarantee a clean auth state
+    // If this was the last account, guarantee a clean auth state and
+    // bounce to login. Otherwise the user just switched to the next
+    // remaining account, so leave them where they are.
     if (accountCount <= 1) {
       clearActiveTokens();
       localStorage.removeItem('atlasmail_accounts');
       localStorage.removeItem('atlasmail_tokens');
       set({ account: null, accounts: [], isAuthenticated: false, tenantRole: null, isSuperAdmin: false });
       window.location.href = '/login';
+    } else {
+      // Multi-account case: the session-expired modal should go away
+      // (already done above) and the user is now on the next account.
+      // Force a reload so TanStack Query data re-fetches with the new
+      // identity instead of showing cached data from the logged-out one.
+      window.location.href = '/';
     }
   },
 }));

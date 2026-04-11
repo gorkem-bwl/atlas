@@ -148,17 +148,17 @@ export function LeaveTypesView() {
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'flex-end' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                 <label className="hr-field-label">{t('hr.fields.color')}</label>
-                <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-secondary)', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-secondary)', overflow: 'hidden', position: 'relative' }}>
                   <div style={{ position: 'absolute', inset: 0, background: color, borderRadius: 'var(--radius-sm)' }} />
                   <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
                 </div>
               </div>
-              <Input label={t('hr.fields.name')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('hr.placeholder.leaveTypeName')} style={{ flex: 2 }} autoFocus />
-              <Input label={t('hr.leaveTypes.slug')} value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={t('hr.placeholder.leaveTypeSlug')} style={{ flex: 1 }} />
+              <Input size="sm" label={t('hr.fields.name')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('hr.placeholder.leaveTypeName')} style={{ flex: 2 }} autoFocus />
+              <Input size="sm" label={t('hr.leaveTypes.slug')} value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={t('hr.placeholder.leaveTypeSlug')} style={{ flex: 1 }} />
             </div>
             <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-              <Input label={t('hr.leaveTypes.daysPerYear')} type="number" value={String(days)} onChange={(e) => setDays(Number(e.target.value))} style={{ flex: 1 }} />
-              <Input label={t('hr.leaveTypes.maxCarry')} type="number" value={String(carryForward)} onChange={(e) => setCarryForward(Number(e.target.value))} style={{ flex: 1 }} />
+              <Input size="sm" label={t('hr.leaveTypes.daysPerYear')} type="number" value={String(days)} onChange={(e) => setDays(Number(e.target.value))} style={{ flex: 1 }} />
+              <Input size="sm" label={t('hr.leaveTypes.maxCarry')} type="number" value={String(carryForward)} onChange={(e) => setCarryForward(Number(e.target.value))} style={{ flex: 1 }} />
             </div>
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border-secondary)' }}>
               <Button variant="ghost" size="sm" onClick={() => setShowCreate(false)}>{t('common.cancel')}</Button>

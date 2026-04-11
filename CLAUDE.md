@@ -198,6 +198,12 @@ All in `packages/client/src/components/ui/`. **Always use these instead of raw H
 ### Size alignment
 Input and Button sizes match: sm=28px, md=34px, lg=40px. **Always use the same size when placing them side-by-side.**
 
+**Size rule:**
+- **Data views, list toolbars, inline edit rows, and table cells** → use `size="sm"` (28px) for every Input / Select / Button. Density matters in tables.
+- **Auth pages, first-run setup, full-page forms, and large modals with lots of breathing room** → use `size="md"` (34px).
+- The component library defaults Input/Select/Button to `md`. In a data view you **must** pass `size="sm"` explicitly on every form control you add, otherwise it will misalign against neighbouring sm buttons.
+- Never mix sizes in the same row. If any control in a row is `sm`, the whole row is `sm`.
+
 ### Feedback
 | Component | Use for |
 |-----------|---------|

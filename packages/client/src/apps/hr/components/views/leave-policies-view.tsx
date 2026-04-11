@@ -431,6 +431,7 @@ function CreatePolicyForm({
       </div>
 
       <Input
+        size="sm"
         label={t('hr.fields.name')}
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -440,6 +441,7 @@ function CreatePolicyForm({
 
       <div style={{ marginTop: 'var(--spacing-md)' }}>
         <Input
+          size="sm"
           label={t('hr.fields.description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
