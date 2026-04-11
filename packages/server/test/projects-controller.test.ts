@@ -79,6 +79,10 @@ describe('projects controller — listProjects', () => {
       companyId: undefined,
       status: undefined,
       includeArchived: false,
+      // Controller derives isAdmin from canAccess(role, 'update'). The
+      // app-permissions mock returns true, so this test's caller is
+      // always treated as admin.
+      isAdmin: true,
     });
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: true, data: { projects: mockProjects } })
@@ -98,6 +102,7 @@ describe('projects controller — listProjects', () => {
       companyId: 'c1',
       status: 'active',
       includeArchived: true,
+      isAdmin: true,
     });
   });
 });
@@ -200,13 +205,20 @@ describe('projects controller — createTimeEntry', () => {
 
     await controller.createTimeEntry(req, res);
 
-    expect(projectService.createTimeEntry).toHaveBeenCalledWith('u1', 't1', expect.objectContaining({
-      projectId: 'p1',
-      durationMinutes: 120,
-      workDate: '2026-03-30',
-      billable: true,
-      notes: 'Frontend work',
-    }));
+    expect(projectService.createTimeEntry).toHaveBeenCalledWith(
+      'u1',
+      't1',
+      expect.objectContaining({
+        projectId: 'p1',
+        durationMinutes: 120,
+        workDate: '2026-03-30',
+        billable: true,
+        notes: 'Frontend work',
+      }),
+      // 4th arg: options object. Controller derives isAdmin from
+      // perm.role === 'admin'; the mock returns role: 'owner', so false.
+      { isAdmin: false },
+    );
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: true, data: mockEntry })
     );
@@ -223,8 +235,11 @@ describe('projects controller — createTimeEntry', () => {
 
     await controller.createTimeEntry(req, res);
 
-    expect(projectService.createTimeEntry).toHaveBeenCalledWith('u1', 't1', expect.objectContaining({
-      durationMinutes: 0,
-    }));
+    expect(projectService.createTimeEntry).toHaveBeenCalledWith(
+      'u1',
+      't1',
+      expect.objectContaining({ durationMinutes: 0 }),
+      { isAdmin: false },
+    );
   });
 });
