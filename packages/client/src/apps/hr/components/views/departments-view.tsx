@@ -5,6 +5,7 @@ import { type HrDepartment, type HrEmployee } from '../../hooks';
 import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
 import { IconButton } from '../../../../components/ui/icon-button';
 import { Avatar } from '../../../../components/ui/avatar';
+import { Card } from '../../../../components/ui/card';
 
 export function DepartmentsView({
   departments,
@@ -53,39 +54,25 @@ export function DepartmentsView({
 
   return (
     <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-      gap: 'var(--spacing-lg)',
+      flex: 1,
+      overflow: 'auto',
+      padding: 'var(--spacing-xl)',
     }}>
-      {departments.map((dept) => {
-        const deptEmployees = employeesByDepartment.get(dept.id) ?? [];
-        const headEmployee = dept.headEmployeeId ? employeeById.get(dept.headEmployeeId) ?? null : null;
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: 'var(--spacing-lg)',
+      }}>
+        {departments.map((dept) => {
+          const deptEmployees = employeesByDepartment.get(dept.id) ?? [];
+          const headEmployee = dept.headEmployeeId ? employeeById.get(dept.headEmployeeId) ?? null : null;
 
-        return (
-          <div
-            key={dept.id}
-            onClick={() => onSelectDepartment?.(dept.id)}
-            style={{
-              background: 'var(--color-bg-primary)',
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-lg)',
-              overflow: 'hidden',
-              cursor: onSelectDepartment ? 'pointer' : 'default',
-              transition: 'box-shadow 0.15s, background 0.15s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-              e.currentTarget.style.background = 'var(--color-surface-hover)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.background = 'var(--color-bg-primary)';
-            }}
-          >
-            {/* Color stripe */}
-            <div style={{ height: 4, background: dept.color }} />
-
-            <div style={{ padding: 'var(--spacing-lg)' }}>
+          return (
+            <Card
+              key={dept.id}
+              accentColor={dept.color}
+              onClick={onSelectDepartment ? () => onSelectDepartment(dept.id) : undefined}
+            >
               {/* Header: name + actions */}
               <div style={{
                 display: 'flex',
@@ -166,10 +153,10 @@ export function DepartmentsView({
                   {deptEmployees.length} {deptEmployees.length === 1 ? t('hr.departments.member') : t('hr.departments.members')}
                 </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
