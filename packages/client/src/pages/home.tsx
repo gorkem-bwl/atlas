@@ -21,7 +21,7 @@ import { useMyAccessibleApps } from '../hooks/use-app-permissions';
 import { ActivityFeed } from '../components/activity/activity-feed';
 import { DockPet, type PetType } from '../components/home/dock-pet';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
-import { FULL_BLEED_BRAND_ICONS } from '../components/icons/app-icons';
+import { FULL_BLEED_BRAND_ICONS, getBrandIconScale } from '../components/icons/app-icons';
 import '../styles/home.css';
 
 // App ids that use multicolor brand SVGs in the dock instead of lucide icons.
@@ -1360,12 +1360,7 @@ export function HomePage() {
                     }}
                   >
                     {isBrandIcon ? (() => {
-                      // Brand icons render at 120% of the lucide size for
-                      // visual parity (the brand artwork has more internal
-                      // padding than lucide line icons). Calendar gets an
-                      // extra 20% bump (1.44× total) because its dark body
-                      // + white type needs more presence in the dock.
-                      const brandScale = app.id === 'calendar' ? 1.44 : 1.2;
+                      const brandScale = getBrandIconScale(app.id);
                       return (
                         <Icon
                           size={Math.round(BASE_DOCK_ICON_SIZE * brandScale)}
@@ -1438,7 +1433,7 @@ export function HomePage() {
                   {isFullBleed ? (
                     <Icon style={{ width: '100%', height: '100%', display: 'block' }} />
                   ) : isBrandIcon ? (
-                    <Icon size={Math.round(BASE_DOCK_ICON_SIZE * (app.id === 'calendar' ? 1.44 : 1.2))} />
+                    <Icon size={Math.round(BASE_DOCK_ICON_SIZE * getBrandIconScale(app.id))} />
                   ) : (
                     <Icon size={BASE_DOCK_ICON_SIZE} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                   )}
@@ -1497,7 +1492,7 @@ export function HomePage() {
                 {isFullBleed ? (
                   <Icon style={{ width: '100%', height: '100%', display: 'block' }} />
                 ) : isBrandIcon ? (
-                  <Icon size={Math.round(BASE_DOCK_ICON_SIZE * (app.id === 'calendar' ? 1.44 : 1.2))} />
+                  <Icon size={Math.round(BASE_DOCK_ICON_SIZE * getBrandIconScale(app.id))} />
                 ) : (
                   <Icon size={BASE_DOCK_ICON_SIZE} color="#fff" strokeWidth={1.6} style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }} />
                 )}

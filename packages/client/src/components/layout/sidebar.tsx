@@ -13,7 +13,7 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { AccountSwitcher } from './account-switcher';
 import { appRegistry } from '../../apps';
-import { FULL_BLEED_BRAND_ICONS } from '../../components/icons/app-icons';
+import { FULL_BLEED_BRAND_ICONS, getBrandIconScale } from '../../components/icons/app-icons';
 import type { AppIconComponent } from '../../config/app-manifest.client';
 import { ROUTES } from '../../config/routes';
 import { useMyAccessibleApps } from '../../hooks/use-app-permissions';
@@ -143,11 +143,10 @@ function NavButton({
             boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.04)',
           }}
         >
-          {/* Brand SVGs render at 120% of the lucide size — the source
-              artwork has more internal padding than lucide line icons.
-              Calendar gets an extra bump (1.44× total) because its dark
-              body + white type needs more presence. */}
-          <Icon size={Math.round(18 * (id === 'calendar' ? 1.44 : 1.2))} />
+          {/* Brand SVGs render at the per-app scale (default 1.2× of the
+              lucide size, calendar 1.44×, system 1.56×) — see
+              getBrandIconScale in app-icons.tsx for the rationale. */}
+          <Icon size={Math.round(18 * getBrandIconScale(id))} />
         </span>
       ) : (
         <Icon size={18} className="sidebar-nav-icon" style={{ flexShrink: 0, color }} />

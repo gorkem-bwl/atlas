@@ -21,6 +21,17 @@ interface IconProps {
  * paths in home.tsx and sidebar.tsx. */
 export const FULL_BLEED_BRAND_ICONS = new Set<string>(['draw', 'docs']);
 
+/** Per-brand-icon size multiplier on top of the base icon size. Brand icons
+ * default to 1.2× because the supplied artwork has more internal padding
+ * than lucide line icons. A few apps need extra presence:
+ *   - calendar: 1.44× (dark body + small white type needs to read at small sizes)
+ *   - system:   1.56× (colourful glyph has lots of internal whitespace) */
+export function getBrandIconScale(appId: string): number {
+  if (appId === 'calendar') return 1.44;
+  if (appId === 'system') return 1.56;
+  return 1.2;
+}
+
 export function CrmIcon({ size = 24, className, style }: IconProps) {
   return (
     <svg
