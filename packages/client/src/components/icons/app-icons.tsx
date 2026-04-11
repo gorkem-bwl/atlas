@@ -19,7 +19,7 @@ interface IconProps {
  * backdrop (sticky-note, gradient horizon, etc.) rather than a foreground
  * glyph. Note: the Write app's id is `docs`. Consumed by the dockbar render
  * paths in home.tsx and sidebar.tsx. */
-export const FULL_BLEED_BRAND_ICONS = new Set<string>(['draw', 'docs', 'tasks']);
+export const FULL_BLEED_BRAND_ICONS = new Set<string>(['draw', 'docs', 'sign']);
 
 /** Per-brand-icon size multiplier on top of the base icon size. Brand icons
  * default to 1.2× because the supplied artwork has more internal padding
@@ -512,65 +512,56 @@ export function SignIcon({ size = 24, className, style }: IconProps) {
       width={size}
       height={size}
       viewBox="0 0 128 128"
+      preserveAspectRatio="xMidYMid slice"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={style}
     >
-      {/* Document body — rounded paper rectangle, slightly tilted, with a
-          purple→indigo gradient matching the Sign app brand colour. */}
-      <g transform="rotate(-4 64 64)">
-        <rect
-          x="26"
-          y="18"
-          width="76"
-          height="92"
-          rx="10"
-          fill="url(#sign_paint0)"
-          stroke="url(#sign_paint1)"
-          strokeWidth="1.5"
-        />
-        {/* Inner highlight on the top edge for the glassy look */}
-        <rect x="26" y="18" width="76" height="20" rx="10" fill="url(#sign_paint2)" />
+      {/* Background fill that covers the entire icon area — the artwork
+          previously had a tilted "page" floating on a card. Full-bleed
+          mode replaces the card so the background colour comes from the
+          icon itself. */}
+      <rect width="128" height="128" fill="url(#sign_paint0)" />
 
-        {/* Three thin lines representing document text */}
-        <rect x="36" y="40" width="56" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55" />
-        <rect x="36" y="50" width="56" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55" />
-        <rect x="36" y="60" width="36" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55" />
+      {/* Subtle highlight along the top edge for the glassy/depth look */}
+      <rect width="128" height="40" fill="url(#sign_paint2)" />
 
-        {/* Signature curve — flowing handwritten line in gold */}
-        <path
-          d="M36 86 C 44 78, 50 96, 58 84 S 72 76, 80 88 S 92 80, 96 86"
-          stroke="url(#sign_paint3)"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Signature flourish underline */}
-        <path
-          d="M38 96 L 92 96"
-          stroke="url(#sign_paint3)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.6"
-        />
-      </g>
+      {/* Three thin lines representing document text — scaled up to fill
+          ~75% of the icon width (was ~44% before). */}
+      <rect x="14" y="30" width="100" height="6" rx="3" fill="#ffffff" opacity="0.55" />
+      <rect x="14" y="46" width="100" height="6" rx="3" fill="#ffffff" opacity="0.55" />
+      <rect x="14" y="62" width="64" height="6" rx="3" fill="#ffffff" opacity="0.55" />
+
+      {/* Signature curve — flowing handwritten line in gold, scaled up
+          to fill the bottom half of the icon. */}
+      <path
+        d="M14 96 C 26 80, 36 116, 50 92 S 78 76, 92 100 S 110 84, 118 96"
+        stroke="url(#sign_paint3)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* Signature flourish underline */}
+      <path
+        d="M16 114 L 116 114"
+        stroke="url(#sign_paint3)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
 
       <defs>
-        <linearGradient id="sign_paint0" x1="64" y1="18" x2="64" y2="110" gradientUnits="userSpaceOnUse">
+        <linearGradient id="sign_paint0" x1="64" y1="0" x2="64" y2="128" gradientUnits="userSpaceOnUse">
           <stop stopColor="#A78BFA" />
           <stop offset="0.5" stopColor="#8B5CF6" />
           <stop offset="1" stopColor="#5B21B6" />
         </linearGradient>
-        <linearGradient id="sign_paint1" x1="64" y1="18" x2="64" y2="110" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#C4B5FD" stopOpacity="0.8" />
-          <stop offset="1" stopColor="#4C1D95" stopOpacity="0.6" />
-        </linearGradient>
-        <linearGradient id="sign_paint2" x1="64" y1="18" x2="64" y2="38" gradientUnits="userSpaceOnUse">
+        <linearGradient id="sign_paint2" x1="64" y1="0" x2="64" y2="40" gradientUnits="userSpaceOnUse">
           <stop stopColor="#ffffff" stopOpacity="0.25" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id="sign_paint3" x1="36" y1="86" x2="96" y2="86" gradientUnits="userSpaceOnUse">
+        <linearGradient id="sign_paint3" x1="14" y1="96" x2="118" y2="96" gradientUnits="userSpaceOnUse">
           <stop stopColor="#FCD34D" />
           <stop offset="0.5" stopColor="#F59E0B" />
           <stop offset="1" stopColor="#D97706" />
