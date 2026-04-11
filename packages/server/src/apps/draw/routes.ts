@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as drawingController from './controller';
 import { authMiddleware } from '../../middleware/auth';
-import { requireDrawPermission } from './middleware/permission';
+import { requireAppPermission } from '../../middleware/require-app-permission';
 
 const router = Router();
 router.use(authMiddleware);
-router.use(requireDrawPermission('view'));
+router.use(requireAppPermission('draw'));
 
 router.post('/seed', drawingController.seedSampleData);
 router.get('/', drawingController.listDrawings);

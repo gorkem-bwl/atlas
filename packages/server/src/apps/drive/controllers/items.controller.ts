@@ -2,7 +2,8 @@ import type { Request, Response } from 'express';
 import * as driveService from '../service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
+import { assertCanDelete } from '../../../middleware/assert-can-delete';
 
 // GET /api/drive/widget
 export async function getWidgetData(req: Request, res: Response) {
@@ -36,7 +37,7 @@ export async function listItems(req: Request, res: Response) {
 // POST /api/drive/folder
 export async function createFolder(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -58,7 +59,7 @@ export async function createFolder(req: Request, res: Response) {
 // POST /api/drive/upload
 export async function uploadFiles(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -229,7 +230,7 @@ export async function getBreadcrumbs(req: Request, res: Response) {
 // PATCH /api/drive/:id
 export async function updateItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -277,7 +278,7 @@ export async function updateItem(req: Request, res: Response) {
 // DELETE /api/drive/:id (soft delete)
 export async function deleteItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in drive' });
       return;
@@ -291,15 +292,7 @@ export async function deleteItem(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Item not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Item not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await driveService.deleteItem(existing.userId, itemId);
     driveService.logDriveActivity({ driveItemId: itemId, tenantId: req.auth!.tenantId, userId, action: 'file.deleted' }).catch((err) => logger.warn({ err }, 'Drive activity log failed'));
@@ -313,7 +306,7 @@ export async function deleteItem(req: Request, res: Response) {
 // PATCH /api/drive/:id/restore
 export async function restoreItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in drive' });
       return;
@@ -327,15 +320,7 @@ export async function restoreItem(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Item not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Item not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     const item = await driveService.restoreItem(existing.userId, itemId);
     if (!item) {
@@ -354,7 +339,7 @@ export async function restoreItem(req: Request, res: Response) {
 // DELETE /api/drive/:id/permanent
 export async function permanentDelete(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in drive' });
       return;
@@ -368,15 +353,7 @@ export async function permanentDelete(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Item not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete in drive' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Item not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await driveService.permanentDelete(existing.userId, itemId);
     res.json({ success: true, data: null });
@@ -389,7 +366,7 @@ export async function permanentDelete(req: Request, res: Response) {
 // POST /api/drive/:id/duplicate
 export async function duplicateItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -414,7 +391,7 @@ export async function duplicateItem(req: Request, res: Response) {
 // POST /api/drive/:id/copy
 export async function copyItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -441,7 +418,7 @@ export async function copyItem(req: Request, res: Response) {
 // POST /api/drive/batch/delete
 export async function batchDelete(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in drive' });
       return;
@@ -457,12 +434,19 @@ export async function batchDelete(req: Request, res: Response) {
 
     // Validate each item. Viewers are already blocked above. Editors may
     // only batch-delete items they own; silently skip any they cannot touch.
+    // assertCanDelete would write a 403/404 to the response; here we want a
+    // silent per-item filter instead, so inline the canAccess check.
+    const hasBlanketDelete = canAccess(perm.role, 'delete');
+    const hasDeleteOwn = canAccess(perm.role, 'delete_own');
     const allowedIds: string[] = [];
     for (const itemId of itemIds) {
       const item = await driveService.getItem(userId, itemId, req.auth!.tenantId ?? null);
       if (!item) continue;
-      const decision = decideRecordDelete(perm.role, item.userId, userId);
-      if (decision === 'allow') allowedIds.push(itemId);
+      if (hasBlanketDelete) {
+        allowedIds.push(itemId);
+      } else if (hasDeleteOwn && item.userId === userId) {
+        allowedIds.push(itemId);
+      }
     }
 
     if (allowedIds.length === 0) {
@@ -481,7 +465,7 @@ export async function batchDelete(req: Request, res: Response) {
 // POST /api/drive/batch/move
 export async function batchMove(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -506,7 +490,7 @@ export async function batchMove(req: Request, res: Response) {
 // POST /api/drive/batch/favourite
 export async function batchFavourite(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as hrService from '../services/department.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Departments ────────────────────────────────────────────────────
 
@@ -25,7 +25,7 @@ export async function createDepartment(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -54,7 +54,7 @@ export async function updateDepartment(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -84,7 +84,7 @@ export async function deleteDepartment(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;

@@ -40,6 +40,7 @@ import * as projectService from '../src/apps/projects/service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    projectsPerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},
@@ -216,8 +217,8 @@ describe('projects controller — createTimeEntry', () => {
         notes: 'Frontend work',
       }),
       // 4th arg: options object. Controller derives isAdmin from
-      // perm.role === 'admin'; the mock returns role: 'owner', so false.
-      { isAdmin: false },
+      // perm.role === 'admin'; makeReq attaches projectsPerm with role 'admin'.
+      { isAdmin: true },
     );
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: true, data: mockEntry })
@@ -239,7 +240,7 @@ describe('projects controller — createTimeEntry', () => {
       'u1',
       't1',
       expect.objectContaining({ durationMinutes: 0 }),
-      { isAdmin: false },
+      { isAdmin: true },
     );
   });
 });

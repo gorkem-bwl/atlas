@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as expenseReportService from '../services/expense-report.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import { findEmployeeIdByLinkedUser } from '../services/employee.service';
 
 // ─── List Expense Reports ──────────────────────────────────────
@@ -93,7 +93,7 @@ export async function updateExpenseReport(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -118,7 +118,7 @@ export async function deleteExpenseReport(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -168,7 +168,7 @@ export async function approveExpenseReport(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to approve expense reports' });
       return;
@@ -199,7 +199,7 @@ export async function refuseExpenseReport(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to refuse expense reports' });
       return;

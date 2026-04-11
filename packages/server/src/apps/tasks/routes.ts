@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import * as taskController from './controller';
 import { authMiddleware } from '../../middleware/auth';
-import { requireTasksPermission } from './middleware/permission';
+import { requireAppPermission } from '../../middleware/require-app-permission';
 
 const uploadsDir = path.join(__dirname, '../../../uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -42,7 +42,7 @@ function handleMulterError(err: any, _req: Request, res: Response, next: NextFun
 
 const router = Router();
 router.use(authMiddleware);
-router.use(requireTasksPermission('view'));
+router.use(requireAppPermission('tasks'));
 
 // Widget (lightweight summary for home dashboard)
 router.get('/widget', taskController.getWidgetData);

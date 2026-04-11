@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
 import * as projectService from '../service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Time Entries ───────────────────────────────────────────────────
 
 export async function listTimeEntries(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { projectId, startDate, endDate, billed, billable, entryUserId, includeArchived } = req.query;
@@ -33,7 +33,7 @@ export async function listTimeEntries(req: Request, res: Response) {
 
 export async function getTimeEntry(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
@@ -55,7 +55,7 @@ export async function getTimeEntry(req: Request, res: Response) {
 
 export async function createTimeEntry(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in projects' });
       return;
@@ -94,7 +94,7 @@ export async function createTimeEntry(req: Request, res: Response) {
 
 export async function updateTimeEntry(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in projects' });
       return;
@@ -130,7 +130,7 @@ export async function updateTimeEntry(req: Request, res: Response) {
 
 export async function deleteTimeEntry(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in projects' });
       return;
@@ -152,7 +152,7 @@ export async function deleteTimeEntry(req: Request, res: Response) {
 
 export async function bulkLockEntries(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in projects' });
       return;
@@ -200,7 +200,7 @@ export async function getWeeklyView(req: Request, res: Response) {
 
 export async function bulkSaveTimeEntries(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in projects' });
       return;
@@ -225,7 +225,7 @@ export async function bulkSaveTimeEntries(req: Request, res: Response) {
 
 export async function copyLastWeek(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in projects' });
       return;

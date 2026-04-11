@@ -2,7 +2,8 @@ import type { Request, Response } from 'express';
 import * as signService from '../service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
+import { assertCanDelete } from '../../../middleware/assert-can-delete';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
 
@@ -23,7 +24,7 @@ export async function listFields(req: Request, res: Response) {
 
 export async function createField(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign fields' });
       return;
@@ -49,7 +50,7 @@ export async function createField(req: Request, res: Response) {
 
 export async function updateField(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update sign fields' });
       return;
@@ -76,7 +77,7 @@ export async function updateField(req: Request, res: Response) {
 
 export async function deleteField(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete sign fields' });
       return;
@@ -91,15 +92,7 @@ export async function deleteField(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Field not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, field.ownerUserId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete sign fields' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Field not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, field.ownerUserId, userId)) return;
 
     await signService.deleteField(fieldId);
     res.json({ success: true, data: null });
@@ -113,7 +106,7 @@ export async function deleteField(req: Request, res: Response) {
 
 export async function createSigningToken(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create signing tokens' });
       return;
@@ -341,7 +334,7 @@ export async function listTemplates(req: Request, res: Response) {
 
 export async function createTemplate(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign templates' });
       return;
@@ -368,7 +361,7 @@ export async function createTemplate(req: Request, res: Response) {
 
 export async function useTemplate(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign documents' });
       return;
@@ -389,7 +382,7 @@ export async function useTemplate(req: Request, res: Response) {
 
 export async function saveAsTemplate(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign templates' });
       return;
@@ -416,7 +409,7 @@ export async function seedStarterTemplates(req: Request, res: Response) {
       return;
     }
 
-    const perm = await getAppPermission(tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign templates' });
       return;
@@ -441,7 +434,7 @@ export async function seedStarterTemplates(req: Request, res: Response) {
 
 export async function deleteTemplate(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete sign templates' });
       return;
@@ -457,15 +450,7 @@ export async function deleteTemplate(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Template not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete sign templates' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Template not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await signService.deleteTemplate(userId, tenantId, templateId);
     res.json({ success: true, data: null });

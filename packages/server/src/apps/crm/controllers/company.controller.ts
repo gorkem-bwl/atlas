@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as crmService from '../services/company.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Companies ──────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ export async function listCompanies(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { search, industry, includeArchived } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to companies' });
       return;
@@ -38,7 +38,7 @@ export async function getCompany(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to companies' });
       return;
@@ -63,7 +63,7 @@ export async function createCompany(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name, domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create companies' });
       return;
@@ -103,7 +103,7 @@ export async function updateCompany(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, domain, industry, size, address, phone, taxId, taxOffice, currency, postalCode, state, country, logo, portalToken, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update companies' });
       return;
@@ -131,7 +131,7 @@ export async function deleteCompany(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to delete companies' });
       return;
@@ -170,7 +170,7 @@ export async function regeneratePortalToken(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update companies' });
       return;
@@ -204,7 +204,7 @@ export async function mergeCompanies(req: Request, res: Response) {
       return;
     }
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'companies', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to merge companies' });
       return;

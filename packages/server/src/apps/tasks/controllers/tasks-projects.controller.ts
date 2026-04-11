@@ -2,7 +2,8 @@ import type { Request, Response } from 'express';
 import * as taskService from '../service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
+import { assertCanDelete } from '../../../middleware/assert-can-delete';
 
 // ─── Widget ─────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ export async function getTask(req: Request, res: Response) {
 
 export async function createTask(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create tasks' });
       return;
@@ -84,7 +85,7 @@ export async function createTask(req: Request, res: Response) {
 
 export async function updateTask(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update tasks' });
       return;
@@ -133,7 +134,7 @@ export async function updateTask(req: Request, res: Response) {
 
 export async function deleteTask(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -147,15 +148,7 @@ export async function deleteTask(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Task not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Task not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await taskService.deleteTask(existing.userId, taskId);
     res.json({ success: true, data: null });
@@ -167,7 +160,7 @@ export async function deleteTask(req: Request, res: Response) {
 
 export async function restoreTask(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update tasks' });
       return;
@@ -191,7 +184,7 @@ export async function restoreTask(req: Request, res: Response) {
 
 export async function reorderTasks(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to reorder tasks' });
       return;
@@ -259,7 +252,7 @@ export async function listProjects(req: Request, res: Response) {
 
 export async function createProject(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create projects' });
       return;
@@ -279,7 +272,7 @@ export async function createProject(req: Request, res: Response) {
 
 export async function updateProject(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update projects' });
       return;
@@ -307,7 +300,7 @@ export async function updateProject(req: Request, res: Response) {
 
 export async function deleteProject(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -321,15 +314,7 @@ export async function deleteProject(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Project not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Project not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await taskService.deleteProject(existing.userId, projectId);
     res.json({ success: true, data: null });
@@ -423,7 +408,7 @@ export async function updateProjectVisibility(req: Request, res: Response) {
 
 export async function createTaskFromEmail(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tasks');
+    const perm = req.tasksPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create tasks' });
       return;

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as hrService from '../services/leave-config.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Leave Types ──────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export async function createLeaveType(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -47,7 +47,7 @@ export async function updateLeaveType(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -67,7 +67,7 @@ export async function deleteLeaveType(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -99,7 +99,7 @@ export async function createLeavePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -121,7 +121,7 @@ export async function updateLeavePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -140,7 +140,7 @@ export async function deleteLeavePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -158,7 +158,7 @@ export async function assignPolicyToEmployee(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -193,7 +193,7 @@ export async function seedLeaveTypes(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -211,7 +211,7 @@ export async function seedLeavePolicies(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -231,7 +231,7 @@ export async function triggerBalanceAllocation(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to manage HR records' });
       return;
@@ -251,7 +251,7 @@ export async function resyncPolicyBalances(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const policyId = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to manage HR records' });
       return;
@@ -283,7 +283,7 @@ export async function createHolidayCalendar(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -303,7 +303,7 @@ export async function updateHolidayCalendar(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -322,7 +322,7 @@ export async function deleteHolidayCalendar(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -352,7 +352,7 @@ export async function createHoliday(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -375,7 +375,7 @@ export async function updateHoliday(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -394,7 +394,7 @@ export async function deleteHoliday(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;
@@ -412,7 +412,7 @@ export async function bulkImportHolidays(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;

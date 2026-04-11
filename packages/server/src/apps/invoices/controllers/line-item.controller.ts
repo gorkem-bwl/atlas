@@ -2,13 +2,13 @@ import type { Request, Response } from 'express';
 import * as invoiceService from '../services/invoice.service';
 import * as lineItemService from '../services/line-item.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Line Items ─────────────────────────────────────────────────────
 
 export async function listLineItems(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const invoiceId = req.params.invoiceId as string;
@@ -32,7 +32,7 @@ export async function listLineItems(req: Request, res: Response) {
 
 export async function createLineItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in invoices' });
       return;
@@ -70,7 +70,7 @@ export async function createLineItem(req: Request, res: Response) {
 
 export async function updateLineItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in invoices' });
       return;
@@ -109,7 +109,7 @@ export async function updateLineItem(req: Request, res: Response) {
 
 export async function deleteLineItem(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in invoices' });
       return;

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import * as tableService from './service';
 import { logger } from '../../utils/logger';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../services/app-permissions.service';
+import { canAccess } from '../../services/app-permissions.service';
+import { assertCanDelete } from '../../middleware/assert-can-delete';
 
 // GET /api/tables
 export async function listSpreadsheets(req: Request, res: Response) {
@@ -22,7 +23,7 @@ export async function listSpreadsheets(req: Request, res: Response) {
 // POST /api/tables
 export async function createSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    const perm = req.tablesPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create tables' });
       return;
@@ -71,7 +72,7 @@ export async function getSpreadsheet(req: Request, res: Response) {
 // PATCH /api/tables/:id
 export async function updateSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    const perm = req.tablesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update tables' });
       return;
@@ -107,7 +108,7 @@ export async function updateSpreadsheet(req: Request, res: Response) {
 // DELETE /api/tables/:id (soft delete)
 export async function deleteSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    const perm = req.tablesPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete tables' });
       return;
@@ -121,15 +122,7 @@ export async function deleteSpreadsheet(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Spreadsheet not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete tables' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Spreadsheet not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     const result = await tableService.deleteSpreadsheet(existing.userId, spreadsheetId);
 
@@ -148,7 +141,7 @@ export async function deleteSpreadsheet(req: Request, res: Response) {
 // PATCH /api/tables/:id/restore
 export async function restoreSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    const perm = req.tablesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update tables' });
       return;
@@ -203,7 +196,7 @@ export async function listRowComments(req: Request, res: Response) {
 // POST /api/tables/:id/rows/:rowId/comments
 export async function createRowComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'tables');
+    const perm = req.tablesPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create comments' });
       return;

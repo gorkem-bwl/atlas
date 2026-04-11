@@ -3,7 +3,7 @@ import * as crmService from '../services/note.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { getDealAssigneeInfo } from '../services/deal.service';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Notes ──────────────────────────────────────────────────────────
 
@@ -13,7 +13,7 @@ export async function listNotes(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { dealId, contactId, companyId } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -37,7 +37,7 @@ export async function createNote(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { title, content, dealId, contactId, companyId } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -82,7 +82,7 @@ export async function updateNote(req: Request, res: Response) {
     const id = req.params.id as string;
     const { title, content, isPinned, isArchived } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -105,7 +105,7 @@ export async function deleteNote(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;

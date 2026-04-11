@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as projectService from '../service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Time Billing ──────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ export async function previewTimeBillingLineItems(req: Request, res: Response) {
 
 export async function populateTimeBilling(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;

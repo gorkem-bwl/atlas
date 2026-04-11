@@ -3,7 +3,7 @@ import * as hrService from '../services/employee.service';
 import * as dashboardService from '../services/dashboard.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Widget ─────────────────────────────────────────────────────────
 
@@ -27,7 +27,7 @@ export async function listEmployees(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const { status, departmentId, includeArchived } = req.query;
 
     const isAdmin = perm.role === 'admin' || perm.role === 'editor';
@@ -64,7 +64,7 @@ export async function getEmployee(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const id = req.params.id as string;
 
     const employee = await hrService.getEmployee(userId, tenantId, id);
@@ -97,7 +97,7 @@ export async function createEmployee(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -142,7 +142,7 @@ export async function updateEmployee(req: Request, res: Response) {
     const userEmail = req.auth!.email;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const hasUpdatePerm = canAccess(perm.role, 'update');
 
     // If user doesn't have HR update permission, check if they're editing their own record
@@ -183,7 +183,7 @@ export async function deleteEmployee(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;

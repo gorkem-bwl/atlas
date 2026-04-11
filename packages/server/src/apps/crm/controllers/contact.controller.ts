@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as crmService from '../services/contact.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Contacts ───────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ export async function listContacts(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { search, companyId, includeArchived } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to contacts' });
       return;
@@ -38,7 +38,7 @@ export async function getContact(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const contact = await crmService.getContact(userId, tenantId, id, perm.recordAccess);
     if (!contact) {
       res.status(404).json({ success: false, error: 'Contact not found' });
@@ -58,7 +58,7 @@ export async function createContact(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name, email, phone, companyId, position, source, tags } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create contacts' });
       return;
@@ -98,7 +98,7 @@ export async function updateContact(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update contacts' });
       return;
@@ -126,7 +126,7 @@ export async function deleteContact(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to delete contacts' });
       return;
@@ -174,7 +174,7 @@ export async function mergeContacts(req: Request, res: Response) {
       return;
     }
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to merge contacts' });
       return;

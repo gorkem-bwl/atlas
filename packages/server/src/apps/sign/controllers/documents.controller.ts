@@ -3,7 +3,8 @@ import * as signService from '../service';
 import { sendPendingReminders } from '../reminder';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
+import { assertCanDelete } from '../../../middleware/assert-can-delete';
 import path from 'node:path';
 import { existsSync, createReadStream, statSync } from 'node:fs';
 
@@ -39,7 +40,7 @@ export async function listDocuments(req: Request, res: Response) {
 
 export async function createDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign documents' });
       return;
@@ -66,7 +67,7 @@ export async function createDocument(req: Request, res: Response) {
 
 export async function uploadPDF(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create sign documents' });
       return;
@@ -119,7 +120,7 @@ export async function getDocument(req: Request, res: Response) {
 
 export async function updateDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update sign documents' });
       return;
@@ -147,7 +148,7 @@ export async function updateDocument(req: Request, res: Response) {
 
 export async function deleteDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete sign documents' });
       return;
@@ -161,15 +162,7 @@ export async function deleteDocument(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Document not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete sign documents' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Document not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await signService.deleteDocument(existing.userId, documentId);
     res.json({ success: true, data: null });
@@ -242,7 +235,7 @@ export async function downloadPDF(req: Request, res: Response) {
 
 export async function voidDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update sign documents' });
       return;
@@ -320,7 +313,7 @@ export async function triggerReminders(req: Request, res: Response) {
 
 export async function sendSingleReminder(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'sign');
+    const perm = req.signPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to send reminders' });
       return;

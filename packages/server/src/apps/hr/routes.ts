@@ -3,11 +3,11 @@ import multer from 'multer';
 import path from 'path';
 import * as hrController from './controller';
 import { authMiddleware } from '../../middleware/auth';
-import { requireHrPermission } from './middleware/permission';
+import { requireAppPermission } from '../../middleware/require-app-permission';
 
 const router = Router();
 router.use(authMiddleware);
-router.use(requireHrPermission('view'));
+router.use(requireAppPermission('hr'));
 
 // File upload config for employee documents
 const storage = multer.diskStorage({

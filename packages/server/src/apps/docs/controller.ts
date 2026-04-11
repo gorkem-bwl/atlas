@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import * as documentService from './service';
 import { logger } from '../../utils/logger';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../services/app-permissions.service';
+import { canAccess } from '../../services/app-permissions.service';
+import { assertCanDelete } from '../../middleware/assert-can-delete';
 import { parseMentionsAndNotify } from '../../utils/mentions';
 
 // GET /api/docs
@@ -24,7 +25,7 @@ export async function listDocuments(req: Request, res: Response) {
 // POST /api/docs
 export async function createDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create docs' });
       return;
@@ -71,7 +72,7 @@ export async function getDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id
 export async function updateDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -105,7 +106,7 @@ export async function updateDocument(req: Request, res: Response) {
 // DELETE /api/docs/:id (soft delete)
 export async function deleteDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete docs' });
       return;
@@ -121,17 +122,7 @@ export async function deleteDocument(req: Request, res: Response) {
       return;
     }
 
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete docs' });
-      return;
-    }
-    if (decision === 'not_own') {
-      // Editor trying to delete someone else's doc — 404, not 403, so we
-      // don't leak existence of records they cannot touch.
-      res.status(404).json({ success: false, error: 'Document not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await documentService.deleteDocument(existing.userId, documentId);
 
@@ -145,7 +136,7 @@ export async function deleteDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id/move
 export async function moveDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -184,7 +175,7 @@ export async function moveDocument(req: Request, res: Response) {
 // PATCH /api/docs/:id/restore
 export async function restoreDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete docs' });
       return;
@@ -199,15 +190,7 @@ export async function restoreDocument(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Document not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete docs' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Document not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     const doc = await documentService.restoreDocument(existing.userId, documentId);
 
@@ -259,7 +242,7 @@ export async function listVersions(req: Request, res: Response) {
 // POST /api/docs/:id/versions (create a snapshot)
 export async function createVersion(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -284,7 +267,7 @@ export async function createVersion(req: Request, res: Response) {
 // POST /api/docs/:id/versions/:versionId/restore
 export async function restoreVersion(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -336,7 +319,7 @@ export async function listComments(req: Request, res: Response) {
 
 export async function createComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in docs' });
       return;
@@ -367,7 +350,7 @@ export async function createComment(req: Request, res: Response) {
 
 export async function updateComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -384,7 +367,7 @@ export async function updateComment(req: Request, res: Response) {
 
 export async function deleteComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete in docs' });
       return;
@@ -398,15 +381,7 @@ export async function deleteComment(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Comment not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete in docs' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Comment not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     // Admin path bypasses the per-user scoped deleteComment by id only.
     await documentService.deleteCommentById(commentId);
@@ -419,7 +394,7 @@ export async function deleteComment(req: Request, res: Response) {
 
 export async function resolveComment(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update docs' });
       return;
@@ -450,7 +425,7 @@ export async function getBacklinks(req: Request, res: Response) {
 
 export async function importDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'docs');
+    const perm = req.docsPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in docs' });
       return;

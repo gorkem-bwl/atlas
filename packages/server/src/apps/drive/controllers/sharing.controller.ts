@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as driveService from '../service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import { parseMentionsAndNotify } from '../../../utils/mentions';
 
 // GET /api/drive/:id/versions
@@ -22,7 +22,7 @@ export async function listVersions(req: Request, res: Response) {
 // POST /api/drive/:id/replace — upload new version
 export async function replaceFile(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -77,7 +77,7 @@ export async function replaceFile(req: Request, res: Response) {
 // POST /api/drive/:id/versions/:versionId/restore
 export async function restoreVersion(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -140,7 +140,7 @@ export async function downloadVersion(req: Request, res: Response) {
 // POST /api/drive/:id/share — create share link
 export async function createShareLink(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -194,7 +194,7 @@ export async function listShareLinks(req: Request, res: Response) {
 // DELETE /api/drive/share/:linkId
 export async function deleteShareLink(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -214,7 +214,7 @@ export async function deleteShareLink(req: Request, res: Response) {
 // POST /api/drive/:id/shares — share item with a user
 export async function shareWithUser(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;
@@ -251,7 +251,7 @@ export async function listShares(req: Request, res: Response) {
 // DELETE /api/drive/:id/shares/:userId — revoke share
 export async function revokeShare(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update in drive' });
       return;

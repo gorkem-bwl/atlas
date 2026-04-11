@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as crmService from '../services/deal.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Deal Stages ────────────────────────────────────────────────────
 
@@ -11,7 +11,7 @@ export async function listDealStages(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -31,7 +31,7 @@ export async function createDealStage(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name, color, probability, sequence, isDefault } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -60,7 +60,7 @@ export async function updateDealStage(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, color, probability, sequence, isDefault } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -88,7 +88,7 @@ export async function deleteDealStage(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -110,7 +110,7 @@ export async function reorderDealStages(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -136,7 +136,7 @@ export async function seedDefaultStages(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -158,7 +158,7 @@ export async function listDeals(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { stageId, contactId, companyId, includeArchived } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to deals' });
       return;
@@ -185,7 +185,7 @@ export async function getDeal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const deal = await crmService.getDeal(userId, tenantId, id, perm.recordAccess);
     if (!deal) {
       res.status(404).json({ success: false, error: 'Deal not found' });
@@ -205,7 +205,7 @@ export async function createDeal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { title, value, stageId, contactId, companyId, assignedUserId, probability, expectedCloseDate, tags } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create deals' });
       return;
@@ -250,7 +250,7 @@ export async function updateDeal(req: Request, res: Response) {
     const id = req.params.id as string;
     const { title, value, stageId, contactId, companyId, assignedUserId, probability, expectedCloseDate, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -318,7 +318,7 @@ export async function deleteDeal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to delete deals' });
       return;
@@ -338,7 +338,7 @@ export async function markDealWon(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -378,7 +378,7 @@ export async function markDealLost(req: Request, res: Response) {
     const id = req.params.id as string;
     const { reason } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'deals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update deals' });
       return;
@@ -416,7 +416,7 @@ export async function countsByStage(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const counts = await crmService.countsByStage(userId, tenantId, perm.recordAccess);
     res.json({ success: true, data: counts });
   } catch (error) {
@@ -430,7 +430,7 @@ export async function pipelineValue(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const value = await crmService.pipelineValue(userId, tenantId, perm.recordAccess);
     res.json({ success: true, data: value });
   } catch (error) {

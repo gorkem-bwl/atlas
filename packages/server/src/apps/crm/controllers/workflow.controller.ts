@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as crmService from '../services/workflow.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Workflow Automations ──────────────────────────────────────────
 
@@ -10,7 +10,7 @@ export async function listWorkflows(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'workflows', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to workflows' });
       return;
@@ -30,7 +30,7 @@ export async function createWorkflow(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name, trigger, triggerConfig, action, actionConfig } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'workflows', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create workflows' });
       return;

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as driveService from '../service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import path from 'node:path';
 import { existsSync, createReadStream, readFileSync, statSync } from 'node:fs';
 import archiver from 'archiver';
@@ -175,7 +175,7 @@ export async function previewFile(req: Request, res: Response) {
 // POST /api/drive/create-document
 export async function createLinkedDocument(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -196,7 +196,7 @@ export async function createLinkedDocument(req: Request, res: Response) {
 // POST /api/drive/create-drawing
 export async function createLinkedDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;
@@ -217,7 +217,7 @@ export async function createLinkedDrawing(req: Request, res: Response) {
 // POST /api/drive/create-spreadsheet
 export async function createLinkedSpreadsheet(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'drive');
+    const perm = req.drivePerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create in drive' });
       return;

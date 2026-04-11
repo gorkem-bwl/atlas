@@ -31,6 +31,7 @@ import * as documentService from '../src/apps/docs/service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    docsPerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},

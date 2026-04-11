@@ -18,7 +18,11 @@ vi.mock('../src/apps/draw/service', () => ({
 vi.mock('../src/services/app-permissions.service', () => ({
   getAppPermission: vi.fn().mockResolvedValue({ role: 'owner' }),
   canAccess: vi.fn().mockReturnValue(true),
-  decideRecordDelete: vi.fn().mockReturnValue('allow'),
+}));
+
+// Mock assert-can-delete middleware so delete handlers always proceed
+vi.mock('../src/middleware/assert-can-delete', () => ({
+  assertCanDelete: vi.fn().mockReturnValue(true),
 }));
 
 import * as controller from '../src/apps/draw/controller';
@@ -27,6 +31,7 @@ import * as drawingService from '../src/apps/draw/service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    drawPerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},

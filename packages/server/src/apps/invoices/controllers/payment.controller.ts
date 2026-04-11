@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as paymentService from '../services/payment.service';
 import * as invoiceService from '../services/invoice.service';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Payments ───────────────────────────────────────────────────────
 //
@@ -16,7 +16,7 @@ export async function listPayments(req: Request, res: Response) {
     res.status(400).json({ success: false, error: 'Tenant context required' });
     return;
   }
-  const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
+  const perm = req.invoicesPerm!;
   const invoiceId = req.params.invoiceId as string;
   const isAdmin = perm.role === 'admin';
   const parent = await invoiceService.getInvoice(req.auth!.userId, tenantId, invoiceId, isAdmin ? undefined : req.auth!.userId);
@@ -35,7 +35,7 @@ export async function recordPayment(req: Request, res: Response) {
     res.status(400).json({ success: false, error: 'Tenant context required' });
     return;
   }
-  const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
+  const perm = req.invoicesPerm!;
   if (!canAccess(perm.role, 'update')) {
     res.status(403).json({ success: false, error: 'No permission to record payments' });
     return;
@@ -60,7 +60,7 @@ export async function updatePayment(req: Request, res: Response) {
     res.status(400).json({ success: false, error: 'Tenant context required' });
     return;
   }
-  const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
+  const perm = req.invoicesPerm!;
   if (!canAccess(perm.role, 'update')) {
     res.status(403).json({ success: false, error: 'No permission to update payments' });
     return;
@@ -89,7 +89,7 @@ export async function deletePayment(req: Request, res: Response) {
     res.status(400).json({ success: false, error: 'Tenant context required' });
     return;
   }
-  const perm = await getAppPermission(tenantId, req.auth!.userId, 'invoices');
+  const perm = req.invoicesPerm!;
   if (!canAccess(perm.role, 'update')) {
     res.status(403).json({ success: false, error: 'No permission to delete payments' });
     return;

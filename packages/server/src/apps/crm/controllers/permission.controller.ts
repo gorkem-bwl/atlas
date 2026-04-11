@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { listCrmPermissions, upsertCrmPermission } from '../permissions';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, type AppRole, type AppRecordAccess } from '../../../services/app-permissions.service';
+import { type AppRole, type AppRecordAccess } from '../../../services/app-permissions.service';
 
 // Legacy role names the old CRM admin UI might still send. Map to the
 // canonical app_permissions roles before writing.
@@ -34,7 +34,7 @@ export async function listPermissions(req: Request, res: Response) {
     }
 
     // Only admins can list all permissions
-    const myPerm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const myPerm = req.crmPerm!;
     if (myPerm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Only CRM admins can manage permissions' });
       return;
@@ -53,7 +53,7 @@ export async function getMyPermission(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const permission = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const permission = req.crmPerm!;
     res.json({ success: true, data: permission });
   } catch (error) {
     logger.error({ error }, 'Failed to get CRM permission');
@@ -69,7 +69,7 @@ export async function updatePermission(req: Request, res: Response) {
     const { role, recordAccess } = req.body;
 
     // Only admins can update permissions
-    const myPerm = await getAppPermission(req.auth?.tenantId, currentUserId, 'crm');
+    const myPerm = req.crmPerm!;
     if (myPerm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Only CRM admins can manage permissions' });
       return;

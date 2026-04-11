@@ -2,14 +2,14 @@ import type { Request, Response } from 'express';
 import * as invoiceService from '../services/invoice.service';
 import { sendInvoiceEmail } from '../services/invoice-email.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import { emitAppEvent } from '../../../services/event.service';
 
 // ─── Invoices ───────────────────────────────────────────────────────
 
 export async function listInvoices(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { companyId, contactId, dealId, status, search, includeArchived } = req.query;
@@ -34,7 +34,7 @@ export async function listInvoices(req: Request, res: Response) {
 
 export async function getInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
@@ -66,7 +66,7 @@ export async function getNextInvoiceNumber(req: Request, res: Response) {
 
 export async function createInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create invoices' });
       return;
@@ -102,7 +102,7 @@ export async function createInvoice(req: Request, res: Response) {
 
 export async function updateInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update invoices' });
       return;
@@ -140,7 +140,7 @@ export async function updateInvoice(req: Request, res: Response) {
 
 export async function deleteInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete invoices' });
       return;
@@ -165,7 +165,7 @@ export async function deleteInvoice(req: Request, res: Response) {
 
 export async function sendInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update invoices' });
       return;
@@ -250,7 +250,7 @@ export async function sendInvoice(req: Request, res: Response) {
 
 export async function emailInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to email invoices' });
       return;
@@ -312,7 +312,7 @@ export async function emailInvoice(req: Request, res: Response) {
 
 export async function markInvoicePaid(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update invoices' });
       return;
@@ -356,7 +356,7 @@ export async function markInvoicePaid(req: Request, res: Response) {
 
 export async function waiveInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update invoices' });
       return;
@@ -389,7 +389,7 @@ export async function waiveInvoice(req: Request, res: Response) {
 
 export async function duplicateInvoice(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create invoices' });
       return;
@@ -401,7 +401,7 @@ export async function duplicateInvoice(req: Request, res: Response) {
 
     // Ownership guard: non-admins can only duplicate their own invoices.
     // (duplicateInvoice internally calls getInvoice; we gate it up-front.)
-    const viewPerm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const viewPerm = req.invoicesPerm!;
     const isAdmin = viewPerm.role === 'admin';
     const ownedCheck = await invoiceService.getInvoice(userId, tenantId, id, isAdmin ? undefined : userId);
     if (!ownedCheck) {

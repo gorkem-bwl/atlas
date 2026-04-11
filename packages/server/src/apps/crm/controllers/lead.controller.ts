@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as crmService from '../services/lead.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 import { emitAppEvent, getTenantMemberUserIds } from '../../../services/event.service';
 
 // ─── Leads ──────────────────────────────────────────────────────────
@@ -12,7 +12,7 @@ export async function listLeads(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { status, source, search } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to leads' });
       return;
@@ -37,7 +37,7 @@ export async function getLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const lead = await crmService.getLead(userId, tenantId, id, perm.recordAccess);
     if (!lead) {
       res.status(404).json({ success: false, error: 'Lead not found' });
@@ -56,7 +56,7 @@ export async function createLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name, email, phone, companyName, source, notes } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create leads' });
       return;
@@ -97,7 +97,7 @@ export async function updateLead(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, email, phone, companyName, source, status, notes, tags, sortOrder, isArchived } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update leads' });
       return;
@@ -124,7 +124,7 @@ export async function deleteLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to delete leads' });
       return;
@@ -144,7 +144,7 @@ export async function enrichLead(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -167,7 +167,7 @@ export async function convertLead(req: Request, res: Response) {
     const id = req.params.id as string;
     const { dealTitle, dealStageId, dealValue } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -220,7 +220,7 @@ export async function seedSampleLeads(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (perm.role !== 'admin') {
       res.status(403).json({ success: false, error: 'Admin only' });
       return;
@@ -241,7 +241,7 @@ export async function listLeadForms(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -261,7 +261,7 @@ export async function createLeadForm(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { name } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -282,7 +282,7 @@ export async function updateLeadForm(req: Request, res: Response) {
     const id = req.params.id as string;
     const { name, fields, isActive } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -309,7 +309,7 @@ export async function deleteLeadForm(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;

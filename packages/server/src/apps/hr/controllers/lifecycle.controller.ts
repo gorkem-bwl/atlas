@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as hrService from '../services/lifecycle.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Lifecycle Events ─────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export async function createLifecycleEventHandler(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -49,7 +49,7 @@ export async function deleteLifecycleEvent(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete' });
       return;

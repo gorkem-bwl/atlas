@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as documentController from './controller';
 import { authMiddleware } from '../../middleware/auth';
-import { requireDocsPermission } from './middleware/permission';
+import { requireAppPermission } from '../../middleware/require-app-permission';
 
 const router = Router();
 router.use(authMiddleware);
-router.use(requireDocsPermission('view'));
+router.use(requireAppPermission('docs'));
 
 router.get('/', documentController.listDocuments);
 router.post('/', documentController.createDocument);

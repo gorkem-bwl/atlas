@@ -81,6 +81,7 @@ import * as appPermissions from '../src/services/app-permissions.service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    crmPerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},

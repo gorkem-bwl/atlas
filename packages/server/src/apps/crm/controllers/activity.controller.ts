@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as crmService from '../services/activity.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 import { emitAppEvent } from '../../../services/event.service';
 import { getDealAssigneeInfo } from '../services/deal.service';
 
@@ -13,7 +13,7 @@ export async function listActivities(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { dealId, contactId, companyId, includeArchived } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'activities', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to activities' });
       return;
@@ -40,7 +40,7 @@ export async function createActivity(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { type, body, dealId, contactId, companyId, scheduledAt } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'activities', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create activities' });
       return;
@@ -83,7 +83,7 @@ export async function updateActivity(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'activities', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update activities' });
       return;

@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 import * as drawingService from './service';
 import { logger } from '../../utils/logger';
-import { getAppPermission, canAccess, decideRecordDelete } from '../../services/app-permissions.service';
+import { canAccess } from '../../services/app-permissions.service';
+import { assertCanDelete } from '../../middleware/assert-can-delete';
 
 // POST /api/drawings/seed
 export async function seedSampleData(req: Request, res: Response) {
@@ -36,7 +37,7 @@ export async function listDrawings(req: Request, res: Response) {
 // POST /api/drawings
 export async function createDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
+    const perm = req.drawPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create drawings' });
       return;
@@ -81,7 +82,7 @@ export async function getDrawing(req: Request, res: Response) {
 // PATCH /api/drawings/:id
 export async function updateDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
+    const perm = req.drawPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update drawings' });
       return;
@@ -112,7 +113,7 @@ export async function updateDrawing(req: Request, res: Response) {
 // DELETE /api/drawings/:id (soft delete)
 export async function deleteDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
+    const perm = req.drawPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete drawings' });
       return;
@@ -126,15 +127,7 @@ export async function deleteDrawing(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Drawing not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete drawings' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Drawing not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     await drawingService.deleteDrawing(existing.userId, drawingId);
 
@@ -148,7 +141,7 @@ export async function deleteDrawing(req: Request, res: Response) {
 // PATCH /api/drawings/:id/restore
 export async function restoreDrawing(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'draw');
+    const perm = req.drawPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       res.status(403).json({ success: false, error: 'No permission to delete drawings' });
       return;
@@ -162,15 +155,7 @@ export async function restoreDrawing(req: Request, res: Response) {
       res.status(404).json({ success: false, error: 'Drawing not found' });
       return;
     }
-    const decision = decideRecordDelete(perm.role, existing.userId, userId);
-    if (decision === 'forbid') {
-      res.status(403).json({ success: false, error: 'No permission to delete drawings' });
-      return;
-    }
-    if (decision === 'not_own') {
-      res.status(404).json({ success: false, error: 'Drawing not found' });
-      return;
-    }
+    if (!assertCanDelete(res, perm.role, existing.userId, userId)) return;
 
     const drawing = await drawingService.restoreDrawing(existing.userId, drawingId);
 

@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as leaveService from '../leave.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import { findEmployeeIdByLinkedUser, getLinkedUserIdForEmployee, getManagerLinkedUserId } from '../services/employee.service';
 
 // ─── Leave Applications ───────────────────────────────────────────
@@ -21,7 +21,7 @@ export async function listLeaveApplications(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const { employeeId, status, startDate, endDate } = req.query;
 
     // For non-privileged roles (viewers who only have 'view' perm),
@@ -58,7 +58,7 @@ export async function createLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const { leaveTypeId, startDate, endDate, halfDay, halfDayDate, reason } = req.body;
     let { employeeId } = req.body;
 
@@ -107,7 +107,7 @@ export async function updateLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     // Ownership check for non-privileged roles.
     if (!canAccess(perm.role, 'update')) {
       const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
@@ -136,7 +136,7 @@ export async function submitLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     // Ownership check for non-privileged roles — a viewer may submit
     // their own draft leave application but not anyone else's.
     if (!canAccess(perm.role, 'update')) {
@@ -180,7 +180,7 @@ export async function approveLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -215,7 +215,7 @@ export async function rejectLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -250,7 +250,7 @@ export async function cancelLeaveApplication(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     // Ownership check for non-privileged roles.
     if (!canAccess(perm.role, 'update')) {
       const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);

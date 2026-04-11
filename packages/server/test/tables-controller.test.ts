@@ -17,7 +17,10 @@ vi.mock('../src/apps/tables/service', () => ({
 vi.mock('../src/services/app-permissions.service', () => ({
   getAppPermission: vi.fn().mockResolvedValue({ role: 'owner' }),
   canAccess: vi.fn().mockReturnValue(true),
-  decideRecordDelete: vi.fn().mockReturnValue('allow'),
+}));
+
+vi.mock('../src/middleware/assert-can-delete', () => ({
+  assertCanDelete: vi.fn().mockReturnValue(true),
 }));
 
 // Mock logger to keep test output clean
@@ -36,6 +39,7 @@ import * as tableService from '../src/apps/tables/service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    tablesPerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},

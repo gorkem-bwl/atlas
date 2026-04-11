@@ -26,7 +26,10 @@ vi.mock('../src/services/app-permissions.service', () => ({
   canAccess: vi.fn().mockReturnValue(true),
   canAccessEntity: vi.fn().mockReturnValue(true),
   getRecordFilter: vi.fn().mockReturnValue(undefined),
-  decideRecordDelete: vi.fn().mockReturnValue('allow'),
+}));
+
+vi.mock('../src/middleware/assert-can-delete', () => ({
+  assertCanDelete: vi.fn().mockReturnValue(true),
 }));
 
 import * as controller from '../src/apps/drive/controller';
@@ -35,6 +38,7 @@ import * as driveService from '../src/apps/drive/service';
 function makeReq(overrides: Record<string, any> = {}): Request {
   return {
     auth: { userId: 'u1', accountId: 'a1', email: 'test@test.com', tenantId: 't1' },
+    drivePerm: { role: 'admin', recordAccess: 'all', entityPermissions: null },
     body: {},
     params: {},
     query: {},

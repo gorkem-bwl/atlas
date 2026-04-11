@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as proposalService from '../services/proposal.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccessEntity } from '../../../services/app-permissions.service';
+import { canAccessEntity } from '../../../services/app-permissions.service';
 
 // ─── Auth controllers ──────────────────────────────────────────────
 
@@ -11,7 +11,7 @@ export async function listProposals(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { dealId, companyId, status, search } = req.query;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -39,7 +39,7 @@ export async function getProposal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -64,7 +64,7 @@ export async function createProposal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const { title, dealId, contactId, companyId, content, lineItems, taxPercent, discountPercent, currency, validUntil, notes } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -95,7 +95,7 @@ export async function updateProposal(req: Request, res: Response) {
     const id = req.params.id as string;
     const { title, dealId, contactId, companyId, content, lineItems, taxPercent, discountPercent, currency, validUntil, notes } = req.body;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -124,7 +124,7 @@ export async function deleteProposal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -144,7 +144,7 @@ export async function sendProposal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
@@ -169,7 +169,7 @@ export async function duplicateProposal(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import * as driveController from './controller';
 import { authMiddleware } from '../../middleware/auth';
-import { requireDrivePermission } from './middleware/permission';
+import { requireAppPermission } from '../../middleware/require-app-permission';
 import googleDriveRoutes from './routes-google';
 
 const uploadsDir = path.join(__dirname, '../../../uploads');
@@ -49,7 +49,7 @@ function handleMulterError(err: any, _req: Request, res: Response, next: NextFun
 
 const router = Router();
 router.use(authMiddleware);
-router.use(requireDrivePermission('view'));
+router.use(requireAppPermission('drive'));
 router.use('/google', googleDriveRoutes);
 
 router.get('/widget', driveController.getWidgetData);

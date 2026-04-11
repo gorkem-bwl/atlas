@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as projectService from '../service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Widget ─────────────────────────────────────────────────────────
 
@@ -43,7 +43,7 @@ export async function getSettings(req: Request, res: Response) {
 
 export async function updateSettings(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
+    const perm = req.projectsPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update project settings' });
       return;

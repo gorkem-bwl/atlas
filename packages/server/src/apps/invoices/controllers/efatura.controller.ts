@@ -2,13 +2,13 @@ import type { Request, Response } from 'express';
 import * as efaturaService from '../services/efatura.service';
 import * as invoiceService from '../services/invoice.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── e-Fatura ──────────────────────────────────────────────────────
 
 export async function generateEFatura(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update invoices' });
       return;
@@ -46,7 +46,7 @@ export async function generateEFatura(req: Request, res: Response) {
 
 export async function getEFaturaXml(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
@@ -73,7 +73,7 @@ export async function getEFaturaXml(req: Request, res: Response) {
 
 export async function getEFaturaPreview(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
@@ -100,7 +100,7 @@ export async function getEFaturaPreview(req: Request, res: Response) {
 
 export async function getEFaturaPdf(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'invoices');
+    const perm = req.invoicesPerm!;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 

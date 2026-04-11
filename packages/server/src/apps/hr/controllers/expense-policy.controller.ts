@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as expensePolicyService from '../services/expense-policy.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 
 // ─── Expense Policies ────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ export async function createExpensePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -63,7 +63,7 @@ export async function updateExpensePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -88,7 +88,7 @@ export async function deleteExpensePolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete HR records' });
       return;
@@ -112,7 +112,7 @@ export async function assignPolicy(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'create')) {
       res.status(403).json({ success: false, error: 'No permission to create HR records' });
       return;
@@ -138,7 +138,7 @@ export async function removeAssignment(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete')) {
       res.status(403).json({ success: false, error: 'No permission to delete HR records' });
       return;

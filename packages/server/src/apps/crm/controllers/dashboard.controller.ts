@@ -10,7 +10,6 @@ import { db } from '../../../config/database';
 import { accounts } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
-import { getAppPermission } from '../../../services/app-permissions.service';
 
 // ─── Widget ─────────────────────────────────────────────────────────
 
@@ -33,7 +32,7 @@ export async function getDashboard(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const dashboard = await crmService.getDashboard(userId, tenantId, perm.recordAccess);
     res.json({ success: true, data: dashboard });
   } catch (error) {
@@ -47,7 +46,7 @@ export async function getDashboardCharts(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'crm');
+    const perm = req.crmPerm!;
     const charts = await crmService.getDashboardCharts(userId, tenantId, perm.recordAccess);
     res.json({ success: true, data: charts });
   } catch (error) {

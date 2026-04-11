@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import * as expenseService from '../services/expense.service';
 import { logger } from '../../../utils/logger';
-import { getAppPermission, canAccess } from '../../../services/app-permissions.service';
+import { canAccess } from '../../../services/app-permissions.service';
 import { findEmployeeIdByLinkedUser } from '../services/employee.service';
 
 // ─── List Expenses (admin) ──────────────────────────────────────
@@ -103,7 +103,7 @@ export async function updateExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     // If the caller doesn't have blanket update permission, verify the
     // expense belongs to them via their linked employee record.
     if (!canAccess(perm.role, 'update')) {
@@ -140,7 +140,7 @@ export async function deleteExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
       const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
       if (!callerEmployeeId) {
@@ -178,7 +178,7 @@ export async function submitExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     const employeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
     if (!employeeId) {
       res.status(400).json({ success: false, error: 'No employee record found for current user' });
@@ -215,7 +215,7 @@ export async function recallExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       const callerEmployeeId = await findEmployeeIdByLinkedUser(userId, tenantId);
       if (!callerEmployeeId) {
@@ -248,7 +248,7 @@ export async function approveExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -279,7 +279,7 @@ export async function refuseExpense(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
@@ -310,7 +310,7 @@ export async function bulkPayExpenses(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
 
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'hr');
+    const perm = req.hrPerm!;
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'No permission to update HR records' });
       return;
