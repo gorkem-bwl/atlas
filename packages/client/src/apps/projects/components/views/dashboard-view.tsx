@@ -12,6 +12,7 @@ import {
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
+import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
 
 // ─── Dashboard Revenue Chart ─────────────────────────────────────
 
@@ -218,6 +219,8 @@ export function DashboardView() {
   const { data } = useDashboard();
   const { data: projectsData } = useProjects();
   const projects = projectsData?.projects ?? [];
+  const { data: projPerm } = useMyAppPermission('projects');
+  const canCreate = !projPerm || projPerm.role === 'admin' || projPerm.role === 'editor';
 
   return (
     <div style={{ overflow: 'auto', flex: 1, padding: 'var(--spacing-lg)' }}>
@@ -271,9 +274,11 @@ export function DashboardView() {
       </div>
 
       {/* Quick time log */}
-      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <QuickTimeLog projects={projects} />
-      </div>
+      {canCreate && (
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <QuickTimeLog projects={projects} />
+        </div>
+      )}
 
       {/* Recent activity */}
       <DashboardRecentActivity

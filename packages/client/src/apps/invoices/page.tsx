@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, X } from 'lucide-react';
 import { useInvoices } from './hooks';
+import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { InvoicesSidebar } from './components/invoices-sidebar';
 import { InvoicesListView } from './components/invoices-list-view';
 import { InvoiceDetailPanel } from './components/invoice-detail-panel';
@@ -37,6 +38,10 @@ export function InvoicesPage() {
   // Data — fetch all invoices (filtering is done client-side in the list view)
   const { data: invoicesData } = useInvoices();
   const invoices = invoicesData?.invoices ?? [];
+
+  // Permissions
+  const { data: invPerm } = useMyAppPermission('invoices');
+  const canCreate = !invPerm || invPerm.role === 'admin' || invPerm.role === 'editor';
 
   // Selected invoice
   const selectedInvoice = selectedInvoiceId ? invoices.find((i) => i.id === selectedInvoiceId) : null;
@@ -96,9 +101,11 @@ export function InvoicesPage() {
                   if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
                 }}
               />
-              <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => { setEditingInvoice(null); setShowBuilder(true); }}>
-                {t('invoices.builder.createInvoice')}
-              </Button>
+              {canCreate && (
+                <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => { setEditingInvoice(null); setShowBuilder(true); }}>
+                  {t('invoices.builder.createInvoice')}
+                </Button>
+              )}
             </>
           ) : undefined
         }
@@ -137,7 +144,7 @@ export function InvoicesPage() {
                   searchQuery={searchQuery}
                   selectedId={selectedInvoiceId}
                   onSelect={(id) => setSelectedInvoiceId(id)}
-                  onAdd={() => { setEditingInvoice(null); setShowBuilder(true); }}
+                  onAdd={canCreate ? () => { setEditingInvoice(null); setShowBuilder(true); } : undefined}
                 />
               </div>
 

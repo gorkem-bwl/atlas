@@ -6,6 +6,7 @@ import {
   Plus, Search, X,
 } from 'lucide-react';
 import { useProjects } from './hooks';
+import { useMyAppPermission } from '../../hooks/use-app-permissions';
 import { TimeTracker } from './components/time-tracker';
 import { ReportsView } from './components/reports-view';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
@@ -47,6 +48,10 @@ export function ProjectsPage() {
   // Data
   const { data: projectsData } = useProjects();
   const projects = projectsData?.projects ?? [];
+
+  // Permissions
+  const { data: projPerm } = useMyAppPermission('projects');
+  const canCreate = !projPerm || projPerm.role === 'admin' || projPerm.role === 'editor';
 
   // Selected entities
   const selectedProject = selectedProjectId ? projects.find((p) => p.id === selectedProjectId) : null;
@@ -172,13 +177,13 @@ export function ProjectsPage() {
                   if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50);
                 }}
               />
-              {addButtonLabel && (
+              {addButtonLabel && canCreate && (
                 <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
                   {addButtonLabel}
                 </Button>
               )}
             </>
-          ) : activeView === 'dashboard' ? (
+          ) : activeView === 'dashboard' && canCreate ? (
             <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => { setActiveView('projects'); setShowCreateProject(true); }}>
               {t('projects.projects.newProject')}
             </Button>
@@ -219,7 +224,7 @@ export function ProjectsPage() {
                 searchQuery={searchQuery}
                 selectedId={selectedProjectId}
                 onSelect={(id) => { setSelectedProjectId(id); }}
-                onAdd={() => setShowCreateProject(true)}
+                onAdd={canCreate ? () => setShowCreateProject(true) : undefined}
               />
             )}
 

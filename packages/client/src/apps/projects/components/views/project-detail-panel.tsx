@@ -17,9 +17,15 @@ import { SmartButtonBar } from '../../../../components/shared/SmartButtonBar';
 import { CustomFieldsRenderer } from '../../../../components/shared/custom-fields-renderer';
 import { ConfirmDialog } from '../../../../components/ui/confirm-dialog';
 import { useToastStore } from '../../../../stores/toast-store';
+import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
+import { useAuthStore } from '../../../../stores/auth-store';
 
 export function ProjectDetailPanel({ project, onClose }: { project: Project; onClose: () => void }) {
   const { t } = useTranslation();
+  const { data: projPerm } = useMyAppPermission('projects');
+  const currentUserId = useAuthStore((s) => s.account?.userId ?? null);
+  const isAdmin = !projPerm || projPerm.role === 'admin';
+  const canEdit = !projPerm || projPerm.role === 'admin' || projPerm.role === 'editor';
   const deleteProject = useDeleteProject();
   const updateProject = useUpdateProject();
   const updateTimeEntry = useUpdateTimeEntry();
@@ -60,7 +66,9 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
           {t('projects.projects.projectDetail')}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconButton icon={<Trash2 size={14} />} label={t('projects.actions.delete')} size={28} destructive onClick={() => { deleteProject.mutate(project.id); onClose(); }} />
+          {isAdmin && (
+            <IconButton icon={<Trash2 size={14} />} label={t('projects.actions.delete')} size={28} destructive onClick={() => { deleteProject.mutate(project.id); onClose(); }} />
+          )}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>
@@ -86,20 +94,22 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
           </div>
 
           {/* Status selector */}
-          <div className="projects-detail-field">
-            <span className="projects-detail-field-label">{t('projects.projects.status')}</span>
-            <Select
-              value={project.status}
-              onChange={(v) => updateProject.mutate({ id: project.id, status: v })}
-              options={[
-                { value: 'active', label: t('projects.status.active') },
-                { value: 'paused', label: t('projects.status.paused') },
-                { value: 'completed', label: t('projects.status.completed') },
-                { value: 'archived', label: t('projects.status.archived') },
-              ]}
-              size="sm"
-            />
-          </div>
+          {canEdit && (
+            <div className="projects-detail-field">
+              <span className="projects-detail-field-label">{t('projects.projects.status')}</span>
+              <Select
+                value={project.status}
+                onChange={(v) => updateProject.mutate({ id: project.id, status: v })}
+                options={[
+                  { value: 'active', label: t('projects.status.active') },
+                  { value: 'paused', label: t('projects.status.paused') },
+                  { value: 'completed', label: t('projects.status.completed') },
+                  { value: 'archived', label: t('projects.status.archived') },
+                ]}
+                size="sm"
+              />
+            </div>
+          )}
 
           {/* Budget section - hours */}
           <div className="projects-detail-field">
@@ -194,8 +204,12 @@ export function ProjectDetailPanel({ project, onClose }: { project: Project; onC
                           {formatNumber(entry.hours, 1)}h
                         </span>
                         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                          <IconButton icon={<Pencil size={11} />} label={t('projects.timeTracking.editEntry')} size={20} onClick={() => handleStartEdit(entry)} />
-                          <IconButton icon={<Trash2 size={11} />} label={t('projects.timeTracking.deleteEntry')} size={20} destructive onClick={() => setConfirmDeleteEntryId(entry.id)} />
+                          {(isAdmin || (canEdit && entry.userId === currentUserId)) && (
+                            <>
+                              <IconButton icon={<Pencil size={11} />} label={t('projects.timeTracking.editEntry')} size={20} onClick={() => handleStartEdit(entry)} />
+                              <IconButton icon={<Trash2 size={11} />} label={t('projects.timeTracking.deleteEntry')} size={20} destructive onClick={() => setConfirmDeleteEntryId(entry.id)} />
+                            </>
+                          )}
                         </div>
                       </>
                     )}

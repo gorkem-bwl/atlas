@@ -23,6 +23,7 @@ export function DepartmentsView({
   const { t } = useTranslation();
   const { data: hrPerm } = useMyAppPermission('hr');
   const canDelete = !hrPerm || hrPerm.role === 'admin';
+  const canEdit = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
 
   const employeesByDepartment = useMemo(() => {
     const map = new Map<string, HrEmployee[]>();
@@ -106,7 +107,7 @@ export function DepartmentsView({
                 <div style={{ display: 'flex', gap: 2, flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <IconButton icon={<Edit3 size={14} />} label={t('hr.actions.editDepartment')} size={28} onClick={() => onEdit(dept)} />
+                  {canEdit && <IconButton icon={<Edit3 size={14} />} label={t('hr.actions.editDepartment')} size={28} onClick={() => onEdit(dept)} />}
                   {canDelete && <IconButton icon={<Trash2 size={14} />} label={t('hr.actions.deleteDepartment')} size={28} destructive onClick={() => onDelete(dept.id)} />}
                 </div>
               </div>

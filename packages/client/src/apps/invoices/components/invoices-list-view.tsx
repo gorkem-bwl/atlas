@@ -82,7 +82,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
   searchQuery: string;
   onSelect: (id: string) => void;
   selectedId: string | null;
-  onAdd: () => void;
+  onAdd?: () => void;
 }) {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -112,8 +112,8 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
           { icon: <DollarSign size={14} />, title: t('invoices.empty.trackTitle'), description: t('invoices.empty.trackDesc') },
           { icon: <Building2 size={14} />, title: t('invoices.empty.companyTitle'), description: t('invoices.empty.companyDesc') },
         ]}
-        actionLabel={t('invoices.builder.createInvoice')}
-        actionIcon={<Plus size={14} />}
+        actionLabel={onAdd ? t('invoices.builder.createInvoice') : undefined}
+        actionIcon={onAdd ? <Plus size={14} /> : undefined}
         onAction={onAdd}
       />
     );
@@ -273,7 +273,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
           activeRowId={selectedId}
           onRowClick={(invoice) => onSelect(invoice.id)}
           onAddRow={onAdd}
-          addRowLabel={t('invoices.builder.createInvoice')}
+          addRowLabel={onAdd ? t('invoices.builder.createInvoice') : undefined}
           emptyTitle={t('invoices.empty.noMatchingInvoices')}
           emptyDescription={t('invoices.empty.tryDifferentSearch')}
           emptyIcon={<FileText size={48} />}

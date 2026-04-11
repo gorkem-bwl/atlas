@@ -15,7 +15,7 @@ export function ProjectsListView({ projects, searchQuery, onSelect, selectedId, 
   searchQuery: string;
   onSelect: (id: string) => void;
   selectedId: string | null;
-  onAdd: () => void;
+  onAdd?: () => void;
 }) {
   const { t } = useTranslation();
 
@@ -36,8 +36,8 @@ export function ProjectsListView({ projects, searchQuery, onSelect, selectedId, 
           { icon: <Clock size={14} />, title: t('projects.empty.projectsH2Title'), description: t('projects.empty.projectsH2Desc') },
           { icon: <BarChart3 size={14} />, title: t('projects.empty.projectsH3Title'), description: t('projects.empty.projectsH3Desc') },
         ]}
-        actionLabel={t('projects.projects.createProject')}
-        actionIcon={<Plus size={14} />}
+        actionLabel={onAdd ? t('projects.projects.createProject') : undefined}
+        actionIcon={onAdd ? <Plus size={14} /> : undefined}
         onAction={onAdd}
       />
     );
@@ -174,7 +174,7 @@ export function ProjectsListView({ projects, searchQuery, onSelect, selectedId, 
       activeRowId={selectedId}
       onRowClick={(project) => onSelect(project.id)}
       onAddRow={onAdd}
-      addRowLabel={t('projects.actions.addNew')}
+      addRowLabel={onAdd ? t('projects.actions.addNew') : undefined}
       emptyTitle={t('projects.empty.noMatchingProjects')}
       emptyDescription={t('projects.empty.tryDifferentSearch')}
       emptyIcon={<FolderKanban size={48} />}

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, Building2, CalendarDays, Plus, Mail, Trash2, User, Briefcase, Tag } from 'lucide-react';
 import { useDeleteEmployee, type HrEmployee, type HrDepartment } from '../../hooks';
+import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
 import { useHrSettingsStore } from '../../settings-store';
 import { Avatar } from '../../../../components/ui/avatar';
 import { StatusDot } from '../../../../components/ui/status-dot';
@@ -27,6 +28,9 @@ export function EmployeesListView({
   onAdd: () => void;
 }) {
   const { t } = useTranslation();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const isAdmin = !hrPerm || hrPerm.role === 'admin';
+  const canCreate = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
   const showDept = useHrSettingsStore((s) => s.showDepartmentInList);
   const deleteEmployee = useDeleteEmployee();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -127,9 +131,9 @@ export function EmployeesListView({
           { icon: <Building2 size={14} />, title: t('hr.empty.h2Title'), description: t('hr.empty.h2Desc') },
           { icon: <CalendarDays size={14} />, title: t('hr.empty.h3Title'), description: t('hr.empty.h3Desc') },
         ]}
-        actionLabel={t('hr.actions.addEmployee')}
-        actionIcon={<Plus size={14} />}
-        onAction={onAdd}
+        actionLabel={canCreate ? t('hr.actions.addEmployee') : undefined}
+        actionIcon={canCreate ? <Plus size={14} /> : undefined}
+        onAction={canCreate ? onAdd : undefined}
       />
     );
   }
@@ -150,7 +154,7 @@ export function EmployeesListView({
         columnSelector
         resizableColumns
         storageKey="hr-employees"
-        bulkActions={[
+        bulkActions={isAdmin ? [
           {
             key: 'delete',
             label: t('hr.actions.deleteEmployee'),
@@ -158,7 +162,7 @@ export function EmployeesListView({
             variant: 'danger',
             onAction: () => setShowDeleteConfirm(true),
           },
-        ]}
+        ] : []}
         emptyTitle={t('hr.employees.noEmployees')}
       />
 

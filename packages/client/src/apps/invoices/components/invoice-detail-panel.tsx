@@ -24,6 +24,8 @@ import { StatusTimeline } from '../../../components/shared/status-timeline';
 import { TotalsBlock } from '../../../components/shared/totals-block';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { useToastStore } from '../../../stores/toast-store';
+import { useMyAppPermission } from '../../../hooks/use-app-permissions';
+import { useAuthStore } from '../../../stores/auth-store';
 
 function getEFaturaStatusVariant(status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' {
   switch (status) {
@@ -39,6 +41,11 @@ function getEFaturaStatusVariant(status: string): 'default' | 'primary' | 'succe
 export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { invoice: Invoice; onClose: () => void; onEdit: () => void; onPreview?: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { data: invPerm } = useMyAppPermission('invoices');
+  const currentUserId = useAuthStore((s) => s.account?.userId ?? null);
+  const isAdmin = !invPerm || invPerm.role === 'admin';
+  const canEdit = !invPerm || invPerm.role === 'admin' || invPerm.role === 'editor';
+  const canDelete = isAdmin || (canEdit && invoice.userId === currentUserId);
   const deleteInvoice = useDeleteInvoice();
   const markPaid = useMarkInvoicePaid();
   const waive = useWaiveInvoice();
@@ -106,7 +113,9 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
           {t('invoices.detail.invoiceDetail')}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconButton icon={<Trash2 size={14} />} label={t('invoices.detail.delete')} size={28} destructive onClick={() => setConfirmDeleteOpen(true)} />
+          {canDelete && (
+            <IconButton icon={<Trash2 size={14} />} label={t('invoices.detail.delete')} size={28} destructive onClick={() => setConfirmDeleteOpen(true)} />
+          )}
           <IconButton icon={<X size={14} />} label={t('common.close')} size={28} onClick={onClose} />
         </div>
       </div>
@@ -132,7 +141,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
             {invoice.status === 'draft' && (
               <Badge variant="default">{t('invoices.status.draft')}</Badge>
             )}
-            {(invoice.status === 'sent' || invoice.status === 'viewed') && (
+            {(invoice.status === 'sent' || invoice.status === 'viewed') && canEdit && (
               <Button variant="primary" size="sm" icon={<DollarSign size={13} />} onClick={() => markPaid.mutate(invoice.id)}>
                 {t('invoices.detail.markPaid')}
               </Button>
@@ -140,9 +149,11 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
             {invoice.status === 'overdue' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                 <Badge variant="error">{t('invoices.status.overdue')}</Badge>
-                <Button variant="primary" size="sm" icon={<DollarSign size={13} />} onClick={() => markPaid.mutate(invoice.id)}>
-                  {t('invoices.detail.markPaid')}
-                </Button>
+                {canEdit && (
+                  <Button variant="primary" size="sm" icon={<DollarSign size={13} />} onClick={() => markPaid.mutate(invoice.id)}>
+                    {t('invoices.detail.markPaid')}
+                  </Button>
+                )}
               </div>
             )}
             {invoice.status === 'paid' && (
@@ -228,7 +239,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
             <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
               {t('invoices.detail.lineItems')}
             </span>
-            {invoice.status === 'draft' && invoice.companyId && (
+            {invoice.status === 'draft' && invoice.companyId && canEdit && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -296,7 +307,7 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
         )}
 
         {/* Share section */}
-        {(invoice.status === 'draft' || invoice.status === 'sent') && company?.portalToken && (
+        {(invoice.status === 'draft' || invoice.status === 'sent') && company?.portalToken && canEdit && (
           <div>
             <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)' }}>
               {t('invoices.share')}
@@ -329,19 +340,19 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-          {invoice.status === 'draft' && (
+          {invoice.status === 'draft' && canEdit && (
             <>
               <Button variant="secondary" size="sm" onClick={onEdit}>{t('common.edit')}</Button>
               <Button variant="primary" size="sm" icon={<Mail size={13} />} onClick={() => setSendModalOpen(true)}>{t('invoices.send.sendInvoice')}</Button>
             </>
           )}
-          {(invoice.status === 'sent' || invoice.status === 'viewed' || invoice.status === 'overdue') && (
+          {(invoice.status === 'sent' || invoice.status === 'viewed' || invoice.status === 'overdue') && canEdit && (
             <>
               <Button variant="primary" size="sm" onClick={() => markPaid.mutate(invoice.id)}>{t('invoices.detail.markPaid')}</Button>
               <Button variant="ghost" size="sm" onClick={() => waive.mutate(invoice.id)}>{t('invoices.detail.waive')}</Button>
             </>
           )}
-          {invoice.status !== 'draft' && (
+          {invoice.status !== 'draft' && canEdit && (
             <Button
               variant="secondary"
               size="sm"
@@ -351,7 +362,9 @@ export function InvoiceDetailPanel({ invoice, onClose, onEdit, onPreview }: { in
               {t('invoices.payments.recordPayment')}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => duplicate.mutate(invoice.id)}>{t('invoices.detail.duplicate')}</Button>
+          {canEdit && (
+            <Button variant="ghost" size="sm" onClick={() => duplicate.mutate(invoice.id)}>{t('invoices.detail.duplicate')}</Button>
+          )}
           {onPreview && (
             <Button variant="secondary" size="sm" icon={<Eye size={13} />} onClick={onPreview}>{t('invoices.preview')}</Button>
           )}

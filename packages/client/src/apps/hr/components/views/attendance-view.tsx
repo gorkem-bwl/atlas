@@ -7,6 +7,7 @@ import {
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
+import { useMyAppPermission } from '../../../../hooks/use-app-permissions';
 import { Avatar } from '../../../../components/ui/avatar';
 import { StatusDot } from '../../../../components/ui/status-dot';
 
@@ -18,6 +19,8 @@ export function AttendanceView({ employees }: { employees: HrEmployee[] }) {
   const { data: todaySummary } = useAttendanceToday();
   const markAttendance = useMarkAttendance();
   const bulkMark = useBulkMarkAttendance();
+  const { data: hrPerm } = useMyAppPermission('hr');
+  const canEdit = !hrPerm || hrPerm.role === 'admin' || hrPerm.role === 'editor';
 
   const activeEmployees = employees.filter(e => e.status === 'active');
 
@@ -68,7 +71,9 @@ export function AttendanceView({ employees }: { employees: HrEmployee[] }) {
       {/* Date picker + actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
         <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} size="sm" style={{ width: 180 }} />
-        <Button variant="secondary" size="sm" onClick={handleMarkAll}>{t('hr.attendance.markAllPresent')}</Button>
+        {canEdit && (
+          <Button variant="secondary" size="sm" onClick={handleMarkAll}>{t('hr.attendance.markAllPresent')}</Button>
+        )}
       </div>
 
       {/* Employee list */}
@@ -93,6 +98,7 @@ export function AttendanceView({ employees }: { employees: HrEmployee[] }) {
                   onChange={(v) => markAttendance.mutate({ employeeId: emp.id, date: selectedDate, status: v })}
                   options={[{ value: '', label: '-' }, ...statusOptions]}
                   size="sm"
+                  disabled={!canEdit}
                 />
               </div>
               {record && (
