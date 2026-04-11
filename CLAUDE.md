@@ -71,11 +71,11 @@ service.ts           — Business logic + database queries
 | Tables | tables | #2d8a6e | TablesIcon (brand) | 50 | /tables, /tables/:id |
 | Tasks | tasks | #6366f1 | CheckSquare | 60 | /tasks |
 | Write | docs | #c4856c | FileText | 70 | /docs, /docs/:id |
-| Draw | draw | #e06c9f | Pencil | 80 | /draw, /draw/:id |
+| Draw | draw | #e06c9f | DrawIcon (brand, full-bleed) | 80 | /draw, /draw/:id |
 | Marketplace | marketplace | #8b5cf6 | Store | 85 | /marketplace |
 | System | system | #6b7280 | Monitor | 90 | /system |
 
-> **Note:** CRM, HRM, Projects, Calendar, Drive, and Tables use custom multicolor brand SVGs (defined in `packages/client/src/components/icons/app-icons.tsx`) instead of lucide icons in the dockbar. The dockbar renders them on a small white/light card via `BRAND_ICON_BACKGROUNDS` in `sidebar.tsx` and `home.tsx`. All other apps still use lucide. Calendar is **client-only** — there is no `packages/server/src/apps/calendar/`.
+> **Note:** CRM, HRM, Projects, Calendar, Drive, Tables, and Draw use custom multicolor brand SVGs (defined in `packages/client/src/components/icons/app-icons.tsx`) instead of lucide icons in the dockbar. Most render on a small white/light card via `BRAND_ICON_BACKGROUNDS` in `sidebar.tsx` and `home.tsx`. Draw is **full-bleed** — its SVG artwork is itself a backdrop and fills the dock card edge-to-edge (controlled by `FULL_BLEED_BRAND_ICONS` in `app-icons.tsx`). All other apps still use lucide. Calendar is **client-only** — there is no `packages/server/src/apps/calendar/`.
 
 ---
 

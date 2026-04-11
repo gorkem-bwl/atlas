@@ -13,6 +13,7 @@ import { useSettingsStore } from '../../stores/settings-store';
 import { useAuthStore } from '../../stores/auth-store';
 import { AccountSwitcher } from './account-switcher';
 import { appRegistry } from '../../apps';
+import { FULL_BLEED_BRAND_ICONS } from '../../components/icons/app-icons';
 import type { AppIconComponent } from '../../config/app-manifest.client';
 import { ROUTES } from '../../config/routes';
 import { useMyAccessibleApps } from '../../hooks/use-app-permissions';
@@ -45,7 +46,8 @@ const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
   crm: '#ffffff',
   projects: '#ffffff',
   drive: '#ffffff',
-  tables: '#ffffff',
+  // Tables artwork is meant to sit on a dark slate backdrop.
+  tables: '#3C444E',
   hr: '#fff1ea',
   // Calendar artwork is dark-grey + white, so it needs a coloured backdrop.
   calendar: 'linear-gradient(145deg, #5dadff 0%, #2563eb 50%, #1e3a8a 100%)',
@@ -77,6 +79,7 @@ function NavButton({
 
   const brandBg = BRAND_ICON_BACKGROUNDS[id];
   const isBrandIcon = brandBg !== undefined;
+  const isFullBleed = FULL_BLEED_BRAND_ICONS.has(id);
 
   return (
     <button
@@ -105,7 +108,26 @@ function NavButton({
         textAlign: 'left',
       }}
     >
-      {isBrandIcon ? (
+      {isFullBleed ? (
+        <span
+          className="sidebar-nav-brand-icon"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 24,
+            height: 24,
+            flexShrink: 0,
+            borderRadius: 'var(--radius-sm)',
+            boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.04)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Full-bleed: the SVG fills the 24×24 card edge-to-edge with no
+              padding. The artwork is itself a backdrop, not a glyph. */}
+          <Icon style={{ width: '100%', height: '100%', display: 'block' }} />
+        </span>
+      ) : isBrandIcon ? (
         <span
           className="sidebar-nav-brand-icon"
           style={{
