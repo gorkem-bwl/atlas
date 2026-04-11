@@ -22,6 +22,8 @@ export async function listProposals(req: Request, res: Response) {
       companyId: companyId as string | undefined,
       status: status as string | undefined,
       search: search as string | undefined,
+      recordAccess: perm.recordAccess,
+      userId,
     });
 
     res.json({ success: true, data: { proposals } });
@@ -43,7 +45,7 @@ export async function getProposal(req: Request, res: Response) {
       return;
     }
 
-    const proposal = await proposalService.getProposal(tenantId, id);
+    const proposal = await proposalService.getProposal(tenantId, id, perm.recordAccess, userId);
     if (!proposal) {
       res.status(404).json({ success: false, error: 'Proposal not found' });
       return;
@@ -102,7 +104,7 @@ export async function updateProposal(req: Request, res: Response) {
     const proposal = await proposalService.updateProposal(tenantId, id, {
       title, dealId, contactId, companyId, content, lineItems,
       taxPercent, discountPercent, currency, validUntil, notes,
-    });
+    }, perm.recordAccess, userId);
 
     if (!proposal) {
       res.status(404).json({ success: false, error: 'Proposal not found' });
@@ -128,7 +130,7 @@ export async function deleteProposal(req: Request, res: Response) {
       return;
     }
 
-    await proposalService.deleteProposal(tenantId, id);
+    await proposalService.deleteProposal(tenantId, id, perm.recordAccess, userId);
     res.json({ success: true, data: null });
   } catch (error) {
     logger.error({ error }, 'Failed to delete proposal');
@@ -148,7 +150,7 @@ export async function sendProposal(req: Request, res: Response) {
       return;
     }
 
-    const proposal = await proposalService.sendProposal(tenantId, id);
+    const proposal = await proposalService.sendProposal(tenantId, id, perm.recordAccess, userId);
     if (!proposal) {
       res.status(404).json({ success: false, error: 'Proposal not found' });
       return;
@@ -173,7 +175,7 @@ export async function duplicateProposal(req: Request, res: Response) {
       return;
     }
 
-    const proposal = await proposalService.duplicateProposal(userId, tenantId, id);
+    const proposal = await proposalService.duplicateProposal(userId, tenantId, id, perm.recordAccess);
     if (!proposal) {
       res.status(404).json({ success: false, error: 'Proposal not found' });
       return;

@@ -8,11 +8,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 export async function listTimeEntries(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { projectId, startDate, endDate, billed, billable, entryUserId, includeArchived } = req.query;
@@ -39,16 +34,13 @@ export async function listTimeEntries(req: Request, res: Response) {
 export async function getTimeEntry(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    const entry = await projectService.getTimeEntry(userId, tenantId, id);
+    // Non-admins can only read their own time entries.
+    const isAdmin = perm.role === 'admin';
+    const entry = await projectService.getTimeEntry(userId, tenantId, id, isAdmin ? undefined : userId);
     if (!entry) {
       res.status(404).json({ success: false, error: 'Time entry not found' });
       return;
@@ -78,9 +70,20 @@ export async function createTimeEntry(req: Request, res: Response) {
       return;
     }
 
-    const entry = await projectService.createTimeEntry(userId, tenantId, {
-      projectId, durationMinutes: durationMinutes || 0, workDate, startTime, endTime, billable, notes, taskDescription,
-    });
+    const isAdmin = perm.role === 'admin';
+    let entry;
+    try {
+      entry = await projectService.createTimeEntry(userId, tenantId, {
+        projectId, durationMinutes: durationMinutes || 0, workDate, startTime, endTime, billable, notes, taskDescription,
+      }, { isAdmin });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create time entry';
+      if (msg === 'No access to this project' || msg === 'Project not found') {
+        res.status(403).json({ success: false, error: msg });
+        return;
+      }
+      throw err;
+    }
 
     res.json({ success: true, data: entry });
   } catch (error) {
@@ -102,9 +105,12 @@ export async function updateTimeEntry(req: Request, res: Response) {
     const id = req.params.id as string;
     const { projectId, durationMinutes, workDate, startTime, endTime, billable, billed, locked, notes, taskDescription, sortOrder, isArchived } = req.body;
 
+    // Non-admins can only update their own time entries.
+    const isAdmin = perm.role === 'admin';
+    const scopedUserId = isAdmin ? undefined : userId;
     const entry = await projectService.updateTimeEntry(userId, tenantId, id, {
       projectId, durationMinutes, workDate, startTime, endTime, billable, billed, locked, notes, taskDescription, sortOrder, isArchived,
-    });
+    }, scopedUserId);
 
     if (!entry) {
       res.status(404).json({ success: false, error: 'Time entry not found' });
@@ -134,7 +140,9 @@ export async function deleteTimeEntry(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
 
-    await projectService.deleteTimeEntry(userId, tenantId, id);
+    // Non-admins can only delete their own time entries.
+    const isAdmin = perm.role === 'admin';
+    await projectService.deleteTimeEntry(userId, tenantId, id, isAdmin ? undefined : userId);
     res.json({ success: true, data: null });
   } catch (error) {
     logger.error({ error }, 'Failed to delete time entry');
@@ -159,7 +167,9 @@ export async function bulkLockEntries(req: Request, res: Response) {
       return;
     }
 
-    await projectService.bulkLockEntries(userId, tenantId, entryIds, locked ?? true);
+    // Non-admins can only lock/unlock their own time entries.
+    const isAdmin = perm.role === 'admin';
+    await projectService.bulkLockEntries(userId, tenantId, entryIds, locked ?? true, isAdmin ? undefined : userId);
     res.json({ success: true, data: null });
   } catch (error) {
     logger.error({ error }, 'Failed to bulk lock entries');
@@ -169,12 +179,6 @@ export async function bulkLockEntries(req: Request, res: Response) {
 
 export async function getWeeklyView(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const weekStart = req.query.weekStart as string;

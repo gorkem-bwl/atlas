@@ -4,6 +4,7 @@ import {
   invoices, invoiceLineItems,
 } from '../../../db/schema';
 import { eq, and, desc, sql, ilike } from 'drizzle-orm';
+import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { logger } from '../../../utils/logger';
 import { getNextInvoiceNumber } from '../../invoices/services/invoice.service';
 
@@ -21,6 +22,8 @@ interface ProposalFilters {
   companyId?: string;
   status?: string;
   search?: string;
+  recordAccess?: CrmRecordAccess;
+  userId?: string;
 }
 
 interface CreateProposalInput {
@@ -75,6 +78,11 @@ export async function listProposals(tenantId: string, filters?: ProposalFilters)
   if (filters?.search) {
     conditions.push(ilike(crmProposals.title, `%${filters.search}%`));
   }
+  // Non-admins with recordAccess='own' only see proposals they created.
+  // crmProposals has no assignedUserId column, so we scope purely on userId.
+  if ((!filters?.recordAccess || filters.recordAccess === 'own') && filters?.userId) {
+    conditions.push(eq(crmProposals.userId, filters.userId));
+  }
 
   const rows = await db
     .select({
@@ -100,7 +108,12 @@ export async function listProposals(tenantId: string, filters?: ProposalFilters)
 
 // ─── Get ───────────────────────────────────────────────────────────
 
-export async function getProposal(tenantId: string, id: string) {
+export async function getProposal(tenantId: string, id: string, recordAccess?: CrmRecordAccess, userId?: string) {
+  const conditions = [eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)];
+  if ((!recordAccess || recordAccess === 'own') && userId) {
+    conditions.push(eq(crmProposals.userId, userId));
+  }
+
   const [row] = await db
     .select({
       proposal: crmProposals,
@@ -112,7 +125,7 @@ export async function getProposal(tenantId: string, id: string) {
     .leftJoin(crmCompanies, eq(crmProposals.companyId, crmCompanies.id))
     .leftJoin(crmContacts, eq(crmProposals.contactId, crmContacts.id))
     .leftJoin(crmDeals, eq(crmProposals.dealId, crmDeals.id))
-    .where(and(eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)))
+    .where(and(...conditions))
     .limit(1);
 
   if (!row) return null;
@@ -164,7 +177,12 @@ export async function createProposal(userId: string, tenantId: string, input: Cr
 
 // ─── Update ────────────────────────────────────────────────────────
 
-export async function updateProposal(tenantId: string, id: string, input: UpdateProposalInput) {
+export async function updateProposal(tenantId: string, id: string, input: UpdateProposalInput, recordAccess?: CrmRecordAccess, userId?: string) {
+  const ownershipConditions = [eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)];
+  if ((!recordAccess || recordAccess === 'own') && userId) {
+    ownershipConditions.push(eq(crmProposals.userId, userId));
+  }
+
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
@@ -184,7 +202,7 @@ export async function updateProposal(tenantId: string, id: string, input: Update
     const [existing] = await db
       .select()
       .from(crmProposals)
-      .where(and(eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)))
+      .where(and(...ownershipConditions))
       .limit(1);
 
     if (!existing) return null;
@@ -206,7 +224,7 @@ export async function updateProposal(tenantId: string, id: string, input: Update
   const [updated] = await db
     .update(crmProposals)
     .set(updates)
-    .where(and(eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)))
+    .where(and(...ownershipConditions))
     .returning();
 
   return updated ?? null;
@@ -214,21 +232,29 @@ export async function updateProposal(tenantId: string, id: string, input: Update
 
 // ─── Delete (soft) ─────────────────────────────────────────────────
 
-export async function deleteProposal(tenantId: string, id: string) {
+export async function deleteProposal(tenantId: string, id: string, recordAccess?: CrmRecordAccess, userId?: string) {
+  const conditions = [eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)];
+  if ((!recordAccess || recordAccess === 'own') && userId) {
+    conditions.push(eq(crmProposals.userId, userId));
+  }
   await db
     .update(crmProposals)
     .set({ isArchived: true, updatedAt: new Date() })
-    .where(and(eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)));
+    .where(and(...conditions));
 }
 
 // ─── Send ──────────────────────────────────────────────────────────
 
-export async function sendProposal(tenantId: string, id: string) {
+export async function sendProposal(tenantId: string, id: string, recordAccess?: CrmRecordAccess, userId?: string) {
+  const conditions = [eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)];
+  if ((!recordAccess || recordAccess === 'own') && userId) {
+    conditions.push(eq(crmProposals.userId, userId));
+  }
   const now = new Date();
   const [updated] = await db
     .update(crmProposals)
     .set({ status: 'sent', sentAt: now, updatedAt: now })
-    .where(and(eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, id)))
+    .where(and(...conditions))
     .returning();
 
   return updated ?? null;
@@ -236,8 +262,8 @@ export async function sendProposal(tenantId: string, id: string) {
 
 // ─── Duplicate ─────────────────────────────────────────────────────
 
-export async function duplicateProposal(userId: string, tenantId: string, id: string) {
-  const existing = await getProposal(tenantId, id);
+export async function duplicateProposal(userId: string, tenantId: string, id: string, recordAccess?: CrmRecordAccess) {
+  const existing = await getProposal(tenantId, id, recordAccess, userId);
   if (!existing) return null;
 
   const now = new Date();

@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectTimeEntries, projectProjects, users,
+  projectTimeEntries, projectProjects, projectMembers, users,
 } from '../../../db/schema';
 import { eq, and, asc, desc, gte, lte, inArray, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
@@ -96,7 +96,12 @@ export async function listTimeEntries(userId: string, tenantId: string, filters?
     .orderBy(desc(projectTimeEntries.workDate), desc(projectTimeEntries.createdAt));
 }
 
-export async function getTimeEntry(userId: string, tenantId: string, id: string) {
+export async function getTimeEntry(userId: string, tenantId: string, id: string, scopedUserId?: string) {
+  const conditions = [eq(projectTimeEntries.id, id), eq(projectTimeEntries.tenantId, tenantId)];
+  if (scopedUserId) {
+    conditions.push(eq(projectTimeEntries.userId, scopedUserId));
+  }
+
   const [entry] = await db
     .select({
       id: projectTimeEntries.id,
@@ -124,13 +129,37 @@ export async function getTimeEntry(userId: string, tenantId: string, id: string)
     .from(projectTimeEntries)
     .innerJoin(projectProjects, eq(projectTimeEntries.projectId, projectProjects.id))
     .innerJoin(users, eq(projectTimeEntries.userId, users.id))
-    .where(and(eq(projectTimeEntries.id, id), eq(projectTimeEntries.tenantId, tenantId)))
+    .where(and(...conditions))
     .limit(1);
 
   return entry || null;
 }
 
-export async function createTimeEntry(userId: string, tenantId: string, input: CreateTimeEntryInput) {
+export async function createTimeEntry(userId: string, tenantId: string, input: CreateTimeEntryInput, options?: { isAdmin?: boolean }) {
+  // Verify the target project exists in this tenant and — for non-admins —
+  // that the user owns it or is a member. This prevents logging time
+  // against a project the caller can't even see.
+  const [project] = await db
+    .select({ id: projectProjects.id, ownerId: projectProjects.userId })
+    .from(projectProjects)
+    .where(and(eq(projectProjects.id, input.projectId), eq(projectProjects.tenantId, tenantId)))
+    .limit(1);
+  if (!project) {
+    throw new Error('Project not found');
+  }
+  if (!options?.isAdmin) {
+    if (project.ownerId !== userId) {
+      const [member] = await db
+        .select({ id: projectMembers.id })
+        .from(projectMembers)
+        .where(and(eq(projectMembers.projectId, input.projectId), eq(projectMembers.userId, userId)))
+        .limit(1);
+      if (!member) {
+        throw new Error('No access to this project');
+      }
+    }
+  }
+
   const now = new Date();
   const [maxSort] = await db
     .select({ max: sql<number>`COALESCE(MAX(${projectTimeEntries.sortOrder}), -1)` })
@@ -162,9 +191,9 @@ export async function createTimeEntry(userId: string, tenantId: string, input: C
   return created;
 }
 
-export async function updateTimeEntry(userId: string, tenantId: string, id: string, input: UpdateTimeEntryInput) {
+export async function updateTimeEntry(userId: string, tenantId: string, id: string, input: UpdateTimeEntryInput, scopedUserId?: string) {
   // Check if the entry is locked before allowing edits
-  const existing = await getTimeEntry(userId, tenantId, id);
+  const existing = await getTimeEntry(userId, tenantId, id, scopedUserId);
   if (!existing) return null;
   if (existing.locked) {
     throw new Error('Cannot edit a locked time entry');
@@ -187,6 +216,9 @@ export async function updateTimeEntry(userId: string, tenantId: string, id: stri
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
 
   const conditions = [eq(projectTimeEntries.id, id), eq(projectTimeEntries.tenantId, tenantId)];
+  if (scopedUserId) {
+    conditions.push(eq(projectTimeEntries.userId, scopedUserId));
+  }
 
   const [updated] = await db
     .update(projectTimeEntries)
@@ -197,19 +229,23 @@ export async function updateTimeEntry(userId: string, tenantId: string, id: stri
   return updated || null;
 }
 
-export async function deleteTimeEntry(userId: string, tenantId: string, id: string) {
-  await updateTimeEntry(userId, tenantId, id, { isArchived: true });
+export async function deleteTimeEntry(userId: string, tenantId: string, id: string, scopedUserId?: string) {
+  await updateTimeEntry(userId, tenantId, id, { isArchived: true }, scopedUserId);
 }
 
-export async function bulkLockEntries(userId: string, tenantId: string, entryIds: string[], locked: boolean) {
+export async function bulkLockEntries(userId: string, tenantId: string, entryIds: string[], locked: boolean, scopedUserId?: string) {
   const now = new Date();
+  const conditions = [
+    eq(projectTimeEntries.tenantId, tenantId),
+    inArray(projectTimeEntries.id, entryIds),
+  ];
+  if (scopedUserId) {
+    conditions.push(eq(projectTimeEntries.userId, scopedUserId));
+  }
   await db
     .update(projectTimeEntries)
     .set({ locked, updatedAt: now })
-    .where(and(
-      eq(projectTimeEntries.tenantId, tenantId),
-      inArray(projectTimeEntries.id, entryIds),
-    ));
+    .where(and(...conditions));
 }
 
 export async function getWeeklyView(userId: string, tenantId: string, weekStart: string) {

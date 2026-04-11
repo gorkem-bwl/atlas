@@ -9,11 +9,6 @@ import { getAppPermission, canAccess } from '../../../services/app-permissions.s
 export async function listProjects(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const { search, companyId, clientId, status, includeArchived } = req.query;
@@ -41,11 +36,6 @@ export async function listProjects(req: Request, res: Response) {
 export async function getProject(req: Request, res: Response) {
   try {
     const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
@@ -174,12 +164,6 @@ export async function deleteProject(req: Request, res: Response) {
 
 export async function listProjectMembers(req: Request, res: Response) {
   try {
-    const perm = await getAppPermission(req.auth?.tenantId, req.auth!.userId, 'projects');
-    if (!canAccess(perm.role, 'view')) {
-      res.status(403).json({ success: false, error: 'No permission to view projects' });
-      return;
-    }
-
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const projectId = req.params.projectId as string;
@@ -205,10 +189,18 @@ export async function addProjectMember(req: Request, res: Response) {
     const projectId = req.params.projectId as string;
     const { userId: memberUserId, hourlyRate, role } = req.body;
 
-    // Verify the project belongs to the authenticated user's account
+    // Verify the project exists in this tenant
     const project = await projectService.getProject(userId, tenantId, projectId);
     if (!project) {
       res.status(404).json({ success: false, error: 'Project not found' });
+      return;
+    }
+
+    // Only blanket-update roles (admin/editor) or the project owner
+    // may add members. This prevents anyone with plain create
+    // permission from joining themselves to any project in the tenant.
+    if (!canAccess(perm.role, 'update') && project.userId !== userId) {
+      res.status(403).json({ success: false, error: 'Only the project owner or an admin can manage members' });
       return;
     }
 
@@ -238,10 +230,16 @@ export async function removeProjectMember(req: Request, res: Response) {
     const projectId = req.params.projectId as string;
     const memberId = req.params.memberId as string;
 
-    // Verify the project belongs to the authenticated user's account
+    // Verify the project exists in this tenant
     const project = await projectService.getProject(userId, tenantId, projectId);
     if (!project) {
       res.status(404).json({ success: false, error: 'Project not found' });
+      return;
+    }
+
+    // Only blanket-delete roles (admin) or the project owner may remove members.
+    if (!canAccess(perm.role, 'delete') && project.userId !== userId) {
+      res.status(403).json({ success: false, error: 'Only the project owner or an admin can manage members' });
       return;
     }
 
@@ -267,10 +265,17 @@ export async function updateProjectMemberRate(req: Request, res: Response) {
     const memberId = req.params.memberId as string;
     const { hourlyRate } = req.body;
 
-    // Verify the project belongs to the authenticated user's account
+    // Verify the project exists in this tenant
     const project = await projectService.getProject(userId, tenantId, projectId);
     if (!project) {
       res.status(404).json({ success: false, error: 'Project not found' });
+      return;
+    }
+
+    // Only blanket-update roles (admin/editor) or the project owner
+    // may change member rates.
+    if (perm.role !== 'admin' && project.userId !== userId) {
+      res.status(403).json({ success: false, error: 'Only the project owner or an admin can manage members' });
       return;
     }
 

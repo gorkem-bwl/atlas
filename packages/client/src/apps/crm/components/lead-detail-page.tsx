@@ -18,6 +18,7 @@ import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import {
   useLeads, useUpdateLead, useDeleteLead, useConvertLead, useEnrichLead, useStages,
   useActivities, useCreateActivity, useUpdateActivity, useDeleteActivity, useCompleteActivity,
+  useMyCrmPermission, canAccess,
   type CrmLead, type CrmLeadStatus, type CrmLeadSource,
 } from '../hooks';
 import { ConvertLeadModal } from './leads-view';
@@ -97,6 +98,11 @@ interface LeadDetailPageProps {
 
 export function LeadDetailPage({ leadId, onBack, onNavigate }: LeadDetailPageProps) {
   const { t } = useTranslation();
+  const { data: perm } = useMyCrmPermission();
+  const canUpdateLead = canAccess(perm?.role, 'leads', 'update');
+  const canDeleteLead = canAccess(perm?.role, 'leads', 'delete');
+  const canCreateContact = canAccess(perm?.role, 'contacts', 'create');
+  const canCreateActivityPerm = canAccess(perm?.role, 'activities', 'create');
   const { data: leadsData } = useLeads({});
   const leads = leadsData?.leads ?? [];
   const lead = leads.find(l => l.id === leadId);
@@ -169,7 +175,7 @@ export function LeadDetailPage({ leadId, onBack, onNavigate }: LeadDetailPagePro
         <div style={{ flex: 1 }} />
 
         {/* Won / Lost */}
-        {lead.status !== 'converted' && lead.status !== 'lost' && (
+        {lead.status !== 'converted' && lead.status !== 'lost' && canUpdateLead && (
           <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
             <Button variant="primary" size="sm" icon={<Trophy size={13} />} onClick={() => updateLead.mutate({ id: lead.id, status: 'converted' })}>
               {t('crm.deals.markWon')}
@@ -194,7 +200,7 @@ export function LeadDetailPage({ leadId, onBack, onNavigate }: LeadDetailPagePro
         padding: 'var(--spacing-sm) var(--spacing-lg)',
         borderBottom: '1px solid var(--color-border-secondary)', flexShrink: 0,
       }}>
-        <StatusPipeline status={lead.status} onChange={(s) => updateLead.mutate({ id: lead.id, status: s })} updatedAt={lead.updatedAt} />
+        <StatusPipeline status={lead.status} onChange={(s) => { if (canUpdateLead) updateLead.mutate({ id: lead.id, status: s }); }} updatedAt={lead.updatedAt} />
       </div>
 
       {/* Main content */}
@@ -295,15 +301,17 @@ export function LeadDetailPage({ leadId, onBack, onNavigate }: LeadDetailPagePro
                 {enrichLead.isPending ? t('crm.leads.enriching') : t('crm.leads.enrichWithAI')}
               </Button>
             )}
-            {lead.status !== 'converted' && (
+            {lead.status !== 'converted' && canCreateContact && (
               <Button variant="primary" size="sm" icon={<ArrowRightLeft size={14} />} onClick={() => setShowConvert(true)}>
                 {t('crm.leads.convert')}
               </Button>
             )}
             <div style={{ flex: 1 }} />
-            <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDelete(true)}>
-              {t('common.delete')}
-            </Button>
+            {canDeleteLead && (
+              <Button variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={() => setShowDelete(true)}>
+                {t('common.delete')}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -344,7 +352,7 @@ export function LeadDetailPage({ leadId, onBack, onNavigate }: LeadDetailPagePro
               style={{ flex: 1 }}
               onKeyDown={(e) => { if (e.key === 'Enter') handleLogActivity(); }}
             />
-            <Button variant="primary" size="sm" onClick={handleLogActivity} disabled={!newActivityBody.trim()}>
+            <Button variant="primary" size="sm" onClick={handleLogActivity} disabled={!newActivityBody.trim() || !canCreateActivityPerm}>
               {t('crm.activities.logActivity')}
             </Button>
           </div>
