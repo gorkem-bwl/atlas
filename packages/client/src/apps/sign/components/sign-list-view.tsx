@@ -10,15 +10,12 @@ import {
   Trash2,
   Users,
   Tag,
-  Search,
   CheckCircle,
   Building2,
 } from 'lucide-react';
 import { DataTable, type DataTableColumn } from '../../../components/ui/data-table';
-import { ListToolbar } from '../../../components/ui/list-toolbar';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
-import { Input } from '../../../components/ui/input';
 import { IconButton } from '../../../components/ui/icon-button';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { StatusDot } from '../../../components/ui/status-dot';
@@ -91,41 +88,28 @@ export function SignListView({
 
   return (
     <>
-      <ListToolbar>
-        <Input
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={t('sign.list.search', 'Search documents...')}
-          iconLeft={<Search size={14} />}
-          size="sm"
-          style={{ width: 220 }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-xs)',
-            flexWrap: 'nowrap',
-            overflowX: 'auto',
-            minWidth: 0,
-            flex: 1,
-          }}
-          role="group"
-          aria-label={t('sign.documentType')}
-        >
-          {TYPE_FILTERS.map((f) => (
-            <div key={f.value} style={{ flexShrink: 0 }}>
-              <Chip
-                active={typeFilter === f.value}
-                onClick={() => setTypeFilter(f.value)}
-                aria-pressed={typeFilter === f.value}
-              >
-                {t(f.labelKey)}
-              </Chip>
-            </div>
-          ))}
-        </div>
-      </ListToolbar>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--spacing-xs)',
+        padding: 'var(--spacing-sm) var(--spacing-lg)',
+        borderBottom: '1px solid var(--color-border-secondary)',
+        flexShrink: 0,
+      }}
+        role="group"
+        aria-label={t('sign.documentType')}
+      >
+        {TYPE_FILTERS.map((f) => (
+          <Chip
+            key={f.value}
+            active={typeFilter === f.value}
+            onClick={() => setTypeFilter(f.value)}
+            aria-pressed={typeFilter === f.value}
+          >
+            {t(f.labelKey)}
+          </Chip>
+        ))}
+      </div>
       <div style={{ flex: 1, overflow: 'auto' }}>
         {uploading ? (
           <div className="sign-upload-feedback">
