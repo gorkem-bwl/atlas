@@ -192,7 +192,11 @@ export async function createTenantUser(req: Request, res: Response) {
     res.status(201).json({ success: true, data: user });
   } catch (err: any) {
     if (err?.message?.includes('UNIQUE constraint failed') || err?.code === '23505') {
-      res.status(409).json({ success: false, error: 'A user with this email already exists' });
+      if (err?.constraint === 'idx_tenant_members_unique' || err?.detail?.includes('tenant_members')) {
+        res.status(409).json({ success: false, error: 'This user belongs to another organization. Please use a different email address.' });
+      } else {
+        res.status(409).json({ success: false, error: 'A user with this email already exists' });
+      }
       return;
     }
     logger.error({ err }, 'Failed to create tenant user');
@@ -301,7 +305,11 @@ export async function inviteTenantUser(req: Request, res: Response) {
     res.status(201).json({ success: true, data: invitation });
   } catch (err: any) {
     if (err?.code === '23505') {
-      res.status(409).json({ success: false, error: 'An invitation for this email already exists' });
+      if (err?.constraint === 'idx_tenant_members_unique' || err?.detail?.includes('tenant_members')) {
+        res.status(409).json({ success: false, error: 'This user belongs to another organization. Please use a different email address.' });
+      } else {
+        res.status(409).json({ success: false, error: 'An invitation for this email already exists' });
+      }
       return;
     }
     logger.error({ err }, 'Failed to invite user');
