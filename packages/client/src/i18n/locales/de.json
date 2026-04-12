@@ -556,7 +556,24 @@
     "off": "Aus",
     "noTitle": "(Kein Titel)",
     "allApps": "Alle Apps",
-    "googleOnly": "Nur Google"
+    "googleOnly": "Nur Google",
+    "year": "Jahr",
+    "upcomingEvent": "Bevorstehende Veranstaltung",
+    "eventUpdated": "Termin aktualisiert",
+    "eventDeleted": "Termin gelöscht",
+    "calendarSynced": "Kalender synchronisiert",
+    "calendarCreated": "Kalender erstellt",
+    "shortcuts": {
+      "createEvent": "Termin erstellen",
+      "nextPeriod": "Nächster Zeitraum",
+      "previousPeriod": "Vorheriger Zeitraum",
+      "dayView": "Tagesansicht",
+      "weekView": "Wochenansicht",
+      "monthView": "Monatsansicht",
+      "agendaView": "Terminübersicht",
+      "thisHelp": "Diese Hilfe",
+      "refreshSync": "Aktualisieren / synchronisieren"
+    }
   },
   "docs": {
     "title": "Write",

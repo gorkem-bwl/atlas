@@ -556,7 +556,24 @@
     "off": "Kapalı",
     "noTitle": "(Başlıksız)",
     "allApps": "Tüm uygulamalar",
-    "googleOnly": "Yalnızca Google"
+    "googleOnly": "Yalnızca Google",
+    "year": "Yıl",
+    "upcomingEvent": "Yaklaşan etkinlik",
+    "eventUpdated": "Etkinlik güncellendi",
+    "eventDeleted": "Etkinlik silindi",
+    "calendarSynced": "Takvim senkronize edildi",
+    "calendarCreated": "Takvim oluşturuldu",
+    "shortcuts": {
+      "createEvent": "Etkinlik oluştur",
+      "nextPeriod": "Sonraki dönem",
+      "previousPeriod": "Önceki dönem",
+      "dayView": "Gün görünümü",
+      "weekView": "Hafta görünümü",
+      "monthView": "Ay görünümü",
+      "agendaView": "Ajanda görünümü",
+      "thisHelp": "Bu yardım",
+      "refreshSync": "Yenile / senkronize et"
+    }
   },
   "docs": {
     "title": "Write",

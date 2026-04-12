@@ -584,7 +584,24 @@
     "off": "Off",
     "noTitle": "(No title)",
     "allApps": "All apps",
-    "googleOnly": "Google only"
+    "googleOnly": "Google only",
+    "year": "Year",
+    "upcomingEvent": "Upcoming event",
+    "eventUpdated": "Event updated",
+    "eventDeleted": "Event deleted",
+    "calendarSynced": "Calendar synced",
+    "calendarCreated": "Calendar created",
+    "shortcuts": {
+      "createEvent": "Create event",
+      "nextPeriod": "Next period",
+      "previousPeriod": "Previous period",
+      "dayView": "Day view",
+      "weekView": "Week view",
+      "monthView": "Month view",
+      "agendaView": "Agenda view",
+      "thisHelp": "This help",
+      "refreshSync": "Refresh / sync"
+    }
   },
   "docs": {
     "title": "Write",

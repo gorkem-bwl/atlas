@@ -556,7 +556,24 @@
     "off": "Disattivato",
     "noTitle": "(Senza titolo)",
     "allApps": "Tutte le app",
-    "googleOnly": "Solo Google"
+    "googleOnly": "Solo Google",
+    "year": "Anno",
+    "upcomingEvent": "Evento imminente",
+    "eventUpdated": "Evento aggiornato",
+    "eventDeleted": "Evento eliminato",
+    "calendarSynced": "Calendario sincronizzato",
+    "calendarCreated": "Calendario creato",
+    "shortcuts": {
+      "createEvent": "Crea evento",
+      "nextPeriod": "Periodo successivo",
+      "previousPeriod": "Periodo precedente",
+      "dayView": "Vista giorno",
+      "weekView": "Vista settimana",
+      "monthView": "Vista mese",
+      "agendaView": "Vista agenda",
+      "thisHelp": "Questa guida",
+      "refreshSync": "Aggiorna / sincronizza"
+    }
   },
   "docs": {
     "title": "Write",

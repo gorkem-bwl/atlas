@@ -251,7 +251,7 @@ export function CalendarPage() {
         if (diff > 0 && diff <= reminderMs && !notifiedRef.current.has(ev.id)) {
           notifiedRef.current.add(ev.id);
           const minutesAway = Math.ceil(diff / 60_000);
-          new Notification(ev.summary || 'Upcoming event', {
+          new Notification(ev.summary || t('calendar.upcomingEvent'), {
             body: `Starts in ${minutesAway} minute${minutesAway === 1 ? '' : 's'}`,
             icon: '/favicon.ico',
             tag: ev.id,
@@ -355,7 +355,7 @@ export function CalendarPage() {
 
       addToast({
         type: 'undo',
-        message: 'Event updated',
+        message: t('calendar.eventUpdated'),
         duration: 5000,
         undoAction: () => {
           // Restore the snapshot — refetch will reconcile with the server
@@ -392,7 +392,7 @@ export function CalendarPage() {
 
       addToast({
         type: 'undo',
-        message: 'Event deleted',
+        message: t('calendar.eventDeleted'),
         duration: 5000,
         undoAction: () => {
           // Restore previous caches
@@ -519,7 +519,7 @@ export function CalendarPage() {
   useEffect(() => {
     const status = syncCalendar.isPending ? 'pending' : syncCalendar.isSuccess ? 'success' : syncCalendar.isError ? 'error' : 'idle';
     if (prevSyncStatus.current === 'pending' && status === 'success') {
-      addToast({ message: 'Calendar synced', type: 'success', duration: 3000 });
+      addToast({ message: t('calendar.calendarSynced'), type: 'success', duration: 3000 });
     } else if (prevSyncStatus.current === 'pending' && status === 'error') {
       const errCode = (syncCalendar.error as any)?.response?.data?.code;
       if (errCode === 'API_NOT_ENABLED') {
@@ -699,7 +699,7 @@ export function CalendarPage() {
         {!isNarrow && (
           <IconButton
             icon={sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-            label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+            label={sidebarCollapsed ? t('calendar.showSidebar') : t('calendar.hideSidebar')}
             onClick={() => setSidebarCollapsed((v) => !v)}
           />
         )}
@@ -826,7 +826,7 @@ export function CalendarPage() {
                 border: 'none',
               }}
             >
-              {v === 'month-grid' ? 'Month' : v === 'agenda' ? 'Agenda' : v === 'year' ? 'Year' : v}
+              {v === 'month-grid' ? t('calendar.month') : v === 'agenda' ? t('calendar.agenda') : v === 'year' ? t('calendar.year') : v === 'day' ? t('calendar.day') : v === 'week' ? t('calendar.week') : v}
             </Button>
           ))}
         </div>
@@ -1181,7 +1181,7 @@ export function CalendarPage() {
                           onSuccess: () => {
                             setNewCalName('');
                             setShowAddCalendar(false);
-                            addToast({ message: 'Calendar created', type: 'success', duration: 3000 });
+                            addToast({ message: t('calendar.calendarCreated'), type: 'success', duration: 3000 });
                           },
                           onError: () => {
                             addToast({ message: 'Failed to create calendar', type: 'error', duration: 5000 });
@@ -1223,7 +1223,7 @@ export function CalendarPage() {
                             onSuccess: () => {
                               setNewCalName('');
                               setShowAddCalendar(false);
-                              addToast({ message: 'Calendar created', type: 'success', duration: 3000 });
+                              addToast({ message: t('calendar.calendarCreated'), type: 'success', duration: 3000 });
                             },
                             onError: () => {
                               addToast({ message: 'Failed to create calendar', type: 'error', duration: 5000 });
@@ -1433,18 +1433,18 @@ export function CalendarPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', rowGap: 8, columnGap: 12, fontSize: 'var(--font-size-sm)' }}>
               {([
-                ['C', 'Create event'],
-                ['T', 'Go to today'],
-                ['J / →', 'Next period'],
-                ['K / ←', 'Previous period'],
-                ['R', 'Refresh / sync'],
-                ['D', 'Day view'],
-                ['W', 'Week view'],
-                ['M', 'Month view'],
-                ['A', 'Agenda view'],
-                ['G', 'Go to date'],
-                ['?', 'This help'],
-              ] as const).map(([key, desc]) => (
+                ['C', t('calendar.shortcuts.createEvent')],
+                ['T', t('calendar.today')],
+                ['J / →', t('calendar.shortcuts.nextPeriod')],
+                ['K / ←', t('calendar.shortcuts.previousPeriod')],
+                ['R', t('calendar.shortcuts.refreshSync')],
+                ['D', t('calendar.shortcuts.dayView')],
+                ['W', t('calendar.shortcuts.weekView')],
+                ['M', t('calendar.shortcuts.monthView')],
+                ['A', t('calendar.shortcuts.agendaView')],
+                ['G', t('calendar.goToDate')],
+                ['?', t('calendar.shortcuts.thisHelp')],
+              ] as [string, string][]).map(([key, desc]) => (
                 <div key={key} style={{ display: 'contents' }}>
                   <kbd style={{
                     display: 'inline-flex',
