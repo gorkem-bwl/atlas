@@ -117,10 +117,10 @@ export function DrawPage() {
   const handleTitleChange = useCallback(
     (title: string) => {
       if (selectedId) {
-        save(selectedId, { title });
+        updateDrawing.mutate({ id: selectedId, title });
       }
     },
-    [selectedId, save],
+    [selectedId, updateDrawing],
   );
 
   const handleThumbnailGenerated = useCallback(
