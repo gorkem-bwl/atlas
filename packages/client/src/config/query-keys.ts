@@ -108,12 +108,6 @@ export const queryKeys = {
       detail: (id: string) => ['hr', 'expense-policies', id] as const,
     },
   },
-  tables: {
-    all: ['tables'] as const,
-    list: ['tables', 'list'] as const,
-    detail: (id: string) => ['tables', 'detail', id] as const,
-    rowComments: (spreadsheetId: string, rowId: string) => ['tables', 'row-comments', spreadsheetId, rowId] as const,
-  },
   platform: {
     all: ['platform'] as const,
     tenants: ['platform', 'tenants'] as const,

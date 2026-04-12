@@ -10,8 +10,6 @@ export const ROUTES = {
   DRAW: '/draw',
   DRAW_DETAIL: '/draw/:id',
   TASKS: '/tasks',
-  TABLES: '/tables',
-  TABLE_DETAIL: '/tables/:id',
   DRIVE: '/drive',
   DRIVE_FOLDER: '/drive/folder/:id',
   ORG: '/org',

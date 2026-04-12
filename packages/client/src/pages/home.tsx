@@ -34,7 +34,6 @@ const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
   crm: '#ffffff',
   projects: '#ffffff',
   invoices: '#ffffff',
-  tables: '#3C444E',
   hr: '#fff1ea',
   // Tasks brand colour is indigo #6366f1 — light tint backdrop.
   tasks: '#eef0ff',

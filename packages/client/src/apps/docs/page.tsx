@@ -24,7 +24,6 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
 import { useDrawingList } from '../draw/hooks';
-import { useTableList } from '../tables/hooks';
 import { SmartButtonBar } from '../../components/shared/SmartButtonBar';
 import { useAuthStore } from '../../stores/auth-store';
 import { FeatureEmptyState } from '../../components/ui/feature-empty-state';
@@ -51,7 +50,6 @@ export function DocsPage() {
   const updateVisibility = useUpdateDocumentVisibility();
   const { account } = useAuthStore();
   const { data: drawingListData } = useDrawingList();
-  const { data: tableListData } = useTableList();
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showDocSettings, setShowDocSettings] = useState(false);
@@ -291,7 +289,7 @@ export function DocsPage() {
                   allDocuments={listData?.documents}
                   onNavigate={handleSelect}
                   allDrawings={drawingListData?.drawings?.map((d) => ({ id: d.id, title: d.title }))}
-                  allTables={tableListData?.spreadsheets?.map((s) => ({ id: s.id, title: s.title }))}
+                  allTables={[]}
                 />
               </div>
             ) : (

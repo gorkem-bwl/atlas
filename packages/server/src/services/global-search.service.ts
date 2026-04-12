@@ -123,16 +123,6 @@ export async function searchGlobal(
       });
   }
 
-  // tables
-  {
-    const scope = ownScope(getPerm('tables'), uid);
-    if (scope)
-      branches.push({
-        sql: sql`(SELECT id::text AS record_id, title, 'tables' AS app_id, 'Tables' AS app_name
-          FROM spreadsheets WHERE tenant_id = ${tenantId} AND is_archived = false AND title ILIKE ${term} AND ${scope}
-          ORDER BY updated_at DESC LIMIT 5)`,
-      });
-  }
 
   // sign
   {

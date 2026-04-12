@@ -17,7 +17,7 @@ import { FULL_BLEED_BRAND_ICONS, getBrandIconScale } from '../../components/icon
 
 const BRAND_ICON_BACKGROUNDS: Record<string, string> = {
   crm: '#ffffff', projects: '#ffffff', invoices: '#ffffff',
-  tables: '#3C444E', hr: '#fff1ea', tasks: '#eef0ff',
+  hr: '#fff1ea', tasks: '#eef0ff',
   system: '#f5f5f7', drive: '#fff4e6',
   calendar: 'linear-gradient(145deg, #5dadff 0%, #2563eb 50%, #1e3a8a 100%)',
 };
