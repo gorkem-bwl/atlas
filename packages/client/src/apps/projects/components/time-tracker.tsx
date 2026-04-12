@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Play, Square, Copy, Save, Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
@@ -10,6 +10,8 @@ import { Select } from '../../../components/ui/select';
 import { IconButton } from '../../../components/ui/icon-button';
 import { StatusDot } from '../../../components/ui/status-dot';
 import { ListToolbar } from '../../../components/ui/list-toolbar';
+import { Chip } from '../../../components/ui/chip';
+import { Input } from '../../../components/ui/input';
 import { useToastStore } from '../../../stores/toast-store';
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -45,6 +47,59 @@ function formatElapsed(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ─── Tag Input ───────────────────────────────────────────────────
+
+function TagInput({
+  tags,
+  onChange,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState('');
+
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
+      const newTag = inputValue.trim();
+      if (!tags.includes(newTag)) {
+        onChange([...tags, newTag]);
+      }
+      setInputValue('');
+    }
+    if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
+      onChange(tags.slice(0, -1));
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
+      {tags.map((tag) => (
+        <Chip key={tag} onRemove={() => onChange(tags.filter((t) => t !== tag))} height={20}>
+          {tag}
+        </Chip>
+      ))}
+      <input
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={tags.length === 0 ? t('projects.tags.addTag') : ''}
+        style={{
+          border: 'none',
+          outline: 'none',
+          background: 'transparent',
+          fontSize: 'var(--font-size-xs)',
+          fontFamily: 'var(--font-family)',
+          color: 'var(--color-text-primary)',
+          width: tags.length === 0 ? 100 : 60,
+          padding: '2px 0',
+        }}
+      />
+    </div>
+  );
 }
 
 // ─── Running Timer ────────────────────────────────────────────────
@@ -83,6 +138,7 @@ function RunningTimer({ projects }: { projects: Project[] }) {
     return 0;
   });
   const [selectedProjectId, setSelectedProjectId] = useState(saved.current?.projectId ?? '');
+  const [timerTags, setTimerTags] = useState<string[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(saved.current?.startedAt ?? 0);
   const createTimeEntry = useCreateTimeEntry();
@@ -110,10 +166,12 @@ function RunningTimer({ projects }: { projects: Project[] }) {
         projectId: selectedProjectId,
         date: new Date().toISOString().slice(0, 10),
         hours,
+        tags: timerTags.length > 0 ? timerTags : undefined,
       });
     }
     setElapsed(0);
     startTimeRef.current = 0;
+    setTimerTags([]);
     saveTimerState(null);
   };
 
@@ -129,6 +187,9 @@ function RunningTimer({ projects }: { projects: Project[] }) {
         size="sm"
         width={180}
       />
+      <div style={{ borderLeft: '1px solid var(--color-border-secondary)', paddingLeft: 'var(--spacing-sm)', marginLeft: 'var(--spacing-xs)' }}>
+        <TagInput tags={timerTags} onChange={setTimerTags} />
+      </div>
       <span className="projects-timer-display">{formatElapsed(elapsed)}</span>
       {isRunning ? (
         <Button variant="danger" size="sm" icon={<Square size={14} />} onClick={handleStop}>

@@ -3306,6 +3306,21 @@
       "projectDetail": "Proje detayı",
       "status": "Durum"
     },
+    "detail": {
+      "backToProjects": "Projelere dön",
+      "notFound": "Proje bulunamadı",
+      "duration": "Süre",
+      "earnings": "Kazanç",
+      "balance": "Bakiye",
+      "unbilled": "Faturalanmamış",
+      "budgeted": "bütçelenen",
+      "of": "/",
+      "projectInfo": "Proje bilgileri",
+      "created": "Oluşturulma",
+      "teamMembers": "Ekip üyeleri",
+      "noMembers": "Atanmış ekip üyesi yok",
+      "unknownMember": "Bilinmeyen üye"
+    },
     "clients": {
       "name": "Ad",
       "email": "E-posta",

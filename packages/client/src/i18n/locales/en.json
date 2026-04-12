@@ -3311,6 +3311,21 @@
       "projectDetail": "Project detail",
       "status": "Status"
     },
+    "detail": {
+      "backToProjects": "Back to projects",
+      "notFound": "Project not found",
+      "duration": "Duration",
+      "earnings": "Earnings",
+      "balance": "Balance",
+      "unbilled": "Unbilled",
+      "budgeted": "budgeted",
+      "of": "of",
+      "projectInfo": "Project information",
+      "created": "Created",
+      "teamMembers": "Team members",
+      "noMembers": "No team members assigned",
+      "unknownMember": "Unknown member"
+    },
     "clients": {
       "name": "Name",
       "email": "Email",

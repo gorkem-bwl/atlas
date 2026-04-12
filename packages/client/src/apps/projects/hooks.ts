@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
+import type { ProjectRate, CreateRateInput, UpdateRateInput } from '@atlas-platform/shared';
 
 // ─── Inline Types ──────────────────────────────────────────────────
 
@@ -36,7 +37,9 @@ export interface TimeEntry {
   date: string;
   hours: number;
   description: string | null;
+  tags: string[];
   isBillable: boolean;
+  billingStatus: 'unbilled' | 'billed' | 'paid';
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
@@ -82,6 +85,7 @@ export interface ProjectSettings {
   weekStartDay: 'monday' | 'sunday';
   defaultProjectVisibility: 'team' | 'private';
   defaultBillable: boolean;
+  timeRounding: number;
 }
 
 export interface TimeReport {
@@ -277,6 +281,31 @@ export function useDeleteProject() {
   });
 }
 
+// ─── Project Members ─────────────────────────────────────────────
+
+export interface ProjectMember {
+  id: string;
+  userId: string;
+  projectId: string;
+  hourlyRate: number | null;
+  userName?: string;
+  userEmail?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useProjectMembers(projectId: string | undefined) {
+  return useQuery({
+    queryKey: ['projects', 'members', projectId],
+    queryFn: async () => {
+      const { data } = await api.get(`/projects/projects/${projectId}/members`);
+      return data.data as ProjectMember[];
+    },
+    enabled: !!projectId,
+    staleTime: 10_000,
+  });
+}
+
 // ─── Time Entry Queries ───────────────────────────────────────────
 
 // Transform server time entry response (durationMinutes, workDate) to client types (hours, date)
@@ -290,7 +319,9 @@ function mapTimeEntry(raw: Record<string, unknown>): TimeEntry {
     date: (raw.workDate as string) ?? (raw.date as string) ?? '',
     hours: typeof raw.durationMinutes === 'number' ? raw.durationMinutes / 60 : (raw.hours as number) ?? 0,
     description: (raw.notes as string) ?? (raw.description as string) ?? null,
+    tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : [],
     isBillable: (raw.billable as boolean) ?? true,
+    billingStatus: (raw.billingStatus as TimeEntry['billingStatus']) ?? 'unbilled',
     isArchived: (raw.isArchived as boolean) ?? false,
     createdAt: (raw.createdAt as string) ?? '',
     updatedAt: (raw.updatedAt as string) ?? '',
@@ -335,6 +366,7 @@ export function useCreateTimeEntry() {
       date: string;
       hours: number;
       description?: string | null;
+      tags?: string[];
       isBillable?: boolean;
     }) => {
       const { data } = await api.post('/projects/time-entries', {
@@ -342,6 +374,7 @@ export function useCreateTimeEntry() {
         workDate: input.date,
         durationMinutes: Math.round(input.hours * 60),
         notes: input.description,
+        tags: input.tags,
         billable: input.isBillable,
       });
       return data.data as TimeEntry;
@@ -360,6 +393,7 @@ export function useUpdateTimeEntry() {
       date: string;
       hours: number;
       description: string | null;
+      tags: string[];
       isBillable: boolean;
     }>) => {
       const payload: Record<string, unknown> = {};
@@ -367,6 +401,7 @@ export function useUpdateTimeEntry() {
       if (input.date !== undefined) payload.workDate = input.date;
       if (input.hours !== undefined) payload.durationMinutes = Math.round(input.hours * 60);
       if (input.description !== undefined) payload.notes = input.description;
+      if (input.tags !== undefined) payload.tags = input.tags;
       if (input.isBillable !== undefined) payload.billable = input.isBillable;
       const { data } = await api.patch(`/projects/time-entries/${id}`, payload);
       return data.data as TimeEntry;
@@ -521,6 +556,50 @@ export function useUtilizationReport(filters?: { startDate?: string; endDate?: s
       return data.data as UtilizationReport;
     },
     staleTime: 30_000,
+  });
+}
+
+// ─── Rates ───────────────────────────────────────────────────────
+
+export function useRates() {
+  return useQuery({
+    queryKey: queryKeys.projects.rates.all,
+    queryFn: async () => {
+      const { data } = await api.get('/projects/rates');
+      return data.data as ProjectRate[];
+    },
+  });
+}
+
+export function useCreateRate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CreateRateInput) => {
+      const { data } = await api.post('/projects/rates', input);
+      return data.data as ProjectRate;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.projects.rates.all }),
+  });
+}
+
+export function useUpdateRate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...input }: { id: string } & UpdateRateInput) => {
+      const { data } = await api.patch(`/projects/rates/${id}`, input);
+      return data.data as ProjectRate;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.projects.rates.all }),
+  });
+}
+
+export function useDeleteRate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/projects/rates/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.projects.rates.all }),
   });
 }
 

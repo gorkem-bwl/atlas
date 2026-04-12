@@ -290,6 +290,9 @@ export const queryKeys = {
       profitability: ['projects', 'reports', 'profitability'] as const,
       utilization: (filters?: string) => ['projects', 'reports', 'utilization', filters] as const,
     },
+    rates: {
+      all: ['projects', 'rates'] as const,
+    },
     settings: ['projects', 'settings'] as const,
     portal: (token: string) => ['projects', 'portal', token] as const,
     dashboard: ['projects', 'dashboard'] as const,

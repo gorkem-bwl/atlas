@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  LayoutDashboard, Clock, FolderKanban, BarChart3, Settings2,
+  LayoutDashboard, Clock, FolderKanban, BarChart3, DollarSign, Settings2,
   Plus, Search, X,
 } from 'lucide-react';
 import { useProjects } from './hooks';
@@ -18,8 +18,8 @@ import '../../styles/projects.css';
 
 import type { ActiveView } from './lib/types';
 import {
-  DashboardView, ProjectsListView, ProjectDetailPanel,
-  SettingsView,
+  DashboardView, ProjectsListView, ProjectDetailPanel, ProjectDetailView,
+  SettingsView, RatesView,
 } from './components/views';
 import { CreateProjectModal } from './components/modals';
 
@@ -32,8 +32,9 @@ export function ProjectsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const viewParam = (searchParams.get('view') || 'dashboard') as ActiveView;
   const activeView = viewParam;
-  const setActiveView = useCallback((view: ActiveView) => {
-    setSearchParams({ view }, { replace: true });
+  const detailProjectId = searchParams.get('projectId') || null;
+  const setActiveView = useCallback((view: ActiveView, params?: Record<string, string>) => {
+    setSearchParams({ view, ...params }, { replace: true });
   }, [setSearchParams]);
 
   // Selection state
@@ -91,7 +92,9 @@ export function ProjectsPage() {
       case 'dashboard': return t('projects.sidebar.dashboard');
       case 'timeTracking': return t('projects.sidebar.timeTracking');
       case 'projects': return t('projects.sidebar.allProjects');
+      case 'projectDetail': return t('projects.projects.projectDetail');
       case 'reports': return t('projects.sidebar.reports');
+      case 'rates': return t('projects.sidebar.rates');
       case 'settings': return t('projects.sidebar.settings');
     }
   }, [activeView, t]);
@@ -156,6 +159,13 @@ export function ProjectsPage() {
             iconColor="#6366f1"
             isActive={activeView === 'reports'}
             onClick={() => setActiveView('reports')}
+          />
+          <SidebarItem
+            label={t('projects.sidebar.rates')}
+            icon={<DollarSign size={14} />}
+            iconColor="#10b981"
+            isActive={activeView === 'rates'}
+            onClick={() => setActiveView('rates')}
           />
         </SidebarSection>
       </AppSidebar>
@@ -222,12 +232,21 @@ export function ProjectsPage() {
                 projects={projects}
                 searchQuery={searchQuery}
                 selectedId={selectedProjectId}
-                onSelect={(id) => { setSelectedProjectId(id); }}
+                onSelect={(id) => { setActiveView('projectDetail', { projectId: id }); }}
                 onAdd={canCreate ? () => setShowCreateProject(true) : undefined}
               />
             )}
 
+            {activeView === 'projectDetail' && detailProjectId && (
+              <ProjectDetailView
+                projectId={detailProjectId}
+                onBack={() => setActiveView('projects')}
+              />
+            )}
+
             {activeView === 'reports' && <ReportsView />}
+
+            {activeView === 'rates' && <RatesView />}
 
             {activeView === 'settings' && <SettingsView />}
           </div>

@@ -3306,6 +3306,21 @@
       "projectDetail": "Detail du projet",
       "status": "Statut"
     },
+    "detail": {
+      "backToProjects": "Retour aux projets",
+      "notFound": "Projet introuvable",
+      "duration": "Durée",
+      "earnings": "Revenus",
+      "balance": "Solde",
+      "unbilled": "Non facturé",
+      "budgeted": "budgété",
+      "of": "de",
+      "projectInfo": "Informations du projet",
+      "created": "Créé",
+      "teamMembers": "Membres de l'équipe",
+      "noMembers": "Aucun membre assigné",
+      "unknownMember": "Membre inconnu"
+    },
     "clients": {
       "name": "Nom",
       "email": "E-mail",

@@ -20,6 +20,7 @@ export function ProjectsGeneralPanel() {
   const weekStart = settings?.weekStartDay ?? 'monday';
   const visibility = settings?.defaultProjectVisibility ?? 'team';
   const billable = settings?.defaultBillable ?? true;
+  const timeRounding = String(settings?.timeRounding ?? 0);
 
   return (
     <div>
@@ -53,6 +54,21 @@ export function ProjectsGeneralPanel() {
             checked={billable}
             onChange={(checked) => update.mutate({ defaultBillable: checked })}
             label={t('projects.settings.defaultBillable')}
+          />
+        </SettingsRow>
+
+        <SettingsRow label={t('projects.settings.timeRounding')}>
+          <SettingsSelect
+            value={timeRounding}
+            options={[
+              { value: '0', label: t('projects.settings.timeRoundingOff') },
+              { value: '5', label: t('projects.settings.timeRounding5') },
+              { value: '10', label: t('projects.settings.timeRounding10') },
+              { value: '15', label: t('projects.settings.timeRounding15') },
+              { value: '30', label: t('projects.settings.timeRounding30') },
+              { value: '60', label: t('projects.settings.timeRounding60') },
+            ]}
+            onChange={(v) => update.mutate({ timeRounding: Number(v) })}
           />
         </SettingsRow>
 
