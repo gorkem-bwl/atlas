@@ -26,7 +26,7 @@ const inviteUserSchema = z.object({
     appId: z.string(),
     enabled: z.boolean(),
     role: z.enum(['admin', 'editor', 'viewer']),
-    recordAccess: z.enum(['all', 'team', 'own']).default('all'),
+    recordAccess: z.enum(['all', 'own']).default('all'),
   })).optional(),
   crmTeamId: z.string().optional(),
 });

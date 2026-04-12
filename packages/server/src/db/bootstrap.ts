@@ -38,4 +38,30 @@ export async function bootstrapDatabase() {
   } finally {
     client.release();
   }
+
+  await migrateLegacyData();
+}
+
+// One-off data cleanups that can run against a live DB without schema changes.
+// Safe to re-run — each step is idempotent.
+async function migrateLegacyData() {
+  const client = await pool.connect();
+  try {
+    // Collapse the removed 'team' recordAccess into 'all'. The value was
+    // accepted by an early version of the platform invite flow but never
+    // enforced in any service, so treating it as 'all' matches the actual
+    // server behavior that users have been observing.
+    const res = await client.query(
+      `UPDATE app_permissions SET record_access = 'all' WHERE record_access = 'team'`,
+    );
+    if (res.rowCount && res.rowCount > 0) {
+      logger.info({ rowsUpdated: res.rowCount }, 'Migrated legacy recordAccess=team to all');
+    }
+  } catch (err) {
+    // Table might not exist on a brand-new install before bootstrap ran —
+    // that's fine, nothing to migrate.
+    logger.debug({ err }, 'Legacy data migration skipped');
+  } finally {
+    client.release();
+  }
 }

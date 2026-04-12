@@ -11,6 +11,7 @@ import { Select } from '../../../../components/ui/select';
 import { Avatar } from '../../../../components/ui/avatar';
 import { Badge } from '../../../../components/ui/badge';
 import { Tooltip } from '../../../../components/ui/tooltip';
+import { useAuthStore } from '../../../../stores/auth-store';
 import { formatRelativeDate } from '../../../../lib/drive-utils';
 import type { DriveItem, DriveShareLink, TenantUser } from '@atlas-platform/shared';
 
@@ -42,22 +43,30 @@ export function ShareModal({
   defaultExpiry,
 }: ShareModalProps) {
   const { t } = useTranslation();
+  const currentUserId = useAuthStore((s) => {
+    // Each account row stores the tenant userId in `userId`. Fall back to
+    // account.id only if the row shape doesn't carry it for some reason.
+    const acct = s.account;
+    return (acct?.userId ?? acct?.id ?? null) as string | null;
+  });
   const [shareUserId, setShareUserId] = useState<string>('');
   const [sharePermission, setSharePermission] = useState<string>('view');
   const [shareExpiry, setShareExpiry] = useState<string>(defaultExpiry || 'never');
   const [sharePassword, setSharePassword] = useState('');
   const [sharePasswordEnabled, setSharePasswordEnabled] = useState(false);
 
+  const handleClose = () => {
+    setShareModalItem(null);
+    setShareUserId('');
+    setSharePermission('view');
+    setSharePassword('');
+    setSharePasswordEnabled(false);
+  };
+
   return (
     <Modal
       open={!!shareModalItem}
-      onOpenChange={() => {
-        setShareModalItem(null);
-        setShareUserId('');
-        setSharePermission('view');
-        setSharePassword('');
-        setSharePasswordEnabled(false);
-      }}
+      onOpenChange={handleClose}
       width={480}
       title={t('drive.sharing.shareTitle', { name: shareModalItem?.name || '' })}
     >
@@ -76,6 +85,9 @@ export function ShareModal({
                 { value: '', label: t('drive.sharing.selectUser') },
                 ...(tenantUsersData ?? [])
                   .filter((u) => {
+                    // Hide self — you can't share a file with yourself.
+                    if (currentUserId && u.userId === currentUserId) return false;
+                    // Hide users the file is already shared with.
                     const alreadyShared = (itemSharesData ?? []).map((s) => s.sharedWithUserId);
                     return !alreadyShared.includes(u.userId);
                   })
@@ -238,6 +250,9 @@ export function ShareModal({
             </div>
           )}
         </div>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 4, marginBottom: 8 }}>
+          {t('drive.sharing.autoSaveHint')}
+        </div>
         {shareLinksData && shareLinksData.links.length > 0 && (
           <div className="drive-share-links-list">
             {shareLinksData.links.map((link) => {
@@ -301,6 +316,21 @@ export function ShareModal({
             })}
           </div>
         )}
+      </div>
+
+      {/* Footer: explicit Done button. All share actions auto-save on click,
+          so this only closes the dialog — kept to make the close affordance
+          obvious since the modal's X can be hard to spot. */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: 'var(--spacing-sm)',
+        padding: 'var(--spacing-md) var(--spacing-xl)',
+        borderTop: '1px solid var(--color-border-secondary)',
+      }}>
+        <Button variant="secondary" size="sm" onClick={handleClose}>
+          {t('common.close')}
+        </Button>
       </div>
     </Modal>
   );

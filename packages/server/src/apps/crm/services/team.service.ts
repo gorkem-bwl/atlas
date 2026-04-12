@@ -1,3 +1,8 @@
+// CRM Sales Teams are a display-only grouping. They have NO authorization
+// meaning — queries in crm/services never filter by teamId. Do not wire
+// record-level scoping into them. The unified RBAC system uses AppRole +
+// recordAccess ('all' | 'own') and has no concept of per-team access. If
+// that ever changes, touch this comment first.
 import { db } from '../../../config/database';
 import { crmTeams, crmTeamMembers, users } from '../../../db/schema';
 import { eq, and, asc } from 'drizzle-orm';

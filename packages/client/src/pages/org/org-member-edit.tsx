@@ -109,7 +109,7 @@ export function OrgMemberEditPage() {
       label: 'Sales team',
       apply: () => {
         setDraftPerms({
-          crm: { role: 'editor' as AppRole, recordAccess: 'team' as AppRecordAccess },
+          crm: { role: 'editor' as AppRole, recordAccess: 'all' as AppRecordAccess },
           tasks: { role: 'editor' as AppRole, recordAccess: 'all' as AppRecordAccess },
           drive: { role: 'editor' as AppRole, recordAccess: 'all' as AppRecordAccess },
           docs: { role: 'editor' as AppRole, recordAccess: 'all' as AppRecordAccess },
