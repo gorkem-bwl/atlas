@@ -567,8 +567,6 @@
 .tables-grid-container .ag-theme-quartz-dark {
   height: 100%;
   width: 100%;
-  min-width: 0;
-  max-width: 100%;
   --ag-font-family: var(--font-family);
   --ag-font-size: 13px;
   --ag-header-background-color: #f5f5f5;

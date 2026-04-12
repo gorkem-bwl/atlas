@@ -218,6 +218,7 @@ export function TablesPage() {
                       onCellClicked={handleCellClickedWithAttachment} onCellEditingStarted={() => clearRange()}
                       onColumnResized={handleColumnResized} onColumnMoved={handleColumnMoved}
                       rowDragManaged={false} onRowDragEnd={handleRowDragEnd} animateRows={true} undoRedoCellEditing={false}
+                      suppressDragLeaveHidesColumns={true}
                       suppressMoveWhenRowDragging={true} rowSelection={{ mode: 'multiRow', checkboxes: false, headerCheckbox: false }}
                       onSelectionChanged={handleSelectionChanged}
                       ensureDomOrder={true} suppressContextMenu={true} onCellContextMenu={handleCellContextMenu}
