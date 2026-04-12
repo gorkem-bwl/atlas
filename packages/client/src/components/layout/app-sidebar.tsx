@@ -101,7 +101,7 @@ export function AppSidebar({
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'var(--color-bg-secondary)',
+          background: 'var(--sidebar-bg)',
           overflow: 'hidden',
           fontFamily: 'var(--font-family)',
         }}
@@ -254,24 +254,26 @@ export function SidebarItem({ label, icon, iconColor, isActive, count, onClick, 
         padding: '0 8px',
         borderRadius: 'var(--radius-sm)',
         border: 'none',
-        background: isActive ? 'var(--color-surface-selected)' : 'transparent',
-        color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-        fontSize: 'var(--font-size-sm)',
+        background: isActive ? 'var(--sidebar-active)' : 'transparent',
+        color: 'var(--sidebar-text)',
+        fontSize: 13,
+        fontWeight: 500,
+        lineHeight: '20px',
         fontFamily: 'var(--font-family)',
         cursor: 'pointer',
         textAlign: 'left',
-        transition: 'background 0.1s, color 0.1s',
+        transition: 'background 0.1s',
         ...style,
       }}
       onMouseEnter={(e) => {
-        if (!isActive) e.currentTarget.style.background = 'var(--color-surface-hover)';
+        if (!isActive) e.currentTarget.style.background = 'var(--sidebar-hover)';
       }}
       onMouseLeave={(e) => {
         if (!isActive) e.currentTarget.style.background = 'transparent';
       }}
     >
       {icon && (
-        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', opacity: 0.85, color: iconColor || 'inherit' }}>
+        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--sidebar-text)' }}>
           {icon}
         </span>
       )}

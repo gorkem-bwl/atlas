@@ -71,6 +71,10 @@
   --sidebar-width: 220px;
   --email-list-width: 400px;
   --header-height: 48px;
+  --sidebar-bg: #FBFAFB;
+  --sidebar-text: rgb(18, 18, 18);
+  --sidebar-active: #F0F0F1;
+  --sidebar-hover: #F5F5F6;
 }
 
 [data-theme="dark"] {
@@ -114,6 +118,10 @@
   --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
   --gradient-card-subtle: linear-gradient(135deg, var(--color-bg-elevated) 0%, color-mix(in srgb, var(--color-bg-tertiary) 30%, var(--color-bg-elevated)) 100%);
   --gradient-accent-subtle: linear-gradient(135deg, color-mix(in srgb, var(--color-accent-primary) 8%, var(--color-bg-elevated)) 0%, var(--color-bg-elevated) 100%);
+  --sidebar-bg: #181a1e;
+  --sidebar-text: #f0f1f4;
+  --sidebar-active: #262a33;
+  --sidebar-hover: #2e323c;
 }
 
 [data-density="compact"] {
