@@ -1,5 +1,6 @@
-import { useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isTenantOwner } from '@atlas-platform/shared';
 import { useAuthStore } from '../../stores/auth-store';
 import { useMyTenants } from '../../hooks/use-platform';
 import { useTenantAppsAdmin, useToggleTenantApp } from '../../hooks/use-tenant-app-admin';
@@ -45,7 +46,12 @@ export function OrgAppsPage() {
 
   const { data: tenantApps, isLoading: appsLoading } = useTenantAppsAdmin(effectiveTenantId);
   const toggleMutation = useToggleTenantApp(effectiveTenantId);
-  const allApps = appRegistry.getAll();
+  const tenantRole = useAuthStore((s) => s.tenantRole);
+  const isOwner = isTenantOwner(tenantRole);
+  const allApps = useMemo(
+    () => appRegistry.getAll().filter(app => app.id !== 'system' || isOwner),
+    [isOwner],
+  );
 
   const enabledSet = new Set(
     (tenantApps ?? []).filter((a) => a.isEnabled).map((a) => a.appId),
