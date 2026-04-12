@@ -402,8 +402,8 @@
     "ai": "Intelligenza artificiale",
     "font": "Carattere",
     "fontDescription": "Scegli il carattere utilizzato nell'applicazione",
-    "tenantDefaults": "Impostazioni predefinite del tenant",
-    "tenantDefaultsDesc": "Valori condivisi tra tutti gli utenti e le app di questo tenant",
+    "tenantDefaults": "Impostazioni predefinite dell'organizzazione",
+    "tenantDefaultsDesc": "Valori condivisi tra tutti gli utenti e le app di questa organizzazione",
     "tenantDefaultCurrency": "Valuta predefinita",
     "tenantDefaultCurrencyDesc": "Utilizzato da Progetti, Fatture e altre app che tracciano denaro"
   },
@@ -1419,7 +1419,11 @@
       "assignedTo": "Assegnato a",
       "assignee": "Responsabile",
       "unassigned": "Non assegnato",
-      "assignToMe": "Assegna a me"
+      "assignToMe": "Assegna a me",
+      "description": "Descrizione",
+      "date": "Data",
+      "status": "Stato",
+      "open": "Aperto"
     },
     "automations": {
       "title": "Automazioni",
@@ -2690,7 +2694,11 @@
         "selectHint": "Seleziona una politica per vedere i dettagli",
         "deleteTitle": "Elimina politica",
         "deleteDesc": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata.",
-        "namePlaceholder": "Nome della politica"
+        "namePlaceholder": "Nome della politica",
+        "nameDesc": "Un nome breve per questa politica, ad es. 'Standard' o 'Dirigente'",
+        "monthlyLimitDesc": "Le spese superiori a questo importo verranno segnalate per una revisione aggiuntiva",
+        "receiptAboveDesc": "Le ricevute saranno richieste per le spese superiori a questo importo",
+        "autoApproveDesc": "Le spese inferiori a questo importo verranno approvate automaticamente"
       },
       "reports": {
         "createReport": "Crea report",
@@ -2748,6 +2756,7 @@
         "icon": "Icona",
         "receipt": "Ricevuta",
         "required": "Richiesta",
+        "optional": "Facoltativo",
         "namePlaceholder": "Nome della categoria",
         "maxAmountPlaceholder": "Nessun limite",
         "requireReceipt": "Richiedi ricevuta",
@@ -3045,7 +3054,7 @@
       "title": "Autorizzazioni",
       "columnUser": "Utente",
       "ownerBadge": "Proprietario",
-      "inheritedTooltip": "Ereditato dal ruolo del tenant. Clicca per sovrascrivere.",
+      "inheritedTooltip": "Ereditato dal ruolo dell'organizzazione. Clicca per sovrascrivere.",
       "resetButton": "Ripristina predefinito",
       "roleAdmin": "Amministratore",
       "roleEditor": "Editor",
@@ -3569,7 +3578,7 @@
     "restrictAccess": "Limita accesso alle app",
     "defaultAccess": "I membri hanno accesso completo a tutte le app abilitate per impostazione predefinita.",
     "defaultRole": "Predefinito",
-    "defaultRoleDesc": "Accesso completo basato sul ruolo del tenant",
+    "defaultRoleDesc": "Accesso completo basato sul ruolo dell'organizzazione",
     "appAccess": "Accesso alle app",
     "atlasApps": "App Atlas",
     "appsDescription": "Abilita o disabilita le app Atlas integrate per la tua organizzazione.",
@@ -3583,7 +3592,11 @@
       "docsDesc": "Documenti di testo arricchito con modifica in tempo reale, modelli e collaborazione.",
       "drawDesc": "Lavagna e strumento per diagrammi per schizzi, diagrammi di flusso e idee visive.",
       "projectsDesc": "Monitoraggio del tempo, fatturazione e gestione progetti per il lavoro con i clienti."
-    }
+    },
+    "manager": "Responsabile (facoltativo)",
+    "managerNone": "Nessuno",
+    "inviteLinkNote": "L'utente riceverà un link di invito per configurare il proprio account.",
+    "appAccessNudge": "Dopo l'invito, visita il profilo del membro per configurare a quali app può accedere e il livello di autorizzazione."
   },
   "permissions": {
     "title": "Permessi di {{appName}}",

@@ -402,8 +402,8 @@
     "ai": "Intelligence artificielle",
     "font": "Police",
     "fontDescription": "Choisissez la police utilisée dans l'application",
-    "tenantDefaults": "Valeurs par défaut du locataire",
-    "tenantDefaultsDesc": "Valeurs partagées entre tous les utilisateurs et applications de ce locataire",
+    "tenantDefaults": "Valeurs par défaut de l'organisation",
+    "tenantDefaultsDesc": "Valeurs partagées entre tous les utilisateurs et applications de cette organisation",
     "tenantDefaultCurrency": "Devise par défaut",
     "tenantDefaultCurrencyDesc": "Utilisée par Projets, Factures et les autres applications qui suivent l'argent"
   },
@@ -1417,7 +1417,11 @@
       "assignedTo": "Assigné à",
       "assignee": "Responsable",
       "unassigned": "Non assigné",
-      "assignToMe": "M'assigner"
+      "assignToMe": "M'assigner",
+      "description": "Description",
+      "date": "Date",
+      "status": "Statut",
+      "open": "Ouvert"
     },
     "automations": {
       "title": "Automatisations",
@@ -2688,7 +2692,11 @@
         "selectHint": "Sélectionnez une politique pour voir les détails",
         "deleteTitle": "Supprimer la politique",
         "deleteDesc": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible.",
-        "namePlaceholder": "Nom de la politique"
+        "namePlaceholder": "Nom de la politique",
+        "nameDesc": "Un nom court pour cette politique, par ex. 'Standard' ou 'Direction'",
+        "monthlyLimitDesc": "Les dépenses au-dessus de ce montant seront signalées pour un examen supplémentaire",
+        "receiptAboveDesc": "Les reçus seront requis pour les dépenses au-dessus de ce montant",
+        "autoApproveDesc": "Les dépenses en dessous de ce montant seront automatiquement approuvées"
       },
       "reports": {
         "createReport": "Créer un rapport",
@@ -2746,6 +2754,7 @@
         "icon": "Icône",
         "receipt": "Reçu",
         "required": "Requis",
+        "optional": "Facultatif",
         "namePlaceholder": "Nom de la catégorie",
         "maxAmountPlaceholder": "Pas de limite",
         "requireReceipt": "Reçu requis",
@@ -3043,7 +3052,7 @@
       "title": "Autorisations",
       "columnUser": "Utilisateur",
       "ownerBadge": "Propriétaire",
-      "inheritedTooltip": "Hérité du rôle du locataire. Cliquez pour remplacer.",
+      "inheritedTooltip": "Hérité du rôle de l'organisation. Cliquez pour remplacer.",
       "resetButton": "Réinitialiser",
       "roleAdmin": "Administrateur",
       "roleEditor": "Éditeur",
@@ -3567,7 +3576,7 @@
     "restrictAccess": "Restreindre l'accès aux apps",
     "defaultAccess": "Les membres ont un accès complet à toutes les apps activées par défaut.",
     "defaultRole": "Par défaut",
-    "defaultRoleDesc": "Accès complet basé sur le rôle du locataire",
+    "defaultRoleDesc": "Accès complet basé sur le rôle de l'organisation",
     "appAccess": "Accès aux apps",
     "atlasApps": "Applications Atlas",
     "appsDescription": "Activez ou désactivez les applications Atlas intégrées pour votre organisation.",
@@ -3581,7 +3590,11 @@
       "docsDesc": "Documents texte enrichi avec édition en temps réel, modèles et collaboration.",
       "drawDesc": "Tableau blanc et outil de diagramme pour croquis, organigrammes et idées visuelles.",
       "projectsDesc": "Suivi du temps, facturation et gestion de projet pour le travail client."
-    }
+    },
+    "manager": "Responsable (facultatif)",
+    "managerNone": "Aucun",
+    "inviteLinkNote": "L'utilisateur recevra un lien d'invitation pour configurer son compte.",
+    "appAccessNudge": "Après l'invitation, visitez le profil du membre pour configurer les applications accessibles et le niveau de permission."
   },
   "permissions": {
     "title": "Permissions de {{appName}}",

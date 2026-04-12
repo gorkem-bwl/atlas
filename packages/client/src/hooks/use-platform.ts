@@ -29,6 +29,19 @@ export function useCreateTenant() {
   });
 }
 
+export function useUpdateTenantName() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ tenantId, name }: { tenantId: string; name: string }) => {
+      const { data } = await api.patch(`/platform/tenants/${tenantId}`, { name });
+      return data.data as Tenant;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.tenants });
+    },
+  });
+}
+
 // ─── Tenant Users ───────────────────────────────────────────────────
 
 export function useTenantUsers(tenantId: string | undefined) {

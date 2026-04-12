@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../../../../lib/format';
-import { Clock } from 'lucide-react';
+import { Clock, Calendar, User, FileText, Tag } from 'lucide-react';
 import type { CrmActivity } from '../../hooks';
-import { getActivityIcon, getActivityLabel } from '../../lib/crm-helpers';
+import { getActivityIcon, getActivityLabel, getActivityDueStatus, getActivityDueLabel, DUE_STATUS_COLORS } from '../../lib/crm-helpers';
+import { DataTable, type DataTableColumn } from '../../../../components/ui/data-table';
+import { Badge } from '../../../../components/ui/badge';
 
 export function ActivitiesListView({
   activities, searchQuery,
@@ -21,6 +23,109 @@ export function ActivitiesListView({
     );
   }, [activities, searchQuery]);
 
+  const columns: DataTableColumn<CrmActivity>[] = useMemo(() => [
+    {
+      key: 'type',
+      label: t('crm.activities.type'),
+      icon: <Tag size={12} />,
+      width: 120,
+      sortable: true,
+      compare: (a, b) => a.type.localeCompare(b.type),
+      searchValue: (item) => getActivityLabel(item.type, t),
+      render: (item) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+          {getActivityIcon(item.type)}
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', textTransform: 'capitalize' }}>
+            {getActivityLabel(item.type, t)}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'body',
+      label: t('crm.activities.description'),
+      icon: <FileText size={12} />,
+      sortable: true,
+      compare: (a, b) => a.body.localeCompare(b.body),
+      searchValue: (item) => item.body,
+      render: (item) => (
+        <span
+          style={{
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-text-primary)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            ...(item.completedAt ? { textDecoration: 'line-through', opacity: 0.6 } : {}),
+          }}
+        >
+          {item.body}
+        </span>
+      ),
+    },
+    {
+      key: 'assignedUser',
+      label: t('crm.activities.assignedTo'),
+      icon: <User size={12} />,
+      width: 140,
+      sortable: true,
+      compare: (a, b) => (a.assignedUserName || '').localeCompare(b.assignedUserName || ''),
+      searchValue: (item) => item.assignedUserName || '',
+      render: (item) => (
+        <span className="dt-cell-secondary">
+          {item.assignedUserName || '\u2014'}
+        </span>
+      ),
+    },
+    {
+      key: 'date',
+      label: t('crm.activities.date'),
+      icon: <Calendar size={12} />,
+      width: 120,
+      sortable: true,
+      compare: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      searchValue: (item) => formatDate(item.createdAt),
+      render: (item) => (
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+          {formatDate(item.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: t('crm.activities.status'),
+      icon: <Clock size={12} />,
+      width: 120,
+      sortable: true,
+      compare: (a, b) => {
+        if (a.completedAt && !b.completedAt) return 1;
+        if (!a.completedAt && b.completedAt) return -1;
+        return 0;
+      },
+      searchValue: (item) => item.completedAt ? t('crm.activities.completed') : (getActivityDueLabel(item, t) || t('crm.activities.open')),
+      render: (item) => {
+        if (item.completedAt) {
+          return <Badge variant="success">{t('crm.activities.completed')}</Badge>;
+        }
+        const dueStatus = getActivityDueStatus(item);
+        const dueLabel = getActivityDueLabel(item, t);
+        if (dueLabel) {
+          return (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              fontSize: 'var(--font-size-xs)', color: DUE_STATUS_COLORS[dueStatus],
+              fontWeight: 'var(--font-weight-medium)',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: DUE_STATUS_COLORS[dueStatus], flexShrink: 0 }} />
+              {dueLabel}
+            </span>
+          );
+        }
+        return <Badge variant="default">{t('crm.activities.open')}</Badge>;
+      },
+    },
+  ], [t]);
+
   if (filtered.length === 0) {
     return (
       <div className="crm-empty-state">
@@ -31,45 +136,18 @@ export function ActivitiesListView({
     );
   }
 
-  // Group by date
-  const grouped = useMemo(() => {
-    const map: Record<string, CrmActivity[]> = {};
-    for (const a of filtered) {
-      const date = formatDate(a.createdAt);
-      if (!map[date]) map[date] = [];
-      map[date].push(a);
-    }
-    return Object.entries(map);
-  }, [filtered]);
-
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-lg)' }}>
-      {grouped.map(([date, items]) => (
-        <div key={date} style={{ marginBottom: 'var(--spacing-xl)' }}>
-          <div style={{
-            fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em',
-            marginBottom: 'var(--spacing-sm)', fontFamily: 'var(--font-family)',
-          }}>
-            {date}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {items.map((activity) => (
-              <div key={activity.id} className="crm-activity-item">
-                <div className="crm-activity-icon">
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="crm-activity-body">
-                  <div className="crm-activity-text">{activity.body}</div>
-                  <div className="crm-activity-meta">
-                    {getActivityLabel(activity.type, t)} &middot; {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+      <DataTable
+        data={filtered}
+        columns={columns}
+        storageKey="crm-activities"
+        paginated={filtered.length > 25}
+        defaultPageSize={25}
+        emptyIcon={<Clock size={40} />}
+        emptyTitle={t('crm.activities.noActivities')}
+        emptyDescription={t('crm.empty.logFirstActivity')}
+      />
     </div>
   );
 }

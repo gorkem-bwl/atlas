@@ -9,6 +9,7 @@ router.use(authMiddleware);
 router.post('/tenants', ctrl.createTenant);
 router.get('/tenants', ctrl.listMyTenants);
 router.get('/tenants/:id', ctrl.getTenant);
+router.patch('/tenants/:id', ctrl.updateTenant);
 
 // ─── Tenant Users ───────────────────────────────────────────────────
 router.get('/tenants/:id/users', ctrl.listTenantUsers);

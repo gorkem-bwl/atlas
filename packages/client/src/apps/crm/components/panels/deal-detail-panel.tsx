@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDate, formatCurrency } from '../../../../lib/format';
 import { Building2, Users, X, Trash2, Trophy, XCircle } from 'lucide-react';
 import {
-  useUpdateDeal, useDeleteDeal, useActivities,
+  useUpdateDeal, useDeleteDeal, useActivities, useCompanies,
   useMyCrmPermission, canAccess,
   type CrmDeal, type CrmDealStage,
 } from '../../hooks';
@@ -18,6 +18,7 @@ import { ConfirmDialog } from '../../../../components/ui/confirm-dialog';
 import { StatusDot } from '../../../../components/ui/status-dot';
 import { EmailTimeline } from '../email-timeline';
 import { NotesSection } from '../notes-section';
+import { CompanyLogo } from '../../lib/crm-helpers';
 
 export function DealDetailPanel({
   deal, stages, onClose, onMarkWon, onMarkLost, onContactClick, onCompanyClick,
@@ -40,6 +41,8 @@ export function DealDetailPanel({
   const deleteDeal = useDeleteDeal();
   const { data: activitiesData } = useActivities({ dealId: deal.id });
   const activities = activitiesData?.activities ?? [];
+  const { data: companiesData } = useCompanies();
+  const companyDomain = deal.companyId ? companiesData?.companies?.find((c) => c.id === deal.companyId)?.domain : null;
 
   useEffect(() => {
     setStageId(deal.stageId);
@@ -111,7 +114,7 @@ export function DealDetailPanel({
                 style={{ fontSize: 'var(--font-size-sm)', color: deal.companyId && onCompanyClick ? 'var(--color-accent-primary)' : 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', cursor: deal.companyId && onCompanyClick ? 'pointer' : 'default' }}
                 onClick={() => { if (deal.companyId && onCompanyClick) onCompanyClick(deal.companyId); }}
               >
-                <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                {companyDomain ? <CompanyLogo domain={companyDomain} size={20} /> : <Building2 size={14} style={{ color: 'var(--color-text-tertiary)' }} />}
                 {deal.companyName}
               </div>
             </div>

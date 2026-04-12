@@ -49,13 +49,13 @@ export function NameAvatar({ name }: { name: string }) {
   );
 }
 
-export function CompanyLogo({ domain }: { domain: string | null | undefined }) {
+export function CompanyLogo({ domain, size = 20 }: { domain: string | null | undefined; size?: number }) {
   if (!domain) return null;
   return (
     <img
-      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
-      width={16} height={16}
-      style={{ borderRadius: 2, flexShrink: 0 }}
+      src={`https://api.companyenrich.com/logo/${domain}`}
+      width={size} height={size}
+      style={{ borderRadius: 'var(--radius-sm)', flexShrink: 0, objectFit: 'contain' }}
       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
       alt=""
     />

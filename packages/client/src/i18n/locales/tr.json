@@ -402,8 +402,8 @@
     "ai": "Yapay Zeka",
     "font": "Yazı tipi",
     "fontDescription": "Uygulama genelinde kullanılan yazı tipini seçin",
-    "tenantDefaults": "Kiracı varsayılanları",
-    "tenantDefaultsDesc": "Bu kiracıdaki tüm kullanıcılar ve uygulamalar arasında paylaşılan değerler",
+    "tenantDefaults": "Organizasyon varsayılanları",
+    "tenantDefaultsDesc": "Bu organizasyondaki tüm kullanıcılar ve uygulamalar arasında paylaşılan değerler",
     "tenantDefaultCurrency": "Varsayılan para birimi",
     "tenantDefaultCurrencyDesc": "Para izleyen Projeler, Faturalar ve diğer uygulamalar tarafından kullanılır"
   },
@@ -1414,7 +1414,11 @@
       "assignedTo": "Atanan kişi",
       "assignee": "Sorumlu",
       "unassigned": "Atanmamış",
-      "assignToMe": "Bana ata"
+      "assignToMe": "Bana ata",
+      "description": "Açıklama",
+      "date": "Tarih",
+      "status": "Durum",
+      "open": "Açık"
     },
     "automations": {
       "title": "Otomasyonlar",
@@ -2685,7 +2689,11 @@
         "selectHint": "Detayları görmek için bir politika seçin",
         "deleteTitle": "Politikayı sil",
         "deleteDesc": "\"{{name}}\" politikasını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-        "namePlaceholder": "Politika adı"
+        "namePlaceholder": "Politika adı",
+        "nameDesc": "Bu politika için kısa bir ad, ör. 'Standart' veya 'Yönetici'",
+        "monthlyLimitDesc": "Bu tutarın üzerindeki harcamalar ek inceleme için işaretlenir",
+        "receiptAboveDesc": "Bu tutarın üzerindeki harcamalar için fiş gerekli olacaktır",
+        "autoApproveDesc": "Bu tutarın altındaki harcamalar otomatik olarak onaylanır"
       },
       "reports": {
         "createReport": "Rapor oluştur",
@@ -2743,6 +2751,7 @@
         "icon": "Simge",
         "receipt": "Fiş",
         "required": "Gerekli",
+        "optional": "İsteğe bağlı",
         "namePlaceholder": "Kategori adı",
         "maxAmountPlaceholder": "Limit yok",
         "requireReceipt": "Fiş gerekli",
@@ -3040,7 +3049,7 @@
       "title": "İzinler",
       "columnUser": "Kullanıcı",
       "ownerBadge": "Sahip",
-      "inheritedTooltip": "Kiracı rolünden devralındı. Geçersiz kılmak için tıklayın.",
+      "inheritedTooltip": "Organizasyon rolünden devralındı. Geçersiz kılmak için tıklayın.",
       "resetButton": "Varsayılana sıfırla",
       "roleAdmin": "Yönetici",
       "roleEditor": "Editör",
@@ -3564,7 +3573,7 @@
     "restrictAccess": "Uygulama erişimini kısıtla",
     "defaultAccess": "Üyeler varsayılan olarak tüm etkin uygulamalara tam erişime sahiptir.",
     "defaultRole": "Varsayılan",
-    "defaultRoleDesc": "Kiracı rolüne dayalı tam erişim",
+    "defaultRoleDesc": "Organizasyon rolüne dayalı tam erişim",
     "appAccess": "Uygulama erişimi",
     "atlasApps": "Atlas uygulamaları",
     "appsDescription": "Organizasyonunuz için yerleşik Atlas uygulamalarını etkinleştirin veya devre dışı bırakın.",
@@ -3578,7 +3587,11 @@
       "docsDesc": "Gerçek zamanlı düzenleme, şablonlar ve iş birliği ile zengin metin belgeleri.",
       "drawDesc": "Eskizler, akış şemaları ve görsel fikirler için beyaz tahta ve diyagram aracı.",
       "projectsDesc": "Müşteri çalışmaları için zaman takibi, faturalandırma ve proje yönetimi."
-    }
+    },
+    "manager": "Yönetici (isteğe bağlı)",
+    "managerNone": "Yok",
+    "inviteLinkNote": "Kullanıcı hesabını oluşturmak için bir davet bağlantısı alacaktır.",
+    "appAccessNudge": "Davet ettikten sonra, üyenin profilini ziyaret ederek hangi uygulamalara erişebileceğini ve izin seviyesini yapılandırabilirsiniz."
   },
   "permissions": {
     "title": "{{appName}} yetkileri",

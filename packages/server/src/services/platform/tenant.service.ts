@@ -70,6 +70,15 @@ export async function addTenantMember(tenantId: string, userId: string, role: st
   await db.insert(tenantMembers).values({ tenantId, userId, role }).onConflictDoNothing();
 }
 
+export async function updateTenantName(tenantId: string, name: string) {
+  const [updated] = await db
+    .update(tenants)
+    .set({ name, updatedAt: new Date() })
+    .where(eq(tenants.id, tenantId))
+    .returning();
+  return updated;
+}
+
 export async function updateTenantPlan(tenantId: string, plan: TenantPlan) {
   const [updated] = await db
     .update(tenants)

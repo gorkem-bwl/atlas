@@ -6,14 +6,18 @@ import {
   Calendar,
   Copy,
   Check,
+  Pencil,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth-store';
-import { useMyTenants, useTenantUsers } from '../../hooks/use-platform';
+import { useMyTenants, useTenantUsers, useUpdateTenantName } from '../../hooks/use-platform';
 import { useAllTenantPermissions } from '../../hooks/use-app-permissions';
 import { Chip } from '../../components/ui/chip';
 import { AlertBanner } from '../../components/ui/alert-banner';
 import { Skeleton } from '../../components/ui/skeleton';
 import { IconButton } from '../../components/ui/icon-button';
+import { Input } from '../../components/ui/input';
+import { Button } from '../../components/ui/button';
 
 // ---------------------------------------------------------------------------
 // Styles
@@ -203,6 +207,11 @@ export function OrgSettingsPage() {
     );
   }
 
+  const isOwner = tenant.role === 'owner';
+  const updateTenantName = useUpdateTenantName();
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+
   const memberCount = users?.length ?? 0;
 
   // Count members without explicit HR app permission (non-admin/owner)
@@ -226,7 +235,7 @@ export function OrgSettingsPage() {
           Organization settings
         </h2>
         <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', margin: '4px 0 0' }}>
-          View your organization details and infrastructure configuration. {memberCount} team member{memberCount !== 1 ? 's' : ''} in this organization.
+          {memberCount} team member{memberCount !== 1 ? 's' : ''} in this organization.
         </p>
       </div>
 
@@ -238,7 +247,62 @@ export function OrgSettingsPage() {
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Name</span>
-          <span style={valueStyle}>{tenant.name}</span>
+          {editingName ? (
+            <div style={{ ...valueStyle, display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+              <Input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                size="sm"
+                autoFocus
+                style={{ flex: 1, maxWidth: 300 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && nameInput.trim()) {
+                    updateTenantName.mutate({ tenantId: tenant.id, name: nameInput.trim() }, {
+                      onSuccess: () => setEditingName(false),
+                    });
+                  }
+                  if (e.key === 'Escape') setEditingName(false);
+                }}
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  if (nameInput.trim()) {
+                    updateTenantName.mutate({ tenantId: tenant.id, name: nameInput.trim() }, {
+                      onSuccess: () => setEditingName(false),
+                    });
+                  }
+                }}
+                disabled={!nameInput.trim() || updateTenantName.isPending}
+              >
+                Save
+              </Button>
+              <IconButton
+                icon={<X size={13} />}
+                label="Cancel"
+                size={24}
+                onClick={() => setEditingName(false)}
+              />
+            </div>
+          ) : (
+            <div style={{ ...valueStyle, display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+              <span>{tenant.name}</span>
+              {isOwner && (
+                <IconButton
+                  icon={<Pencil size={13} />}
+                  label="Edit name"
+                  size={24}
+                  tooltip
+                  tooltipSide="top"
+                  onClick={() => {
+                    setNameInput(tenant.name);
+                    setEditingName(true);
+                  }}
+                />
+              )}
+            </div>
+          )}
         </div>
         <div style={rowStyle}>
           <span style={labelStyle}>Organization ID</span>

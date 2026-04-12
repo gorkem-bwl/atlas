@@ -1,3 +1,9 @@
+/* ─── Sidebar sections ─────────────────────────────────────────── */
+
+.app-sidebar-section + .app-sidebar-section {
+  border-top: 1px solid var(--color-border-secondary);
+}
+
 /* ─── Shared context menu ──────────────────────────────────────── */
 
 .context-menu {

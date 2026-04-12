@@ -115,6 +115,30 @@ export async function getTenant(req: Request, res: Response) {
   }
 }
 
+export async function updateTenant(req: Request, res: Response) {
+  try {
+    if (req.auth!.tenantRole !== 'owner') {
+      res.status(403).json({ success: false, error: 'Only the owner can update organization settings' });
+      return;
+    }
+    const tenantId = param(req, 'id');
+    const { name } = req.body;
+    if (!name || typeof name !== 'string' || name.trim().length === 0 || name.length > 200) {
+      res.status(400).json({ success: false, error: 'Valid name is required (max 200 characters)' });
+      return;
+    }
+    const updated = await tenantService.updateTenantName(tenantId, name.trim());
+    if (!updated) {
+      res.status(404).json({ success: false, error: 'Tenant not found' });
+      return;
+    }
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update tenant');
+    res.status(500).json({ success: false, error: 'Failed to update tenant' });
+  }
+}
+
 // ─── Tenant Users ────────────────────────────────────────────────────
 
 export async function listTenantUsers(req: Request, res: Response) {

@@ -192,14 +192,14 @@ export function ExpenseCategoriesView() {
                 color: 'var(--color-text-secondary)',
                 fontFamily: 'var(--font-family)',
               }}>
-                {cat.maxAmount ? formatCurrency(cat.maxAmount) : '\u2014'}
+                {cat.maxAmount ? formatCurrency(cat.maxAmount) : '—'}
               </span>
 
               <span style={{ width: 80 }}>
                 {cat.receiptRequired ? (
                   <Badge variant="warning">{t('hr.expenses.categories.required')}</Badge>
                 ) : (
-                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>\u2014</span>
+                  <Badge variant="default">{t('hr.expenses.categories.optional')}</Badge>
                 )}
               </span>
 

@@ -402,8 +402,8 @@
     "weekStartsOnDesc": "First day of the week in calendars",
     "sunday": "Sunday",
     "monday": "Monday",
-    "tenantDefaults": "Tenant defaults",
-    "tenantDefaultsDesc": "Values shared across all users and apps in this tenant",
+    "tenantDefaults": "Organization defaults",
+    "tenantDefaultsDesc": "Values shared across all users and apps in this organization",
     "tenantDefaultCurrency": "Default currency",
     "tenantDefaultCurrencyDesc": "Used by Projects, Invoices and other apps that track money"
   },
@@ -1443,7 +1443,11 @@
       "assignedTo": "Assigned to",
       "assignee": "Assignee",
       "unassigned": "Unassigned",
-      "assignToMe": "Assign to me"
+      "assignToMe": "Assign to me",
+      "description": "Description",
+      "date": "Date",
+      "status": "Status",
+      "open": "Open"
     },
     "automations": {
       "title": "Automations",
@@ -2718,7 +2722,11 @@
         "selectHint": "Select a policy to view details",
         "deleteTitle": "Delete policy",
         "deleteDesc": "Are you sure you want to delete \"{{name}}\"? This cannot be undone.",
-        "namePlaceholder": "Policy name"
+        "namePlaceholder": "Policy name",
+        "nameDesc": "A short name for this policy, e.g. 'Standard' or 'Executive'",
+        "monthlyLimitDesc": "Expenses above this amount will be flagged for additional review",
+        "receiptAboveDesc": "Receipts will be required for expenses over this amount",
+        "autoApproveDesc": "Expenses under this amount will be automatically approved"
       },
       "reports": {
         "createReport": "Create report",
@@ -2776,6 +2784,7 @@
         "icon": "Icon",
         "receipt": "Receipt",
         "required": "Required",
+        "optional": "Optional",
         "namePlaceholder": "Category name",
         "maxAmountPlaceholder": "No limit",
         "requireReceipt": "Require receipt",
@@ -3073,7 +3082,7 @@
       "title": "Permissions",
       "columnUser": "User",
       "ownerBadge": "Owner",
-      "inheritedTooltip": "Inherited from tenant role. Click to override.",
+      "inheritedTooltip": "Inherited from organization role. Click to override.",
       "resetButton": "Reset to default",
       "roleAdmin": "Admin",
       "roleEditor": "Editor",
@@ -3570,7 +3579,7 @@
     "restrictAccess": "Restrict app access",
     "defaultAccess": "Members have full access to all enabled apps by default.",
     "defaultRole": "Default",
-    "defaultRoleDesc": "Full access based on tenant role",
+    "defaultRoleDesc": "Full access based on organization role",
     "appAccess": "App access",
     "atlasApps": "Atlas apps",
     "appsDescription": "Enable or disable built-in Atlas apps for your organization.",
@@ -3584,7 +3593,11 @@
       "docsDesc": "Rich text documents with real-time editing, templates, and collaboration.",
       "drawDesc": "Whiteboard and diagramming tool for sketches, flowcharts, and visual ideas.",
       "projectsDesc": "Time tracking, invoicing, and project management for client work."
-    }
+    },
+    "manager": "Manager (optional)",
+    "managerNone": "None",
+    "inviteLinkNote": "The user will receive an invitation link to set up their account.",
+    "appAccessNudge": "After inviting, visit the member's profile to configure which apps they can access and their permission level."
   },
   "permissions": {
     "title": "{{appName}} permissions",

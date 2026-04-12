@@ -15,6 +15,7 @@ import { SmartButtonBar } from '../../../../components/shared/SmartButtonBar';
 import { PresenceAvatars } from '../../../../components/shared/presence-avatars';
 import { ConfirmDialog } from '../../../../components/ui/confirm-dialog';
 import { NotesSection } from '../notes-section';
+import { CompanyLogo } from '../../lib/crm-helpers';
 
 export function CompanyDetailPanel({
   company, contacts, deals, onClose, onContactClick, onDealClick,
@@ -67,7 +68,8 @@ export function CompanyDetailPanel({
       <SmartButtonBar appId="crm" recordId={company.id} />
 
       <div className="crm-detail-body">
-        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
+        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <CompanyLogo domain={company.domain} size={32} />
           {company.name}
         </div>
 

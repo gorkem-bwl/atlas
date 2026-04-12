@@ -257,10 +257,19 @@ function PolicyDetail({ policyId, onDelete }: { policyId: string; onDelete: () =
 
         {/* Settings */}
         {isEditing ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
-            <Input label={t('hr.expenses.policies.monthlyLimit')} type="number" value={editMonthly} onChange={(e) => setEditMonthly(e.target.value)} placeholder={t('hr.expenses.policies.noLimit')} />
-            <Input label={t('hr.expenses.policies.receiptAbove')} type="number" value={editReceipt} onChange={(e) => setEditReceipt(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
-            <Input label={t('hr.expenses.policies.autoApprove')} type="number" value={editAutoApprove} onChange={(e) => setEditAutoApprove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
+            <div>
+              <Input label={t('hr.expenses.policies.monthlyLimit')} type="number" value={editMonthly} onChange={(e) => setEditMonthly(e.target.value)} placeholder={t('hr.expenses.policies.noLimit')} />
+              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.monthlyLimitDesc')}</p>
+            </div>
+            <div>
+              <Input label={t('hr.expenses.policies.receiptAbove')} type="number" value={editReceipt} onChange={(e) => setEditReceipt(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.receiptAboveDesc')}</p>
+            </div>
+            <div>
+              <Input label={t('hr.expenses.policies.autoApprove')} type="number" value={editAutoApprove} onChange={(e) => setEditAutoApprove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.autoApproveDesc')}</p>
+            </div>
           </div>
         ) : (
           <div style={{
@@ -269,9 +278,9 @@ function PolicyDetail({ policyId, onDelete }: { policyId: string; onDelete: () =
             gap: 'var(--spacing-md)',
             marginBottom: 'var(--spacing-lg)',
           }}>
-            <SettingItem label={t('hr.expenses.policies.monthlyLimit')} value={policy.monthlyLimit != null ? formatCurrency(policy.monthlyLimit) : '\u2014'} />
-            <SettingItem label={t('hr.expenses.policies.receiptAbove')} value={policy.requireReceiptAbove != null ? formatCurrency(policy.requireReceiptAbove) : '\u2014'} />
-            <SettingItem label={t('hr.expenses.policies.autoApprove')} value={policy.autoApproveBelow != null ? formatCurrency(policy.autoApproveBelow) : '\u2014'} />
+            <SettingItem label={t('hr.expenses.policies.monthlyLimit')} value={policy.monthlyLimit != null ? formatCurrency(policy.monthlyLimit) : '—'} />
+            <SettingItem label={t('hr.expenses.policies.receiptAbove')} value={policy.requireReceiptAbove != null ? formatCurrency(policy.requireReceiptAbove) : '—'} />
+            <SettingItem label={t('hr.expenses.policies.autoApprove')} value={policy.autoApproveBelow != null ? formatCurrency(policy.autoApproveBelow) : '—'} />
           </div>
         )}
 
@@ -335,7 +344,7 @@ function PolicyDetail({ policyId, onDelete }: { policyId: string; onDelete: () =
                       color: 'var(--color-text-primary)',
                       fontFamily: 'var(--font-family)',
                     }}>
-                      {a.employeeName || a.departmentName || '\u2014'}
+                      {a.employeeName || a.departmentName || '—'}
                     </span>
                   </div>
                   <IconButton
@@ -451,11 +460,23 @@ function CreatePolicyModal({ onClose }: { onClose: () => void }) {
     <Modal open onOpenChange={(v) => { if (!v) onClose(); }}>
       <Modal.Header title={t('hr.expenses.policies.add')} />
       <Modal.Body>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          <Input label={t('hr.fields.name')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('hr.expenses.policies.namePlaceholder')} autoFocus />
-          <Input label={t('hr.expenses.policies.monthlyLimit')} type="number" value={monthlyLimit} onChange={(e) => setMonthlyLimit(e.target.value)} placeholder={t('hr.expenses.policies.noLimit')} />
-          <Input label={t('hr.expenses.policies.receiptAbove')} type="number" value={receiptAbove} onChange={(e) => setReceiptAbove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
-          <Input label={t('hr.expenses.policies.autoApprove')} type="number" value={autoApprove} onChange={(e) => setAutoApprove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+          <div>
+            <Input label={t('hr.fields.name')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('hr.expenses.policies.namePlaceholder')} autoFocus />
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.nameDesc')}</p>
+          </div>
+          <div>
+            <Input label={t('hr.expenses.policies.monthlyLimit')} type="number" value={monthlyLimit} onChange={(e) => setMonthlyLimit(e.target.value)} placeholder={t('hr.expenses.policies.noLimit')} />
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.monthlyLimitDesc')}</p>
+          </div>
+          <div>
+            <Input label={t('hr.expenses.policies.receiptAbove')} type="number" value={receiptAbove} onChange={(e) => setReceiptAbove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.receiptAboveDesc')}</p>
+          </div>
+          <div>
+            <Input label={t('hr.expenses.policies.autoApprove')} type="number" value={autoApprove} onChange={(e) => setAutoApprove(e.target.value)} placeholder={t('hr.expenses.policies.noThreshold')} />
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('hr.expenses.policies.autoApproveDesc')}</p>
+          </div>
         </div>
       </Modal.Body>
       <Modal.Footer>

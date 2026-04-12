@@ -402,8 +402,8 @@
     "ai": "Künstliche Intelligenz",
     "font": "Schriftart",
     "fontDescription": "Wählen Sie die Schriftart für die gesamte Anwendung",
-    "tenantDefaults": "Mandant-Standardwerte",
-    "tenantDefaultsDesc": "Werte, die von allen Benutzern und Apps in diesem Mandanten geteilt werden",
+    "tenantDefaults": "Organisations-Standardwerte",
+    "tenantDefaultsDesc": "Werte, die von allen Benutzern und Apps in dieser Organisation geteilt werden",
     "tenantDefaultCurrency": "Standardwährung",
     "tenantDefaultCurrencyDesc": "Wird von Projekte, Rechnungen und anderen Apps verwendet, die Geld verfolgen"
   },
@@ -1420,7 +1420,11 @@
       "assignedTo": "Zugewiesen an",
       "assignee": "Zuständig",
       "unassigned": "Nicht zugewiesen",
-      "assignToMe": "Mir zuweisen"
+      "assignToMe": "Mir zuweisen",
+      "description": "Beschreibung",
+      "date": "Datum",
+      "status": "Status",
+      "open": "Offen"
     },
     "automations": {
       "title": "Automatisierungen",
@@ -2691,7 +2695,11 @@
         "selectHint": "Wählen Sie eine Richtlinie aus, um Details anzuzeigen",
         "deleteTitle": "Richtlinie löschen",
         "deleteDesc": "Möchten Sie \"{{name}}\" wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-        "namePlaceholder": "Richtlinienname"
+        "namePlaceholder": "Richtlinienname",
+        "nameDesc": "Ein kurzer Name für diese Richtlinie, z. B. 'Standard' oder 'Führungskraft'",
+        "monthlyLimitDesc": "Ausgaben über diesem Betrag werden zur zusätzlichen Prüfung markiert",
+        "receiptAboveDesc": "Für Ausgaben über diesem Betrag werden Belege benötigt",
+        "autoApproveDesc": "Ausgaben unter diesem Betrag werden automatisch genehmigt"
       },
       "reports": {
         "createReport": "Bericht erstellen",
@@ -2749,6 +2757,7 @@
         "icon": "Symbol",
         "receipt": "Beleg",
         "required": "Erforderlich",
+        "optional": "Optional",
         "namePlaceholder": "Kategoriename",
         "maxAmountPlaceholder": "Kein Limit",
         "requireReceipt": "Beleg erforderlich",
@@ -3046,7 +3055,7 @@
       "title": "Berechtigungen",
       "columnUser": "Benutzer",
       "ownerBadge": "Inhaber",
-      "inheritedTooltip": "Von der Mandantenrolle geerbt. Klicken zum Überschreiben.",
+      "inheritedTooltip": "Von der Organisationsrolle geerbt. Klicken zum Überschreiben.",
       "resetButton": "Auf Standard zurücksetzen",
       "roleAdmin": "Admin",
       "roleEditor": "Bearbeiter",
@@ -3570,7 +3579,7 @@
     "restrictAccess": "App-Zugriff einschränken",
     "defaultAccess": "Mitglieder haben standardmäßig vollen Zugriff auf alle aktivierten Apps.",
     "defaultRole": "Standard",
-    "defaultRoleDesc": "Voller Zugriff basierend auf Mandantenrolle",
+    "defaultRoleDesc": "Voller Zugriff basierend auf Organisationsrolle",
     "appAccess": "App-Zugriff",
     "atlasApps": "Atlas-Apps",
     "appsDescription": "Aktivieren oder deaktivieren Sie integrierte Atlas-Apps für Ihre Organisation.",
@@ -3584,7 +3593,11 @@
       "docsDesc": "Rich-Text-Dokumente mit Echtzeit-Bearbeitung, Vorlagen und Zusammenarbeit.",
       "drawDesc": "Whiteboard- und Diagrammwerkzeug für Skizzen, Flussdiagramme und visuelle Ideen.",
       "projectsDesc": "Zeiterfassung, Rechnungsstellung und Projektmanagement für Kundenarbeit."
-    }
+    },
+    "manager": "Vorgesetzter (optional)",
+    "managerNone": "Keiner",
+    "inviteLinkNote": "Der Benutzer erhält einen Einladungslink zur Kontoeinrichtung.",
+    "appAccessNudge": "Nach der Einladung können Sie im Profil des Mitglieds konfigurieren, auf welche Apps zugegriffen werden kann und welche Berechtigungsstufe gilt."
   },
   "permissions": {
     "title": "{{appName}}-Berechtigungen",

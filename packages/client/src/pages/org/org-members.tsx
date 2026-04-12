@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Search, UserMinus, User, Shield, Calendar } from 'lucide-react';
+import { UserPlus, Mail, Search, UserMinus, User, Shield, Calendar, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/auth-store';
 import {
@@ -86,12 +86,21 @@ export function OrgMembersPage() {
     role: 'member' as TenantMemberRole,
     appPermissions: DEFAULT_APP_PERMS.map(p => ({ ...p })),
     crmTeamId: '',
+    managerId: '' as string,
   });
   const [addError, setAddError] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmRemoveUser, setConfirmRemoveUser] = useState<{ userId: string; displayName: string } | null>(null);
+
+  const managerOptions = useMemo(() => {
+    if (!users) return [{ value: '', label: t('org.managerNone') }];
+    return [
+      { value: '', label: t('org.managerNone') },
+      ...users.map((u) => ({ value: u.userId, label: u.name || u.email })),
+    ];
+  }, [users, t]);
 
   const allApps = appRegistry.getAll();
   const appsMap = useMemo(() => new Map(allApps.map(a => [a.id, a])), [allApps]);
@@ -337,7 +346,7 @@ export function OrgMembersPage() {
       });
       setInviteSuccess(`Invitation sent to ${inviteForm.email}`);
       setShowInviteModal(false);
-      setInviteForm({ email: '', role: 'member', appPermissions: DEFAULT_APP_PERMS.map(p => ({ ...p })), crmTeamId: '' });
+      setInviteForm({ email: '', role: 'member', appPermissions: DEFAULT_APP_PERMS.map(p => ({ ...p })), crmTeamId: '', managerId: '' });
     } catch (err: any) {
       setInviteError(err.response?.data?.error || 'Failed to send invitation');
     }
@@ -576,6 +585,17 @@ export function OrgMembersPage() {
                   ]}
                 />
               </div>
+              {/* Manager select */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+                  {t('org.manager')}
+                </label>
+                <Select
+                  value={inviteForm.managerId}
+                  onChange={(val) => setInviteForm({ ...inviteForm, managerId: val })}
+                  options={managerOptions}
+                />
+              </div>
               {/* App access section */}
               <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-md)' }}>
                 <label style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-family)', display: 'block', marginBottom: 'var(--spacing-sm)' }}>
@@ -618,8 +638,23 @@ export function OrgMembersPage() {
                 </div>
               </div>
               <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', margin: 0 }}>
-                The user will receive an invitation link to set up their account.
+                {t('org.inviteLinkNote')}
               </p>
+              {/* App access nudge */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 'var(--spacing-sm)',
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                background: 'color-mix(in srgb, var(--color-accent-primary) 6%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-accent-primary) 15%, transparent)',
+                borderRadius: 'var(--radius-sm)',
+              }}>
+                <Info size={14} style={{ color: 'var(--color-accent-primary)', flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+                  {t('org.appAccessNudge')}
+                </span>
+              </div>
             </div>
           </Modal.Body>
           <Modal.Footer>
