@@ -2,7 +2,6 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import {
   Building2,
-  Globe,
   CreditCard,
   Calendar,
   Copy,
@@ -242,12 +241,6 @@ export function OrgSettingsPage() {
           <span style={valueStyle}>{tenant.name}</span>
         </div>
         <div style={rowStyle}>
-          <span style={labelStyle}>Slug</span>
-          <div style={valueStyle}>
-            <CopyableValue value={tenant.slug} />
-          </div>
-        </div>
-        <div style={rowStyle}>
           <span style={labelStyle}>Organization ID</span>
           <div style={valueStyle}>
             <CopyableValue value={tenant.id} />
@@ -276,35 +269,9 @@ export function OrgSettingsPage() {
           <CreditCard size={15} style={{ color: 'var(--color-text-tertiary)' }} />
           <span style={sectionTitleStyle}>Subscription</span>
         </div>
-        <div style={rowStyle}>
-          <span style={labelStyle}>Plan</span>
-          <div style={valueStyle}>
-            <PlanBadge plan={tenant.plan ?? 'starter'} />
-          </div>
-        </div>
         <div style={{ ...rowStyle, borderBottom: 'none' }}>
           <span style={labelStyle}>Team members</span>
           <span style={valueStyle}>{memberCount}</span>
-        </div>
-      </div>
-
-      {/* Infrastructure */}
-      <div style={sectionStyle}>
-        <div style={sectionHeaderStyle}>
-          <Globe size={15} style={{ color: 'var(--color-text-tertiary)' }} />
-          <span style={sectionTitleStyle}>Infrastructure</span>
-        </div>
-        <div style={rowStyle}>
-          <span style={labelStyle}>Namespace</span>
-          <div style={valueStyle}>
-            <CopyableValue value={tenant.k8sNamespace} />
-          </div>
-        </div>
-        <div style={{ ...rowStyle, borderBottom: 'none' }}>
-          <span style={labelStyle}>Owner ID</span>
-          <div style={valueStyle}>
-            <CopyableValue value={tenant.ownerId} />
-          </div>
         </div>
       </div>
 
