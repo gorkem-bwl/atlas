@@ -1,7 +1,7 @@
 import { db } from '../../../config/database';
 import {
   invoices, invoiceLineItems,
-  projectTimeEntries, projectProjects, projectMembers,
+  projectTimeEntries, projectProjects, projectMembers, projectRates,
 } from '../../../db/schema';
 import { eq, and, gte, lte, inArray, sql } from 'drizzle-orm';
 import { getSettings } from './settings.service';
@@ -77,6 +77,7 @@ export async function previewTimeEntryLineItems(
       workDate: projectTimeEntries.workDate,
       userId: projectTimeEntries.userId,
       projectId: projectTimeEntries.projectId,
+      rateId: projectTimeEntries.rateId,
     })
     .from(projectTimeEntries)
     .where(whereConditions);
@@ -112,9 +113,25 @@ export async function previewTimeEntryLineItems(
   const settings = await getSettings(tenantId);
   const defaultRate = settings?.defaultHourlyRate ?? 0;
 
+  // Fetch all referenced rates for the rate formula
+  const rateIds = [...new Set(entries.map(e => e.rateId).filter((id): id is string => !!id))];
+  const ratesMap = new Map<string, { factor: number; extraPerHour: number }>();
+  if (rateIds.length > 0) {
+    const rates = await db
+      .select({ id: projectRates.id, factor: projectRates.factor, extraPerHour: projectRates.extraPerHour })
+      .from(projectRates)
+      .where(inArray(projectRates.id, rateIds));
+    for (const r of rates) {
+      ratesMap.set(r.id, { factor: r.factor, extraPerHour: r.extraPerHour });
+    }
+  }
+
   const lineItems = entries.map(entry => {
-    const rate = memberRateMap.get(`${entry.projectId}:${entry.userId}`) ?? defaultRate;
+    const baseRate = memberRateMap.get(`${entry.projectId}:${entry.userId}`) ?? defaultRate;
     const hours = entry.durationMinutes / 60;
+    const rate = entry.rateId && ratesMap.has(entry.rateId)
+      ? baseRate * ratesMap.get(entry.rateId)!.factor + ratesMap.get(entry.rateId)!.extraPerHour
+      : baseRate;
     const description = entry.taskDescription || entry.notes || `Time entry ${entry.workDate}`;
     return {
       id: entry.id,
@@ -186,6 +203,7 @@ export async function populateFromTimeEntries(
       workDate: projectTimeEntries.workDate,
       userId: projectTimeEntries.userId,
       projectId: projectTimeEntries.projectId,
+      rateId: projectTimeEntries.rateId,
     })
     .from(projectTimeEntries)
     .where(whereConditions);
@@ -223,11 +241,27 @@ export async function populateFromTimeEntries(
   const settings = await getSettings(tenantId);
   const defaultRate = settings?.defaultHourlyRate ?? 0;
 
+  // Fetch all referenced rates for the rate formula
+  const rateIds = [...new Set(entries.map(e => e.rateId).filter((id): id is string => !!id))];
+  const ratesMap = new Map<string, { factor: number; extraPerHour: number }>();
+  if (rateIds.length > 0) {
+    const rates = await db
+      .select({ id: projectRates.id, factor: projectRates.factor, extraPerHour: projectRates.extraPerHour })
+      .from(projectRates)
+      .where(inArray(projectRates.id, rateIds));
+    for (const r of rates) {
+      ratesMap.set(r.id, { factor: r.factor, extraPerHour: r.extraPerHour });
+    }
+  }
+
   // Prepare all line items for batch insert
   const lineItemValues = entries.map((entry, idx) => {
-    const rate = memberRateMap.get(`${entry.projectId}:${entry.userId}`) ?? defaultRate;
+    const baseRate = memberRateMap.get(`${entry.projectId}:${entry.userId}`) ?? defaultRate;
+    const effectiveRate = entry.rateId && ratesMap.has(entry.rateId)
+      ? baseRate * ratesMap.get(entry.rateId)!.factor + ratesMap.get(entry.rateId)!.extraPerHour
+      : baseRate;
     const hours = entry.durationMinutes / 60;
-    const amount = hours * rate;
+    const amount = hours * effectiveRate;
     const description = entry.taskDescription || entry.notes || `Time entry ${entry.workDate}`;
 
     return {
@@ -235,7 +269,7 @@ export async function populateFromTimeEntries(
       timeEntryId: entry.id,
       description,
       quantity: hours,
-      unitPrice: rate,
+      unitPrice: effectiveRate,
       amount,
       sortOrder: idx,
       createdAt: now,

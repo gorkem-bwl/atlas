@@ -17,6 +17,7 @@ export interface UpdateProjectSettingsInput {
   weekStartDay?: WeekStartDay;
   defaultProjectVisibility?: ProjectVisibility;
   defaultBillable?: boolean;
+  timeRounding?: number;
 }
 
 // ─── Settings ───────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ export async function updateSettings(tenantId: string, input: UpdateProjectSetti
     updates.defaultProjectVisibility = input.defaultProjectVisibility;
   }
   if (input.defaultBillable !== undefined) updates.defaultBillable = input.defaultBillable;
+  if (input.timeRounding !== undefined) updates.timeRounding = input.timeRounding;
 
   const [updated] = await db
     .update(projectSettings)

@@ -1,9 +1,16 @@
 import { db } from '../../../config/database';
 import {
-  projectTimeEntries, projectProjects, projectMembers, users,
+  projectTimeEntries, projectProjects, projectMembers, projectRates, projectSettings, users,
 } from '../../../db/schema';
 import { eq, and, asc, desc, gte, lte, inArray, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+
+function roundMinutes(minutes: number, rounding: number): number {
+  if (rounding <= 0) return minutes;
+  return Math.ceil(minutes / rounding) * rounding;
+}
 
 // ─── Input types ────────────────────────────────────────────────────
 
@@ -16,10 +23,13 @@ interface CreateTimeEntryInput {
   billable?: boolean;
   notes?: string | null;
   taskDescription?: string | null;
+  tags?: string[];
+  rateId?: string | null;
 }
 
 interface UpdateTimeEntryInput extends Partial<CreateTimeEntryInput> {
   billed?: boolean;
+  paid?: boolean;
   locked?: boolean;
   sortOrder?: number;
   isArchived?: boolean;
@@ -77,10 +87,13 @@ export async function listTimeEntries(userId: string, tenantId: string, filters?
       endTime: projectTimeEntries.endTime,
       billable: projectTimeEntries.billable,
       billed: projectTimeEntries.billed,
+      paid: projectTimeEntries.paid,
       locked: projectTimeEntries.locked,
       invoiceLineItemId: projectTimeEntries.invoiceLineItemId,
+      rateId: projectTimeEntries.rateId,
       notes: projectTimeEntries.notes,
       taskDescription: projectTimeEntries.taskDescription,
+      tags: projectTimeEntries.tags,
       isArchived: projectTimeEntries.isArchived,
       sortOrder: projectTimeEntries.sortOrder,
       createdAt: projectTimeEntries.createdAt,
@@ -88,10 +101,12 @@ export async function listTimeEntries(userId: string, tenantId: string, filters?
       projectName: projectProjects.name,
       projectColor: projectProjects.color,
       userName: users.name,
+      rateName: projectRates.title,
     })
     .from(projectTimeEntries)
     .innerJoin(projectProjects, eq(projectTimeEntries.projectId, projectProjects.id))
     .innerJoin(users, eq(projectTimeEntries.userId, users.id))
+    .leftJoin(projectRates, eq(projectTimeEntries.rateId, projectRates.id))
     .where(and(...conditions))
     .orderBy(desc(projectTimeEntries.workDate), desc(projectTimeEntries.createdAt));
 }
@@ -114,10 +129,13 @@ export async function getTimeEntry(userId: string, tenantId: string, id: string,
       endTime: projectTimeEntries.endTime,
       billable: projectTimeEntries.billable,
       billed: projectTimeEntries.billed,
+      paid: projectTimeEntries.paid,
       locked: projectTimeEntries.locked,
       invoiceLineItemId: projectTimeEntries.invoiceLineItemId,
+      rateId: projectTimeEntries.rateId,
       notes: projectTimeEntries.notes,
       taskDescription: projectTimeEntries.taskDescription,
+      tags: projectTimeEntries.tags,
       isArchived: projectTimeEntries.isArchived,
       sortOrder: projectTimeEntries.sortOrder,
       createdAt: projectTimeEntries.createdAt,
@@ -125,10 +143,12 @@ export async function getTimeEntry(userId: string, tenantId: string, id: string,
       projectName: projectProjects.name,
       projectColor: projectProjects.color,
       userName: users.name,
+      rateName: projectRates.title,
     })
     .from(projectTimeEntries)
     .innerJoin(projectProjects, eq(projectTimeEntries.projectId, projectProjects.id))
     .innerJoin(users, eq(projectTimeEntries.userId, users.id))
+    .leftJoin(projectRates, eq(projectTimeEntries.rateId, projectRates.id))
     .where(and(...conditions))
     .limit(1);
 
@@ -168,19 +188,32 @@ export async function createTimeEntry(userId: string, tenantId: string, input: C
 
   const sortOrder = (maxSort?.max ?? -1) + 1;
 
+  // Apply time rounding if configured
+  let durationMinutes = input.durationMinutes;
+  const [settings] = await db
+    .select({ timeRounding: projectSettings.timeRounding })
+    .from(projectSettings)
+    .where(eq(projectSettings.tenantId, tenantId))
+    .limit(1);
+  if (settings && settings.timeRounding > 0) {
+    durationMinutes = roundMinutes(durationMinutes, settings.timeRounding);
+  }
+
   const [created] = await db
     .insert(projectTimeEntries)
     .values({
       tenantId,
       userId,
       projectId: input.projectId,
-      durationMinutes: input.durationMinutes,
+      durationMinutes,
       workDate: input.workDate,
       startTime: input.startTime ?? null,
       endTime: input.endTime ?? null,
       billable: input.billable ?? true,
       notes: input.notes ?? null,
       taskDescription: input.taskDescription ?? null,
+      tags: input.tags ?? [],
+      rateId: input.rateId ?? null,
       sortOrder,
       createdAt: now,
       updatedAt: now,
@@ -209,9 +242,12 @@ export async function updateTimeEntry(userId: string, tenantId: string, id: stri
   if (input.endTime !== undefined) updates.endTime = input.endTime;
   if (input.billable !== undefined) updates.billable = input.billable;
   if (input.billed !== undefined) updates.billed = input.billed;
+  if (input.paid !== undefined) updates.paid = input.paid;
   if (input.locked !== undefined) updates.locked = input.locked;
   if (input.notes !== undefined) updates.notes = input.notes;
   if (input.taskDescription !== undefined) updates.taskDescription = input.taskDescription;
+  if (input.tags !== undefined) updates.tags = input.tags;
+  if (input.rateId !== undefined) updates.rateId = input.rateId;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
 

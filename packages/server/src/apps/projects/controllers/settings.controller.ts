@@ -61,6 +61,7 @@ export async function updateSettings(req: Request, res: Response) {
       weekStartDay,
       defaultProjectVisibility,
       defaultBillable,
+      timeRounding,
     } = req.body;
 
     // Minimal validation on enum-backed columns.
@@ -85,6 +86,7 @@ export async function updateSettings(req: Request, res: Response) {
       weekStartDay,
       defaultProjectVisibility,
       defaultBillable,
+      timeRounding,
     });
 
     res.json({ success: true, data: settings });

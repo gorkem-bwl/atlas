@@ -49,6 +49,12 @@ router.get('/reports/revenue', projectsController.getRevenueReport);
 router.get('/reports/profitability', projectsController.getProjectProfitability);
 router.get('/reports/utilization', projectsController.getTeamUtilization);
 
+// Rates
+router.get('/rates', projectsController.listRates);
+router.post('/rates', projectsController.createRate);
+router.patch('/rates/:id', projectsController.updateRate);
+router.delete('/rates/:id', projectsController.deleteRate);
+
 // Settings
 router.get('/settings', projectsController.getSettings);
 router.patch('/settings', projectsController.updateSettings);

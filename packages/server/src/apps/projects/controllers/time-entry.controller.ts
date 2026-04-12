@@ -63,7 +63,7 @@ export async function createTimeEntry(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { projectId, durationMinutes, workDate, startTime, endTime, billable, notes, taskDescription } = req.body;
+    const { projectId, durationMinutes, workDate, startTime, endTime, billable, notes, taskDescription, tags, rateId } = req.body;
 
     if (!projectId || !workDate) {
       res.status(400).json({ success: false, error: 'projectId and workDate are required' });
@@ -74,7 +74,7 @@ export async function createTimeEntry(req: Request, res: Response) {
     let entry;
     try {
       entry = await projectService.createTimeEntry(userId, tenantId, {
-        projectId, durationMinutes: durationMinutes || 0, workDate, startTime, endTime, billable, notes, taskDescription,
+        projectId, durationMinutes: durationMinutes || 0, workDate, startTime, endTime, billable, notes, taskDescription, tags, rateId,
       }, { isAdmin });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create time entry';
@@ -103,13 +103,13 @@ export async function updateTimeEntry(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
-    const { projectId, durationMinutes, workDate, startTime, endTime, billable, billed, locked, notes, taskDescription, sortOrder, isArchived } = req.body;
+    const { projectId, durationMinutes, workDate, startTime, endTime, billable, billed, paid, locked, notes, taskDescription, tags, rateId, sortOrder, isArchived } = req.body;
 
     // Non-admins can only update their own time entries.
     const isAdmin = perm.role === 'admin';
     const scopedUserId = isAdmin ? undefined : userId;
     const entry = await projectService.updateTimeEntry(userId, tenantId, id, {
-      projectId, durationMinutes, workDate, startTime, endTime, billable, billed, locked, notes, taskDescription, sortOrder, isArchived,
+      projectId, durationMinutes, workDate, startTime, endTime, billable, billed, paid, locked, notes, taskDescription, tags, rateId, sortOrder, isArchived,
     }, scopedUserId);
 
     if (!entry) {

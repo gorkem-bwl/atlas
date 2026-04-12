@@ -45,7 +45,7 @@ export async function getTimeReport(
   }
 
   // Run all independent report queries in parallel
-  const [totalsResult, byProject, byUser, byDay] = await Promise.all([
+  const [totalsResult, byProject, byUser, byDay, byTag] = await Promise.all([
     // Total minutes
     db.select({
       totalMinutes: sql<number>`COALESCE(SUM(${projectTimeEntries.durationMinutes}), 0)`.as('total_minutes'),
@@ -61,6 +61,7 @@ export async function getTimeReport(
       projectName: projectProjects.name,
       minutes: sql<number>`COALESCE(SUM(${projectTimeEntries.durationMinutes}), 0)`.as('minutes'),
       billableMinutes: sql<number>`COALESCE(SUM(CASE WHEN ${projectTimeEntries.billable} THEN ${projectTimeEntries.durationMinutes} ELSE 0 END), 0)`.as('billable_minutes'),
+      paidMinutes: sql<number>`COALESCE(SUM(CASE WHEN ${projectTimeEntries.paid} THEN ${projectTimeEntries.durationMinutes} ELSE 0 END), 0)`.as('paid_minutes'),
     })
     .from(projectTimeEntries)
     .innerJoin(projectProjects, eq(projectTimeEntries.projectId, projectProjects.id))
@@ -88,6 +89,28 @@ export async function getTimeReport(
     .where(and(...conditions))
     .groupBy(projectTimeEntries.workDate)
     .orderBy(asc(projectTimeEntries.workDate)),
+
+    // By tag — unnest the jsonb tags array and group
+    db.execute<{ tag: string; minutes: number }>(sql`
+      SELECT t.tag, COALESCE(SUM(pte.duration_minutes), 0)::int AS minutes
+      FROM project_time_entries pte,
+           jsonb_array_elements_text(pte.tags) AS t(tag)
+      WHERE pte.tenant_id = ${tenantId}
+        AND pte.is_archived = false
+        ${filters?.startDate ? sql`AND pte.work_date >= ${filters.startDate}` : sql``}
+        ${filters?.endDate ? sql`AND pte.work_date <= ${filters.endDate}` : sql``}
+        ${filters?.projectId ? sql`AND pte.project_id = ${filters.projectId}` : sql``}
+        ${userId ? sql`AND EXISTS (
+          SELECT 1 FROM project_projects pp
+          WHERE pp.id = pte.project_id
+            AND pp.tenant_id = ${tenantId}
+            AND (pp.user_id = ${userId} OR EXISTS (
+              SELECT 1 FROM project_members pm WHERE pm.project_id = pp.id AND pm.user_id = ${userId}
+            ))
+        )` : sql``}
+      GROUP BY t.tag
+      ORDER BY minutes DESC
+    `),
   ]);
 
   const totals = totalsResult[0];
@@ -99,6 +122,7 @@ export async function getTimeReport(
     byProject,
     byUser,
     byDay,
+    byTag: byTag.rows,
   };
 }
 
