@@ -47,7 +47,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--color-text-primary);
+  background: #ffffff;
 }
 
 /* Icon card inside each dock item */
