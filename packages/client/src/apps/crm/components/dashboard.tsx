@@ -8,6 +8,7 @@ import {
 import { useDashboard, type CrmDashboard, type CrmDeal, type CrmActivity } from '../hooks';
 import { formatCurrencyCompact, formatDate } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
+import { Chip } from '../../../components/ui/chip';
 import { StatCard } from '../../../components/ui/stat-card';
 import { ColumnHeader } from '../../../components/ui/column-header';
 import { Button } from '../../../components/ui/button';
@@ -198,16 +199,9 @@ function DealsTable({
                 )}
                 <td>
                   {deal.stageName && (
-                    <span
-                      className="crm-dashboard-stage-badge"
-                      style={{
-                        backgroundColor: `${deal.stageColor}18`,
-                        color: deal.stageColor || undefined,
-                        border: `1px solid ${deal.stageColor}30`,
-                      }}
-                    >
+                    <Chip color={deal.stageColor || undefined}>
                       {deal.stageName}
-                    </span>
+                    </Chip>
                   )}
                 </td>
               </tr>

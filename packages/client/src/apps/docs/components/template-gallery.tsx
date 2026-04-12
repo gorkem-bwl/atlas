@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Search } from 'lucide-react';
 import type { PageTemplate, TemplateCategory } from '../lib/templates';
+import { Chip } from '../../../components/ui/chip';
 import { ALL_CATEGORIES, PAGE_TEMPLATES } from '../lib/templates';
 
 // ─── Template gallery (full-page, Notion-style) ──────────────────────────
@@ -59,7 +60,7 @@ function TemplateCard({ template, onClick }: { template: PageTemplate; onClick: 
         {template.tags.length > 0 && (
           <div className="tg-card-tags">
             {template.tags.map((tag) => (
-              <span key={tag} className="tg-tag">#{tag}</span>
+              <Chip key={tag} height={18}>#{tag}</Chip>
             ))}
           </div>
         )}
