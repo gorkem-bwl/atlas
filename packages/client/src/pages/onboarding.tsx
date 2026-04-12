@@ -7,7 +7,9 @@ import { useAuthStore } from '../stores/auth-store';
 import { ROUTES } from '../config/routes';
 import { Button } from '../components/ui/button';
 import { Select } from '../components/ui/select';
-import { CheckCircle2, ArrowRight, ArrowLeft, Globe, Settings, Rocket, ClipboardList } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, Globe, Settings, Rocket, ClipboardList, Sun, Moon, Monitor } from 'lucide-react';
+import { useSettingsStore } from '../stores/settings-store';
+import type { ThemeMode } from '@atlas-platform/shared';
 
 const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';
 
@@ -19,18 +21,55 @@ const LANGUAGES = [
   { value: 'it', label: 'Italiano', flag: '\u{1F1EE}\u{1F1F9}' },
 ];
 
-const DATE_FORMATS = [
-  { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
-  { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
-  { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
-];
+// Localized date component labels per language. D=Day, M=Month, Y=Year.
+const DATE_LABELS: Record<string, { d: string; m: string; y: string }> = {
+  en: { d: 'DD', m: 'MM', y: 'YYYY' },
+  tr: { d: 'GG', m: 'AA', y: 'YYYY' },
+  de: { d: 'TT', m: 'MM', y: 'JJJJ' },
+  fr: { d: 'JJ', m: 'MM', y: 'AAAA' },
+  it: { d: 'GG', m: 'MM', y: 'AAAA' },
+};
+
+function getDateFormats(lang: string) {
+  const l = DATE_LABELS[lang] ?? DATE_LABELS.en;
+  return [
+    { value: 'DD/MM/YYYY', label: `${l.d}/${l.m}/${l.y}` },
+    { value: 'MM/DD/YYYY', label: `${l.m}/${l.d}/${l.y}` },
+    { value: 'YYYY-MM-DD', label: `${l.y}-${l.m}-${l.d}` },
+  ];
+}
 
 const CURRENCIES = [
-  { value: '$', label: '$ \u2014 US Dollar (USD)' },
-  { value: '\u20AC', label: '\u20AC \u2014 Euro (EUR)' },
-  { value: '\u00A3', label: '\u00A3 \u2014 British Pound (GBP)' },
-  { value: '\u00A5', label: '\u00A5 \u2014 Japanese Yen (JPY)' },
-  { value: '\u20BA', label: '\u20BA \u2014 Turkish Lira (TRY)' },
+  { value: '$', label: '$ — US Dollar (USD)' },
+  { value: '€', label: '€ — Euro (EUR)' },
+  { value: '£', label: '£ — British Pound (GBP)' },
+  { value: '¥', label: '¥ — Japanese Yen (JPY)' },
+  { value: '₺', label: '₺ — Turkish Lira (TRY)' },
+  { value: '₹', label: '₹ — Indian Rupee (INR)' },
+  { value: '₩', label: '₩ — South Korean Won (KRW)' },
+  { value: 'R$', label: 'R$ — Brazilian Real (BRL)' },
+  { value: 'CHF', label: 'CHF — Swiss Franc (CHF)' },
+  { value: 'kr', label: 'kr — Swedish Krona (SEK)' },
+  { value: 'C$', label: 'C$ — Canadian Dollar (CAD)' },
+  { value: 'A$', label: 'A$ — Australian Dollar (AUD)' },
+  { value: 'S$', label: 'S$ — Singapore Dollar (SGD)' },
+  { value: 'HK$', label: 'HK$ — Hong Kong Dollar (HKD)' },
+  { value: 'kr', label: 'kr — Norwegian Krone (NOK)' },
+  { value: 'kr', label: 'kr — Danish Krone (DKK)' },
+  { value: 'zł', label: 'zł — Polish Zloty (PLN)' },
+  { value: 'Kč', label: 'Kč — Czech Koruna (CZK)' },
+  { value: 'Ft', label: 'Ft — Hungarian Forint (HUF)' },
+  { value: 'R', label: 'R — South African Rand (ZAR)' },
+  { value: '฿', label: '฿ — Thai Baht (THB)' },
+  { value: 'RM', label: 'RM — Malaysian Ringgit (MYR)' },
+  { value: '₱', label: '₱ — Philippine Peso (PHP)' },
+  { value: 'Rp', label: 'Rp — Indonesian Rupiah (IDR)' },
+  { value: '₪', label: '₪ — Israeli Shekel (ILS)' },
+  { value: 'د.إ', label: 'د.إ — UAE Dirham (AED)' },
+  { value: '﷼', label: '﷼ — Saudi Riyal (SAR)' },
+  { value: '₦', label: '₦ — Nigerian Naira (NGN)' },
+  { value: '₫', label: '₫ — Vietnamese Dong (VND)' },
+  { value: 'lei', label: 'lei — Romanian Leu (RON)' },
 ];
 
 export function OnboardingPage() {
@@ -48,7 +87,9 @@ export function OnboardingPage() {
   const [timezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [currency, setCurrency] = useState('$');
+  const [theme, setTheme] = useState<ThemeMode>('system');
   const [withDemoData, setWithDemoData] = useState(true);
+  const settingsStore = useSettingsStore();
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -67,7 +108,8 @@ export function OnboardingPage() {
       setSeedingStep(t('setup.savingPrefs', 'Saving preferences...'));
       setSeedingProgress(10);
       try {
-        await api.put('/settings', { language, timezone, dateFormat, currencySymbol: currency, calendarStartDay: 'monday' });
+        await api.put('/settings', { language, timezone, dateFormat, currencySymbol: currency, calendarStartDay: 'monday', theme });
+        settingsStore.setTheme(theme);
       } catch { /* non-critical */ }
 
       // 2. Seed demo data if requested
@@ -215,11 +257,44 @@ export function OnboardingPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                     <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-family)' }}>{t('setup.dateFormat', 'Date format')}</label>
-                    <Select value={dateFormat} onChange={setDateFormat} options={DATE_FORMATS} size="md" />
+                    <Select value={dateFormat} onChange={setDateFormat} options={getDateFormats(language)} size="md" />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                     <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-family)' }}>{t('setup.currency', 'Currency')}</label>
                     <Select value={currency} onChange={setCurrency} options={CURRENCIES} size="md" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                    <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-family)' }}>{t('setup.theme', 'Appearance')}</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {([
+                        { value: 'light' as ThemeMode, icon: Sun, label: t('setup.themeLight', 'Light') },
+                        { value: 'dark' as ThemeMode, icon: Moon, label: t('setup.themeDark', 'Dark') },
+                        { value: 'system' as ThemeMode, icon: Monitor, label: t('setup.themeSystem', 'System') },
+                      ]).map((opt) => {
+                        const isActive = theme === opt.value;
+                        const Icon = opt.icon;
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => setTheme(opt.value)}
+                            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                            style={{
+                              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                              padding: '10px 12px',
+                              background: isActive ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                              border: isActive ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.08)',
+                              borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'var(--font-family)',
+                              color: '#fff', fontSize: 'var(--font-size-sm)',
+                              fontWeight: isActive ? 'var(--font-weight-medium)' : 'var(--font-weight-normal)',
+                            } as CSSProperties}
+                          >
+                            <Icon size={14} />
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </>
               )}

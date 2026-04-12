@@ -3503,7 +3503,11 @@
     "startFresh": "Commencer vide",
     "startFreshDesc": "Espace de travail vide, prêt pour vos données",
     "exploreSample": "Explorer avec des exemples",
-    "exploreSampleDesc": "Exemples pré-remplis pour découvrir les fonctionnalités"
+    "exploreSampleDesc": "Exemples pré-remplis pour découvrir les fonctionnalités",
+    "theme": "Apparence",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système"
   },
   "org": {
     "restrictAccess": "Restreindre l'accès aux apps",

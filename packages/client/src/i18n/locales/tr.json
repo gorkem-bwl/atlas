@@ -3503,7 +3503,11 @@
     "startFresh": "Boş başla",
     "startFreshDesc": "Verileriniz için hazır boş çalışma alanı",
     "exploreSample": "Örnek verilerle keşfet",
-    "exploreSampleDesc": "Özellikleri keşfetmek için hazır örnekler"
+    "exploreSampleDesc": "Özellikleri keşfetmek için hazır örnekler",
+    "theme": "Görünüm",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "themeSystem": "Sistem"
   },
   "org": {
     "restrictAccess": "Uygulama erişimini kısıtla",

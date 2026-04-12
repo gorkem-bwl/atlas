@@ -3503,7 +3503,11 @@
     "startFresh": "Neu starten",
     "startFreshDesc": "Leerer Arbeitsbereich für Ihre Daten",
     "exploreSample": "Mit Beispieldaten erkunden",
-    "exploreSampleDesc": "Vorgefüllte Beispiele zum Erkunden"
+    "exploreSampleDesc": "Vorgefüllte Beispiele zum Erkunden",
+    "theme": "Darstellung",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System"
   },
   "org": {
     "restrictAccess": "App-Zugriff einschränken",

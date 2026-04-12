@@ -3508,7 +3508,11 @@
     "startFresh": "Start fresh",
     "startFreshDesc": "Empty workspace, ready for your data",
     "exploreSample": "Explore with sample data",
-    "exploreSampleDesc": "Pre-filled examples to explore features"
+    "exploreSampleDesc": "Pre-filled examples to explore features",
+    "theme": "Appearance",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
   },
   "org": {
     "restrictAccess": "Restrict app access",
