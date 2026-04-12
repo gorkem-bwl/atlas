@@ -30,6 +30,7 @@ import {
 import { useInvoices } from '../../invoices/hooks';
 import { getProposalStatusVariant } from '@atlas-platform/shared';
 import { formatDate, formatCurrency } from '../../../lib/format';
+import { CompanyLogo } from '../lib/crm-helpers';
 
 // ─── Stage pipeline with arrows ─────────────────────────────────
 
@@ -148,6 +149,8 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
     });
   }, [deal, newActivityType, newActivityBody, createActivity]);
 
+  const companyDomain = deal?.companyId ? companies.find((c) => c.id === deal.companyId)?.domain : null;
+
   if (!deal) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
@@ -165,6 +168,7 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
         borderBottom: '1px solid var(--color-border-secondary)', flexShrink: 0,
       }}>
         <IconButton icon={<ArrowLeft size={16} />} label={t('common.previous')} size={28} onClick={onBack} />
+        <CompanyLogo domain={companyDomain} size={24} />
         <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
           {deal.title}
         </span>
