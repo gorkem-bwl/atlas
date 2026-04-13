@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { eq, and } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
+import { IF_UNMODIFIED_SINCE_HEADER, STALE_RESOURCE_CODE } from '@atlas-platform/shared';
 import { db } from '../config/database';
 import { logger } from '../utils/logger';
 
@@ -79,19 +80,21 @@ export function withConcurrencyCheck(
       const recordId = req.params[idParam];
       if (!recordId) return next();
 
-      // Read the client's version: header first, then body fallback
       const clientVersion =
-        req.header('If-Unmodified-Since') ||
+        req.header(IF_UNMODIFIED_SINCE_HEADER) ||
         (typeof req.body?.updatedAt === 'string' ? req.body.updatedAt : null);
 
       if (!clientVersion) {
         if (strict) {
           res.status(400).json({
             success: false,
-            error: 'Missing If-Unmodified-Since header (required for concurrency control)',
+            error: `Missing ${IF_UNMODIFIED_SINCE_HEADER} header (required for concurrency control)`,
           });
           return;
         }
+        // Track lenient-mode skips so we can audit which routes still
+        // receive version-less writes before flipping to strict.
+        logger.debug({ path: req.path, method: req.method }, 'concurrency check skipped (no client version)');
         return next();
       }
 
@@ -109,27 +112,26 @@ export function withConcurrencyCheck(
         .where(and(...conditions))
         .limit(1);
 
-      // Row missing: let the controller handle the 404
       if (!row) return next();
 
-      const storedAt = new Date(row.updatedAt as Date | string).getTime();
+      const storedDate = new Date(row.updatedAt as Date | string);
+      const storedAt = storedDate.getTime();
       const clientAt = new Date(clientVersion).getTime();
 
       if (Number.isNaN(clientAt)) {
         if (strict) {
-          res.status(400).json({ success: false, error: 'Invalid If-Unmodified-Since value' });
+          res.status(400).json({ success: false, error: `Invalid ${IF_UNMODIFIED_SINCE_HEADER} value` });
           return;
         }
         return next();
       }
 
-      // Stored is newer than the client's version → conflict
       if (storedAt > clientAt) {
         res.status(409).json({
           success: false,
           error: 'conflict',
-          code: 'STALE_RESOURCE',
-          current: { updatedAt: new Date(row.updatedAt as Date | string).toISOString() },
+          code: STALE_RESOURCE_CODE,
+          current: { updatedAt: storedDate.toISOString() },
         });
         return;
       }

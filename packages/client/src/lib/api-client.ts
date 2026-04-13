@@ -2,11 +2,26 @@ import axios from 'axios';
 import { config } from '../config/env';
 import { useAuthStore } from '../stores/auth-store';
 import { useConflictStore } from '../stores/conflict-store';
+import {
+  IF_UNMODIFIED_SINCE_HEADER,
+  STALE_RESOURCE_CODE,
+} from '@atlas-platform/shared';
 
 export const api = axios.create({
   baseURL: config.apiUrl,
   headers: { 'Content-Type': 'application/json' },
 });
+
+/**
+ * Build an axios config carrying the If-Unmodified-Since header for
+ * optimistic concurrency. Pass the record's updatedAt; if undefined,
+ * returns undefined so the call site can spread it unconditionally.
+ */
+export function ifUnmodifiedSince(updatedAt?: string) {
+  return updatedAt
+    ? { headers: { [IF_UNMODIFIED_SINCE_HEADER]: updatedAt } }
+    : undefined;
+}
 
 api.interceptors.request.use((req) => {
   const token = localStorage.getItem('atlasmail_token');
@@ -124,7 +139,7 @@ api.interceptors.response.use(
     // ─── 409 STALE_RESOURCE conflict handling ────────────────────────────────
     if (
       error.response?.status === 409 &&
-      error.response.data?.code === 'STALE_RESOURCE'
+      error.response.data?.code === STALE_RESOURCE_CODE
     ) {
       const conflictRequest = error.config;
       const currentUpdatedAt = error.response.data?.current?.updatedAt;
