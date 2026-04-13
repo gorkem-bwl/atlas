@@ -11,7 +11,15 @@
   box-shadow: var(--shadow-md) !important;
   padding: 4px !important;
   font-family: var(--font-family) !important;
-  min-width: 200px;
+  min-width: 220px !important;
+  width: max-content !important;
+  max-width: 360px !important;
+}
+
+.excalidraw .context-menu ul,
+.excalidraw .context-menu li {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .excalidraw .context-menu-item {
@@ -24,18 +32,29 @@
   font-size: var(--font-size-sm) !important;
   font-family: var(--font-family) !important;
   transition: background 0.12s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+
+.excalidraw .context-menu-item__label {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: inherit !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-normal) !important;
 }
 
 .excalidraw .context-menu-item:hover,
 .excalidraw .context-menu-item:focus {
   background: var(--color-surface-hover) !important;
   color: var(--color-text-primary) !important;
-}
-
-.excalidraw .context-menu-item__label {
-  color: inherit !important;
-  font-size: var(--font-size-sm) !important;
-  font-weight: var(--font-weight-normal) !important;
 }
 
 .excalidraw .context-menu-item__shortcut {
