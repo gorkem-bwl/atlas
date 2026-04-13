@@ -32,6 +32,9 @@ router.post('/recurring/:id/pause', invoiceController.pauseRecurring);
 router.post('/recurring/:id/resume', invoiceController.resumeRecurring);
 router.post('/recurring/:id/run-now', invoiceController.runRecurringNow);
 
+// Seed sample data
+router.post('/seed', invoiceController.seedInvoices);
+
 // Invoices
 router.get('/list', invoiceController.listInvoices);
 router.get('/next-number', invoiceController.getNextInvoiceNumber);

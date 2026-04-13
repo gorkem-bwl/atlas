@@ -135,6 +135,7 @@ export function OnboardingPage() {
           { label: 'Docs', url: '/docs/seed' },
           { label: 'Draw', url: '/drawings/seed' },
           { label: 'Agreements', url: '/sign/seed' },
+          { label: 'Invoices', url: '/invoices/seed' },
         ];
 
         for (let i = 0; i < seedSteps.length; i++) {
