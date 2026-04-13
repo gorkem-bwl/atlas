@@ -9,6 +9,7 @@ import {
   Trash2,
   LayoutTemplate,
   Upload,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
@@ -24,7 +25,8 @@ import { useDocSettingsStore } from '../settings-store';
 import { useToastStore } from '../../../stores/toast-store';
 import { useAppActions } from '../../../hooks/use-app-permissions';
 import { useAuthStore } from '../../../stores/auth-store';
-import { AppSidebar } from '../../../components/layout/app-sidebar';
+import { useUIStore } from '../../../stores/ui-store';
+import { AppSidebar, SidebarItem } from '../../../components/layout/app-sidebar';
 import { useDocFavoritesAndRecent } from './sidebar/use-doc-favorites-recent';
 import { QuickLink } from './sidebar/quick-link';
 import { FlatDocRow } from './sidebar/flat-doc-row';
@@ -48,6 +50,7 @@ interface DocSidebarProps {
 export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }: DocSidebarProps) {
   const { canCreate, canDelete, canDeleteOwn } = useAppActions('docs');
   const currentUserId = useAuthStore((s) => s.account?.userId);
+  const { openSettings } = useUIStore();
   const { data, isLoading } = useDocumentList();
   const createDoc = useCreateDocument();
   const deleteDoc = useDeleteDocument();
@@ -226,7 +229,7 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
     </div>
   );
 
-  const footerContent = view === 'tree' && canCreate ? (
+  const footerContent = (
     <div
       style={{
         display: 'flex',
@@ -234,40 +237,49 @@ export function DocSidebar({ selectedId, onSelect, onNewFromTemplate, onImport }
         gap: 0,
       }}
     >
-      <Button
-        variant="ghost"
-        size="sm"
-        icon={<Plus size={14} />}
-        onClick={handleNewPage}
-        disabled={createDoc.isPending}
-        style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
-      >
-        {t('docs.newPage')}
-      </Button>
-      {onNewFromTemplate && (
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={<LayoutTemplate size={14} />}
-          onClick={onNewFromTemplate}
-          style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
-        >
-          {t('docs.fromTemplate')}
-        </Button>
-      )}
-      {onImport && (
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={<Upload size={14} />}
-          onClick={onImport}
-          style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
-        >
-          {t('docs.importDocument')}
-        </Button>
+      <SidebarItem
+        label={t('docs.settings', 'Settings')}
+        icon={<Settings2 size={14} />}
+        onClick={() => openSettings('docs')}
+      />
+      {view === 'tree' && canCreate && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Plus size={14} />}
+            onClick={handleNewPage}
+            disabled={createDoc.isPending}
+            style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
+          >
+            {t('docs.newPage')}
+          </Button>
+          {onNewFromTemplate && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<LayoutTemplate size={14} />}
+              onClick={onNewFromTemplate}
+              style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
+            >
+              {t('docs.fromTemplate')}
+            </Button>
+          )}
+          {onImport && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Upload size={14} />}
+              onClick={onImport}
+              style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--color-text-tertiary)' }}
+            >
+              {t('docs.importDocument')}
+            </Button>
+          )}
+        </>
       )}
     </div>
-  ) : undefined;
+  );
 
   return (
     <>

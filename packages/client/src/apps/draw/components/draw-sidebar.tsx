@@ -4,10 +4,10 @@ import {
   Plus,
   Search,
   Trash2,
-  Settings,
   ArrowDownAZ,
+  Settings2,
 } from 'lucide-react';
-import { AppSidebar } from '../../../components/layout/app-sidebar';
+import { AppSidebar, SidebarItem } from '../../../components/layout/app-sidebar';
 import { useAppActions } from '../../../hooks/use-app-permissions';
 import { useAuthStore } from '../../../stores/auth-store';
 import {
@@ -242,21 +242,21 @@ export function DrawSidebar({
       storageKey="atlas_draw_sidebar"
       title={t('draw.title')}
       headerAction={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        canCreate ? (
           <SidebarButton
-            icon={<Settings size={13} />}
-            onClick={onOpenSettings}
-            tooltip={t('draw.settings')}
+            icon={<Plus size={14} />}
+            onClick={onNewFromTemplate}
+            tooltip={t('draw.newDrawing')}
+            disabled={isCreating}
           />
-          {canCreate && (
-            <SidebarButton
-              icon={<Plus size={14} />}
-              onClick={onNewFromTemplate}
-              tooltip={t('draw.newDrawing')}
-              disabled={isCreating}
-            />
-          )}
-        </div>
+        ) : undefined
+      }
+      footer={
+        <SidebarItem
+          label={t('draw.settings', 'Settings')}
+          icon={<Settings2 size={14} />}
+          onClick={onOpenSettings}
+        />
       }
       search={
         <div

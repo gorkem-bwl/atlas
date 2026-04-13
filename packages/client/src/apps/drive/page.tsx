@@ -7,6 +7,7 @@ import {
   FileImage, FileText, FileVideo, X, FolderInput, Settings,
   Music, Table2, Pencil, Users,
 } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 import { AppSidebar, SidebarItem, SidebarSection } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
 import { IconButton } from '../../components/ui/icon-button';
@@ -79,19 +80,31 @@ export function DrivePage() {
           </div>
           ) : undefined
         }
-        footer={d.storageData ? (() => {
-          const totalQuota = d.storageQuotaBytes;
-          const usagePercent = Math.min(100, (d.storageData.totalBytes / totalQuota) * 100);
-          return (
-            <div className="drive-storage">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xs)' }}>
-                <span className="drive-storage-label">{d.t('drive.storage.usage', { used: formatBytes(d.storageData.totalBytes), total: formatBytes(totalQuota) })}</span>
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{d.t('drive.storage.fileCount', { count: d.storageData.fileCount })}</span>
+        footer={(() => {
+          const storageWidget = d.storageData ? (() => {
+            const totalQuota = d.storageQuotaBytes;
+            const usagePercent = Math.min(100, (d.storageData.totalBytes / totalQuota) * 100);
+            return (
+              <div className="drive-storage">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xs)' }}>
+                  <span className="drive-storage-label">{d.t('drive.storage.usage', { used: formatBytes(d.storageData.totalBytes), total: formatBytes(totalQuota) })}</span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>{d.t('drive.storage.fileCount', { count: d.storageData.fileCount })}</span>
+                </div>
+                <div className="drive-storage-bar"><div className="drive-storage-fill" style={{ width: `${usagePercent}%`, background: usagePercent > 90 ? 'var(--color-error)' : usagePercent > 75 ? 'var(--color-warning)' : 'var(--color-accent-primary)' }} /></div>
               </div>
-              <div className="drive-storage-bar"><div className="drive-storage-fill" style={{ width: `${usagePercent}%`, background: usagePercent > 90 ? 'var(--color-error)' : usagePercent > 75 ? 'var(--color-warning)' : 'var(--color-accent-primary)' }} /></div>
-            </div>
+            );
+          })() : null;
+          return (
+            <>
+              <SidebarItem
+                label={t('drive.settings', 'Settings')}
+                icon={<Settings2 size={14} />}
+                onClick={() => d.openSettings('drive')}
+              />
+              {storageWidget}
+            </>
           );
-        })() : undefined}
+        })()}
       >
         <SidebarSection>
           <div onDragOver={(e) => { if (d.dragItemId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } }} onDrop={d.handleSidebarRootDrop}>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard, Mail, Send, CheckCircle2, Shield } from 'lucide-react';
+import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard, Mail, Send, CheckCircle2, Shield, Settings2 } from 'lucide-react';
 import { AlertBanner } from '../../components/ui/alert-banner';
 import { StatCard, InfoCard } from '../../components/ui/stat-card';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
@@ -13,6 +13,7 @@ import { Badge } from '../../components/ui/badge';
 import { SettingsSection, SettingsRow, SettingsToggle } from '../../components/settings/settings-primitives';
 import { useSystemMetrics } from './hooks';
 import { useAuthStore } from '../../stores/auth-store';
+import { useUIStore } from '../../stores/ui-store';
 import { PermissionsView } from './components/permissions-view';
 import { formatBytes } from '../../lib/format';
 import { api } from '../../lib/api-client';
@@ -173,6 +174,7 @@ export function SystemPage() {
   const [activeView, setActiveView] = useState<SystemView>('overview');
   const tenantRole = useAuthStore((s) => s.tenantRole);
   const isOwner = tenantRole === 'owner';
+  const { openSettings } = useUIStore();
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -182,7 +184,17 @@ export function SystemPage() {
           50% { opacity: 0.3; }
         }
       `}</style>
-      <AppSidebar storageKey="atlas_system_sidebar" title={t('system.title')}>
+      <AppSidebar
+        storageKey="atlas_system_sidebar"
+        title={t('system.title')}
+        footer={
+          <SidebarItem
+            label={t('system.settings', 'Settings')}
+            icon={<Settings2 size={14} />}
+            onClick={() => openSettings('system')}
+          />
+        }
+      >
         <SidebarSection>
           <SidebarItem
             label={t('system.sidebar.overview')}

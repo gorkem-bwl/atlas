@@ -23,6 +23,8 @@ import { SignSignersModal } from './components/sign-signers-modal';
 import { useSignPageState } from './lib/use-sign-page-state';
 import { useAppActions } from '../../hooks/use-app-permissions';
 import { useAuthStore } from '../../stores/auth-store';
+import { useUIStore } from '../../stores/ui-store';
+import { Settings2 } from 'lucide-react';
 import '../../styles/sign.css';
 
 export function SignPage() {
@@ -30,6 +32,7 @@ export function SignPage() {
   const s = useSignPageState();
   const { canCreate, canDelete, canDeleteOwn } = useAppActions('sign');
   const currentUserId = useAuthStore((st) => st.account?.userId);
+  const { openSettings } = useUIStore();
 
   return (
     <div className="sign-page">
@@ -43,7 +46,17 @@ export function SignPage() {
       />
 
       {/* Sidebar */}
-      <AppSidebar storageKey="atlas_sign_sidebar" title={t('sign.title')}>
+      <AppSidebar
+        storageKey="atlas_sign_sidebar"
+        title={t('sign.title')}
+        footer={
+          <SidebarItem
+            label={t('sign.settings', 'Settings')}
+            icon={<Settings2 size={14} />}
+            onClick={() => openSettings('sign')}
+          />
+        }
+      >
         <SidebarSection>
           <SidebarItem
             label={t('sign.sidebar.allDocuments')}

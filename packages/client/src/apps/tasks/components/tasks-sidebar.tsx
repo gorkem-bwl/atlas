@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import {
-  Plus, Hash, MoreHorizontal, Trash2, User, CalendarDays, ChevronDown,
+  Plus, Hash, MoreHorizontal, Trash2, User, CalendarDays, ChevronDown, Settings2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TaskProject } from '@atlas-platform/shared';
@@ -8,6 +8,7 @@ import { AppSidebar, SidebarItem, SidebarSection } from '../../../components/lay
 import { IconButton } from '../../../components/ui/icon-button';
 import { Button } from '../../../components/ui/button';
 import { NAV_ITEMS, type NavSection } from '../lib/constants';
+import { useUIStore } from '../../../stores/ui-store';
 
 export function TasksSidebar({
   activeSection,
@@ -31,6 +32,7 @@ export function TasksSidebar({
   onDeleteProject: (projectId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { openSettings } = useUIStore();
   const [projectMenuId, setProjectMenuId] = useState<string | null>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
   const [showAllProjects, setShowAllProjects] = useState(false);
@@ -67,7 +69,17 @@ export function TasksSidebar({
   };
 
   return (
-    <AppSidebar storageKey="atlas_tasks_sidebar" title={t('tasks.title')}>
+    <AppSidebar
+      storageKey="atlas_tasks_sidebar"
+      title={t('tasks.title')}
+      footer={
+        <SidebarItem
+          label={t('tasks.settings', 'Settings')}
+          icon={<Settings2 size={14} />}
+          onClick={() => openSettings('tasks')}
+        />
+      }
+    >
       {/* Nav items */}
       <SidebarSection>
         {NAV_ITEMS.map(item => (

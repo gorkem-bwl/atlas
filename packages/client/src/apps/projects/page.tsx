@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useProjects } from './hooks';
 import { useAppActions } from '../../hooks/use-app-permissions';
+import { useUIStore } from '../../stores/ui-store';
 import { TimeTracker } from './components/time-tracker';
 import { ReportsView } from './components/reports-view';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
@@ -52,6 +53,7 @@ export function ProjectsPage() {
 
   // Permissions
   const { canCreate } = useAppActions('projects');
+  const { openSettings } = useUIStore();
 
   // Selected entities
   const selectedProject = selectedProjectId ? projects.find((p) => p.id === selectedProjectId) : null;
@@ -126,7 +128,7 @@ export function ProjectsPage() {
           <SidebarItem
             label={t('projects.sidebar.settings')}
             icon={<Settings2 size={14} />}
-            onClick={() => setActiveView('settings')}
+            onClick={() => openSettings('projects')}
           />
         }
       >
