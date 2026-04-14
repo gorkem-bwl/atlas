@@ -4,6 +4,7 @@ import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { canAccess } from '../../../services/app-permissions.service';
 import { assertCanDelete } from '../../../middleware/assert-can-delete';
+import { getLinkedRecordsForDriveItem } from '../services/linked-records.service';
 
 // GET /api/drive/widget
 export async function getWidgetData(req: Request, res: Response) {
@@ -206,7 +207,11 @@ export async function getItem(req: Request, res: Response) {
       return;
     }
 
-    res.json({ success: true, data: item });
+    const linkedFrom = req.auth!.tenantId
+      ? await getLinkedRecordsForDriveItem(item.id, req.auth!.tenantId)
+      : [];
+
+    res.json({ success: true, data: { ...item, linkedFrom } });
   } catch (error) {
     logger.error({ error }, 'Failed to get drive item');
     res.status(500).json({ success: false, error: 'Failed to get drive item' });
