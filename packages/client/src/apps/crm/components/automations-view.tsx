@@ -75,7 +75,7 @@ function getActionLabel(action: string, t: (key: string) => string): string {
   return getActionOptions(t).find((a) => a.value === action)?.label ?? action;
 }
 
-function describeTrigger(workflow: CrmWorkflow, stages: CrmDealStage[], t: (key: string) => string): string {
+function describeTrigger(workflow: CrmWorkflow, stages: CrmDealStage[], t: (key: string, options?: Record<string, unknown>) => string): string {
   const base = getTriggerLabel(workflow.trigger, t);
   const config = workflow.triggerConfig;
 
@@ -89,7 +89,8 @@ function describeTrigger(workflow: CrmWorkflow, stages: CrmDealStage[], t: (key:
   }
 
   if (workflow.trigger === 'activity_logged' && config.activityType) {
-    return `${config.activityType} ${t('crm.automations.triggerActivityLogged').toLowerCase()}`;
+    const typeKey = `crm.activities.${config.activityType}`;
+    return t('crm.automations.triggerActivityLoggedOfType', { type: t(typeKey) });
   }
 
   return base;
@@ -101,8 +102,12 @@ function describeAction(workflow: CrmWorkflow, stages: CrmDealStage[], t: (key: 
   switch (workflow.action) {
     case 'create_task':
       return `${t('crm.automations.actionCreateTask')}: "${translateWorkflowTaskTitle((config.taskTitle as string) || '', t)}"`;
-    case 'update_field':
-      return `${t('crm.automations.actionUpdateField')}: ${config.fieldName || ''} = "${config.fieldValue || ''}"`;
+    case 'update_field': {
+      const fieldLabel = config.fieldName
+        ? (getFieldOptions(t).find((o) => o.value === config.fieldName)?.label ?? String(config.fieldName))
+        : '';
+      return `${t('crm.automations.actionUpdateField')}: ${fieldLabel} = "${config.fieldValue || ''}"`;
+    }
     case 'change_deal_stage': {
       const stageName = stages.find((s) => s.id === config.newStageId)?.name ?? '';
       return `${t('crm.automations.actionChangeDealStage')}: "${stageName}"`;

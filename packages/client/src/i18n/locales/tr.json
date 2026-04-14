@@ -1481,6 +1481,7 @@
       "triggerDealLost": "Anlaşma kaybedildi",
       "triggerContactCreated": "Kişi oluşturuldu",
       "triggerActivityLogged": "Aktivite kaydedildi",
+      "triggerActivityLoggedOfType": "{{type}} aktivitesi kaydedildi",
       "actionCreateTask": "Görev oluştur",
       "actionUpdateField": "Alanı güncelle",
       "actionChangeDealStage": "Anlaşma aşamasını değiştir",

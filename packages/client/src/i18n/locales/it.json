@@ -1481,6 +1481,7 @@
       "triggerDealLost": "Trattativa persa",
       "triggerContactCreated": "Contatto creato",
       "triggerActivityLogged": "Attività registrata",
+      "triggerActivityLoggedOfType": "Attività {{type}} registrata",
       "actionCreateTask": "Crea attività",
       "actionUpdateField": "Aggiorna campo",
       "actionChangeDealStage": "Cambia fase trattativa",

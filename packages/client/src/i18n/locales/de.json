@@ -1481,6 +1481,7 @@
       "triggerDealLost": "Deal verloren",
       "triggerContactCreated": "Kontakt erstellt",
       "triggerActivityLogged": "Aktivität erfasst",
+      "triggerActivityLoggedOfType": "{{type}}-Aktivität protokolliert",
       "actionCreateTask": "Aufgabe erstellen",
       "actionUpdateField": "Feld aktualisieren",
       "actionChangeDealStage": "Deal-Phase ändern",

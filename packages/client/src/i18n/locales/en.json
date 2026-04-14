@@ -1509,6 +1509,7 @@
       "triggerDealLost": "Deal lost",
       "triggerContactCreated": "Contact created",
       "triggerActivityLogged": "Activity logged",
+      "triggerActivityLoggedOfType": "{{type}} activity logged",
       "actionCreateTask": "Create task",
       "actionUpdateField": "Update field",
       "actionChangeDealStage": "Change deal stage",

@@ -1481,6 +1481,7 @@
       "triggerDealLost": "Affaire perdue",
       "triggerContactCreated": "Contact créé",
       "triggerActivityLogged": "Activité enregistrée",
+      "triggerActivityLoggedOfType": "Activité {{type}} enregistrée",
       "actionCreateTask": "Créer une tâche",
       "actionUpdateField": "Mettre à jour le champ",
       "actionChangeDealStage": "Changer l’étape",
