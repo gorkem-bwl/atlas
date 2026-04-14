@@ -113,41 +113,156 @@ npm run dev
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `JWT_SECRET` | Yes | — | JWT signing key (min 32 chars) |
-| `JWT_REFRESH_SECRET` | Yes | — | Refresh token signing key (min 32 chars) |
-| `TOKEN_ENCRYPTION_KEY` | Yes | — | 64-char hex string for AES-256 encryption |
-| `POSTGRES_PASSWORD` | No | `atlas` | PostgreSQL password (Docker setup) |
-| `DATABASE_URL` | No | localhost | PostgreSQL connection string |
-| `REDIS_URL` | No | — | Redis connection (enables background sync) |
-| `PORT` | No | `3001` | Server port |
-| `SERVER_PUBLIC_URL` | No | `http://localhost:3001` | Public URL for the server |
-| `CLIENT_PUBLIC_URL` | No | `http://localhost:3001` | Public URL for the client |
-| `GOOGLE_CLIENT_ID` | No | — | Google OAuth (CRM sync, Drive import/export) |
-| `GOOGLE_CLIENT_SECRET` | No | — | Google OAuth secret |
-| `SMTP_HOST` | No | — | SMTP server for password reset emails |
-| `SMTP_PORT` | No | `587` | SMTP port |
-| `SMTP_USER` | No | — | SMTP username |
-| `SMTP_PASS` | No | — | SMTP password |
+Atlas boots with a small set of **required** secrets. Everything else is optional and only enables specific features — see the *What needs what* table below.
+
+### Required (Atlas will not start without these)
+
+| Variable | Description |
+|----------|-------------|
+| `JWT_SECRET` | JWT signing key. Min 32 chars. Generate: `openssl rand -hex 32` |
+| `JWT_REFRESH_SECRET` | Refresh-token signing key. Min 32 chars. Generate: `openssl rand -hex 32` |
+| `TOKEN_ENCRYPTION_KEY` | 64-char hex string used to encrypt Google OAuth tokens at rest. Generate: `openssl rand -hex 32` |
+
+> The Docker `setup.sh` / `setup.ps1` scripts generate all three for you on first run. If you use `docker-compose.production.yml` directly, the compose file auto-generates them as well. You only need to set them manually when running Atlas outside Docker (e.g. development, or a custom deploy).
+
+### Networking & database (defaults work for most setups)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/atlas` | PostgreSQL connection string |
+| `POSTGRES_PASSWORD` | `atlas` | Postgres password when using the bundled Docker compose |
+| `REDIS_URL` | *(unset)* | Redis connection. Required **only** for the Google sync background worker; everything else runs without Redis. |
+| `PORT` | `3001` | Server port |
+| `SERVER_PUBLIC_URL` | `http://localhost:3001` | Publicly reachable URL of the Atlas API (used in invitation / password-reset links, and as the default OAuth redirect host) |
+| `CLIENT_PUBLIC_URL` | `http://localhost:5180` in dev, same as `SERVER_PUBLIC_URL` in production | Publicly reachable URL of the Atlas web app |
+| `CORS_ORIGINS` | *(derived from `CLIENT_PUBLIC_URL`)* | Comma-separated origins allowed to call the API |
+
+### Optional integrations
+
+| Variable | Default | Needed for |
+|----------|---------|-----------|
+| `SMTP_HOST` | — | Outgoing email (see [SMTP setup](#smtp-setup-optional)) |
+| `SMTP_PORT` | `587` | SMTP port |
+| `SMTP_USER` | — | SMTP auth user |
+| `SMTP_PASS` | — | SMTP auth password |
+| `SMTP_FROM` | `Atlas <noreply@atlas.so>` | From-address used on outgoing mail. Change this to match your domain. |
+| `GOOGLE_CLIENT_ID` | — | Google OAuth (Calendar / Gmail / Drive per-user sync — see [Google integration](#google-integration-optional)) |
+| `GOOGLE_CLIENT_SECRET` | — | Google OAuth secret |
+| `GOOGLE_REDIRECT_URI` | `{SERVER_PUBLIC_URL}/api/v1/auth/google/callback` | Override the OAuth redirect URL if the server sits behind a proxy with a different hostname |
+
+### What needs what
+
+Atlas is designed so you only pay for the integrations you want. If you skip the optional variables above, the affected features silently become unavailable — the rest of the app keeps working.
+
+| Feature | Requires |
+|---------|----------|
+| CRM, HRM, Projects, Invoices, Agreements, Drive (Atlas-native), Tasks, Write, Draw, Calendar (local events), internal messaging | **Nothing extra.** Runs on Postgres alone. |
+| Password-reset emails | SMTP |
+| Team-member invitation emails | SMTP |
+| Sign / agreement reminder emails | SMTP |
+| CRM outbound email to contacts | SMTP (+ Google for per-user Gmail tracking) |
+| Calendar sync with Google Calendar | Google OAuth (per user) |
+| Gmail read/send inside CRM | Google OAuth (per user) |
+| Google Drive file import/export inside Drive app | Google OAuth (per user) |
+| Background Google sync worker (non-blocking) | Redis + Google OAuth |
+
+If you plan to run Atlas as a closed team tool with no email needs, you can skip SMTP and Google entirely. Users just won't receive emails (invitations have to be shared as links manually) and `/calendar`, `/crm`, `/drive` will work locally without Google sync.
+
+## SMTP setup (optional)
+
+Atlas **sends** email (it never receives). SMTP is used for:
+
+- Password reset links
+- Team-member invitations (`POST /auth/invitation`)
+- Agreement reminders (hourly scheduler, Sign app)
+- CRM outbound messages from the CRM email composer
+- The "Send test email" button in **Settings → System**
+
+If `SMTP_HOST` is not set, all of the above are logged and skipped — no errors, features that depend on them just can't deliver.
+
+### Common providers
+
+```env
+# Gmail (requires an App Password, not your regular password — enable 2FA first)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@yourdomain.com
+SMTP_PASS=your-16-char-app-password
+SMTP_FROM=Atlas <you@yourdomain.com>
+
+# SendGrid
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASS=SG.your-api-key
+SMTP_FROM=Atlas <noreply@yourdomain.com>
+
+# Resend
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+SMTP_PASS=re_your-api-key
+SMTP_FROM=Atlas <noreply@yourdomain.com>
+
+# Postmark
+SMTP_HOST=smtp.postmarkapp.com
+SMTP_PORT=587
+SMTP_USER=<server-token>
+SMTP_PASS=<server-token>
+SMTP_FROM=Atlas <noreply@yourdomain.com>
+```
+
+After editing `.env`, restart Atlas and click **Settings → System → Send test email** to verify delivery.
 
 ## Google integration (optional)
 
-Enables CRM email/calendar sync and Drive file import/export.
+Atlas uses Google OAuth on a **per-user** basis. Each user clicks *Connect Google* in their own **Settings** to grant access — the admin only has to provide the OAuth client ID/secret once. Without Google set up, `/calendar` still works (events live in Postgres), CRM email features are hidden, and Drive works for Atlas-native files only.
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services > Credentials**
-2. Create an **OAuth 2.0 Client ID** (type: Web application)
-3. Set the authorized redirect URI to: `https://your-domain.com/api/v1/auth/google/callback`
-4. Copy the Client ID and Client Secret into your `.env`:
-   ```
-   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your-client-secret
-   ```
-5. Enable these APIs in **APIs & Services > Library**:
+### 1. Create an OAuth client
+
+1. Open [Google Cloud Console](https://console.cloud.google.com) and create or select a project.
+2. **APIs & Services → Library** — enable:
    - Gmail API
    - Google Calendar API
    - Google Drive API
-6. Users can connect their Google account from **Settings** or when using Google-dependent features
+3. **APIs & Services → OAuth consent screen** — configure:
+   - User type: *External* (unless you're on Google Workspace, in which case *Internal* is simpler).
+   - App name, support email, developer contact.
+   - While in *Testing* status you can only authenticate accounts listed under **Test users**. For a single-company deployment that's often enough. If you want anyone in your org (or the public) to be able to connect, click **Publish app** — note that the sensitive scopes (`gmail.readonly`, `gmail.send`) require [Google verification](https://support.google.com/cloud/answer/9110914) before the app leaves *In production* warning state.
+4. **APIs & Services → Credentials → Create credentials → OAuth 2.0 Client ID**:
+   - Application type: *Web application*.
+   - Authorized redirect URI: `https://your-atlas-domain/api/v1/auth/google/callback` (use `http://localhost:3001/api/v1/auth/google/callback` for local dev).
+
+### 2. Add to `.env`
+
+```env
+GOOGLE_CLIENT_ID=xxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxx
+# Optional — only needed if the server's public URL differs from the OAuth redirect host
+# GOOGLE_REDIRECT_URI=https://your-atlas-domain/api/v1/auth/google/callback
+```
+
+Restart Atlas. The **Connect Google** option appears in **Settings → Integrations** for each user.
+
+### Scopes that Atlas requests
+
+On the initial connection:
+
+- `https://www.googleapis.com/auth/gmail.readonly`
+- `https://www.googleapis.com/auth/gmail.send`
+- `https://www.googleapis.com/auth/calendar.readonly`
+- `https://www.googleapis.com/auth/calendar.events`
+
+Drive scopes are requested incrementally only when the user first opens the Drive integration, so users who never touch Drive don't grant those:
+
+- `https://www.googleapis.com/auth/drive.readonly`
+- `https://www.googleapis.com/auth/drive.file`
+
+Tokens are encrypted at rest with `TOKEN_ENCRYPTION_KEY` before being written to Postgres.
+
+### Background sync (optional)
+
+If `REDIS_URL` is also set, Atlas enables a BullMQ worker that keeps user Gmail/Calendar in sync outside the request path (periodic pull, webhook delivery). Without Redis, sync happens on-demand when users open the CRM or Calendar views — still functional, just not ambient.
 
 ## Troubleshooting
 
