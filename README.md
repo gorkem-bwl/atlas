@@ -92,17 +92,60 @@ npm run dev
 
 ## Apps
 
-| App | Description |
-|-----|-------------|
-| CRM | Pipeline, contacts, companies, deals, leads, forecasting, saved views, web-to-lead forms |
-| HRM | Employees, departments, org chart (React Flow), leave management, attendance |
-| Calendar | Month/week/day/year/agenda views with Google Calendar sync |
-| Projects | Time tracking, invoicing, clients, reports, budgets |
-| Agreements | PDF contracts with e-signatures, starter templates, document type tracking, counterparty linking, sequential signing, audit trail, reminders |
-| Drive | File storage with versioning, sharing, comments, activity log, password-protected links |
-| Tasks | Task management with calendar, dependencies, attachments, assignees, comments |
-| Write | Rich text editor with cover images, comments, templates |
-| Draw | Excalidraw-based canvas with PDF export, image insertion, presentation mode |
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/crm.png" alt="CRM" /><br/>
+      <b>CRM</b> — Pipeline, contacts, companies, deals, leads, forecasting, saved views, web-to-lead forms
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/hr.png" alt="HR" /><br/>
+      <b>HRM</b> — Employees, departments, org chart, leave management, attendance
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/screenshots/projects.png" alt="Projects" /><br/>
+      <b>Projects</b> — Time tracking, invoicing, clients, reports, budgets
+    </td>
+    <td>
+      <img src="docs/screenshots/calendar.png" alt="Calendar" /><br/>
+      <b>Calendar</b> — Month/week/day/year/agenda views with Google Calendar sync
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/screenshots/invoices.png" alt="Invoices" /><br/>
+      <b>Invoices</b> — Invoice creation, recurring billing, templates, payment tracking
+    </td>
+    <td>
+      <img src="docs/screenshots/sign.png" alt="Agreements" /><br/>
+      <b>Agreements</b> — PDF contracts with e-signatures, templates, counterparty linking, sequential signing, audit trail, reminders
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/screenshots/drive.png" alt="Drive" /><br/>
+      <b>Drive</b> — File storage with versioning, sharing, comments, activity log, password-protected links
+    </td>
+    <td>
+      <img src="docs/screenshots/tasks.png" alt="Tasks" /><br/>
+      <b>Tasks</b> — Task management with calendar, dependencies, attachments, assignees, comments
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/screenshots/write.png" alt="Write" /><br/>
+      <b>Write</b> — Rich text editor with cover images, comments, templates
+    </td>
+    <td>
+      <img src="docs/screenshots/system.png" alt="System" /><br/>
+      <b>System</b> — CPU/memory/disk monitoring, email settings, role-based app permissions
+    </td>
+  </tr>
+</table>
+
+Atlas also includes **Draw** — an Excalidraw-based canvas with PDF export, image insertion, and presentation mode.
 
 
 ## Tech stack
