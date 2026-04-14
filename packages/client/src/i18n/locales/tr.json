@@ -1909,7 +1909,10 @@
       "clear": "Temizle",
       "move": "Taşı",
       "favourite": "Favori",
-      "delete": "Sil"
+      "delete": "Sil",
+      "itemsRestored": "{{count}} öğe geri yüklendi",
+      "itemsDeletedPermanently": "{{count}} öğe kalıcı olarak silindi",
+      "movedName": "\"{{name}}\" taşındı"
     },
     "context": {
       "duplicate": "Çoğalt",
@@ -2205,7 +2208,9 @@
       "trash": "Çöpe at",
       "clear": "Seçimi temizle",
       "selectAll": "Tümünü seç",
-      "favourite": "Favori"
+      "favourite": "Favori",
+      "restore": "Geri yükle",
+      "deletePermanently": "Kalıcı olarak sil"
     },
     "linkedFrom": {
       "title": "Bağlı kayıtlar"

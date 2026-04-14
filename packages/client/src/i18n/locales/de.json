@@ -1909,7 +1909,10 @@
       "clear": "Auswahl aufheben",
       "move": "Verschieben",
       "favourite": "Favorit",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "itemsRestored": "{{count}} Elemente wiederhergestellt",
+      "itemsDeletedPermanently": "{{count}} Elemente endgültig gelöscht",
+      "movedName": "„{{name}}\" verschoben"
     },
     "context": {
       "duplicate": "Duplizieren",
@@ -2205,7 +2208,9 @@
       "trash": "In Papierkorb",
       "clear": "Auswahl aufheben",
       "selectAll": "Alle auswählen",
-      "favourite": "Favorit"
+      "favourite": "Favorit",
+      "restore": "Wiederherstellen",
+      "deletePermanently": "Endgültig löschen"
     },
     "linkedFrom": {
       "title": "Verknüpfte Datensätze"

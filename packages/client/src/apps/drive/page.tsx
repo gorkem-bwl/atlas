@@ -30,7 +30,7 @@ import { DriveBulkBar } from './components/drive-bulk-bar';
 import { NewFolderModal, MoveModal, TagModal, ShareModal, GoogleDriveModal } from './components/modals';
 import { getSortOptions, getTypeFilterOptions, getModifiedFilterOptions, parseTag } from './lib/helpers';
 import { useDrivePage } from './use-drive-page';
-import { useBatchTrash, useBatchMoveDriveItems } from './hooks';
+import { useBatchTrash, useBatchMoveDriveItems, useRestoreDriveItem, usePermanentDeleteDriveItem } from './hooks';
 
 export function DrivePage() {
   const { t } = useTranslation();
@@ -43,6 +43,8 @@ export function DrivePage() {
 
   const batchTrash = useBatchTrash();
   const batchMove = useBatchMoveDriveItems();
+  const restoreItem = useRestoreDriveItem();
+  const permanentDelete = usePermanentDeleteDriveItem();
 
   const handleDragBatchMove = (ids: string[], targetFolderId: string) => {
     batchMove.mutate({ itemIds: ids, parentId: targetFolderId }, {
@@ -60,6 +62,26 @@ export function DrivePage() {
     });
   };
 
+  const handleBulkRestore = () => {
+    if (d.selectedIds.size === 0) return;
+    const ids = Array.from(d.selectedIds);
+    Promise.all(ids.map((id) => restoreItem.mutateAsync(id))).then(() => {
+      d.addToast({ type: 'success', message: t('drive.actions.itemsRestored', { count: ids.length }) });
+      d.setSelectedIds(new Set());
+    });
+  };
+
+  const handleBulkPermanentDelete = () => {
+    if (d.selectedIds.size === 0) return;
+    const ids = Array.from(d.selectedIds);
+    const ok = window.confirm(t('drive.bulk.permanentDeleteConfirm', 'Permanently delete {{count}} items? This cannot be undone.', { count: ids.length }));
+    if (!ok) return;
+    Promise.all(ids.map((id) => permanentDelete.mutateAsync(id))).then(() => {
+      d.addToast({ type: 'success', message: t('drive.actions.itemsDeletedPermanently', { count: ids.length }) });
+      d.setSelectedIds(new Set());
+    });
+  };
+
   const handleBulkDownload = () => {
     const token = localStorage.getItem('atlasmail_token');
     for (const id of d.selectedIds) {
@@ -68,12 +90,26 @@ export function DrivePage() {
   };
 
   const renderTags = (item: DriveItem) => {
-    if (!item.tags || item.tags.length === 0) return null;
+    const visibleWithIdx = (item.tags ?? [])
+      .map((tag, i) => ({ tag, originalIndex: i }))
+      .filter(({ tag }) => {
+        // Hide upload-source markers stored as JSON-stringified objects by the
+        // public upload controller. They are surfaced elsewhere (activity log,
+        // preview panel), not in the list row.
+        if (typeof tag !== 'string') return true;
+        if (!tag.startsWith('{')) return true;
+        try {
+          return JSON.parse(tag)?.type !== 'upload_source';
+        } catch {
+          return true;
+        }
+      });
+    if (visibleWithIdx.length === 0) return null;
     return (
       <div className="drive-tags">
-        {item.tags.map((tag, i) => {
+        {visibleWithIdx.map(({ tag, originalIndex }) => {
           const { color, label } = parseTag(tag);
-          return <Chip key={i} color={color} height={18} onRemove={() => d.handleRemoveTag(item, i)}>{label}</Chip>;
+          return <Chip key={originalIndex} color={color} height={18} onRemove={() => d.handleRemoveTag(item, originalIndex)}>{label}</Chip>;
         })}
       </div>
     );
@@ -270,6 +306,9 @@ export function DrivePage() {
         onDownload={handleBulkDownload}
         onFavourite={d.handleBulkFavourite}
         onTrash={handleBulkTrash}
+        onRestore={handleBulkRestore}
+        onDeletePermanently={handleBulkPermanentDelete}
+        isTrashView={d.sidebarView === 'trash'}
         canDelete={canDeleteAny || canDeleteOwn}
         canEdit={canEdit}
       />

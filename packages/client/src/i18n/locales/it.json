@@ -1909,7 +1909,10 @@
       "clear": "Cancella",
       "move": "Sposta",
       "favourite": "Preferito",
-      "delete": "Elimina"
+      "delete": "Elimina",
+      "itemsRestored": "{{count}} elementi ripristinati",
+      "itemsDeletedPermanently": "{{count}} elementi eliminati definitivamente",
+      "movedName": "\"{{name}}\" spostato"
     },
     "context": {
       "duplicate": "Duplica",
@@ -2205,7 +2208,9 @@
       "trash": "Cestina",
       "clear": "Deseleziona",
       "selectAll": "Seleziona tutto",
-      "favourite": "Preferito"
+      "favourite": "Preferito",
+      "restore": "Ripristina",
+      "deletePermanently": "Elimina definitivamente"
     },
     "linkedFrom": {
       "title": "Record collegati"

@@ -363,7 +363,7 @@ export function useDrivePage() {
   }, []);
 
   const handleMove = useCallback((item: DriveItem) => { setMoveItem(item); setMoveTargetId(null); setMoveModalOpen(true); setContextMenu(null); }, []);
-  const handleMoveSubmit = useCallback(() => { if (!moveItem) return; updateItem.mutate({ id: moveItem.id, parentId: moveTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.moved') }); setMoveModalOpen(false); setMoveItem(null); } }); }, [moveItem, moveTargetId, updateItem, addToast, t]);
+  const handleMoveSubmit = useCallback(() => { if (!moveItem) return; const name = moveItem.name; updateItem.mutate({ id: moveItem.id, parentId: moveTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.movedName', { name }) }); setMoveModalOpen(false); setMoveItem(null); } }); }, [moveItem, moveTargetId, updateItem, addToast, t]);
   const handleDuplicate = useCallback((item: DriveItem) => { duplicateItem.mutate(item.id, { onSuccess: () => addToast({ type: 'success', message: t('drive.actions.duplicated') }) }); setContextMenu(null); }, [duplicateItem, addToast, t]);
   const handleCopy = useCallback((item: DriveItem) => { setCopyModalItem(item); setCopyTargetId(null); setCopyModalOpen(true); setContextMenu(null); }, []);
   const handleCopySubmit = useCallback(() => { if (!copyModalItem) return; copyItem.mutate({ id: copyModalItem.id, targetParentId: copyTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.copied') }); setCopyModalOpen(false); setCopyModalItem(null); } }); }, [copyModalItem, copyTargetId, copyItem, addToast, t]);
@@ -384,7 +384,7 @@ export function useDrivePage() {
   // ─── Bulk operations ──────────────────────────────────────────────
   const handleBulkDelete = useCallback(() => { const ids = Array.from(selectedIds); batchDelete.mutate(ids, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.itemsMovedToTrash', { count: ids.length }) }); setSelectedIds(new Set()); } }); }, [selectedIds, batchDelete, addToast, t]);
   const handleBulkFavourite = useCallback(() => { const ids = Array.from(selectedIds); batchFavourite.mutate({ itemIds: ids, isFavourite: true }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.addedToFavourites') }); setSelectedIds(new Set()); } }); }, [selectedIds, batchFavourite, addToast]);
-  const handleBulkMoveSubmit = useCallback(() => { const ids = Array.from(selectedIds); batchMove.mutate({ itemIds: ids, parentId: batchMoveTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.moved') }); setBatchMoveOpen(false); setSelectedIds(new Set()); } }); }, [selectedIds, batchMoveTargetId, batchMove, addToast, t]);
+  const handleBulkMoveSubmit = useCallback(() => { const ids = Array.from(selectedIds); batchMove.mutate({ itemIds: ids, parentId: batchMoveTargetId }, { onSuccess: () => { addToast({ type: 'success', message: t('drive.actions.itemsMoved', { count: ids.length }) }); setBatchMoveOpen(false); setSelectedIds(new Set()); } }); }, [selectedIds, batchMoveTargetId, batchMove, addToast, t]);
   const handleSelectAll = useCallback(() => { setSelectedIds(new Set(displayItems.map((i) => i.id))); }, [displayItems]);
   const handleClearSelection = useCallback(() => { setSelectedIds(new Set()); }, []);
 

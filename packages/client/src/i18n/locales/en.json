@@ -1971,7 +1971,10 @@
       "clear": "Clear",
       "move": "Move",
       "favourite": "Favourite",
-      "delete": "Delete"
+      "delete": "Delete",
+      "itemsRestored": "{{count}} items restored",
+      "itemsDeletedPermanently": "{{count}} items permanently deleted",
+      "movedName": "\"{{name}}\" moved"
     },
     "context": {
       "duplicate": "Duplicate",
@@ -2267,7 +2270,9 @@
       "trash": "Trash",
       "clear": "Clear selection",
       "selectAll": "Select all",
-      "favourite": "Favourite"
+      "favourite": "Favourite",
+      "restore": "Restore",
+      "deletePermanently": "Delete permanently"
     },
     "linkedFrom": {
       "title": "Linked records"

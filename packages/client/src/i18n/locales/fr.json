@@ -1909,7 +1909,10 @@
       "clear": "Effacer",
       "move": "Déplacer",
       "favourite": "Favori",
-      "delete": "Supprimer"
+      "delete": "Supprimer",
+      "itemsRestored": "{{count}} éléments restaurés",
+      "itemsDeletedPermanently": "{{count}} éléments supprimés définitivement",
+      "movedName": "« {{name}} » déplacé"
     },
     "context": {
       "duplicate": "Dupliquer",
@@ -2205,7 +2208,9 @@
       "trash": "Corbeille",
       "clear": "Désélectionner",
       "selectAll": "Tout sélectionner",
-      "favourite": "Favori"
+      "favourite": "Favori",
+      "restore": "Restaurer",
+      "deletePermanently": "Supprimer définitivement"
     },
     "linkedFrom": {
       "title": "Enregistrements liés"

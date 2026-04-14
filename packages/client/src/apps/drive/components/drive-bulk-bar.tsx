@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Trash2, FolderInput, Copy, Download, X, Check, Star } from 'lucide-react';
+import { Trash2, FolderInput, Copy, Download, X, Check, Star, Undo2, Flame } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 
 interface DriveBulkBarProps {
@@ -11,12 +11,16 @@ interface DriveBulkBarProps {
   onDownload: () => void;
   onFavourite: () => void;
   onTrash: () => void;
+  onRestore?: () => void;
+  onDeletePermanently?: () => void;
+  isTrashView?: boolean;
   canDelete: boolean;
   canEdit: boolean;
 }
 
 export function DriveBulkBar({
-  selectedCount, onSelectAll, onClear, onMove, onCopy, onDownload, onFavourite, onTrash, canDelete, canEdit,
+  selectedCount, onSelectAll, onClear, onMove, onCopy, onDownload, onFavourite, onTrash,
+  onRestore, onDeletePermanently, isTrashView, canDelete, canEdit,
 }: DriveBulkBarProps) {
   const { t } = useTranslation();
   if (selectedCount < 1) return null;
@@ -56,26 +60,43 @@ export function DriveBulkBar({
         {t('drive.bulk.clear')}
       </Button>
       <div style={{ width: 1, height: 20, background: 'var(--color-border-primary)' }} />
-      {canEdit && (
-        <Button variant="ghost" size="sm" icon={<FolderInput size={13} />} onClick={onMove}>
-          {t('drive.bulk.move')}
-        </Button>
-      )}
-      {canEdit && (
-        <Button variant="ghost" size="sm" icon={<Copy size={13} />} onClick={onCopy}>
-          {t('drive.bulk.copy')}
-        </Button>
-      )}
-      <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={onDownload}>
-        {t('drive.bulk.download')}
-      </Button>
-      <Button variant="ghost" size="sm" icon={<Star size={13} />} onClick={onFavourite}>
-        {t('drive.bulk.favourite')}
-      </Button>
-      {canDelete && (
-        <Button variant="danger" size="sm" icon={<Trash2 size={13} />} onClick={onTrash}>
-          {t('drive.bulk.trash')}
-        </Button>
+      {isTrashView ? (
+        <>
+          {onRestore && (
+            <Button variant="ghost" size="sm" icon={<Undo2 size={13} />} onClick={onRestore}>
+              {t('drive.bulk.restore')}
+            </Button>
+          )}
+          {onDeletePermanently && canDelete && (
+            <Button variant="danger" size="sm" icon={<Flame size={13} />} onClick={onDeletePermanently}>
+              {t('drive.bulk.deletePermanently')}
+            </Button>
+          )}
+        </>
+      ) : (
+        <>
+          {canEdit && (
+            <Button variant="ghost" size="sm" icon={<FolderInput size={13} />} onClick={onMove}>
+              {t('drive.bulk.move')}
+            </Button>
+          )}
+          {canEdit && (
+            <Button variant="ghost" size="sm" icon={<Copy size={13} />} onClick={onCopy}>
+              {t('drive.bulk.copy')}
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={onDownload}>
+            {t('drive.bulk.download')}
+          </Button>
+          <Button variant="ghost" size="sm" icon={<Star size={13} />} onClick={onFavourite}>
+            {t('drive.bulk.favourite')}
+          </Button>
+          {canDelete && (
+            <Button variant="danger" size="sm" icon={<Trash2 size={13} />} onClick={onTrash}>
+              {t('drive.bulk.trash')}
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
