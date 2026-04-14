@@ -2219,6 +2219,17 @@
       "uploading": "Yükleniyor…",
       "submit": "Yükle",
       "successTitle": "Dosyalar yüklendi"
+    },
+    "share": {
+      "label": "Paylaş",
+      "linkType": "Bağlantı türü",
+      "modeView": "Yalnızca görüntüleme",
+      "modeEdit": "Düzenleyebilir",
+      "modeUploadOnly": "Yalnızca yükleme",
+      "uploadOnlyHint": "Ziyaretçiler bu klasöre dosya yükleyebilir ancak içeriği göremez.",
+      "uploadInstructionsLabel": "Yükleyenler için talimat (isteğe bağlı)",
+      "uploadInstructionsPlaceholder": "örn. İmzalı sözleşmenizi yükleyin",
+      "requireEmail": "Ad ve e-posta iste"
     }
   },
   "hr": {

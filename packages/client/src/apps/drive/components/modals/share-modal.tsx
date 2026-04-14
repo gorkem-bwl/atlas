@@ -11,6 +11,7 @@ import { Select } from '../../../../components/ui/select';
 import { Avatar } from '../../../../components/ui/avatar';
 import { Badge } from '../../../../components/ui/badge';
 import { Tooltip } from '../../../../components/ui/tooltip';
+import { FileRequestSettings } from './file-request-settings';
 import { useAuthStore } from '../../../../stores/auth-store';
 import { formatRelativeDate } from '../../../../lib/drive-utils';
 import type { DriveItem, DriveShareLink, TenantUser } from '@atlas-platform/shared';
@@ -23,7 +24,7 @@ interface ShareModalProps {
   shareLinksData: { links: DriveShareLink[] } | undefined;
   shareItem: { mutate: (args: { itemId: string; userId: string; permission: string }, opts?: any) => void; isPending: boolean };
   revokeShare: { mutate: (args: { itemId: string; userId: string }, opts?: any) => void };
-  createShareLink: { mutate: (args: { itemId: string; expiresAt?: string; password?: string }, opts?: any) => void };
+  createShareLink: { mutate: (args: { itemId: string; expiresAt?: string; password?: string; mode?: 'view' | 'edit' | 'upload_only'; uploadInstructions?: string | null; requireUploaderEmail?: boolean }, opts?: any) => void };
   deleteShareLink: { mutate: (id: string, opts?: any) => void };
   addToast: (toast: { type: 'success' | 'error' | 'info' | 'undo'; message: string }) => void;
   defaultExpiry: string;
@@ -54,6 +55,11 @@ export function ShareModal({
   const [shareExpiry, setShareExpiry] = useState<string>(defaultExpiry || 'never');
   const [sharePassword, setSharePassword] = useState('');
   const [sharePasswordEnabled, setSharePasswordEnabled] = useState(false);
+  const [linkMode, setLinkMode] = useState<'view' | 'upload_only'>('view');
+  const [uploadInstructions, setUploadInstructions] = useState('');
+  const [requireUploaderEmail, setRequireUploaderEmail] = useState(true);
+
+  const isFolder = shareModalItem?.type === 'folder';
 
   const handleClose = () => {
     setShareModalItem(null);
@@ -61,6 +67,9 @@ export function ShareModal({
     setSharePermission('view');
     setSharePassword('');
     setSharePasswordEnabled(false);
+    setLinkMode('view');
+    setUploadInstructions('');
+    setRequireUploaderEmail(true);
   };
 
   return (
@@ -188,7 +197,44 @@ export function ShareModal({
         <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 8 }}>
           {t('drive.sharing.publicLink')}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+        {isFolder && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', marginBottom: 12 }}>
+            <label style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-secondary)' }}>
+              {t('drive.share.linkType')}
+            </label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['view', 'upload_only'] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setLinkMode(m)}
+                  style={{
+                    flex: 1,
+                    padding: 'var(--spacing-xs) var(--spacing-sm)',
+                    border: `1px solid ${linkMode === m ? 'var(--color-accent-primary)' : 'var(--color-border-primary)'}`,
+                    background: linkMode === m ? 'color-mix(in srgb, var(--color-accent-primary) 8%, transparent)' : 'transparent',
+                    color: linkMode === m ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: 'var(--font-size-sm)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-family)',
+                  }}
+                >
+                  {m === 'view' ? t('drive.share.modeView') : t('drive.share.modeUploadOnly')}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {isFolder && linkMode === 'upload_only' && (
+          <FileRequestSettings
+            instructions={uploadInstructions}
+            requireEmail={requireUploaderEmail}
+            onInstructionsChange={setUploadInstructions}
+            onRequireEmailChange={setRequireUploaderEmail}
+          />
+        )}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, marginTop: 12 }}>
           <Select
             value={shareExpiry}
             onChange={(v) => setShareExpiry(v)}
@@ -208,15 +254,22 @@ export function ShareModal({
             onClick={() => {
               if (!shareModalItem) return;
               const expiresAt = shareExpiry === 'never' ? undefined : new Date(Date.now() + parseInt(shareExpiry) * 86400000).toISOString();
+              const effectiveMode: 'view' | 'upload_only' = isFolder ? linkMode : 'view';
               createShareLink.mutate({
                 itemId: shareModalItem.id,
                 expiresAt,
                 password: sharePasswordEnabled && sharePassword ? sharePassword : undefined,
+                mode: effectiveMode,
+                uploadInstructions: effectiveMode === 'upload_only' ? (uploadInstructions || null) : undefined,
+                requireUploaderEmail: effectiveMode === 'upload_only' ? requireUploaderEmail : undefined,
               }, {
                 onSuccess: () => {
                   addToast({ type: 'success', message: t('drive.actions.shareLinkCreated') });
                   setSharePassword('');
                   setSharePasswordEnabled(false);
+                  setUploadInstructions('');
+                  setRequireUploaderEmail(true);
+                  setLinkMode('view');
                 },
               });
             }}

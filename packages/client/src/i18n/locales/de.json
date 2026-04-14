@@ -2219,6 +2219,17 @@
       "uploading": "Wird hochgeladen…",
       "submit": "Hochladen",
       "successTitle": "Dateien hochgeladen"
+    },
+    "share": {
+      "label": "Teilen",
+      "linkType": "Link-Typ",
+      "modeView": "Nur ansehen",
+      "modeEdit": "Bearbeiten",
+      "modeUploadOnly": "Nur hochladen",
+      "uploadOnlyHint": "Besucher können Dateien in diesen Ordner hochladen, sehen aber keine anderen Inhalte.",
+      "uploadInstructionsLabel": "Anweisungen für Hochladende (optional)",
+      "uploadInstructionsPlaceholder": "z. B. Bitte den unterschriebenen Vertrag hochladen",
+      "requireEmail": "Name und E-Mail abfragen"
     }
   },
   "hr": {

@@ -2219,6 +2219,17 @@
       "uploading": "Téléversement en cours…",
       "submit": "Téléverser",
       "successTitle": "Fichiers téléversés"
+    },
+    "share": {
+      "label": "Partager",
+      "linkType": "Type de lien",
+      "modeView": "Lecture seule",
+      "modeEdit": "Modifier",
+      "modeUploadOnly": "Téléversement uniquement",
+      "uploadOnlyHint": "Les visiteurs peuvent téléverser des fichiers dans ce dossier sans voir le reste.",
+      "uploadInstructionsLabel": "Instructions pour les expéditeurs (facultatif)",
+      "uploadInstructionsPlaceholder": "ex. Téléversez votre contrat signé",
+      "requireEmail": "Demander le nom et l'e-mail"
     }
   },
   "hr": {

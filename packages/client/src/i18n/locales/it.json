@@ -2219,6 +2219,17 @@
       "uploading": "Caricamento in corso…",
       "submit": "Carica",
       "successTitle": "File caricati"
+    },
+    "share": {
+      "label": "Condividi",
+      "linkType": "Tipo di link",
+      "modeView": "Solo visualizzazione",
+      "modeEdit": "Può modificare",
+      "modeUploadOnly": "Solo caricamento",
+      "uploadOnlyHint": "I visitatori possono caricare file in questa cartella senza vederne il contenuto.",
+      "uploadInstructionsLabel": "Istruzioni per chi carica (facoltativo)",
+      "uploadInstructionsPlaceholder": "es. Carica il contratto firmato",
+      "requireEmail": "Chiedi nome e email"
     }
   },
   "hr": {

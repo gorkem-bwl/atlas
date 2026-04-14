@@ -491,8 +491,28 @@ export function useCreateShareLink() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ itemId, expiresAt, password }: { itemId: string; expiresAt?: string; password?: string }) => {
-      const { data } = await api.post(`/drive/${itemId}/share`, { expiresAt, password });
+    mutationFn: async ({
+      itemId,
+      expiresAt,
+      password,
+      mode,
+      uploadInstructions,
+      requireUploaderEmail,
+    }: {
+      itemId: string;
+      expiresAt?: string;
+      password?: string;
+      mode?: 'view' | 'edit' | 'upload_only';
+      uploadInstructions?: string | null;
+      requireUploaderEmail?: boolean;
+    }) => {
+      const { data } = await api.post(`/drive/${itemId}/share`, {
+        expiresAt,
+        password,
+        mode,
+        uploadInstructions,
+        requireUploaderEmail,
+      });
       return data.data as DriveShareLink;
     },
     onSuccess: () => {

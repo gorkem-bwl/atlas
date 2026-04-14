@@ -2281,6 +2281,17 @@
       "uploading": "Uploading…",
       "submit": "Upload",
       "successTitle": "Files uploaded"
+    },
+    "share": {
+      "label": "Share",
+      "linkType": "Link type",
+      "modeView": "View only",
+      "modeEdit": "Can edit",
+      "modeUploadOnly": "Upload only",
+      "uploadOnlyHint": "Visitors can upload files to this folder but cannot see other contents.",
+      "uploadInstructionsLabel": "Instructions for uploaders (optional)",
+      "uploadInstructionsPlaceholder": "e.g. Please upload your signed contract",
+      "requireEmail": "Ask uploaders for name and email"
     }
   },
   "hr": {
