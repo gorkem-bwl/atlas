@@ -20,6 +20,7 @@ import {
   getFriendlyTypeName, renderBasicMarkdown, parseCsvToRows, extractTextFromContent,
 } from '../lib/helpers';
 import { DrawingPreviewThumbnail } from './drawing-preview-thumbnail';
+import { LinkedRecordsSection, type LinkedRecord } from './linked-records-section';
 import type { DriveItem } from '@atlas-platform/shared';
 
 interface DrivePreviewPanelProps {
@@ -118,6 +119,7 @@ export function DrivePreviewPanel({
       </div>
 
       <div className="drive-preview-body">
+        <LinkedRecordsSection linkedFrom={(previewItem as { linkedFrom?: LinkedRecord[] }).linkedFrom} />
         {isImageFile(previewItem.mimeType) && previewItem.storagePath ? (
           <img
             src={`/api/v1/drive/${previewItem.id}/view${getTokenParam()}`}
