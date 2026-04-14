@@ -5,8 +5,6 @@
 
 A self-hosted business platform that brings CRM, HRM, invoicing, agreements, documents, tasks, file storage, and whiteboards into one connected workspace for your team. An open alternative to [Zoho](https://zoho.com/) and [Odoo](https://www.odoo.com/).
 
-Atlas can also deploy several 3rd party apps, including [Activepieces](https://www.activepieces.com/), [Cal.com](http://cal.com/), [Formbricks](http://formbricks.com/), [Mattermost](http://mattermost.com/), [Umami](https://umami.is/) and [Checkmate](https://checkmate.so/).
-
 https://github.com/user-attachments/assets/15ec33e3-0308-4a95-b58f-5b8b2d83a7d9
 
 
