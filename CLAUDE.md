@@ -390,6 +390,28 @@ export function useItemList() {
 }
 ```
 
+### Optimistic concurrency (mandatory for every new entity)
+
+Every record edited by more than one user needs Level 2 optimistic concurrency. See `packages/server/src/middleware/concurrency-check.ts` and `packages/shared/src/types/concurrency.ts`. Three hooks to wire for a new entity:
+
+1. **Server route** — add `withConcurrencyCheck(myTable)` before the update controller:
+   ```ts
+   router.patch('/items/:id', requireAppPermission('myApp'), withConcurrencyCheck(items), controller.updateItem);
+   ```
+2. **Update mutation hook** — accept optional `updatedAt` and forward via `ifUnmodifiedSince()`:
+   ```ts
+   mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<T>) => {
+     const { data } = await api.patch(`/items/${id}`, input, ifUnmodifiedSince(updatedAt));
+     return data.data as Item;
+   }
+   ```
+3. **Detail page** — pass `record.updatedAt` on every `.mutate(...)`:
+   ```ts
+   updateItem.mutate({ id: item.id, updatedAt: item.updatedAt, name: newName });
+   ```
+
+The global `ConflictDialog` (mounted in `App.tsx`) handles 409 STALE_RESOURCE responses automatically — no per-page error handling needed. Tables must already have `id`, `tenantId`, and `updatedAt` columns.
+
 ### Client page pattern
 ```tsx
 export function MyAppPage() {
