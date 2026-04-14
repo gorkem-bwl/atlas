@@ -4,19 +4,6 @@
   100% { transform: scale(1.15) translate(-2%, -1%); }
 }
 
-/* ─── Desktop (Electron) drag region and traffic light offset ──────── */
-
-.desktop-drag-region {
-  -webkit-app-region: drag;
-}
-
-.desktop-drag-region button,
-.desktop-drag-region a,
-.desktop-drag-region input,
-.desktop-drag-region [role="button"] {
-  -webkit-app-region: no-drag;
-}
-
 /* ─── Glass-morphism input overrides (login / setup pages) ─────────── */
 /* Inputs inside a .glass-card get white text and visible placeholders.
    !important is required to override the inline styles on <input>.     */

@@ -62,7 +62,6 @@ export function AppSidebar({
   footer,
 }: AppSidebarProps) {
   const navigate = useNavigate();
-  const isDesktop = !!('atlasDesktop' in window);
 
   const [width, setWidth] = useState(() => readStoredWidth(storageKey));
   const widthRef = useRef(width);
@@ -110,7 +109,6 @@ export function AppSidebar({
         <div
           style={{
             padding: '12px 16px 8px',
-            paddingTop: isDesktop ? 46 : 12,
             display: 'flex',
             alignItems: 'center',
             gap: 8,

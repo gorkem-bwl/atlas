@@ -31,7 +31,6 @@ packages/
   client/     — React frontend (port 5180)
   server/     — Express API (port 3001)
   shared/     — Shared TypeScript types
-  desktop/    — Electron wrapper (not actively used)
 ```
 
 ---
@@ -316,7 +315,6 @@ Atlas uses `react-i18next` for internationalization. 5 languages: EN, TR, DE, FR
 ### Rules
 - Every git tag MUST have a corresponding GitHub Release with release notes. They must always be in sync.
 - When tagging and making a release, always update the version number in Settings > About Atlas (next to "Current application version").
-- When starting the server locally, do NOT run the Electron app. Only start the client and server packages.
 - NEVER tag or create a release without explicit user permission. Always ask before tagging.
 
 ### Release Workflow

@@ -931,17 +931,6 @@
   color: var(--color-error);
 }
 
-/* ─── Desktop drag region ────────────────────────────────────────── */
-
-.tasks-drag-region {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  z-index: 60;
-}
-
 /* ─── When badges (feature 7) ────────────────────────────────────── */
 
 .task-when-badge {

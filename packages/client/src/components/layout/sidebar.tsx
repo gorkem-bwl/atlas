@@ -264,9 +264,6 @@ export function Sidebar() {
     return filtered.filter((item) => ALWAYS_SHOW_NAV.has(item.id) || allowedSet.has(item.id));
   }, [myApps, isOwner]);
 
-  // Detect Electron desktop shell (set by preload script)
-  const isDesktop = !!('atlasDesktop' in window);
-
   return (
     <div
       style={{
@@ -274,7 +271,6 @@ export function Sidebar() {
         flexDirection: 'column',
         height: '100%',
         padding: 'var(--spacing-sm) var(--spacing-sm)',
-        paddingTop: isDesktop ? 40 : undefined,
         boxSizing: 'border-box',
         position: 'relative',
         overflow: 'hidden',
@@ -282,7 +278,6 @@ export function Sidebar() {
     >
       {/* Header with back arrow + title */}
       <div
-        className={isDesktop ? 'desktop-drag-region' : undefined}
         style={{
           display: 'flex',
           alignItems: 'center',

@@ -534,7 +534,6 @@ export function CalendarPage() {
     prevSyncStatus.current = status;
   }, [syncCalendar.isPending, syncCalendar.isSuccess, syncCalendar.isError, syncCalendar.error, addToast]);
 
-  const isDesktop = !!('atlasDesktop' in window);
   const isNarrow = useMediaQuery('(max-width: 900px)');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const showSidebar = !sidebarCollapsed && !isNarrow;
@@ -655,13 +654,11 @@ export function CalendarPage() {
   const calendarToolbar = (
     <div
       data-calendar-toolbar
-      className={isDesktop ? 'desktop-drag-region' : undefined}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--spacing-sm)',
         padding: '6px 16px',
-        paddingTop: isDesktop ? 40 : 6,
         background: 'var(--color-bg-secondary)',
         flexShrink: 0,
         width: '100%',

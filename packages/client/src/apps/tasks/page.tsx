@@ -40,7 +40,6 @@ import '../../styles/tasks.css';
 
 export function TasksPage() {
   const { t } = useTranslation();
-  const isDesktop = !!('atlasDesktop' in window);
 
   const { canCreate, canDelete } = useAppActions('tasks');
 
@@ -393,8 +392,6 @@ export function TasksPage() {
 
   return (
     <div className="tasks-page">
-      {isDesktop && <div className="desktop-drag-region tasks-drag-region" />}
-
       <TasksSidebar
         activeSection={activeSection}
         onSectionChange={handleSectionChange}

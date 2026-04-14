@@ -565,7 +565,6 @@ export function HomePage() {
   const now = useCurrentTime();
   const account = useAuthStore((s) => s.account);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isDesktop = !!('atlasDesktop' in window);
   const { openSettings } = useUIStore();
   const logout = useAuthStore((s) => s.logout);
   const { data: taskCounts } = useTaskCounts({ enabled: isAuthenticated });
@@ -908,26 +907,11 @@ export function HomePage() {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Desktop: invisible drag strip for window movement */}
-      {isDesktop && (
-        <div
-          className="desktop-drag-region"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 38,
-            zIndex: 60,
-          }}
-        />
-      )}
-
       {/* Top-right — Settings */}
       <div
         style={{
           position: 'absolute',
-          top: isDesktop ? 46 : 16,
+          top: 16,
           right: 20,
           zIndex: 50,
           display: 'flex',
