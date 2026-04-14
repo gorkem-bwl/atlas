@@ -22,6 +22,7 @@ import { Button } from '../components/ui/button';
 import { IconButton } from '../components/ui/icon-button';
 import { Input } from '../components/ui/input';
 import { Select } from '../components/ui/select';
+import { ContentArea } from '../components/ui/content-area';
 import { useCalendars, useCalendarEvents, useAggregatedEvents, useSyncCalendar, useToggleCalendar, useCreateCalendar, useUpdateCalendarEvent, useCreateCalendarEvent, useDeleteCalendarEvent, useSearchCalendarEvents } from '../hooks/use-calendar';
 import type { AggregatedEvent } from '../hooks/use-calendar';
 import type { CalendarEvent } from '@atlas-platform/shared';
@@ -651,32 +652,21 @@ export function CalendarPage() {
   // Show overlay only on the very first load before any cached data is available
   const showLoadingOverlay = eventsLoading && events === undefined;
 
-  return (
+  const calendarToolbar = (
     <div
+      data-calendar-toolbar
+      className={isDesktop ? 'desktop-drag-region' : undefined}
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        background: 'var(--color-bg-primary)',
-        fontFamily: 'var(--font-family)',
-        overflow: 'hidden',
+        alignItems: 'center',
+        gap: 'var(--spacing-sm)',
+        padding: '6px 16px',
+        paddingTop: isDesktop ? 40 : 6,
+        background: 'var(--color-bg-secondary)',
+        flexShrink: 0,
+        width: '100%',
       }}
     >
-      {/* Top toolbar */}
-      <div
-        data-calendar-toolbar
-        className={isDesktop ? 'desktop-drag-region' : undefined}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-sm)',
-          padding: '6px 16px',
-          paddingTop: isDesktop ? 40 : 6,
-          borderBottom: '1px solid var(--color-border-primary)',
-          background: 'var(--color-bg-secondary)',
-          flexShrink: 0,
-        }}
-      >
         {/* Back to home */}
         <IconButton
           icon={<ArrowLeft size={16} />}
@@ -1089,9 +1079,19 @@ export function CalendarPage() {
           New event
         </Button>
       </div>
+  );
 
-      {/* Main content: sidebar + week grid */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: '100vh',
+        background: 'var(--color-bg-primary)',
+        fontFamily: 'var(--font-family)',
+        overflow: 'hidden',
+      }}
+    >
         {/* Left sidebar */}
         {showSidebar && (
         <div
@@ -1264,7 +1264,8 @@ export function CalendarPage() {
         )}
 
         {/* Calendar grid */}
-        <div data-calendar-grid style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative', paddingBottom: 'var(--global-dock-offset, 0px)' }}>
+        <ContentArea headerSlot={calendarToolbar}>
+        <div data-calendar-grid style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {showLoadingOverlay && (
             <div
               aria-label="Loading events"
@@ -1388,7 +1389,7 @@ export function CalendarPage() {
             />
           )}
         </div>
-      </div>
+        </ContentArea>
 
       {/* Event modal */}
       <EventModal />
