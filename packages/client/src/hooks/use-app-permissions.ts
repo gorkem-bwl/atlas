@@ -123,7 +123,7 @@ export function useUpdateAppPermission(appId: string) {
       role: AppRole;
       recordAccess: AppRecordAccess;
     }) => {
-      const { data } = await api.put(`/permissions/${appId}/${userId}`, { role, recordAccess });
+      const { data } = await api.put(`/system/permissions/${userId}/${appId}`, { role, recordAccess });
       return data.data;
     },
     onSuccess: () => {
@@ -139,7 +139,7 @@ export function useDeleteAppPermission(appId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
-      const { data } = await api.delete(`/permissions/${appId}/${userId}`);
+      const { data } = await api.delete(`/system/permissions/${userId}/${appId}`);
       return data.data;
     },
     onSuccess: () => {

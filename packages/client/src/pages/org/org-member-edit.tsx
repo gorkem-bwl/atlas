@@ -200,14 +200,14 @@ export function OrgMemberEditPage() {
 
       for (const appId of sKeys) {
         if (!dKeys.has(appId)) {
-          promises.push(api.delete(`/permissions/${appId}/${member.userId}`));
+          promises.push(api.delete(`/system/permissions/${member.userId}/${appId}`));
         }
       }
       for (const appId of dKeys) {
         const prev = serverPermissions[appId];
         const next = draftPerms[appId];
         if (!prev || prev.role !== next.role || prev.recordAccess !== next.recordAccess) {
-          promises.push(api.put(`/permissions/${appId}/${member.userId}`, { role: next.role, recordAccess: next.recordAccess }));
+          promises.push(api.put(`/system/permissions/${member.userId}/${appId}`, { role: next.role, recordAccess: next.recordAccess }));
         }
       }
 
