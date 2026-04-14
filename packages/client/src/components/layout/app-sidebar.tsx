@@ -95,6 +95,7 @@ export function AppSidebar({
     >
       {/* Sidebar content */}
       <div
+        className="app-sidebar"
         style={{
           flex: 1,
           height: '100%',
@@ -147,7 +148,7 @@ export function AppSidebar({
           <span
             style={{
               fontSize: 'var(--font-size-sm)',
-              fontWeight: 'var(--font-weight-semibold)',
+              fontWeight: 400,
               color: 'var(--color-text-primary)',
               flex: 1,
               overflow: 'hidden',
@@ -214,7 +215,7 @@ export function SidebarSection({ title, children }: SidebarSectionProps) {
         <div
           style={{
             fontSize: 'var(--font-size-xs)',
-            fontWeight: 'var(--font-weight-semibold)',
+            fontWeight: 400,
             color: 'var(--color-text-tertiary)',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
@@ -255,7 +256,7 @@ export function SidebarItem({ label, icon, iconColor, isActive, count, onClick, 
         background: isActive ? 'var(--sidebar-active)' : 'transparent',
         color: 'var(--sidebar-text)',
         fontSize: 13,
-        fontWeight: 500,
+        fontWeight: 400,
         lineHeight: '20px',
         fontFamily: 'var(--font-family)',
         cursor: 'pointer',

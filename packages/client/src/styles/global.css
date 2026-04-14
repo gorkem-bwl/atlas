@@ -4,6 +4,14 @@
   100% { transform: scale(1.15) translate(-2%, -1%); }
 }
 
+/* ─── Global AppSidebar icon weight ───────────────────────────────── */
+/* Lucide icons default to stroke-width 2. In the global AppSidebar we
+   want thinner icons (1.5) to match the 400 font-weight used for the
+   sidebar title, section labels, and items. */
+.app-sidebar svg {
+  stroke-width: 1.5;
+}
+
 /* ─── Glass-morphism input overrides (login / setup pages) ─────────── */
 /* Inputs inside a .glass-card get white text and visible placeholders.
    !important is required to override the inline styles on <input>.     */
