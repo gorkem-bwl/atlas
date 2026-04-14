@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Cpu, MemoryStick, HardDrive, Clock, Server, Globe, Activity, LayoutDashboard, Mail, Send, CheckCircle2, Shield, Settings2 } from 'lucide-react';
 import { AlertBanner } from '../../components/ui/alert-banner';
+import { ContentArea } from '../../components/ui/content-area';
 import { StatCard, InfoCard } from '../../components/ui/stat-card';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Skeleton } from '../../components/ui/skeleton';
@@ -222,7 +223,8 @@ export function SystemPage() {
         </SidebarSection>
       </AppSidebar>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: 24, paddingBottom: 'calc(24px + var(--global-dock-offset, 0px))' }}>
+      <ContentArea title={t('system.title')}>
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
         {activeView === 'overview' && (
           <>
             {isLoading ? (
@@ -246,7 +248,8 @@ export function SystemPage() {
         )}
         {activeView === 'email' && <EmailSettingsView />}
         {activeView === 'permissions' && isOwner && <PermissionsView />}
-      </div>
+        </div>
+      </ContentArea>
     </div>
   );
 }
