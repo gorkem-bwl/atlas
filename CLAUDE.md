@@ -354,6 +354,7 @@ When the user asks to "create a release", "make a new version", "tag and release
 - Use `Button`/`Input` size prop to match heights when side-by-side
 - Edit `schema.ts` and run `npm run db:push` from `packages/server`
 - Register new apps in both client and server `apps/index.ts`
+- Use `<ContentArea>` (`packages/client/src/components/ui/content-area.tsx`) as the right-side page template for every app page. It owns the 44px header frame and the dock-bottom reserve. Apps with custom toolbars pass them via the `headerSlot` prop. Only Draw is exempt (full-bleed Excalidraw canvas).
 
 ### Server pattern
 ```typescript
