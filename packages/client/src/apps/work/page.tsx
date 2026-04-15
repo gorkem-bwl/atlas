@@ -8,10 +8,18 @@ import { ProjectDetailPage } from './components/project-detail-page';
 import { WorkDashboard } from './components/work-dashboard';
 import { ProjectsListView } from './components/projects-list-view';
 
+export type WorkPageView = 'my' | 'dashboard' | 'projects' | 'assigned' | 'created' | 'all';
+
+const VALID_VIEWS: readonly WorkPageView[] = ['my', 'dashboard', 'projects', 'assigned', 'created', 'all'];
+
+function parseView(raw: string | null): WorkPageView {
+  return (raw && (VALID_VIEWS as readonly string[]).includes(raw)) ? (raw as WorkPageView) : 'my';
+}
+
 export function WorkPage() {
   const [sp] = useSearchParams();
   const projectId = sp.get('projectId');
-  const view = sp.get('view') ?? 'my';
+  const view = parseView(sp.get('view'));
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>

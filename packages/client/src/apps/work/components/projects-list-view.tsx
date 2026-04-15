@@ -1,13 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, FolderKanban } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Modal } from '../../../components/ui/modal';
+import { Badge } from '../../../components/ui/badge';
+
+type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'error';
 import { ContentArea } from '../../../components/ui/content-area';
-import { useProjects, useCreateProject } from '../hooks';
+import { DataTable, type DataTableColumn } from '../../../components/ui/data-table';
+import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';
+import { useProjects, useCreateProject, type WorkProject } from '../hooks';
 import { useAppActions } from '../../../hooks/use-app-permissions';
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  active: 'success',
+  paused: 'warning',
+  completed: 'default',
+  archived: 'default',
+};
 
 function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { t } = useTranslation();
@@ -70,6 +82,48 @@ export function ProjectsListView() {
   const { canCreate } = useAppActions('work');
   const [createOpen, setCreateOpen] = useState(false);
 
+  const columns: DataTableColumn<WorkProject>[] = [
+    {
+      key: 'name',
+      label: t('work.projectsList.colName'),
+      render: (p) => (
+        <div>
+          <div style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{p.name}</div>
+          {p.description && (
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {p.description}
+            </div>
+          )}
+        </div>
+      ),
+      searchValue: (p) => `${p.name} ${p.description ?? ''}`,
+      sortable: true,
+      compare: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+      key: 'status',
+      label: t('work.projectsList.colStatus'),
+      render: (p) => p.status ? (
+        <Badge variant={STATUS_VARIANT[p.status] ?? 'default'}>
+          {t(`projects.status.${p.status}`, { defaultValue: p.status })}
+        </Badge>
+      ) : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>,
+      searchValue: (p) => p.status ?? '',
+      sortable: true,
+    },
+    {
+      key: 'updatedAt',
+      label: t('work.projectsList.colUpdated'),
+      render: (p) => (
+        <span style={{ color: 'var(--color-text-tertiary)' }}>
+          {p.updatedAt ? String(p.updatedAt).slice(0, 10) : '—'}
+        </span>
+      ),
+      sortable: true,
+      compare: (a, b) => (a.updatedAt ?? '').localeCompare(b.updatedAt ?? ''),
+    },
+  ];
+
   return (
     <ContentArea
       title={t('work.sidebar.projects')}
@@ -80,60 +134,27 @@ export function ProjectsListView() {
       ) : null}
     >
       <CreateProjectModal open={createOpen} onOpenChange={setCreateOpen} />
-      <div style={{ padding: 'var(--spacing-lg)' }}>
-        {isLoading ? (
-          <div style={{ color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>{t('work.loading')}</div>
-        ) : projects.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-2xl)', color: 'var(--color-text-tertiary)' }}>
-            <FolderKanban size={32} />
-            <span style={{ fontSize: 'var(--font-size-sm)' }}>{t('work.empty.projects')}</span>
-            {canCreate && (
-              <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setCreateOpen(true)}>
-                {t('work.sidebar.newProject')}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-secondary)' }}>
-                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colName')}</th>
-                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colStatus')}</th>
-                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colUpdated')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((p) => (
-                <tr
-                  key={p.id}
-                  onClick={() => navigate(`/work?projectId=${p.id}`)}
-                  style={{ cursor: 'pointer', borderBottom: '1px solid var(--color-border-secondary)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                      <FolderKanban size={14} style={{ color: 'var(--color-text-tertiary)' }} />
-                      <span style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{p.name}</span>
-                    </div>
-                    {p.description && (
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 2, paddingLeft: 22, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {p.description}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', color: 'var(--color-text-secondary)' }}>
-                    {p.status ?? '—'}
-                  </td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', color: 'var(--color-text-tertiary)' }}>
-                    {p.updatedAt ? String(p.updatedAt).slice(0, 10) : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {isLoading ? (
+        <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+          {t('work.loading')}
+        </div>
+      ) : projects.length === 0 ? (
+        <FeatureEmptyState
+          illustration="tasks"
+          title={t('work.empty.projects')}
+          actionLabel={canCreate ? t('work.sidebar.newProject') : undefined}
+          actionIcon={canCreate ? <Plus size={13} /> : undefined}
+          onAction={canCreate ? () => setCreateOpen(true) : undefined}
+        />
+      ) : (
+        <DataTable
+          data={projects}
+          columns={columns}
+          onRowClick={(p) => navigate(`/work?projectId=${p.id}`)}
+          searchable
+          searchPlaceholder={t('work.projectsList.search', { defaultValue: 'Search projects' })}
+        />
+      )}
     </ContentArea>
   );
 }

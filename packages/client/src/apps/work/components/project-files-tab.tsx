@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { IconButton } from '../../../components/ui/icon-button';
+import { FeatureEmptyState } from '../../../components/ui/feature-empty-state';
 import { formatDate, formatBytes } from '../../../lib/format';
 import { ROUTES } from '../../../config/routes';
 import { api } from '../../../lib/api-client';
@@ -26,7 +27,7 @@ function useProjectFiles(projectId: string) {
     queryKey: queryKeys.work.projects.projects.files(projectId),
     queryFn: async () => {
       const { data } = await api.get(`/work/projects/${projectId}/files`);
-      return ((data.data?.files ?? data.data ?? []) as DriveItem[]);
+      return (data.data?.files ?? []) as DriveItem[];
     },
     enabled: !!projectId,
     staleTime: 30_000,
@@ -48,13 +49,11 @@ export function ProjectFilesTab({ projectId }: Props) {
 
   if (!files || files.length === 0) {
     return (
-      <div style={{ padding: 'var(--spacing-2xl)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-md)', color: 'var(--color-text-tertiary)' }}>
-        <FileText size={32} />
-        <span style={{ fontSize: 'var(--font-size-sm)' }}>{t('work.files.empty')}</span>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-          {t('work.files.emptyHint')}
-        </span>
-      </div>
+      <FeatureEmptyState
+        illustration="files"
+        title={t('work.files.empty')}
+        description={t('work.files.emptyHint')}
+      />
     );
   }
 
