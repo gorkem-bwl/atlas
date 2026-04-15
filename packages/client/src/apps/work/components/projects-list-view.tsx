@@ -94,38 +94,44 @@ export function ProjectsListView() {
             )}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-md)' }}>
-            {projects.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => navigate(`/work?projectId=${p.id}`)}
-                style={{
-                  textAlign: 'left',
-                  background: 'var(--color-bg-secondary)',
-                  border: '1px solid var(--color-border-secondary)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 'var(--spacing-md)',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-family)',
-                  transition: 'border-color 0.15s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-primary)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-secondary)'; }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
-                  <FolderKanban size={16} style={{ color: 'var(--color-text-tertiary)' }} />
-                  <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.name}
-                  </span>
-                </div>
-                {p.description && (
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {p.description}
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-secondary)' }}>
+                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colName')}</th>
+                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colStatus')}</th>
+                <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>{t('work.projectsList.colUpdated')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((p) => (
+                <tr
+                  key={p.id}
+                  onClick={() => navigate(`/work?projectId=${p.id}`)}
+                  style={{ cursor: 'pointer', borderBottom: '1px solid var(--color-border-secondary)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                      <FolderKanban size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                      <span style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)' }}>{p.name}</span>
+                    </div>
+                    {p.description && (
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', marginTop: 2, paddingLeft: 22, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.description}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', color: 'var(--color-text-secondary)' }}>
+                    {p.status ?? '—'}
+                  </td>
+                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', color: 'var(--color-text-tertiary)' }}>
+                    {p.updatedAt ? String(p.updatedAt).slice(0, 10) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </ContentArea>

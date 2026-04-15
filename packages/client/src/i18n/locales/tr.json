@@ -4444,6 +4444,11 @@
       "count_one": "{{count}} dosya",
       "count_other": "{{count}} dosya",
       "openInDrive": "Drive’da aç"
+    },
+    "projectsList": {
+      "colName": "Ad",
+      "colStatus": "Durum",
+      "colUpdated": "Güncelleme"
     }
   }
 }

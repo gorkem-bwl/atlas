@@ -4444,6 +4444,11 @@
       "count_one": "{{count}} file",
       "count_other": "{{count}} file",
       "openInDrive": "Apri in Drive"
+    },
+    "projectsList": {
+      "colName": "Nome",
+      "colStatus": "Stato",
+      "colUpdated": "Aggiornato"
     }
   }
 }

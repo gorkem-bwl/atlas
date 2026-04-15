@@ -26,7 +26,7 @@ function useProjectFiles(projectId: string) {
     queryKey: queryKeys.work.projects.projects.files(projectId),
     queryFn: async () => {
       const { data } = await api.get(`/work/projects/${projectId}/files`);
-      return (data.data ?? []) as DriveItem[];
+      return ((data.data?.files ?? data.data ?? []) as DriveItem[]);
     },
     enabled: !!projectId,
     staleTime: 30_000,

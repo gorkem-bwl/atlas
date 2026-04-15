@@ -4476,6 +4476,11 @@
       "count_one": "{{count}} file",
       "count_other": "{{count}} files",
       "openInDrive": "Open in Drive"
+    },
+    "projectsList": {
+      "colName": "Name",
+      "colStatus": "Status",
+      "colUpdated": "Updated"
     }
   }
 }
