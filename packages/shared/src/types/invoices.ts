@@ -20,6 +20,7 @@ export interface Invoice {
   companyId: string;
   contactId?: string | null;
   dealId?: string | null;
+  projectId?: string | null;
   proposalId?: string | null;
   invoiceNumber: string;
   status: InvoiceStatus;
@@ -59,6 +60,7 @@ export interface CreateInvoiceInput {
   companyId: string;
   contactId?: string;
   dealId?: string;
+  projectId?: string | null;
   proposalId?: string;
   currency?: string;
   subtotal?: number;
@@ -84,6 +86,7 @@ export interface UpdateInvoiceInput {
   companyId?: string;
   contactId?: string | null;
   dealId?: string | null;
+  projectId?: string | null;
   currency?: string;
   subtotal?: number;
   taxPercent?: number;

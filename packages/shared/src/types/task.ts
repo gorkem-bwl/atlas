@@ -27,6 +27,7 @@ export interface Task {
   recurrenceRule: RecurrenceRule | null;
   recurrenceParentId: string | null;
   isArchived: boolean;
+  isPrivate: boolean;
   assigneeId: string | null;
   sourceEmailId: string | null;
   sourceEmailSubject: string | null;
