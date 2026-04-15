@@ -2,6 +2,7 @@ import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { pool } from '../config/database';
 import { logger } from '../utils/logger';
+import { migrateWorkMerge } from './migrations/2026-04-15-work-merge';
 
 const MIGRATIONS_DIR = join(__dirname, 'migrations');
 
@@ -63,5 +64,25 @@ async function migrateLegacyData() {
     logger.debug({ err }, 'Legacy data migration skipped');
   } finally {
     client.release();
+  }
+
+  // Work-app merge: copy task_projects → project_projects, seed isPrivate,
+  // collapse tenant_apps. Guard: only run while task_projects still exists.
+  try {
+    const checkClient = await pool.connect();
+    let hasTaskProjects = false;
+    try {
+      const res = await checkClient.query(
+        `SELECT to_regclass('public.task_projects') AS t`,
+      );
+      hasTaskProjects = (res.rows as any[])[0]?.t !== null;
+    } finally {
+      checkClient.release();
+    }
+    if (hasTaskProjects) {
+      await migrateWorkMerge();
+    }
+  } catch (e) {
+    logger.error({ err: e }, 'work-merge migration failed');
   }
 }
