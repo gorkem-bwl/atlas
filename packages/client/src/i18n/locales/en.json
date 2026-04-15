@@ -4423,5 +4423,44 @@
       "thisQuarter": "This quarter",
       "thisYear": "This year"
     }
+  },
+  "work": {
+    "sidebar": {
+      "myTasks": "My tasks",
+      "assignedToMe": "Assigned to me",
+      "createdByMe": "Created by me",
+      "allTasks": "All tasks",
+      "projects": "Projects"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "tasks": "Tasks",
+      "financials": "Financials",
+      "members": "Members",
+      "time": "Time",
+      "files": "Files"
+    },
+    "financials": {
+      "totalBilled": "Total billed",
+      "totalPaid": "Total paid",
+      "outstanding": "Outstanding",
+      "newInvoice": "+ New invoice",
+      "empty": "No invoices for this project yet.",
+      "colNumber": "Number",
+      "colIssueDate": "Issued",
+      "colDueDate": "Due",
+      "colTotal": "Total",
+      "colBalance": "Balance",
+      "colStatus": "Status"
+    },
+    "empty": {
+      "myTasks": "No tasks yet. Create one to get started.",
+      "assigned": "Nothing assigned to you yet.",
+      "created": "You haven’t created any tasks yet.",
+      "allTasks": "No tasks in the workspace yet.",
+      "projects": "No projects yet."
+    },
+    "loading": "Loading…",
+    "projectNotFound": "Project not found"
   }
 }

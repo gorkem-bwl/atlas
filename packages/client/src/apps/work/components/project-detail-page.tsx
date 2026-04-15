@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ContentArea } from '../../../components/ui/content-area';
 import { useWorkProject } from '../hooks';
 import type { WorkProject } from '../hooks';
@@ -12,29 +13,30 @@ import { ProjectFilesTab } from './project-files-tab';
 const TABS = ['overview', 'tasks', 'financials', 'members', 'time', 'files'] as const;
 type TabId = typeof TABS[number];
 
-const TAB_LABELS: Record<TabId, string> = {
-  overview: 'Overview',
-  tasks: 'Tasks',
-  financials: 'Financials',
-  members: 'Members',
-  time: 'Time',
-  files: 'Files',
-};
-
 interface Props {
   projectId: string;
 }
 
 export function ProjectDetailPage({ projectId }: Props) {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = (searchParams.get('tab') as TabId | null) ?? 'overview';
   const { data: project, isLoading } = useWorkProject(projectId);
+
+  const tabLabels: Record<TabId, string> = {
+    overview: t('work.tabs.overview'),
+    tasks: t('work.tabs.tasks'),
+    financials: t('work.tabs.financials'),
+    members: t('work.tabs.members'),
+    time: t('work.tabs.time'),
+    files: t('work.tabs.files'),
+  };
 
   if (isLoading) {
     return (
       <ContentArea title="">
         <div style={{ padding: 32, color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
-          Loading…
+          {t('work.loading')}
         </div>
       </ContentArea>
     );
@@ -44,7 +46,7 @@ export function ProjectDetailPage({ projectId }: Props) {
     return (
       <ContentArea>
         <div style={{ padding: 32, color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
-          Project not found
+          {t('work.projectNotFound')}
         </div>
       </ContentArea>
     );
@@ -83,7 +85,7 @@ export function ProjectDetailPage({ projectId }: Props) {
                   fontFamily: 'var(--font-family)',
                 }}
               >
-                {TAB_LABELS[id]}
+                {tabLabels[id]}
               </button>
             ))}
           </div>

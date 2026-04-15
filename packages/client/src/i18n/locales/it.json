@@ -4391,5 +4391,44 @@
       "thisQuarter": "Questo trimestre",
       "thisYear": "Quest'anno"
     }
+  },
+  "work": {
+    "sidebar": {
+      "myTasks": "Le mie attività",
+      "assignedToMe": "Assegnate a me",
+      "createdByMe": "Create da me",
+      "allTasks": "Tutte le attività",
+      "projects": "Progetti"
+    },
+    "tabs": {
+      "overview": "Panoramica",
+      "tasks": "Attività",
+      "financials": "Finanze",
+      "members": "Membri",
+      "time": "Tempo",
+      "files": "File"
+    },
+    "financials": {
+      "totalBilled": "Totale fatturato",
+      "totalPaid": "Totale pagato",
+      "outstanding": "In sospeso",
+      "newInvoice": "+ Nuova fattura",
+      "empty": "Nessuna fattura per questo progetto.",
+      "colNumber": "Numero",
+      "colIssueDate": "Emessa",
+      "colDueDate": "Scadenza",
+      "colTotal": "Totale",
+      "colBalance": "Saldo",
+      "colStatus": "Stato"
+    },
+    "empty": {
+      "myTasks": "Nessuna attività ancora. Creane una per iniziare.",
+      "assigned": "Non ti è stata ancora assegnata alcuna attività.",
+      "created": "Non hai ancora creato alcuna attività.",
+      "allTasks": "Nessuna attività nell’area di lavoro.",
+      "projects": "Nessun progetto ancora."
+    },
+    "loading": "Caricamento…",
+    "projectNotFound": "Progetto non trovato"
   }
 }

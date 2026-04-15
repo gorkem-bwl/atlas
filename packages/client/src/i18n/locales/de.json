@@ -4391,5 +4391,44 @@
       "thisQuarter": "Dieses Quartal",
       "thisYear": "Dieses Jahr"
     }
+  },
+  "work": {
+    "sidebar": {
+      "myTasks": "Meine Aufgaben",
+      "assignedToMe": "Mir zugewiesen",
+      "createdByMe": "Von mir erstellt",
+      "allTasks": "Alle Aufgaben",
+      "projects": "Projekte"
+    },
+    "tabs": {
+      "overview": "Übersicht",
+      "tasks": "Aufgaben",
+      "financials": "Finanzen",
+      "members": "Mitglieder",
+      "time": "Zeit",
+      "files": "Dateien"
+    },
+    "financials": {
+      "totalBilled": "Gesamt fakturiert",
+      "totalPaid": "Gesamt bezahlt",
+      "outstanding": "Offen",
+      "newInvoice": "+ Neue Rechnung",
+      "empty": "Noch keine Rechnungen für dieses Projekt.",
+      "colNumber": "Nummer",
+      "colIssueDate": "Ausgestellt",
+      "colDueDate": "Fällig",
+      "colTotal": "Gesamt",
+      "colBalance": "Saldo",
+      "colStatus": "Status"
+    },
+    "empty": {
+      "myTasks": "Noch keine Aufgaben. Erstelle eine, um zu beginnen.",
+      "assigned": "Dir sind noch keine Aufgaben zugewiesen.",
+      "created": "Du hast noch keine Aufgaben erstellt.",
+      "allTasks": "Noch keine Aufgaben im Arbeitsbereich.",
+      "projects": "Noch keine Projekte."
+    },
+    "loading": "Wird geladen…",
+    "projectNotFound": "Projekt nicht gefunden"
   }
 }

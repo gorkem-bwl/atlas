@@ -4391,5 +4391,44 @@
       "thisQuarter": "Bu çeyrek",
       "thisYear": "Bu yıl"
     }
+  },
+  "work": {
+    "sidebar": {
+      "myTasks": "Görevlerim",
+      "assignedToMe": "Bana atanan",
+      "createdByMe": "Benim oluşturduğum",
+      "allTasks": "Tüm görevler",
+      "projects": "Projeler"
+    },
+    "tabs": {
+      "overview": "Genel bakış",
+      "tasks": "Görevler",
+      "financials": "Finansal",
+      "members": "Üyeler",
+      "time": "Zaman",
+      "files": "Dosyalar"
+    },
+    "financials": {
+      "totalBilled": "Toplam faturalanan",
+      "totalPaid": "Toplam ödenen",
+      "outstanding": "Bekleyen",
+      "newInvoice": "+ Yeni fatura",
+      "empty": "Bu proje için henüz fatura yok.",
+      "colNumber": "Numara",
+      "colIssueDate": "Tarih",
+      "colDueDate": "Son ödeme",
+      "colTotal": "Toplam",
+      "colBalance": "Bakiye",
+      "colStatus": "Durum"
+    },
+    "empty": {
+      "myTasks": "Henüz görev yok. Başlamak için oluşturun.",
+      "assigned": "Size henüz hiçbir görev atanmadı.",
+      "created": "Henüz hiç görev oluşturmadınız.",
+      "allTasks": "Çalışma alanında henüz görev yok.",
+      "projects": "Henüz proje yok."
+    },
+    "loading": "Yükleniyor…",
+    "projectNotFound": "Proje bulunamadı"
   }
 }

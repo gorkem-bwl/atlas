@@ -4391,5 +4391,44 @@
       "thisQuarter": "Ce trimestre",
       "thisYear": "Cette année"
     }
+  },
+  "work": {
+    "sidebar": {
+      "myTasks": "Mes tâches",
+      "assignedToMe": "Qui me sont assignées",
+      "createdByMe": "Créées par moi",
+      "allTasks": "Toutes les tâches",
+      "projects": "Projets"
+    },
+    "tabs": {
+      "overview": "Aperçu",
+      "tasks": "Tâches",
+      "financials": "Finances",
+      "members": "Membres",
+      "time": "Temps",
+      "files": "Fichiers"
+    },
+    "financials": {
+      "totalBilled": "Total facturé",
+      "totalPaid": "Total payé",
+      "outstanding": "En attente",
+      "newInvoice": "+ Nouvelle facture",
+      "empty": "Aucune facture pour ce projet pour le moment.",
+      "colNumber": "Numéro",
+      "colIssueDate": "Émise",
+      "colDueDate": "Due",
+      "colTotal": "Total",
+      "colBalance": "Solde",
+      "colStatus": "Statut"
+    },
+    "empty": {
+      "myTasks": "Aucune tâche pour le moment. Créez-en une pour commencer.",
+      "assigned": "Aucune tâche ne vous est assignée pour l’instant.",
+      "created": "Vous n’avez encore créé aucune tâche.",
+      "allTasks": "Aucune tâche dans l’espace de travail.",
+      "projects": "Aucun projet pour le moment."
+    },
+    "loading": "Chargement…",
+    "projectNotFound": "Projet introuvable"
   }
 }
