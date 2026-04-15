@@ -87,6 +87,8 @@ router.delete('/projects/:id/time-entries/:entryId', controller.deleteProjectTim
 
 // Project files and financials
 router.get('/projects/:id/files', controller.listProjectFiles);
+router.post('/projects/:id/files', controller.addProjectFile);
+router.delete('/projects/:id/files/:driveItemId', controller.removeProjectFile);
 router.get('/projects/:id/financials', controller.getProjectFinancials);
 
 export default router;

@@ -49,6 +49,8 @@ export {
   updateProjectTimeEntry,
   deleteProjectTimeEntry,
   listProjectFiles,
+  addProjectFile,
+  removeProjectFile,
   getProjectFinancials,
   listTimeEntries,
   createTimeEntry,

@@ -4439,12 +4439,35 @@
     },
     "loading": "Caricamento…",
     "projectNotFound": "Progetto non trovato",
+    "time": {
+      "addEntry": "Aggiungi voce di tempo",
+      "addButton": "+ Aggiungi voce",
+      "dateLabel": "Data",
+      "hoursLabel": "Ore",
+      "descriptionLabel": "Descrizione",
+      "billableLabel": "Fatturabile",
+      "added": "Voce di tempo aggiunta"
+    },
+    "members": {
+      "add": "Aggiungi membro",
+      "selectUser": "Seleziona un membro del team",
+      "hourlyRateLabel": "Tariffa oraria (opzionale)",
+      "added": "Membro aggiunto",
+      "remove": "Rimuovi",
+      "removeConfirm": "Rimuovere questo membro dal progetto?"
+    },
     "files": {
       "empty": "Nessun file collegato a questo progetto",
       "emptyHint": "Collega file da Drive per farli apparire qui",
       "count_one": "{{count}} file",
       "count_other": "{{count}} file",
-      "openInDrive": "Apri in Drive"
+      "openInDrive": "Apri in Drive",
+      "link": "Collega file",
+      "linkButton": "+ Collega file",
+      "pickerTitle": "Collega un file Drive",
+      "linked": "File collegato",
+      "unlink": "Scollega",
+      "unlinkConfirm": "Rimuovere questo file dal progetto?"
     },
     "projectsList": {
       "colName": "Nome",

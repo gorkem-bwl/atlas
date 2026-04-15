@@ -841,6 +841,63 @@ export function useDeleteTimeEntry() {
   });
 }
 
+// ─── Project Member Mutations ─────────────────────────────────────
+
+export function useAddProjectMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, userId, hourlyRate }: { projectId: string; userId: string; hourlyRate?: number | null }) => {
+      const { data } = await api.post(`/work/projects/${projectId}/members`, { userId, hourlyRate });
+      return data.data;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.detail(vars.projectId) });
+      queryClient.invalidateQueries({ queryKey: ['work', 'projects', 'members', vars.projectId] });
+    },
+  });
+}
+
+export function useRemoveProjectMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, memberId }: { projectId: string; memberId: string }) => {
+      await api.delete(`/work/projects/${projectId}/members/${memberId}`);
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.detail(vars.projectId) });
+      queryClient.invalidateQueries({ queryKey: ['work', 'projects', 'members', vars.projectId] });
+    },
+  });
+}
+
+// ─── Project File Mutations ───────────────────────────────────────
+
+export function useLinkProjectFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, driveItemId }: { projectId: string; driveItemId: string }) => {
+      await api.post(`/work/projects/${projectId}/files`, { driveItemId });
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.files(vars.projectId) });
+    },
+  });
+}
+
+export function useUnlinkProjectFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ projectId, driveItemId }: { projectId: string; driveItemId: string }) => {
+      await api.delete(`/work/projects/${projectId}/files/${driveItemId}`);
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.projects.files(vars.projectId) });
+    },
+  });
+}
+
 // ─── Time Billing ──────────────────────────────────────────────────
 
 export function usePreviewTimeEntries() {

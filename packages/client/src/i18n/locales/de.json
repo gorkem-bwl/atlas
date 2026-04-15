@@ -4439,12 +4439,35 @@
     },
     "loading": "Wird geladen…",
     "projectNotFound": "Projekt nicht gefunden",
+    "time": {
+      "addEntry": "Zeiteintrag hinzufügen",
+      "addButton": "+ Eintrag hinzufügen",
+      "dateLabel": "Datum",
+      "hoursLabel": "Stunden",
+      "descriptionLabel": "Beschreibung",
+      "billableLabel": "Abrechenbar",
+      "added": "Zeiteintrag hinzugefügt"
+    },
+    "members": {
+      "add": "Mitglied hinzufügen",
+      "selectUser": "Teammitglied auswählen",
+      "hourlyRateLabel": "Stundensatz (optional)",
+      "added": "Mitglied hinzugefügt",
+      "remove": "Entfernen",
+      "removeConfirm": "Dieses Mitglied aus dem Projekt entfernen?"
+    },
     "files": {
       "empty": "Keine Dateien mit diesem Projekt verknüpft",
       "emptyHint": "Verknüpfe Dateien aus Drive, damit sie hier erscheinen",
       "count_one": "{{count}} Datei",
       "count_other": "{{count}} Dateien",
-      "openInDrive": "In Drive öffnen"
+      "openInDrive": "In Drive öffnen",
+      "link": "Datei verknüpfen",
+      "linkButton": "+ Datei verknüpfen",
+      "pickerTitle": "Drive-Datei verknüpfen",
+      "linked": "Datei verknüpft",
+      "unlink": "Verknüpfung aufheben",
+      "unlinkConfirm": "Diese Datei aus dem Projekt entfernen?"
     },
     "projectsList": {
       "colName": "Name",

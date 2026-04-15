@@ -658,6 +658,47 @@ export async function listProjectFiles(req: Request, res: Response) {
   }
 }
 
+export async function addProjectFile(req: Request, res: Response) {
+  try {
+    const perm = req.workPerm!;
+    if (!canAccess(perm.role, 'create')) {
+      res.status(403).json({ success: false, error: 'No permission to link files' });
+      return;
+    }
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId!;
+    const projectId = req.params.id as string;
+    const { driveItemId } = req.body;
+    if (!driveItemId) {
+      res.status(400).json({ success: false, error: 'driveItemId is required' });
+      return;
+    }
+    const link = await projectService.addProjectFile(tenantId, projectId, driveItemId, userId);
+    res.json({ success: true, data: link });
+  } catch (error) {
+    logger.error({ error }, 'Failed to link project file');
+    res.status(500).json({ success: false, error: 'Failed to link file' });
+  }
+}
+
+export async function removeProjectFile(req: Request, res: Response) {
+  try {
+    const perm = req.workPerm!;
+    if (!canAccess(perm.role, 'delete') && !canAccess(perm.role, 'delete_own')) {
+      res.status(403).json({ success: false, error: 'No permission to unlink files' });
+      return;
+    }
+    const tenantId = req.auth!.tenantId!;
+    const projectId = req.params.id as string;
+    const driveItemId = req.params.driveItemId as string;
+    await projectService.removeProjectFile(tenantId, projectId, driveItemId);
+    res.json({ success: true, data: null });
+  } catch (error) {
+    logger.error({ error }, 'Failed to unlink project file');
+    res.status(500).json({ success: false, error: 'Failed to unlink file' });
+  }
+}
+
 // ─── Financials ──────────────────────────────────────────────────────
 
 export async function getProjectFinancials(req: Request, res: Response) {

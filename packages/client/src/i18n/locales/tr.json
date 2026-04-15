@@ -4439,12 +4439,35 @@
     },
     "loading": "Yükleniyor…",
     "projectNotFound": "Proje bulunamadı",
+    "time": {
+      "addEntry": "Zaman girişi ekle",
+      "addButton": "+ Giriş ekle",
+      "dateLabel": "Tarih",
+      "hoursLabel": "Saat",
+      "descriptionLabel": "Açıklama",
+      "billableLabel": "Faturalanabilir",
+      "added": "Zaman girişi eklendi"
+    },
+    "members": {
+      "add": "Üye ekle",
+      "selectUser": "Bir ekip üyesi seçin",
+      "hourlyRateLabel": "Saatlik ücret (isteğe bağlı)",
+      "added": "Üye eklendi",
+      "remove": "Kaldır",
+      "removeConfirm": "Bu üye projeden kaldırılsın mı?"
+    },
     "files": {
       "empty": "Bu projeye bağlı dosya yok",
       "emptyHint": "Burada görünmesi için Drive üzerinden dosya bağlayın",
       "count_one": "{{count}} dosya",
       "count_other": "{{count}} dosya",
-      "openInDrive": "Drive’da aç"
+      "openInDrive": "Drive’da aç",
+      "link": "Dosya bağla",
+      "linkButton": "+ Dosya bağla",
+      "pickerTitle": "Drive dosyası bağla",
+      "linked": "Dosya bağlandı",
+      "unlink": "Bağlantıyı kaldır",
+      "unlinkConfirm": "Bu dosya projeden kaldırılsın mı?"
     },
     "projectsList": {
       "colName": "Ad",
