@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/ui/button';
 import { ContentArea } from '../../../components/ui/content-area';
+import { ResizeHandle } from '../../../components/ui/resize-handle';
+import { Textarea } from '../../../components/ui/textarea';
 import { useToastStore } from '../../../stores/toast-store';
 import {
   useInvoice, useUpdateInvoice, useDeleteInvoice,
@@ -50,9 +52,8 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
   const duplicate = useDuplicateInvoice();
   const addToast = useToastStore((s) => s.addToast);
 
-  const { pdfPercent, setPdfPercent, MIN_PDF_PERCENT, MAX_PDF_PERCENT } = useInvoiceDetailSplit();
+  const { pdfPercent, setPdfPercent, persistPdfPercent } = useInvoiceDetailSplit();
   const splitContainerRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -67,33 +68,11 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
     );
   }, [invoice, updateInvoice, addToast, t]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!dragging) return;
-    const container = splitContainerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    const pct = ((e.clientX - rect.left) / rect.width) * 100;
-    setPdfPercent(pct);
-  }, [dragging, setPdfPercent]);
-
-  const handleMouseUp = useCallback(() => {
-    setDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (!dragging) return;
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [dragging, handleMouseMove, handleMouseUp]);
+  const handleResize = useCallback((deltaPx: number) => {
+    const width = splitContainerRef.current?.getBoundingClientRect().width ?? 0;
+    if (width === 0) return;
+    setPdfPercent(pdfPercent + (deltaPx / width) * 100);
+  }, [pdfPercent, setPdfPercent]);
 
   const downloadPdf = () => {
     const token = localStorage.getItem('atlasmail_token');
@@ -171,21 +150,7 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
             <InvoicePdfViewer invoiceId={invoice.id} updatedAt={invoice.updatedAt} />
           </div>
 
-          {/* Drag handle */}
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-valuemin={MIN_PDF_PERCENT}
-            aria-valuemax={MAX_PDF_PERCENT}
-            aria-valuenow={Math.round(pdfPercent)}
-            onMouseDown={handleMouseDown}
-            style={{ width: 4, cursor: 'col-resize', background: 'var(--color-border-secondary)', flexShrink: 0 }}
-          />
-
-          {/* Drag overlay — captures mouse when dragging outside the handle */}
-          {dragging && (
-            <div style={{ position: 'absolute', inset: 0, cursor: 'col-resize', zIndex: 10 }} />
-          )}
+          <ResizeHandle orientation="vertical" onResize={handleResize} onResizeEnd={persistPdfPercent} />
 
           {/* Details pane */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', minWidth: 0 }}>
@@ -219,25 +184,13 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
               }}>
                 {t('invoices.detail.sectionNotes')}
               </div>
-              <textarea
+              <Textarea
                 defaultValue={invoice.notes ?? ''}
                 onBlur={(e) => {
                   const next = e.currentTarget.value;
                   if (next !== (invoice.notes ?? '')) patch({ notes: next });
                 }}
-                style={{
-                  width: '100%',
-                  minHeight: 80,
-                  padding: 'var(--spacing-sm)',
-                  border: '1px solid var(--color-border-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--color-bg-primary)',
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family)',
-                  fontSize: 'var(--font-size-sm)',
-                  resize: 'vertical',
-                  boxSizing: 'border-box',
-                }}
+                style={{ minHeight: 80, fontSize: 'var(--font-size-sm)' }}
               />
             </div>
 

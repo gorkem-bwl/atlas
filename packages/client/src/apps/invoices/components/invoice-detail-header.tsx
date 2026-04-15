@@ -4,7 +4,7 @@ import {
   Send, Download, DollarSign, Copy as CopyIcon, Trash2, MoreHorizontal,
   Mail, Check, XCircle, Link as LinkIcon, Clock, FileCode,
 } from 'lucide-react';
-import type { Invoice } from '@atlas-platform/shared';
+import type { Invoice, InvoiceStatus } from '@atlas-platform/shared';
 import { getInvoiceStatusVariant } from '@atlas-platform/shared';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -32,16 +32,14 @@ interface Props extends ActionHandlers {
   onBack: () => void;
 }
 
-function primaryActionsFor(status: string): ActionId[] {
+function primaryActionsFor(status: InvoiceStatus): ActionId[] {
   switch (status) {
     case 'draft':   return ['send', 'downloadPdf'];
     case 'sent':
     case 'viewed':  return ['recordPayment', 'resend', 'downloadPdf'];
-    case 'partial':
     case 'overdue': return ['recordPayment', 'sendReminder', 'downloadPdf'];
     case 'paid':
     case 'waived':  return ['downloadPdf'];
-    default:        return ['downloadPdf'];
   }
 }
 

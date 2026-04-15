@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { api } from '../../../lib/api-client';
-import { useDebouncedInvoiceUpdatedAt } from '../hooks/use-debounced-invoice-updated-at';
+import { useDebounce } from '../../../hooks/use-debounce';
+
+const PDF_REFRESH_DEBOUNCE_MS = 1500;
 
 interface Props {
   invoiceId: string;
@@ -12,7 +14,7 @@ interface Props {
 
 export function InvoicePdfViewer({ invoiceId, updatedAt }: Props) {
   const { t } = useTranslation();
-  const debouncedUpdatedAt = useDebouncedInvoiceUpdatedAt(updatedAt);
+  const debouncedUpdatedAt = useDebounce(updatedAt, PDF_REFRESH_DEBOUNCE_MS);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -46,8 +48,6 @@ export function InvoicePdfViewer({ invoiceId, updatedAt }: Props) {
     return () => {
       cancelled = true;
     };
-    // debouncedUpdatedAt changes whenever the user's edits settle, invalidating
-    // the blob. invoiceId changes on navigation to a different invoice.
   }, [invoiceId, debouncedUpdatedAt]);
 
   useEffect(() => () => {
