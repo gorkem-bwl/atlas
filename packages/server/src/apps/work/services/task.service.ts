@@ -225,6 +225,7 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
   }
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
+  if ((input as { visibility?: string }).visibility !== undefined) updates.visibility = (input as { visibility?: string }).visibility;
 
   await db
     .update(tasks)

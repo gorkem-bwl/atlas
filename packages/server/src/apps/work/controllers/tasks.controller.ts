@@ -126,6 +126,36 @@ export async function updateTask(req: Request, res: Response) {
   }
 }
 
+export async function updateTaskVisibility(req: Request, res: Response) {
+  try {
+    const perm = req.workPerm!;
+    if (!canAccess(perm.role, 'update')) {
+      res.status(403).json({ success: false, error: 'No permission to update tasks' });
+      return;
+    }
+
+    const userId = req.auth!.userId;
+    const taskId = req.params.id as string;
+    const { visibility } = req.body;
+
+    if (!visibility || !['private', 'team'].includes(visibility)) {
+      res.status(400).json({ success: false, error: 'visibility must be "private" or "team"' });
+      return;
+    }
+
+    const task = await workService.updateTask(userId, taskId, { visibility } as any);
+    if (!task) {
+      res.status(404).json({ success: false, error: 'Task not found' });
+      return;
+    }
+
+    res.json({ success: true, data: task });
+  } catch (error) {
+    logger.error({ error }, 'Failed to update task visibility');
+    res.status(500).json({ success: false, error: 'Failed to update task visibility' });
+  }
+}
+
 export async function deleteTask(req: Request, res: Response) {
   try {
     const perm = req.workPerm!;

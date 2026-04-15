@@ -7,7 +7,6 @@ import type {
   Subtask, TaskActivity, TaskTemplate, TaskComment,
   CreateTaskTemplateInput,
   TaskAttachment, TaskDependency,
-  ProjectRate, CreateRateInput, UpdateRateInput,
 } from '@atlas-platform/shared';
 
 // ─── Inline Types ──────────────────────────────────────────────────
@@ -85,59 +84,6 @@ export interface EnhancedDashboard {
     status: string;
     amount: number;
     updatedAt: string;
-  }>;
-}
-
-export interface ProjectSettings {
-  defaultHourlyRate: number;
-  companyName: string;
-  companyAddress: string;
-  weekStartDay: 'monday' | 'sunday';
-  defaultProjectVisibility: 'team' | 'private';
-  defaultBillable: boolean;
-  timeRounding: number;
-}
-
-export interface TimeReport {
-  entries: Array<{
-    label: string;
-    hours: number;
-    color: string;
-  }>;
-  total: number;
-}
-
-export interface RevenueReport {
-  invoiced: number;
-  outstanding: number;
-  overdue: number;
-  byClient: Array<{
-    clientId: string;
-    clientName: string;
-    invoiced: number;
-    outstanding: number;
-  }>;
-}
-
-export interface ProfitabilityReport {
-  projects: Array<{
-    projectId: string;
-    projectName: string;
-    hours: number;
-    cost: number;
-    revenue: number;
-    margin: number;
-  }>;
-}
-
-export interface UtilizationReport {
-  members: Array<{
-    userId: string;
-    userName: string;
-    hoursLogged: number;
-    capacity: number;
-    utilization: number;
-    billableRatio: number;
   }>;
 }
 
@@ -335,19 +281,6 @@ export function useDeleteTask() {
   });
 }
 
-export function useRestoreTask() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { data } = await api.patch(`/work/tasks/${id}/restore`);
-      return data.data as Task;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
-    },
-  });
-}
-
 // ─── Task Project Queries & Mutations ──────────────────────────────
 
 export function useTaskProjectList(includeArchived = false) {
@@ -367,40 +300,16 @@ export function useTaskProjectList(includeArchived = false) {
   });
 }
 
-export function useCreateTaskProject() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { name: string; description?: string }) => {
-      const { data } = await api.post('/work/tasks/projects', input);
-      return data.data as TaskProject;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.projects });
-    },
-  });
-}
-
 export function useUpdateTaskProject() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...input }: { id: string; name?: string; description?: string }) => {
-      const { data } = await api.patch(`/work/tasks/projects/${id}`, input);
+      const { data } = await api.patch(`/work/projects/${id}`, input);
       return data.data as TaskProject;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.projects });
-    },
-  });
-}
-
-export function useDeleteTaskProject() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/work/tasks/projects/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.all });
     },
   });
 }
@@ -684,7 +593,7 @@ export function useBlockedTaskIds() {
   return useQuery({
     queryKey: queryKeys.work.tasks.blockedIds,
     queryFn: async () => {
-      const { data } = await api.get('/work/tasks/blocked-ids');
+      const { data } = await api.get('/work/tasks/blocked');
       return data.data as string[];
     },
     staleTime: 15_000,
@@ -846,18 +755,6 @@ export function useProjectMembers(projectId: string | undefined) {
 
 // ─── Time Entry Queries ───────────────────────────────────────────
 
-export function useTimeEntriesWeekly(weekStart: string) {
-  return useQuery({
-    queryKey: queryKeys.work.projects.timeEntries.weekly(weekStart),
-    queryFn: async () => {
-      const { data } = await api.get(`/work/projects/time-entries/weekly?weekStart=${weekStart}`);
-      const raw = data.data as { entries: Record<string, unknown>[] };
-      return { entries: raw.entries.map(mapTimeEntry) };
-    },
-    staleTime: 10_000,
-  });
-}
-
 export function useTimeEntries(filters?: { projectId?: string; startDate?: string; endDate?: string }) {
   const filterKey = filters ? JSON.stringify(filters) : '';
   return useQuery({
@@ -868,7 +765,7 @@ export function useTimeEntries(filters?: { projectId?: string; startDate?: strin
       if (filters?.startDate) params.set('startDate', filters.startDate);
       if (filters?.endDate) params.set('endDate', filters.endDate);
       const qs = params.toString();
-      const { data } = await api.get(`/work/projects/time-entries/list${qs ? `?${qs}` : ''}`);
+      const { data } = await api.get(`/work/time-entries${qs ? `?${qs}` : ''}`);
       const raw = data.data as { entries: Record<string, unknown>[] };
       return { entries: raw.entries.map(mapTimeEntry) };
     },
@@ -887,7 +784,7 @@ export function useCreateTimeEntry() {
       tags?: string[];
       isBillable?: boolean;
     }) => {
-      const { data } = await api.post('/work/projects/time-entries', {
+      const { data } = await api.post('/work/time-entries', {
         projectId: input.projectId,
         workDate: input.date,
         durationMinutes: Math.round(input.hours * 60),
@@ -921,7 +818,7 @@ export function useUpdateTimeEntry() {
       if (input.description !== undefined) payload.notes = input.description;
       if (input.tags !== undefined) payload.tags = input.tags;
       if (input.isBillable !== undefined) payload.billable = input.isBillable;
-      const { data } = await api.patch(`/work/projects/time-entries/${id}`, payload, {
+      const { data } = await api.patch(`/work/time-entries/${id}`, payload, {
         headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
       });
       return data.data as TimeEntry;
@@ -936,33 +833,7 @@ export function useDeleteTimeEntry() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/work/projects/time-entries/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.work.all });
-    },
-  });
-}
-
-export function useBulkSaveTimeEntries() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (entries: Array<{ projectId: string; date: string; hours: number; description?: string | null; isBillable?: boolean }>) => {
-      const { data } = await api.post('/work/projects/time-entries/bulk', { entries });
-      return data.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.work.all });
-    },
-  });
-}
-
-export function useCopyLastWeek() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (weekStart: string) => {
-      const { data } = await api.post('/work/projects/time-entries/copy-last-week', { weekStart });
-      return data.data;
+      await api.delete(`/work/time-entries/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.work.all });
@@ -1007,134 +878,3 @@ export function usePopulateFromTimeEntries() {
   });
 }
 
-// ─── Report Queries ───────────────────────────────────────────────
-
-export function useTimeReport(filters?: { startDate?: string; endDate?: string; groupBy?: string }) {
-  const filterKey = filters ? JSON.stringify(filters) : '';
-  return useQuery({
-    queryKey: queryKeys.work.projects.reports.time(filterKey),
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.startDate) params.set('startDate', filters.startDate);
-      if (filters?.endDate) params.set('endDate', filters.endDate);
-      if (filters?.groupBy) params.set('groupBy', filters.groupBy);
-      const qs = params.toString();
-      const { data } = await api.get(`/work/projects/reports/time${qs ? `?${qs}` : ''}`);
-      return data.data as TimeReport;
-    },
-    staleTime: 30_000,
-  });
-}
-
-export function useRevenueReport(filters?: { startDate?: string; endDate?: string }) {
-  const filterKey = filters ? JSON.stringify(filters) : '';
-  return useQuery({
-    queryKey: queryKeys.work.projects.reports.revenue(filterKey),
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.startDate) params.set('startDate', filters.startDate);
-      if (filters?.endDate) params.set('endDate', filters.endDate);
-      const qs = params.toString();
-      const { data } = await api.get(`/work/projects/reports/revenue${qs ? `?${qs}` : ''}`);
-      return data.data as RevenueReport;
-    },
-    staleTime: 30_000,
-  });
-}
-
-export function useProfitabilityReport() {
-  return useQuery({
-    queryKey: queryKeys.work.projects.reports.profitability,
-    queryFn: async () => {
-      const { data } = await api.get('/work/projects/reports/profitability');
-      return data.data as ProfitabilityReport;
-    },
-    staleTime: 30_000,
-  });
-}
-
-export function useUtilizationReport(filters?: { startDate?: string; endDate?: string }) {
-  const filterKey = filters ? JSON.stringify(filters) : '';
-  return useQuery({
-    queryKey: queryKeys.work.projects.reports.utilization(filterKey),
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.startDate) params.set('startDate', filters.startDate);
-      if (filters?.endDate) params.set('endDate', filters.endDate);
-      const qs = params.toString();
-      const { data } = await api.get(`/work/projects/reports/utilization${qs ? `?${qs}` : ''}`);
-      return data.data as UtilizationReport;
-    },
-    staleTime: 30_000,
-  });
-}
-
-// ─── Rates ───────────────────────────────────────────────────────
-
-export function useRates() {
-  return useQuery({
-    queryKey: queryKeys.work.projects.rates.all,
-    queryFn: async () => {
-      const { data } = await api.get('/work/projects/rates');
-      return data.data as ProjectRate[];
-    },
-  });
-}
-
-export function useCreateRate() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: CreateRateInput) => {
-      const { data } = await api.post('/work/projects/rates', input);
-      return data.data as ProjectRate;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.work.projects.rates.all }),
-  });
-}
-
-export function useUpdateRate() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & UpdateRateInput) => {
-      const { data } = await api.patch(`/work/projects/rates/${id}`, input);
-      return data.data as ProjectRate;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.work.projects.rates.all }),
-  });
-}
-
-export function useDeleteRate() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/work/projects/rates/${id}`);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.work.projects.rates.all }),
-  });
-}
-
-// ─── Settings ─────────────────────────────────────────────────────
-
-export function useProjectSettings() {
-  return useQuery({
-    queryKey: queryKeys.work.projects.settings,
-    queryFn: async () => {
-      const { data } = await api.get('/work/projects/settings');
-      return data.data as ProjectSettings;
-    },
-    staleTime: 60_000,
-  });
-}
-
-export function useUpdateProjectSettings() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: Partial<ProjectSettings>) => {
-      const { data } = await api.patch('/work/projects/settings', input);
-      return data.data as ProjectSettings;
-    },
-    onSuccess: (settings) => {
-      queryClient.setQueryData(queryKeys.work.projects.settings, settings);
-    },
-  });
-}

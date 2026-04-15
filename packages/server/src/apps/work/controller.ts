@@ -30,6 +30,7 @@ export {
   addDependency,
   removeDependency,
   getBlockedTaskIds,
+  updateTaskVisibility,
 } from './controllers/tasks.controller';
 
 // Re-export ported project handlers
@@ -49,4 +50,10 @@ export {
   deleteProjectTimeEntry,
   listProjectFiles,
   getProjectFinancials,
+  listTimeEntries,
+  createTimeEntry,
+  updateTimeEntry,
+  deleteTimeEntry,
+  previewTimeBilling,
+  populateFromTimeBilling,
 } from './controllers/projects.controller';

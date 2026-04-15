@@ -18,6 +18,7 @@ router.get('/tasks/counts', controller.getTaskCounts);
 router.get('/tasks/blocked', controller.getBlockedTaskIds);
 router.get('/tasks/:id', controller.getTask);
 router.patch('/tasks/:id', withConcurrencyCheck(tasks), controller.updateTask);
+router.patch('/tasks/:id/visibility', controller.updateTaskVisibility);
 router.delete('/tasks/:id', controller.deleteTask);
 
 // Task subtasks
@@ -52,6 +53,16 @@ router.post('/templates', controller.createTemplate);
 router.patch('/templates/:templateId', controller.updateTemplate);
 router.delete('/templates/:templateId', controller.deleteTemplate);
 router.post('/templates/:templateId/use', controller.createTaskFromTemplate);
+
+// Flat time entries (cross-project)
+router.get('/time-entries', controller.listTimeEntries);
+router.post('/time-entries', controller.createTimeEntry);
+router.patch('/time-entries/:id', controller.updateTimeEntry);
+router.delete('/time-entries/:id', controller.deleteTimeEntry);
+
+// Time billing (preview + populate into invoice)
+router.post('/projects/time-billing/preview', controller.previewTimeBilling);
+router.post('/projects/time-billing/populate', controller.populateFromTimeBilling);
 
 // Dashboard
 router.get('/projects/dashboard', controller.getDashboard);
