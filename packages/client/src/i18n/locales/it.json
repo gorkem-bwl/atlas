@@ -4223,7 +4223,10 @@
       "sectionActivity": "Attività",
       "deleteConfirmMessage": "Sei sicuro di voler eliminare questa fattura? Questa azione non può essere annullata.",
       "saveFailed": "Salvataggio della fattura non riuscito",
-      "shareNoCompany": "Impossibile generare il link di condivisione — azienda non trovata"
+      "shareNoCompany": "Impossibile generare il link di condivisione — azienda non trovata",
+      "duplicateSuccess": "Fattura duplicata",
+      "markPaidSuccess": "Segnata come pagata",
+      "waiveSuccess": "Fattura annullata"
     },
     "payments": {
       "recordPayment": "Registra pagamento",

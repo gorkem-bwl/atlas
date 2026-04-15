@@ -4255,7 +4255,10 @@
       "sectionActivity": "Activity",
       "deleteConfirmMessage": "Are you sure you want to delete this invoice? This action cannot be undone.",
       "saveFailed": "Failed to save invoice",
-      "shareNoCompany": "Could not generate share link — company not found"
+      "shareNoCompany": "Could not generate share link — company not found",
+      "duplicateSuccess": "Invoice duplicated",
+      "markPaidSuccess": "Marked as paid",
+      "waiveSuccess": "Invoice waived"
     },
     "payments": {
       "recordPayment": "Record payment",

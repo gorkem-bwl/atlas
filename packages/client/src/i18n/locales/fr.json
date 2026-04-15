@@ -4223,7 +4223,10 @@
       "sectionActivity": "Activité",
       "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer cette facture ? Cette action est irréversible.",
       "saveFailed": "Échec de l'enregistrement de la facture",
-      "shareNoCompany": "Impossible de générer le lien de partage — société introuvable"
+      "shareNoCompany": "Impossible de générer le lien de partage — société introuvable",
+      "duplicateSuccess": "Facture dupliquée",
+      "markPaidSuccess": "Marquée comme payée",
+      "waiveSuccess": "Facture annulée"
     },
     "payments": {
       "recordPayment": "Enregistrer un paiement",

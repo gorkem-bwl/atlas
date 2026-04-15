@@ -19,6 +19,7 @@ import { StatusTimeline } from '../../../components/shared/status-timeline';
 import { TotalsBlock } from '../../../components/shared/totals-block';
 import { SendInvoiceModal } from './send-invoice-modal';
 import { RecordPaymentModal } from './record-payment-modal';
+import { ImportTimeEntriesModal } from './import-time-entries-modal';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { useCompanies } from '../../crm/hooks';
 import type { Invoice } from '@atlas-platform/shared';
@@ -56,6 +57,7 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
   const splitContainerRef = useRef<HTMLDivElement>(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showImportTimeModal, setShowImportTimeModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const patch = useCallback((body: Record<string, unknown>) => {
@@ -122,9 +124,15 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
             onSend={() => setShowSendModal(true)}
             onRecordPayment={() => setShowPaymentModal(true)}
             onDownloadPdf={downloadPdf}
-            onDuplicate={() => duplicate.mutate(invoice.id)}
-            onMarkPaid={() => markPaid.mutate(invoice.id)}
-            onWaive={() => waive.mutate(invoice.id)}
+            onDuplicate={() => duplicate.mutate(invoice.id, {
+              onSuccess: () => addToast({ type: 'success', message: t('invoices.detail.duplicateSuccess') }),
+            })}
+            onMarkPaid={() => markPaid.mutate(invoice.id, {
+              onSuccess: () => addToast({ type: 'success', message: t('invoices.detail.markPaidSuccess') }),
+            })}
+            onWaive={() => waive.mutate(invoice.id, {
+              onSuccess: () => addToast({ type: 'success', message: t('invoices.detail.waiveSuccess') }),
+            })}
             onDelete={() => setConfirmDelete(true)}
             onShareLink={() => {
               const companies = companiesData?.companies ?? [];
@@ -137,7 +145,7 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
               navigator.clipboard.writeText(portalUrl);
               addToast({ type: 'success', message: t('invoices.linkCopied') });
             }}
-            onImportTime={() => {}}
+            onImportTime={() => setShowImportTimeModal(true)}
           />
         }
       >
@@ -231,6 +239,16 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
         total={Number(invoice.total) || 0}
         balanceDue={balanceDue}
       />
+
+      {invoice.companyId && (
+        <ImportTimeEntriesModal
+          open={showImportTimeModal}
+          onOpenChange={setShowImportTimeModal}
+          invoiceId={invoice.id}
+          companyId={invoice.companyId}
+          currency={invoice.currency}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

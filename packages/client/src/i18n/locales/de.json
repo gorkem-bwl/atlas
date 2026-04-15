@@ -4223,7 +4223,10 @@
       "sectionActivity": "Aktivität",
       "deleteConfirmMessage": "Sind Sie sicher, dass Sie diese Rechnung löschen möchten? Dies kann nicht rückgängig gemacht werden.",
       "saveFailed": "Rechnung konnte nicht gespeichert werden",
-      "shareNoCompany": "Freigabe-Link konnte nicht erstellt werden — Unternehmen nicht gefunden"
+      "shareNoCompany": "Freigabe-Link konnte nicht erstellt werden — Unternehmen nicht gefunden",
+      "duplicateSuccess": "Rechnung dupliziert",
+      "markPaidSuccess": "Als bezahlt markiert",
+      "waiveSuccess": "Rechnung erlassen"
     },
     "payments": {
       "recordPayment": "Zahlung erfassen",

@@ -4223,7 +4223,10 @@
       "sectionActivity": "Etkinlik",
       "deleteConfirmMessage": "Bu faturayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
       "saveFailed": "Fatura kaydedilemedi",
-      "shareNoCompany": "Paylaşım bağlantısı oluşturulamadı — şirket bulunamadı"
+      "shareNoCompany": "Paylaşım bağlantısı oluşturulamadı — şirket bulunamadı",
+      "duplicateSuccess": "Fatura kopyalandı",
+      "markPaidSuccess": "Ödenmiş olarak işaretlendi",
+      "waiveSuccess": "Faturadan ferâgat edildi"
     },
     "payments": {
       "recordPayment": "Ödeme kaydet",
