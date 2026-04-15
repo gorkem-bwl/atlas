@@ -6,10 +6,9 @@ import { useInvoices } from './hooks';
 import { useAppActions } from '../../hooks/use-app-permissions';
 import { InvoicesSidebar } from './components/invoices-sidebar';
 import { InvoicesListView } from './components/invoices-list-view';
-import { InvoiceDetailPanel } from './components/invoice-detail-panel';
+import { InvoiceDetailPage } from './components/invoice-detail-page';
 import { InvoicesDashboard } from './components/invoices-dashboard';
 import { RecurringInvoicesList } from './components/recurring-invoices-list';
-import { InvoicePreview } from './components/invoice-preview';
 import { InvoiceBuilderModal } from '../../components/shared/invoice-builder-modal';
 import { ContentArea } from '../../components/ui/content-area';
 import { Button } from '../../components/ui/button';
@@ -26,12 +25,10 @@ export function InvoicesPage() {
   const setActiveView = useCallback((view: string) => {
     setSearchParams({ view }, { replace: true });
   }, [setSearchParams]);
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(searchParams.get('id'));
   const [showBuilder, setShowBuilder] = useState(searchParams.get('new') === 'true');
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Prefill from URL params
@@ -45,12 +42,8 @@ export function InvoicesPage() {
   // Permissions
   const { canCreate } = useAppActions('invoices');
 
-  // Selected invoice
-  const selectedInvoice = selectedInvoiceId ? invoices.find((i) => i.id === selectedInvoiceId) : null;
-
-  // Reset selection on view change
+  // Reset search on view change
   useEffect(() => {
-    setSelectedInvoiceId(null);
     setSearchQuery('');
     setShowSearch(false);
   }, [activeView]);
@@ -62,8 +55,6 @@ export function InvoicesPage() {
         if (showSearch) {
           setShowSearch(false);
           setSearchQuery('');
-        } else {
-          setSelectedInvoiceId(null);
         }
       }
       const target = e.target as HTMLElement;
@@ -82,7 +73,9 @@ export function InvoicesPage() {
     ? t('invoices.sidebar.dashboard')
     : activeView === 'recurring'
       ? t('invoices.sidebar.recurring')
-      : t('invoices.sidebar.invoices');
+      : activeView === 'invoice-detail'
+        ? t('invoices.sidebar.invoices')
+        : t('invoices.sidebar.invoices');
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -112,7 +105,12 @@ export function InvoicesPage() {
           ) : undefined
         }
       >
-        {activeView === 'dashboard' ? (
+        {activeView === 'invoice-detail' && searchParams.get('invoiceId') ? (
+          <InvoiceDetailPage
+            invoiceId={searchParams.get('invoiceId')!}
+            onBack={() => setSearchParams({ view: 'invoices' }, { replace: true })}
+          />
+        ) : activeView === 'dashboard' ? (
           <InvoicesDashboard />
         ) : activeView === 'recurring' ? (
           <RecurringInvoicesList />
@@ -144,35 +142,15 @@ export function InvoicesPage() {
                 <InvoicesListView
                   invoices={invoices}
                   searchQuery={searchQuery}
-                  selectedId={selectedInvoiceId}
-                  onSelect={(id) => setSelectedInvoiceId(id)}
+                  selectedId={null}
+                  onOpenDetail={(id) => setSearchParams({ view: 'invoice-detail', invoiceId: id }, { replace: true })}
                   onAdd={canCreate ? () => { setEditingInvoice(null); setShowBuilder(true); } : undefined}
                 />
               </div>
-
-              {/* Detail panel */}
-              {selectedInvoice && (
-                <div style={{ width: 360, borderLeft: '1px solid var(--color-border-secondary)', flexShrink: 0, overflow: 'hidden' }}>
-                  <InvoiceDetailPanel
-                    invoice={selectedInvoice}
-                    onClose={() => setSelectedInvoiceId(null)}
-                    onEdit={() => { setEditingInvoice(selectedInvoice); setShowBuilder(true); }}
-                    onPreview={() => setPreviewInvoiceId(selectedInvoice.id)}
-                  />
-                </div>
-              )}
             </div>
           </>
         )}
       </ContentArea>
-
-      {/* Invoice preview overlay */}
-      {previewInvoiceId && (
-        <InvoicePreview
-          invoiceId={previewInvoiceId}
-          onClose={() => setPreviewInvoiceId(null)}
-        />
-      )}
 
       {/* Builder modal */}
       <InvoiceBuilderModal
@@ -184,9 +162,9 @@ export function InvoicesPage() {
           dealId: prefillDealId,
         }}
         onCreated={(invoice) => {
-          setSelectedInvoiceId(invoice.id);
           setShowBuilder(false);
           setEditingInvoice(null);
+          setSearchParams({ view: 'invoice-detail', invoiceId: invoice.id }, { replace: true });
         }}
       />
     </div>

@@ -77,10 +77,10 @@ function countByStatus(invoices: Invoice[]): Record<StatusFilter, number> {
 
 const FILTER_OPTIONS: StatusFilter[] = ['all', 'draft', 'unpaid', 'overdue', 'paid', 'waived'];
 
-export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, onAdd }: {
+export function InvoicesListView({ invoices, searchQuery, onOpenDetail, selectedId, onAdd }: {
   invoices: Invoice[];
   searchQuery: string;
-  onSelect: (id: string) => void;
+  onOpenDetail: (id: string) => void;
   selectedId: string | null;
   onAdd?: () => void;
 }) {
@@ -271,7 +271,7 @@ export function InvoicesListView({ invoices, searchQuery, onSelect, selectedId, 
           resizableColumns
           storageKey="invoices"
           activeRowId={selectedId}
-          onRowClick={(invoice) => onSelect(invoice.id)}
+          onRowClick={(invoice) => onOpenDetail(invoice.id)}
           onAddRow={onAdd}
           addRowLabel={onAdd ? t('invoices.builder.createInvoice') : undefined}
           emptyTitle={t('invoices.empty.noMatchingInvoices')}
