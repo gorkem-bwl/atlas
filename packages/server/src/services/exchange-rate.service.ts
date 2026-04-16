@@ -1,4 +1,4 @@
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, desc } from 'drizzle-orm';
 import { db } from '../config/database';
 import { exchangeRates } from '../db/schema';
 import { logger } from '../utils/logger';
@@ -76,7 +76,7 @@ async function getCachedRate(
       .select()
       .from(exchangeRates)
       .where(and(...conditions))
-      .orderBy(exchangeRates.fetchedAt)
+      .orderBy(desc(exchangeRates.fetchedAt))
       .limit(1);
 
     if (rows.length === 0) return null;
@@ -95,6 +95,9 @@ async function cacheRate(
   provider: string,
 ): Promise<void> {
   try {
+    await db.delete(exchangeRates).where(
+      and(eq(exchangeRates.baseCurrency, base), eq(exchangeRates.targetCurrency, target))
+    );
     await db.insert(exchangeRates).values({
       baseCurrency: base,
       targetCurrency: target,

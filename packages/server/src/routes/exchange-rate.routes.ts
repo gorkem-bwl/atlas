@@ -12,11 +12,8 @@ router.get('/convert', async (req: Request, res: Response) => {
   const to = (req.query.to as string)?.toUpperCase();
   const amountStr = req.query.amount as string;
 
-  if (!from || !to) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required query params: from, to',
-    });
+  if (!from || !to || from.length !== 3 || to.length !== 3 || !/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) {
+    return res.status(400).json({ success: false, error: 'Invalid currency code' });
   }
 
   const amount = amountStr ? parseFloat(amountStr) : 1;
@@ -55,11 +52,8 @@ router.get('/rates', async (req: Request, res: Response) => {
   const base = (req.query.base as string)?.toUpperCase();
   const targetsStr = req.query.targets as string;
 
-  if (!base || !targetsStr) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required query params: base, targets',
-    });
+  if (!base || !targetsStr || base.length !== 3 || !/^[A-Z]{3}$/.test(base)) {
+    return res.status(400).json({ success: false, error: 'Invalid currency code' });
   }
 
   const targets = targetsStr
@@ -67,11 +61,8 @@ router.get('/rates', async (req: Request, res: Response) => {
     .map((t) => t.trim().toUpperCase())
     .filter(Boolean);
 
-  if (targets.length === 0) {
-    return res.status(400).json({
-      success: false,
-      error: 'No valid targets provided',
-    });
+  if (targets.length === 0 || targets.some((t) => t.length !== 3 || !/^[A-Z]{3}$/.test(t))) {
+    return res.status(400).json({ success: false, error: 'Invalid currency code' });
   }
 
   const rates = await getExchangeRates(base, targets);
