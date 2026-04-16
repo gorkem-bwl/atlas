@@ -4462,7 +4462,7 @@
       "count_other": "{{count}} dosya",
       "openInDrive": "Drive’da aç",
       "link": "Dosya bağla",
-      "linkButton": "+ Dosya bağla",
+      "linkButton": "Dosya bağla",
       "pickerTitle": "Drive dosyası bağla",
       "linked": "Dosya bağlandı",
       "unlink": "Bağlantıyı kaldır",

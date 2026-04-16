@@ -4494,7 +4494,7 @@
       "count_other": "{{count}} files",
       "openInDrive": "Open in Drive",
       "link": "Link file",
-      "linkButton": "+ Link file",
+      "linkButton": "Link file",
       "pickerTitle": "Link a Drive file",
       "linked": "File linked",
       "unlink": "Unlink",

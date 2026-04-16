@@ -4462,7 +4462,7 @@
       "count_other": "{{count}} Dateien",
       "openInDrive": "In Drive öffnen",
       "link": "Datei verknüpfen",
-      "linkButton": "+ Datei verknüpfen",
+      "linkButton": "Datei verknüpfen",
       "pickerTitle": "Drive-Datei verknüpfen",
       "linked": "Datei verknüpft",
       "unlink": "Verknüpfung aufheben",

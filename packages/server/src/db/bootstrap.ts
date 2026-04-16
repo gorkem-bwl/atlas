@@ -66,6 +66,25 @@ async function migrateLegacyData() {
     client.release();
   }
 
+  // Work-app merge: invoices.project_id was added in the schema but the
+  // column never landed on environments that bootstrapped before the change.
+  // Apply idempotently so dev DBs catch up without a full reset.
+  try {
+    const c = await pool.connect();
+    try {
+      await c.query(
+        `ALTER TABLE invoices ADD COLUMN IF NOT EXISTS project_id uuid REFERENCES project_projects(id) ON DELETE SET NULL`,
+      );
+      await c.query(
+        `CREATE INDEX IF NOT EXISTS idx_invoices_project ON invoices(project_id)`,
+      );
+    } finally {
+      c.release();
+    }
+  } catch (err) {
+    logger.error({ err }, 'invoices.project_id backfill failed');
+  }
+
   // Work-app merge: copy task_projects → project_projects, seed isPrivate,
   // collapse tenant_apps. Guard: only run while task_projects still exists.
   try {

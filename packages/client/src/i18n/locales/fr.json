@@ -4462,7 +4462,7 @@
       "count_other": "{{count}} fichiers",
       "openInDrive": "Ouvrir dans Drive",
       "link": "Lier un fichier",
-      "linkButton": "+ Lier un fichier",
+      "linkButton": "Lier un fichier",
       "pickerTitle": "Lier un fichier Drive",
       "linked": "Fichier lié",
       "unlink": "Délier",

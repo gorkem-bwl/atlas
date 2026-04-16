@@ -1,4 +1,4 @@
-import { FileText, ExternalLink, Link, Trash2 } from 'lucide-react';
+import { FileText, ExternalLink, Folder, ChevronRight, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -45,63 +45,109 @@ function useProjectFiles(projectId: string) {
 }
 
 function DrivePicker({ linkedIds, onSelect }: { linkedIds: Set<string>; onSelect: (item: DriveItem) => void }) {
-  const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const { data, isLoading } = useDriveItems(null);
+  const [path, setPath] = useState<Array<{ id: string | null; name: string }>>([{ id: null, name: 'Drive' }]);
+  const currentFolderId = path[path.length - 1].id;
+  const { data, isLoading } = useDriveItems(currentFolderId);
 
   const items = (data?.items ?? []).filter((item) => {
-    if (linkedIds.has(item.id)) return false;
-    if (item.type === 'folder') return false;
+    if (item.type !== 'folder' && linkedIds.has(item.id)) return false;
     if (search) return item.name.toLowerCase().includes(search.toLowerCase());
     return true;
   });
+
+  // folders first, then files
+  const sorted = [...items].sort((a, b) => {
+    if (a.type === 'folder' && b.type !== 'folder') return -1;
+    if (a.type !== 'folder' && b.type === 'folder') return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  const enterFolder = (folder: DriveItem) => {
+    setPath([...path, { id: folder.id, name: folder.name }]);
+    setSearch('');
+  };
+
+  const goTo = (idx: number) => {
+    setPath(path.slice(0, idx + 1));
+    setSearch('');
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
       <Input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search files…"
+        placeholder="Search this folder…"
         size="sm"
       />
+      {/* Breadcrumb */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
+        {path.map((seg, i) => (
+          <span key={`${seg.id ?? 'root'}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {i > 0 && <ChevronRight size={11} />}
+            {i < path.length - 1 ? (
+              <button
+                type="button"
+                onClick={() => goTo(i)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', padding: '2px 4px', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family)' }}
+              >
+                {seg.name}
+              </button>
+            ) : (
+              <span style={{ color: 'var(--color-text-primary)', fontWeight: 'var(--font-weight-medium)', padding: '2px 4px' }}>{seg.name}</span>
+            )}
+          </span>
+        ))}
+      </div>
       {isLoading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {[1, 2, 3].map((i) => <Skeleton key={i} height={36} borderRadius="var(--radius-sm)" />)}
         </div>
-      ) : items.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <div style={{ textAlign: 'center', color: 'var(--color-text-tertiary)', fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-xl) 0' }}>
-          No files available
+          This folder is empty
         </div>
       ) : (
         <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {items.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelect(item)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-sm)',
-                padding: 'var(--spacing-sm) var(--spacing-md)',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                background: 'var(--color-bg-secondary)',
-                border: '1px solid var(--color-border-secondary)',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-secondary)'; }}
-            >
-              <FileText size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {item.name}
-              </span>
-              {item.size != null && (
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
-                  {formatBytes(item.size)}
+          {sorted.map((item) => {
+            const isFolder = item.type === 'folder';
+            return (
+              <div
+                key={item.id}
+                onClick={() => isFolder ? enterFolder(item) : onSelect(item)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-sm)',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'pointer',
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--color-border-secondary)',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-surface-hover)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-secondary)'; }}
+              >
+                {isFolder ? (
+                  <Folder size={14} style={{ color: 'var(--color-accent-primary)', flexShrink: 0 }} />
+                ) : (
+                  <FileText size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+                )}
+                <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {item.name}
                 </span>
-              )}
-            </div>
-          ))}
+                {!isFolder && item.size != null && (
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
+                    {formatBytes(item.size)}
+                  </span>
+                )}
+                {isFolder && (
+                  <ChevronRight size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -162,7 +208,6 @@ export function ProjectFilesTab({ projectId }: Props) {
         </span>
         {canCreate && (
           <Button variant="secondary" size="sm" onClick={() => setShowLinkModal(true)}>
-            <Link size={13} style={{ marginRight: 4 }} />
             {t('work.files.linkButton')}
           </Button>
         )}

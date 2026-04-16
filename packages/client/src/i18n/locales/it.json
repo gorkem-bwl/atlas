@@ -4462,7 +4462,7 @@
       "count_other": "{{count}} file",
       "openInDrive": "Apri in Drive",
       "link": "Collega file",
-      "linkButton": "+ Collega file",
+      "linkButton": "Collega file",
       "pickerTitle": "Collega un file Drive",
       "linked": "File collegato",
       "unlink": "Scollega",
