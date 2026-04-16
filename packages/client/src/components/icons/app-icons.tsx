@@ -561,7 +561,8 @@ export function InvoicesIcon({ size = 24, className, style }: IconProps) {
 }
 
 export function WorkIcon({ size = 24, className, style }: IconProps) {
-  // Wider, ~30% larger W centered in 128x128 (extends from x=4 to x=124, y=10 to y=118).
+  // Thick W in 128x128, darker palette.
+  // Outer strokes: 25 units wide. Center peak: 22 units wide. Sits 8 inset.
   return (
     <svg
       width={size}
@@ -572,27 +573,28 @@ export function WorkIcon({ size = 24, className, style }: IconProps) {
       className={className}
       style={style}
     >
-      {/* Left outer stroke of the W */}
-      <path d="M4 10H29L54 118H39L4 10Z" fill="url(#work_paint0)"/>
-      {/* Right outer stroke of the W */}
-      <path d="M124 10H99L74 118H89L124 10Z" fill="url(#work_paint0)"/>
-      {/* Center inverted V (orange peak) */}
-      <path d="M39 118L64 50L89 118H74L64 92L54 118H39Z" fill="url(#work_paint1)"/>
-      {/* Light highlight diagonals along the inner edges */}
-      <path d="M29 10L54 118H44L21 10H29Z" fill="url(#work_paint2)"/>
-      <path d="M99 10L74 118H84L107 10H99Z" fill="url(#work_paint2)"/>
+      {/* Left outer stroke (thick) */}
+      <path d="M4 10H33L58 118H43L4 10Z" fill="url(#work_paint0)"/>
+      {/* Right outer stroke (thick) */}
+      <path d="M124 10H95L70 118H85L124 10Z" fill="url(#work_paint0)"/>
+      {/* Center inverted V — thick orange peak */}
+      <path d="M43 118L64 46L85 118H64L64 90L64 118H43Z" fill="url(#work_paint1)"/>
+      {/* Inner highlight on left V */}
+      <path d="M33 10L58 118H48L25 10H33Z" fill="url(#work_paint2)"/>
+      {/* Inner highlight on right V */}
+      <path d="M95 10L70 118H80L103 10H95Z" fill="url(#work_paint2)"/>
       <defs>
         <linearGradient id="work_paint0" x1="64" y1="10" x2="64" y2="118" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#CAE3FF"/>
-          <stop offset="1" stopColor="#1B5594"/>
+          <stop stopColor="#1B3A6E"/>
+          <stop offset="1" stopColor="#0A1F3D"/>
         </linearGradient>
-        <linearGradient id="work_paint1" x1="64" y1="50" x2="64" y2="118" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#F38744"/>
-          <stop offset="1" stopColor="#8D4E27"/>
+        <linearGradient id="work_paint1" x1="64" y1="46" x2="64" y2="118" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#C0531C"/>
+          <stop offset="1" stopColor="#5A2A0E"/>
         </linearGradient>
         <linearGradient id="work_paint2" x1="64" y1="10" x2="64" y2="118" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#53B1FD"/>
-          <stop offset="1" stopColor="#326A97"/>
+          <stop stopColor="#1F5599"/>
+          <stop offset="1" stopColor="#0F2B52"/>
         </linearGradient>
       </defs>
     </svg>
