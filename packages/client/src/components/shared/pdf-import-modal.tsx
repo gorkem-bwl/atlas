@@ -322,7 +322,7 @@ export function PdfImportModal({ open, onClose, onImport }: PdfImportModalProps)
                 {t(`pdfImport.confidence.${parsed.confidence}`)}
               </Badge>
               <Badge variant="default">
-                {method === 'digital' ? 'Digital text' : 'OCR'}
+                {method === 'digital' ? t('pdfImport.methodDigital') : t('pdfImport.methodOcr')}
               </Badge>
             </div>
 

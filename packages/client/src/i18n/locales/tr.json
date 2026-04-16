@@ -4565,7 +4565,9 @@
     "reviewHint": "Yukarıdaki verileri gözden geçirin. Fatura formunda düzenleyebilirsiniz.",
     "tryAnother": "Başka dosya dene",
     "importToInvoice": "Faturaya aktar",
-    "importedFrom": "{{vendor}} kaynaklı aktarıldı"
+    "importedFrom": "{{vendor}} kaynaklı aktarıldı",
+    "methodDigital": "Dijital metin",
+    "methodOcr": "OCR"
   },
   "currency": {
     "converting": "Dönüştürülüyor...",

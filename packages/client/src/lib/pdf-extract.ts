@@ -68,26 +68,32 @@ export async function extractTextFromPdf(
   const ocrTexts: string[] = [];
   const scale = 2; // 2x for better OCR accuracy
 
-  for (let i = 1; i <= totalPages; i++) {
-    const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale });
+  try {
+    for (let i = 1; i <= totalPages; i++) {
+      const page = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale });
 
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d')!;
-    await page.render({ canvasContext: ctx, viewport } as any).promise;
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d')!;
+      await page.render({ canvasContext: ctx, viewport } as any).promise;
 
-    const {
-      data: { text },
-    } = await worker.recognize(canvas);
-    ocrTexts.push(text);
+      const {
+        data: { text },
+      } = await worker.recognize(canvas);
+      ocrTexts.push(text);
 
-    const ocrPct = 55 + Math.round((i / totalPages) * 40);
-    onProgress?.(ocrPct, 'ocr');
+      // Release canvas memory
+      canvas.width = 0;
+      canvas.height = 0;
+
+      const ocrPct = 55 + Math.round((i / totalPages) * 40);
+      onProgress?.(ocrPct, 'ocr');
+    }
+  } finally {
+    await worker.terminate();
   }
-
-  await worker.terminate();
 
   onProgress?.(100, 'done');
   return { text: ocrTexts.join('\n').trim(), method: 'ocr' };

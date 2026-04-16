@@ -4565,7 +4565,9 @@
     "reviewHint": "Vérifiez les données ci-dessus. Vous pourrez tout modifier dans le formulaire de facture.",
     "tryAnother": "Essayer un autre fichier",
     "importToInvoice": "Importer dans la facture",
-    "importedFrom": "Importé de {{vendor}}"
+    "importedFrom": "Importé de {{vendor}}",
+    "methodDigital": "Texte numérique",
+    "methodOcr": "OCR"
   },
   "currency": {
     "converting": "Conversion en cours...",

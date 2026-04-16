@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '../../../components/ui/skeleton';
@@ -19,10 +19,10 @@ interface BoardColumn {
 }
 
 const COLUMNS: BoardColumn[] = [
-  { status: 'active', labelKey: 'work.board.active', color: '#22c55e', badgeVariant: 'success' },
-  { status: 'paused', labelKey: 'work.board.paused', color: '#f59e0b', badgeVariant: 'warning' },
-  { status: 'completed', labelKey: 'work.board.completed', color: '#6b7280', badgeVariant: 'default' },
-  { status: 'archived', labelKey: 'work.board.archived', color: '#94a3b8', badgeVariant: 'default' },
+  { status: 'active', labelKey: 'work.board.active', color: 'var(--color-success)', badgeVariant: 'success' },
+  { status: 'paused', labelKey: 'work.board.paused', color: 'var(--color-warning)', badgeVariant: 'warning' },
+  { status: 'completed', labelKey: 'work.board.completed', color: 'var(--color-text-tertiary)', badgeVariant: 'default' },
+  { status: 'archived', labelKey: 'work.board.archived', color: 'var(--color-border-primary)', badgeVariant: 'default' },
 ];
 
 export function ProjectsBoardView() {
@@ -90,15 +90,18 @@ export function ProjectsBoardView() {
     [projects, updateStatus],
   );
 
-  const projectsByStatus: Record<string, WorkProject[]> = {};
-  for (const col of COLUMNS) {
-    projectsByStatus[col.status] = [];
-  }
-  for (const project of projects) {
-    if (projectsByStatus[project.status]) {
-      projectsByStatus[project.status].push(project);
+  const projectsByStatus = useMemo(() => {
+    const byStatus: Record<string, WorkProject[]> = {};
+    for (const col of COLUMNS) {
+      byStatus[col.status] = [];
     }
-  }
+    for (const project of projects) {
+      if (byStatus[project.status]) {
+        byStatus[project.status].push(project);
+      }
+    }
+    return byStatus;
+  }, [projects]);
 
   if (isLoading) {
     return (

@@ -16,11 +16,11 @@ export function useConvertCurrency(
   to: string | undefined,
   amount: number,
 ) {
-  return useQuery({
-    queryKey: ['exchange-rates', 'convert', from, to, amount],
+  const query = useQuery({
+    queryKey: ['exchange-rates', 'rate', from, to],
     queryFn: async () => {
       const { data } = await api.get('/exchange-rates/convert', {
-        params: { from, to, amount },
+        params: { from, to, amount: 1 },
       });
       return data.data as ConversionResult;
     },
@@ -28,4 +28,9 @@ export function useConvertCurrency(
     staleTime: 60 * 60 * 1000, // 1 hour — rates don't change often
     retry: 1,
   });
+
+  // Derive converted amount client-side so different amounts share one cached rate
+  const converted = query.data ? Math.round(amount * query.data.rate * 100) / 100 : undefined;
+
+  return { ...query, data: query.data ? { ...query.data, amount, converted } : undefined };
 }

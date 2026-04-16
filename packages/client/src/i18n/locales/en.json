@@ -4597,7 +4597,9 @@
     "reviewHint": "Review the data above. You can edit everything in the invoice form after importing.",
     "tryAnother": "Try another file",
     "importToInvoice": "Import to invoice",
-    "importedFrom": "Imported from {{vendor}}"
+    "importedFrom": "Imported from {{vendor}}",
+    "methodDigital": "Digital text",
+    "methodOcr": "OCR"
   },
   "currency": {
     "converting": "Converting...",
