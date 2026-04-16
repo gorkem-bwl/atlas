@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useInvoicesDashboard } from '../hooks';
 import { formatCurrency } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
+import { QuickActions } from '../../../components/shared/quick-actions';
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -16,7 +19,12 @@ function formatMonthLabel(month: string): string {
 
 export function InvoicesDashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data, isLoading } = useInvoicesDashboard();
+
+  const quickActions = [
+    { label: t('invoices.quickActions.newInvoice'), icon: <Plus size={13} />, onClick: () => navigate('/invoices?view=invoices&action=create') },
+  ];
 
   if (isLoading || !data) {
     return (
@@ -33,6 +41,7 @@ export function InvoicesDashboard() {
   return (
     <div style={{ padding: 'var(--spacing-xl)', overflow: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)', maxWidth: 960 }}>
+        <QuickActions actions={quickActions} />
         <ReceivablesSection receivables={receivables} t={t} />
         <ActivitySection monthlyActivity={monthlyActivity} t={t} />
         <PeriodSummarySection periodSummary={periodSummary} t={t} />

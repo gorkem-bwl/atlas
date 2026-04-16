@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   DollarSign, Trophy, Target, TrendingUp, XCircle,
   CalendarDays, PhoneCall, Mail, StickyNote, Users as UsersIcon,
   Briefcase, Building2, Tag, AlertTriangle, RefreshCw,
+  Plus, Handshake, UserPlus, FileText,
 } from 'lucide-react';
 import { useDashboard, type CrmDashboard, type CrmDeal, type CrmActivity } from '../hooks';
 import { formatCurrencyCompact, formatDate } from '../../../lib/format';
@@ -12,6 +14,7 @@ import { Chip } from '../../../components/ui/chip';
 import { StatCard } from '../../../components/ui/stat-card';
 import { ColumnHeader } from '../../../components/ui/column-header';
 import { Button } from '../../../components/ui/button';
+import { QuickActions } from '../../../components/shared/quick-actions';
 
 function getActivityIcon(type: string) {
   switch (type) {
@@ -239,7 +242,15 @@ function DashboardSkeleton() {
 
 export function CrmDashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: dashboard, isLoading, error, refetch } = useDashboard();
+
+  const quickActions = [
+    { label: t('crm.quickActions.newLead'), icon: <Plus size={13} />, onClick: () => navigate('/crm?view=leads&action=create') },
+    { label: t('crm.quickActions.newDeal'), icon: <Handshake size={13} />, onClick: () => navigate('/crm?view=pipeline&action=create') },
+    { label: t('crm.quickActions.newContact'), icon: <UserPlus size={13} />, onClick: () => navigate('/crm?view=contacts&action=create') },
+    { label: t('crm.quickActions.newProposal'), icon: <FileText size={13} />, onClick: () => navigate('/crm?view=proposals&action=create') },
+  ];
 
   if (error) {
     return (
@@ -261,6 +272,7 @@ export function CrmDashboard() {
 
   return (
     <div className="crm-dashboard">
+      <QuickActions actions={quickActions} />
       {/* KPI Cards */}
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
         <StatCard

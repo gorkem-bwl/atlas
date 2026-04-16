@@ -1430,6 +1430,12 @@
       "deleteContact": "Voulez-vous vraiment supprimer \"{{name}}\" ? Cette action est irréversible.",
       "deleteCompany": "Voulez-vous vraiment supprimer \"{{name}}\" ? Cette action est irréversible."
     },
+    "quickActions": {
+      "newLead": "Nouveau prospect",
+      "newDeal": "Nouvelle opportunité",
+      "newContact": "Nouveau contact",
+      "newProposal": "Nouveau devis"
+    },
     "activities": {
       "logActivity": "Enregistrer une activité",
       "logActivitySubtitle": "Enregistrez une note, un appel, une réunion ou un e-mail",
@@ -2441,6 +2447,11 @@
     "timeOff": {
       "empty": "Pas de demandes de conge",
       "emptyDesc": "Les demandes de conge apparaitront ici."
+    },
+    "quickActions": {
+      "newEmployee": "Nouvel employe",
+      "requestTimeOff": "Demander un conge",
+      "newExpense": "Nouvelle depense"
     },
     "dashboard": {
       "totalEmployees": "Total employes",
@@ -4046,6 +4057,9 @@
   },
   "invoices": {
     "title": "Factures",
+    "quickActions": {
+      "newInvoice": "Nouvelle facture"
+    },
     "editInvoice": "Modifier la facture",
     "newInvoice": "Nouvelle facture",
     "invoiceBuilderSubtitle": "Créez et envoyez des factures professionnelles",
@@ -4417,6 +4431,11 @@
     }
   },
   "work": {
+    "quickActions": {
+      "newProject": "Nouveau projet",
+      "newTask": "Nouvelle tâche",
+      "logTime": "Enregistrer le temps"
+    },
     "sidebar": {
       "dashboard": "Tableau de bord",
       "projects": "Projets",

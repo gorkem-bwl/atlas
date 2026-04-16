@@ -1,15 +1,24 @@
 import { useTranslation } from 'react-i18next';
-import { Users, CalendarDays, Plus, Clock, Cake } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, CalendarDays, Plus, Clock, Cake, Receipt } from 'lucide-react';
 import { useHrDashboard } from '../../hooks';
 import { Skeleton } from '../../../../components/ui/skeleton';
 import { StatCard } from '../../../../components/ui/stat-card';
 import { Avatar } from '../../../../components/ui/avatar';
 import { formatDate } from '../../../../lib/format';
 import { ExpenseDashboardSection } from '../expenses/expense-dashboard-section';
+import { QuickActions } from '../../../../components/shared/quick-actions';
 
 export function DashboardView() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data, isLoading } = useHrDashboard();
+
+  const quickActions = [
+    { label: t('hr.quickActions.newEmployee'), icon: <Plus size={13} />, onClick: () => navigate('/hr?view=employees&action=create') },
+    { label: t('hr.quickActions.requestTimeOff'), icon: <Clock size={13} />, onClick: () => navigate('/hr?view=time-off&action=create') },
+    { label: t('hr.quickActions.newExpense'), icon: <Receipt size={13} />, onClick: () => navigate('/hr?view=expenses&action=create') },
+  ];
 
   if (isLoading || !data) {
     return (
@@ -26,6 +35,7 @@ export function DashboardView() {
 
   return (
     <div style={{ padding: 'var(--spacing-lg)', overflow: 'auto', flex: 1 }}>
+      <QuickActions actions={quickActions} />
       {/* KPI cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
         <StatCard label={t('hr.dashboard.totalEmployees')} value={String(data.totalHeadcount)} icon={Users} color="var(--color-accent-primary)" />

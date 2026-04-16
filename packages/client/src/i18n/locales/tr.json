@@ -1430,6 +1430,12 @@
       "deleteContact": "\"{{name}}\" kişisini silmek istediğinizden emin misiniz?",
       "deleteCompany": "\"{{name}}\" şirketini silmek istediğinizden emin misiniz?"
     },
+    "quickActions": {
+      "newLead": "Yeni müşteri adayı",
+      "newDeal": "Yeni fırsat",
+      "newContact": "Yeni kişi",
+      "newProposal": "Yeni teklif"
+    },
     "activities": {
       "logActivity": "Aktivite kaydet",
       "logActivitySubtitle": "Bir not, arama, toplantı veya e-posta kaydedin",
@@ -2441,6 +2447,11 @@
     "timeOff": {
       "empty": "İzin talebi yok",
       "emptyDesc": "İzin talepleri burada görünecek."
+    },
+    "quickActions": {
+      "newEmployee": "Yeni çalışan",
+      "requestTimeOff": "İzin talep et",
+      "newExpense": "Yeni gider"
     },
     "dashboard": {
       "totalEmployees": "Toplam çalışan",
@@ -4046,6 +4057,9 @@
   },
   "invoices": {
     "title": "Faturalar",
+    "quickActions": {
+      "newInvoice": "Yeni fatura"
+    },
     "editInvoice": "Faturayı düzenle",
     "newInvoice": "Yeni fatura",
     "invoiceBuilderSubtitle": "Profesyonel faturalar oluşturun ve gönderin",
@@ -4417,6 +4431,11 @@
     }
   },
   "work": {
+    "quickActions": {
+      "newProject": "Yeni proje",
+      "newTask": "Yeni görev",
+      "logTime": "Zaman kaydet"
+    },
     "sidebar": {
       "dashboard": "Gösterge paneli",
       "projects": "Projeler",

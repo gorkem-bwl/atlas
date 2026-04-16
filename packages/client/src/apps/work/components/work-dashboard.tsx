@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { formatDate, formatRelativeDate, formatCurrency, formatNumber } from '../../../lib/format';
 import { ContentArea } from '../../../components/ui/content-area';
 import { StatCard } from '../../../components/ui/stat-card';
 import {
-  Clock, FolderKanban, FileText, DollarSign, AlertCircle, Plus,
+  Clock, FolderKanban, FileText, DollarSign, AlertCircle, Plus, CheckSquare,
 } from 'lucide-react';
+import { QuickActions } from '../../../components/shared/quick-actions';
 import {
   useDashboard, useProjects, useCreateTimeEntry,
 } from '../hooks';
@@ -218,14 +220,22 @@ function QuickTimeLog({ projects }: { projects: WorkProject[] }) {
 
 export function WorkDashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data } = useDashboard();
   const { data: projectsData } = useProjects();
   const projects = projectsData?.projects ?? [];
   const { canCreate } = useAppActions('work');
 
+  const quickActions = [
+    { label: t('work.quickActions.newProject'), icon: <Plus size={13} />, onClick: () => navigate('/work?view=projects&action=create') },
+    { label: t('work.quickActions.newTask'), icon: <CheckSquare size={13} />, onClick: () => navigate('/work?view=my-tasks&action=create') },
+    { label: t('work.quickActions.logTime'), icon: <Clock size={13} />, onClick: () => { document.getElementById('quick-time-log')?.scrollIntoView({ behavior: 'smooth' }); } },
+  ];
+
   return (
     <ContentArea title={t('work.sidebar.dashboard')}>
       <div style={{ overflow: 'auto', flex: 1, padding: 'var(--spacing-lg)' }}>
+      <QuickActions actions={quickActions} />
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
         <StatCard
           label={t('projects.dashboard.hoursThisWeek')}
@@ -274,7 +284,7 @@ export function WorkDashboard() {
       </div>
 
       {canCreate && (
-        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div id="quick-time-log" style={{ marginBottom: 'var(--spacing-lg)' }}>
           <QuickTimeLog projects={projects} />
         </div>
       )}

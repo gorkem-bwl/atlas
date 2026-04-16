@@ -1457,6 +1457,12 @@
       "deleteContact": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "deleteCompany": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
     },
+    "quickActions": {
+      "newLead": "New lead",
+      "newDeal": "New deal",
+      "newContact": "New contact",
+      "newProposal": "New proposal"
+    },
     "activities": {
       "logActivity": "Log activity",
       "logActivitySubtitle": "Record a note, call, meeting, or email",
@@ -2503,6 +2509,11 @@
     "timeOff": {
       "empty": "No time off requests",
       "emptyDesc": "Time off requests will appear here."
+    },
+    "quickActions": {
+      "newEmployee": "New employee",
+      "requestTimeOff": "Request time off",
+      "newExpense": "New expense"
     },
     "dashboard": {
       "totalEmployees": "Total employees",
@@ -4078,6 +4089,9 @@
   },
   "invoices": {
     "title": "Invoices",
+    "quickActions": {
+      "newInvoice": "New invoice"
+    },
     "editInvoice": "Edit invoice",
     "newInvoice": "New invoice",
     "invoiceBuilderSubtitle": "Create and send professional invoices",
@@ -4449,6 +4463,11 @@
     }
   },
   "work": {
+    "quickActions": {
+      "newProject": "New project",
+      "newTask": "New task",
+      "logTime": "Log time"
+    },
     "sidebar": {
       "dashboard": "Dashboard",
       "projects": "Projects",

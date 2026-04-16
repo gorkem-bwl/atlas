@@ -1430,6 +1430,12 @@
       "deleteContact": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata.",
       "deleteCompany": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata."
     },
+    "quickActions": {
+      "newLead": "Nuovo lead",
+      "newDeal": "Nuova opportunità",
+      "newContact": "Nuovo contatto",
+      "newProposal": "Nuova proposta"
+    },
     "activities": {
       "logActivity": "Registra attività",
       "logActivitySubtitle": "Registra una nota, chiamata, riunione o e-mail",
@@ -2441,6 +2447,11 @@
     "timeOff": {
       "empty": "Nessuna richiesta di permesso",
       "emptyDesc": "Le richieste di permesso appariranno qui."
+    },
+    "quickActions": {
+      "newEmployee": "Nuovo dipendente",
+      "requestTimeOff": "Richiedi permesso",
+      "newExpense": "Nuova spesa"
     },
     "dashboard": {
       "totalEmployees": "Totale dipendenti",
@@ -4046,6 +4057,9 @@
   },
   "invoices": {
     "title": "Fatture",
+    "quickActions": {
+      "newInvoice": "Nuova fattura"
+    },
     "editInvoice": "Modifica fattura",
     "newInvoice": "Nuova fattura",
     "invoiceBuilderSubtitle": "Crea e invia fatture professionali",
@@ -4417,6 +4431,11 @@
     }
   },
   "work": {
+    "quickActions": {
+      "newProject": "Nuovo progetto",
+      "newTask": "Nuova attività",
+      "logTime": "Registra tempo"
+    },
     "sidebar": {
       "dashboard": "Dashboard",
       "projects": "Progetti",

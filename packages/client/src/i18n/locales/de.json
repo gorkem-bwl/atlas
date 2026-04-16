@@ -1430,6 +1430,12 @@
       "deleteContact": "Möchten Sie \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
       "deleteCompany": "Möchten Sie \"{{name}}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
     },
+    "quickActions": {
+      "newLead": "Neuer Lead",
+      "newDeal": "Neues Geschäft",
+      "newContact": "Neuer Kontakt",
+      "newProposal": "Neues Angebot"
+    },
     "activities": {
       "logActivity": "Aktivität erfassen",
       "logActivitySubtitle": "Notiz, Anruf, Besprechung oder E-Mail erfassen",
@@ -2441,6 +2447,11 @@
     "timeOff": {
       "empty": "Keine Abwesenheitsantraege",
       "emptyDesc": "Abwesenheitsantraege werden hier angezeigt."
+    },
+    "quickActions": {
+      "newEmployee": "Neuer Mitarbeiter",
+      "requestTimeOff": "Abwesenheit beantragen",
+      "newExpense": "Neue Ausgabe"
     },
     "dashboard": {
       "totalEmployees": "Gesamte Mitarbeiter",
@@ -4046,6 +4057,9 @@
   },
   "invoices": {
     "title": "Rechnungen",
+    "quickActions": {
+      "newInvoice": "Neue Rechnung"
+    },
     "editInvoice": "Rechnung bearbeiten",
     "newInvoice": "Neue Rechnung",
     "invoiceBuilderSubtitle": "Erstellen und versenden Sie professionelle Rechnungen",
@@ -4417,6 +4431,11 @@
     }
   },
   "work": {
+    "quickActions": {
+      "newProject": "Neues Projekt",
+      "newTask": "Neue Aufgabe",
+      "logTime": "Zeit erfassen"
+    },
     "sidebar": {
       "dashboard": "Dashboard",
       "projects": "Projekte",
