@@ -66,15 +66,24 @@ export async function markAttendance(tenantId: string, input: {
 export async function bulkMarkAttendance(tenantId: string, input: {
   employeeIds: string[]; date: string; status: string; markedBy?: string;
 }) {
-  const results = [];
-  for (const employeeId of input.employeeIds) {
-    const result = await markAttendance(tenantId, {
-      employeeId, date: input.date, status: input.status,
-      markedBy: input.markedBy ?? null,
-    });
-    results.push(result);
-  }
-  return results;
+  if (input.employeeIds.length === 0) return [];
+  const now = new Date();
+  const rows = input.employeeIds.map((employeeId) => ({
+    tenantId, employeeId, date: input.date, status: input.status,
+    markedBy: input.markedBy ?? null,
+    createdAt: now, updatedAt: now,
+  }));
+
+  return db.insert(hrAttendance).values(rows)
+    .onConflictDoUpdate({
+      target: [hrAttendance.employeeId, hrAttendance.date],
+      set: {
+        status: input.status,
+        markedBy: input.markedBy ?? null,
+        updatedAt: now,
+      },
+    })
+    .returning();
 }
 
 export async function listAttendance(tenantId: string, filters?: {
