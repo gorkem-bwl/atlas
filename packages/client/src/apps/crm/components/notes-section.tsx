@@ -107,7 +107,7 @@ function NoteCard({ note }: { note: CrmNote }) {
       <NoteEditor
         note={note}
         onSave={(title, content) => {
-          updateNote.mutate({ id: note.id, title, content }, {
+          updateNote.mutate({ id: note.id, updatedAt: note.updatedAt, title, content }, {
             onSuccess: () => setIsEditing(false),
           });
         }}
@@ -154,7 +154,7 @@ function NoteCard({ note }: { note: CrmNote }) {
               icon={note.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
               label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
               aria-label={note.isPinned ? t('crm.notes.unpin') : t('crm.notes.pin')}
-              onClick={() => updateNote.mutate({ id: note.id, isPinned: !note.isPinned })}
+              onClick={() => updateNote.mutate({ id: note.id, updatedAt: note.updatedAt, isPinned: !note.isPinned })}
             />
           )}
           {canDelete && (

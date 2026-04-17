@@ -11,8 +11,12 @@ import {
   crmCompanies,
   crmContacts,
   crmDeals,
+  crmDealStages,
   crmLeads,
   crmActivities,
+  crmNotes,
+  crmProposals,
+  crmWorkflows,
 } from '../../db/schema';
 import { eq, inArray } from 'drizzle-orm';
 
@@ -64,7 +68,7 @@ router.get('/stages/list', crmController.listDealStages);
 router.post('/stages', crmController.createDealStage);
 router.post('/stages/reorder', crmController.reorderDealStages);
 router.post('/stages/seed', requireSeedAdmin, crmController.seedDefaultStages);
-router.patch('/stages/:id', crmController.updateDealStage);
+router.patch('/stages/:id', withConcurrencyCheck(crmDealStages), crmController.updateDealStage);
 router.delete('/stages/:id', crmController.deleteDealStage);
 
 // Deals
@@ -108,7 +112,7 @@ router.delete('/activities/:id', crmController.deleteActivity);
 router.get('/workflows', crmController.listWorkflows);
 router.post('/workflows/seed', requireSeedAdmin, crmController.seedExampleWorkflows);
 router.post('/workflows', crmController.createWorkflow);
-router.put('/workflows/:id', crmController.updateWorkflow);
+router.put('/workflows/:id', withConcurrencyCheck(crmWorkflows), crmController.updateWorkflow);
 router.delete('/workflows/:id', crmController.deleteWorkflow);
 router.post('/workflows/:id/toggle', crmController.toggleWorkflow);
 
@@ -124,7 +128,7 @@ router.post('/leads/:id/enrich', crmController.enrichLead);
 // Notes (rich text)
 router.get('/notes/list', crmController.listNotes);
 router.post('/notes', crmController.createNote);
-router.patch('/notes/:id', crmController.updateNote);
+router.patch('/notes/:id', withConcurrencyCheck(crmNotes), crmController.updateNote);
 router.delete('/notes/:id', crmController.deleteNote);
 
 // Forecast
@@ -157,7 +161,7 @@ router.delete('/forms/:id', crmController.deleteLeadForm);
 router.get('/proposals/list', crmController.listProposals);
 router.post('/proposals', crmController.createProposal);
 router.get('/proposals/:id', crmController.getProposal);
-router.patch('/proposals/:id', crmController.updateProposal);
+router.patch('/proposals/:id', withConcurrencyCheck(crmProposals), crmController.updateProposal);
 router.delete('/proposals/:id', crmController.deleteProposal);
 router.post('/proposals/:id/send', crmController.sendProposal);
 router.post('/proposals/:id/duplicate', crmController.duplicateProposal);

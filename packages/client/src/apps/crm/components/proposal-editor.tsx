@@ -144,7 +144,7 @@ export function ProposalEditor({ open, onClose, proposal, prefill }: ProposalEdi
     if (!validate()) return;
     const input = buildInput();
     if (isEditing && proposal) {
-      updateProposal.mutate({ id: proposal.id, ...input }, { onSuccess: () => onClose() });
+      updateProposal.mutate({ id: proposal.id, updatedAt: proposal.updatedAt, ...input }, { onSuccess: () => onClose() });
     } else {
       createProposal.mutate(input, { onSuccess: () => onClose() });
     }
@@ -154,7 +154,7 @@ export function ProposalEditor({ open, onClose, proposal, prefill }: ProposalEdi
     if (!validate()) return;
     const input = buildInput();
     if (isEditing && proposal) {
-      updateProposal.mutate({ id: proposal.id, ...input }, {
+      updateProposal.mutate({ id: proposal.id, updatedAt: proposal.updatedAt, ...input }, {
         onSuccess: (saved) => {
           sendProposal.mutate(saved.id, { onSuccess: () => onClose() });
         },

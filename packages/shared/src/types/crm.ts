@@ -30,6 +30,7 @@ export interface CrmDealStage {
   name: string; color: string; probability: number;
   sequence: number; isDefault: boolean;
   rottingDays: number | null;
+  createdAt: string; updatedAt: string;
 }
 
 export interface CrmDeal {

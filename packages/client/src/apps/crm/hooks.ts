@@ -54,6 +54,8 @@ export interface CrmDealStage {
   sequence: number;
   isDefault: boolean;
   rottingDays: number | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CrmDeal {
@@ -341,8 +343,10 @@ export function useCreateStage() {
 export function useUpdateStage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; color: string; probability: number; sequence: number; isDefault: boolean; rottingDays: number | null }>) => {
-      const { data } = await api.patch(`/crm/stages/${id}`, input);
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; color: string; probability: number; sequence: number; isDefault: boolean; rottingDays: number | null }>) => {
+      const { data } = await api.patch(`/crm/stages/${id}`, input, {
+        headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
+      });
       return data.data as CrmDealStage;
     },
     onSuccess: () => {
@@ -730,8 +734,10 @@ export function useCreateWorkflow() {
 export function useUpdateWorkflow() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ name: string; trigger: string; triggerConfig: Record<string, unknown>; action: string; actionConfig: Record<string, unknown>; isActive: boolean }>) => {
-      const { data } = await api.put(`/crm/workflows/${id}`, input);
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; trigger: string; triggerConfig: Record<string, unknown>; action: string; actionConfig: Record<string, unknown>; isActive: boolean }>) => {
+      const { data } = await api.put(`/crm/workflows/${id}`, input, {
+        headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
+      });
       return data.data as CrmWorkflow;
     },
     onSuccess: () => {
@@ -1080,8 +1086,10 @@ export function useCreateNote() {
 export function useUpdateNote() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & Partial<{ title: string; content: Record<string, unknown>; isPinned: boolean; isArchived: boolean }>) => {
-      const { data } = await api.patch(`/crm/notes/${id}`, input);
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ title: string; content: Record<string, unknown>; isPinned: boolean; isArchived: boolean }>) => {
+      const { data } = await api.patch(`/crm/notes/${id}`, input, {
+        headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
+      });
       return data.data as CrmNote;
     },
     onSuccess: () => {
@@ -1515,8 +1523,10 @@ export function useCreateProposal() {
 export function useUpdateProposal() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: { id: string } & UpdateProposalInput) => {
-      const { data } = await api.patch(`/crm/proposals/${id}`, input);
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & UpdateProposalInput) => {
+      const { data } = await api.patch(`/crm/proposals/${id}`, input, {
+        headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
+      });
       return data.data as Proposal;
     },
     onSuccess: (proposal) => {

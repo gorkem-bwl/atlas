@@ -196,7 +196,8 @@ export function CrmStagesPanel() {
   const saveEdit = () => {
     if (editingId && editName.trim()) {
       const rottingDays = editRottingDays.trim() ? parseInt(editRottingDays, 10) : null;
-      updateStage.mutate({ id: editingId, name: editName.trim(), color: editColor, rottingDays: isNaN(rottingDays as number) ? null : rottingDays });
+      const stage = stages.find((s) => s.id === editingId);
+      updateStage.mutate({ id: editingId, updatedAt: stage?.updatedAt, name: editName.trim(), color: editColor, rottingDays: isNaN(rottingDays as number) ? null : rottingDays });
       setEditingId(null);
     }
   };
