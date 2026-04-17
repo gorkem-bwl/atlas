@@ -24,9 +24,21 @@ import { ProposalsListView } from './proposals-list-view';
 import { ProposalDetailPanel } from './proposal-detail-panel';
 import { ProposalEditor } from './proposal-editor';
 import type { Proposal } from '../hooks';
+import { Skeleton } from '../../../components/ui/skeleton';
+
+function ListSkeleton() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 'var(--spacing-md)' }}>
+      {Array.from({ length: 10 }).map((_, i) => (
+        <Skeleton key={i} height={32} />
+      ))}
+    </div>
+  );
+}
 
 export function CrmContent({
   activeView, setActiveView,
+  loadingDeals, loadingContacts, loadingCompanies, loadingActivities,
   deals, filteredDeals, stages, contacts, filteredContacts, companies, filteredCompanies, activities,
   selectedDealId, setSelectedDealId,
   selectedContactId, setSelectedContactId,
@@ -47,6 +59,10 @@ export function CrmContent({
 }: {
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
+  loadingDeals: boolean;
+  loadingContacts: boolean;
+  loadingCompanies: boolean;
+  loadingActivities: boolean;
   deals: CrmDeal[];
   filteredDeals: CrmDeal[];
   stages: CrmDealStage[];
@@ -129,7 +145,7 @@ export function CrmContent({
           <ForecastView />
         )}
 
-        {activeView === 'pipeline' && (
+        {activeView === 'pipeline' && (loadingDeals ? <ListSkeleton /> : (
           <DealKanban
             deals={deals}
             stages={stages}
@@ -137,9 +153,9 @@ export function CrmContent({
             onDealClick={handleDealClick}
             searchQuery={searchQuery}
           />
-        )}
+        ))}
 
-        {activeView === 'deals' && (
+        {activeView === 'deals' && (loadingDeals ? <ListSkeleton /> : (
           <DealsListView
             deals={filteredDeals}
             stages={stages}
@@ -159,9 +175,9 @@ export function CrmContent({
             canEdit={canEditDeals}
             groupBy={groupBy}
           />
-        )}
+        ))}
 
-        {activeView === 'contacts' && (
+        {activeView === 'contacts' && (loadingContacts ? <ListSkeleton /> : (
           <ContactsListView
             contacts={filteredContacts}
             selectedId={selectedContactId}
@@ -180,7 +196,7 @@ export function CrmContent({
             canEdit={canEditContacts}
             groupBy={groupBy}
           />
-        )}
+        ))}
 
         {activeView === 'contact-detail' && searchParams.get('contactId') && (
           <ContactDetailPage
@@ -192,7 +208,7 @@ export function CrmContent({
           />
         )}
 
-        {activeView === 'companies' && (
+        {activeView === 'companies' && (loadingCompanies ? <ListSkeleton /> : (
           <CompaniesListView
             companies={filteredCompanies}
             selectedId={selectedCompanyId}
@@ -210,7 +226,7 @@ export function CrmContent({
             canEdit={canEditCompanies}
             groupBy={groupBy}
           />
-        )}
+        ))}
 
         {activeView === 'company-detail' && searchParams.get('companyId') && (
           <CompanyDetailPage
@@ -222,12 +238,12 @@ export function CrmContent({
           />
         )}
 
-        {activeView === 'activities' && (
+        {activeView === 'activities' && (loadingActivities ? <ListSkeleton /> : (
           <ActivitiesListView
             activities={activities}
             searchQuery={searchQuery}
           />
-        )}
+        ))}
 
         {activeView === 'automations' && (
           <AutomationsView stages={stages} />

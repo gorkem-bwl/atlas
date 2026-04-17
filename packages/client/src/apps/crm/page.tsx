@@ -101,15 +101,15 @@ export function CrmPage() {
   }, []);
 
   // Data
-  const { data: companiesData } = useCompanies();
+  const { data: companiesData, isLoading: loadingCompanies } = useCompanies();
   const companies = companiesData?.companies ?? [];
-  const { data: contactsData } = useContacts();
+  const { data: contactsData, isLoading: loadingContacts } = useContacts();
   const contacts = contactsData?.contacts ?? [];
   const { data: stagesData, isLoading: loadingStages } = useStages();
   const stages = stagesData?.stages ?? [];
   const { data: dealsData, isLoading: loadingDeals } = useDeals();
   const deals = dealsData?.deals ?? [];
-  const { data: activitiesData } = useActivities();
+  const { data: activitiesData, isLoading: loadingActivities } = useActivities();
   const activities = activitiesData?.activities ?? [];
 
   const updateDeal = useUpdateDeal();
@@ -334,6 +334,8 @@ export function CrmPage() {
 
         <CrmContent
           activeView={activeView} setActiveView={setActiveView}
+          loadingDeals={loadingDeals} loadingContacts={loadingContacts}
+          loadingCompanies={loadingCompanies} loadingActivities={loadingActivities}
           deals={deals} filteredDeals={filteredDeals} stages={stages}
           contacts={contacts} filteredContacts={filteredContacts}
           companies={companies} filteredCompanies={filteredCompanies}

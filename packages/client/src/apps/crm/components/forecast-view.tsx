@@ -32,8 +32,23 @@ export function ForecastView() {
 
   if (isLoading || !forecast) return <ForecastSkeleton />;
 
+  const hasAnyData = (forecast.totalWeighted ?? 0) > 0 || months.some((m) => (m.weightedValue ?? 0) > 0);
+
   return (
     <div style={{ padding: 'var(--spacing-xl)', maxWidth: 1100 }}>
+      {!hasAnyData && (
+        <div style={{
+          padding: 'var(--spacing-md)',
+          marginBottom: 'var(--spacing-lg)',
+          background: 'var(--color-bg-secondary)',
+          borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--color-text-secondary)',
+          fontFamily: 'var(--font-family)',
+        }}>
+          {t('crm.forecast.noDealsHint', 'No open deals to forecast yet. Create a deal with an expected close date to see it here.')}
+        </div>
+      )}
       {/* Summary cards */}
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
         <StatCard

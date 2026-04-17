@@ -16,6 +16,7 @@ import { Badge } from '../../../components/ui/badge';
 import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { DataTable, type DataTableColumn, type SortState } from '../../../components/ui/data-table';
+import { Skeleton } from '../../../components/ui/skeleton';
 import { formatDate } from '../../../lib/format';
 
 const AVATAR_COLORS = ['#ef4444','#f97316','#f59e0b','#10b981','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#ec4899','#14b8a6'];
@@ -553,7 +554,11 @@ export function LeadsView() {
 
         {/* Table */}
         {isLoading ? (
-          <div style={{ color: 'var(--color-text-tertiary)', textAlign: 'center', padding: 40, fontFamily: 'var(--font-family)' }}>{t('common.loading')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 'var(--spacing-md)' }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} height={32} />
+            ))}
+          </div>
         ) : (
           <DataTable
             data={leads}
