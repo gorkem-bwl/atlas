@@ -9,7 +9,11 @@ import { eq, and, desc } from 'drizzle-orm';
 
 export async function listExpensePolicies(tenantId: string) {
   return db.select().from(hrExpensePolicies)
-    .where(and(eq(hrExpensePolicies.tenantId, tenantId), eq(hrExpensePolicies.isActive, true)))
+    .where(and(
+      eq(hrExpensePolicies.tenantId, tenantId),
+      eq(hrExpensePolicies.isActive, true),
+      eq(hrExpensePolicies.isArchived, false),
+    ))
     .orderBy(desc(hrExpensePolicies.createdAt));
 }
 
@@ -74,7 +78,8 @@ export async function updateExpensePolicy(tenantId: string, id: string, input: P
 }
 
 export async function deleteExpensePolicy(tenantId: string, id: string) {
-  const [deleted] = await db.delete(hrExpensePolicies)
+  const [deleted] = await db.update(hrExpensePolicies)
+    .set({ isArchived: true, isActive: false, updatedAt: new Date() })
     .where(and(eq(hrExpensePolicies.id, id), eq(hrExpensePolicies.tenantId, tenantId))).returning();
   return deleted || null;
 }

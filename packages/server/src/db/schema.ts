@@ -1301,8 +1301,10 @@ export const hrExpenseCategories = pgTable('hr_expense_categories', {
   maxAmount: real('max_amount'),
   receiptRequired: boolean('receipt_required').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
+  isArchived: boolean('is_archived').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   tenantIdx: index('idx_hr_expense_categories_tenant').on(table.tenantId),
 }));
@@ -1317,6 +1319,7 @@ export const hrExpensePolicies = pgTable('hr_expense_policies', {
   requireReceiptAbove: real('require_receipt_above'),
   autoApproveBelow: real('auto_approve_below'),
   isActive: boolean('is_active').notNull().default(true),
+  isArchived: boolean('is_archived').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({

@@ -7,7 +7,7 @@ import { logger } from '../../../utils/logger';
 
 export async function listExpenseCategories(tenantId: string) {
   return db.select().from(hrExpenseCategories)
-    .where(eq(hrExpenseCategories.tenantId, tenantId))
+    .where(and(eq(hrExpenseCategories.tenantId, tenantId), eq(hrExpenseCategories.isArchived, false)))
     .orderBy(asc(hrExpenseCategories.sortOrder));
 }
 
@@ -48,7 +48,8 @@ export async function updateExpenseCategory(tenantId: string, id: string, input:
 }
 
 export async function deleteExpenseCategory(tenantId: string, id: string) {
-  const [deleted] = await db.delete(hrExpenseCategories)
+  const [deleted] = await db.update(hrExpenseCategories)
+    .set({ isArchived: true, isActive: false, updatedAt: new Date() })
     .where(and(eq(hrExpenseCategories.id, id), eq(hrExpenseCategories.tenantId, tenantId))).returning();
   return deleted || null;
 }
