@@ -68,7 +68,7 @@ export function CreateEmployeeModal({
   };
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={440} title={t('hr.actions.addEmployee')}>
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={520} title={t('hr.actions.addEmployee')}>
       <Modal.Header title={t('hr.actions.addEmployee')} subtitle={t('hr.actions.addEmployeeSubtitle')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>

@@ -40,25 +40,29 @@ export function TotalsBlock({
         fontSize: 'var(--font-size-sm)',
       }}
     >
-      {/* Editable tax / discount inputs */}
-      {editable && (
+      {/* Editable inputs — tax only when onTaxChange is provided (otherwise derived from line items) */}
+      {editable && (onTaxChange || onDiscountChange) && (
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
-          <Input
-            label={t('common.totals.taxPercent')}
-            type="number"
-            step="0.1"
-            value={String(taxPercent)}
-            onChange={(e) => onTaxChange?.(parseFloat(e.target.value) || 0)}
-            size="sm"
-          />
-          <Input
-            label={t('common.totals.discountPercent')}
-            type="number"
-            step="0.1"
-            value={String(discountPercent)}
-            onChange={(e) => onDiscountChange?.(parseFloat(e.target.value) || 0)}
-            size="sm"
-          />
+          {onTaxChange && (
+            <Input
+              label={t('common.totals.taxPercent')}
+              type="number"
+              step="0.1"
+              value={String(taxPercent)}
+              onChange={(e) => onTaxChange(parseFloat(e.target.value) || 0)}
+              size="sm"
+            />
+          )}
+          {onDiscountChange && (
+            <Input
+              label={t('common.totals.discountPercent')}
+              type="number"
+              step="0.1"
+              value={String(discountPercent)}
+              onChange={(e) => onDiscountChange(parseFloat(e.target.value) || 0)}
+              size="sm"
+            />
+          )}
         </div>
       )}
 

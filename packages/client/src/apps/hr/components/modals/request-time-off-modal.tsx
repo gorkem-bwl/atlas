@@ -50,7 +50,7 @@ export function RequestTimeOffModal({
   const selectedType = activeTypes.find((lt) => lt.slug === type);
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={440} title={t('hr.actions.requestTimeOff')}>
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={480} title={t('hr.actions.requestTimeOff')}>
       <Modal.Header title={t('hr.actions.requestTimeOff')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>

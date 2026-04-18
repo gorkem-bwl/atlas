@@ -108,7 +108,7 @@ export function LineItemsEditor({
             <th style={{ ...thStyle, width: '20%' }}>
               {t('common.lineItems.unitPrice')}
             </th>
-            <th style={{ ...thStyle, width: '10%' }}>
+            <th style={{ ...thStyle, width: '12%', minWidth: 70 }}>
               {t('common.lineItems.taxRate')}
             </th>
             <th style={{ ...thStyle, width: '15%', textAlign: 'right' }}>
@@ -119,7 +119,7 @@ export function LineItemsEditor({
         </thead>
         <tbody>
           {items.map((item) => {
-            const amount = item.quantity * item.unitPrice;
+            const amount = item.quantity * item.unitPrice * (1 + (item.taxRate || 0) / 100);
 
             return (
               <tr key={item.id}>

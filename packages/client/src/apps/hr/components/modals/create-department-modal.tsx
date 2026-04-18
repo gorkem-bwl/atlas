@@ -48,7 +48,7 @@ export function CreateDepartmentModal({
   };
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={440} title={t('hr.actions.addDepartment')}>
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} width={480} title={t('hr.actions.addDepartment')}>
       <Modal.Header title={t('hr.actions.addDepartment')} subtitle={t('hr.actions.addDepartmentSubtitle')} />
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>

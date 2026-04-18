@@ -56,9 +56,8 @@ function ModalRoot({
             transform: 'translate(-50%, -50%)',
             width,
             maxWidth: maxWidth ?? 'calc(100vw - 48px)',
-            ...(height != null
-              ? { height, maxHeight: 'calc(100vh - 48px)' }
-              : {}),
+            maxHeight: 'calc(100vh - 48px)',
+            ...(height != null ? { height } : {}),
             background: 'var(--color-bg-elevated)',
             borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--shadow-elevated)',
