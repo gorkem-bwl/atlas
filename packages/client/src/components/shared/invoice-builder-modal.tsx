@@ -153,6 +153,9 @@ export function InvoiceBuilderModal({
     () => lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0),
     [lineItems],
   );
+  const taxAmount = subtotal * (taxPercent / 100);
+  const discountAmount = subtotal * (discountPercent / 100);
+  const total = subtotal + taxAmount - discountAmount;
 
   // Save handler
   const handleSave = (status?: string) => {
@@ -175,6 +178,10 @@ export function InvoiceBuilderModal({
         })),
       taxPercent,
       discountPercent,
+      subtotal,
+      taxAmount,
+      discountAmount,
+      total,
       notes: notes || undefined,
       ...(eFaturaEnabled ? { eFaturaType } : {}),
     };
@@ -359,7 +366,7 @@ export function InvoiceBuilderModal({
                 onDiscountChange={setDiscountPercent}
               />
               <CurrencyConverter
-                amount={subtotal + subtotal * (taxPercent / 100) - subtotal * (discountPercent / 100)}
+                amount={total}
                 fromCurrency={currency}
                 toCurrency={defaultCurrency}
               />
