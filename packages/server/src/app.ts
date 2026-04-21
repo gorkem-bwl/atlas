@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import routes from './routes';
 import shareRoutes from './routes/share.routes';
+import { openApiRoutes } from './openapi/routes';
 import { errorHandler } from './middleware/error-handler';
 import { apiLimiter } from './middleware/rate-limit';
 import { authMiddleware } from './middleware/auth';
@@ -74,6 +75,9 @@ export function createApp() {
 
   // Public share routes — no auth required
   app.use('/api/v1/share', shareRoutes);
+
+  // API documentation — no auth, no rate limit
+  app.use('/api/v1', openApiRoutes);
 
   // Serve uploaded files — require auth AND enforce tenant isolation.
   // Paths are expected to be of the form /{tenantId}/{filename}. Legacy flat
