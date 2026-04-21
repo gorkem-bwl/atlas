@@ -9,6 +9,7 @@ export interface AuthPayload {
   email: string;
   tenantRole?: TenantMemberRole;
   isSuperAdmin?: boolean;
+  impersonatedBy?: string;
 }
 
 declare global {

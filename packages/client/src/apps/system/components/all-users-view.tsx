@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../lib/api-client';
 import { Badge } from '../../../components/ui/badge';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { Input } from '../../../components/ui/input';
+import { Button } from '../../../components/ui/button';
+import { useAuthStore } from '../../../stores/auth-store';
 
 interface AdminUser {
   id: string;
@@ -17,6 +19,8 @@ interface AdminUser {
 }
 
 export function AllUsersView() {
+  const queryClient = useQueryClient();
+  const currentUserId = useAuthStore((s) => s.account?.userId);
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
     queryFn: async () => {
@@ -24,6 +28,16 @@ export function AllUsersView() {
       return data.data as AdminUser[];
     },
     staleTime: 30_000,
+  });
+
+  const toggleSuperAdmin = useMutation({
+    mutationFn: async ({ userId, isSuperAdmin }: { userId: string; isSuperAdmin: boolean }) => {
+      const { data } = await api.put(`/admin/users/${userId}/super-admin`, { isSuperAdmin });
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+    },
   });
 
   const [filter, setFilter] = useState('');
@@ -81,6 +95,7 @@ export function AllUsersView() {
                 <th style={th}>Tenants</th>
                 <th style={th}>Role</th>
                 <th style={th}>Created</th>
+                <th style={th}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -114,6 +129,17 @@ export function AllUsersView() {
                   </td>
                   <td style={{ ...td, color: 'var(--color-text-tertiary)' }}>
                     {new Date(u.createdAt).toLocaleDateString()}
+                  </td>
+                  <td style={td}>
+                    <Button
+                      variant={u.isSuperAdmin ? 'danger' : 'secondary'}
+                      size="sm"
+                      disabled={u.id === currentUserId || toggleSuperAdmin.isPending}
+                      onClick={() => toggleSuperAdmin.mutate({ userId: u.id, isSuperAdmin: !u.isSuperAdmin })}
+                      title={u.id === currentUserId ? 'You cannot change your own super-admin status' : undefined}
+                    >
+                      {u.isSuperAdmin ? 'Revoke super-admin' : 'Grant super-admin'}
+                    </Button>
                   </td>
                 </tr>
               ))}

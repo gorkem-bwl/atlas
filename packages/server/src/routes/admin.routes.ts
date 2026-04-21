@@ -9,6 +9,9 @@ import {
   updateTenantPlanHandler,
   updateTenantStorageQuota,
   listAllUsers,
+  updateSuperAdmin,
+  impersonateTenant,
+  getTenantDetail,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -23,5 +26,8 @@ router.put('/tenants/:id/status', updateTenantStatus);
 router.put('/tenants/:id/plan', updateTenantPlanHandler);
 router.put('/tenants/:id/storage-quota', updateTenantStorageQuota);
 router.get('/users', listAllUsers);
+router.put('/users/:userId/super-admin', updateSuperAdmin);
+router.get('/tenants/:id/detail', getTenantDetail);
+router.post('/tenants/:id/impersonate', impersonateTenant);
 
 export default router;

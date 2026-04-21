@@ -81,3 +81,31 @@ register({
     })),
   }))),
 });
+
+register({
+  method: 'put', path: '/admin/users/:userId/super-admin', tags: [TAG],
+  summary: 'Grant or revoke super-admin on a user',
+  params: z.object({ userId: Uuid }),
+  body: z.object({ isSuperAdmin: z.boolean() }),
+  response: envelope(z.object({ id: Uuid, isSuperAdmin: z.boolean() })),
+});
+
+register({
+  method: 'get', path: '/admin/tenants/:id/detail', tags: [TAG],
+  summary: 'Get a tenant with its full member roster (users + emails + roles)',
+  params: z.object({ id: Uuid }),
+  response: envelope(z.record(z.string(), z.unknown())),
+});
+
+register({
+  method: 'post', path: '/admin/tenants/:id/impersonate', tags: [TAG],
+  summary: 'Start an impersonation session as a tenant (short-lived JWT, audit-logged)',
+  params: z.object({ id: Uuid }),
+  response: envelope(z.object({
+    token: z.string(),
+    tenantId: Uuid,
+    tenantName: z.string(),
+    tenantSlug: z.string(),
+    expiresInSeconds: z.number().int(),
+  })),
+});

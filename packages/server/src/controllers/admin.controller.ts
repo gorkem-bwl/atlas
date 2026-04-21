@@ -215,6 +215,158 @@ export async function updateTenantPlanHandler(req: Request, res: Response) {
   }
 }
 
+// ─── Grant / revoke super-admin ────────────────────────────────────────────
+
+export async function updateSuperAdmin(req: Request, res: Response) {
+  try {
+    const userId = req.params.userId as string;
+    const { isSuperAdmin } = req.body;
+
+    if (typeof isSuperAdmin !== 'boolean') {
+      res.status(400).json({ success: false, error: 'isSuperAdmin must be a boolean' });
+      return;
+    }
+
+    if (!isSuperAdmin && userId === req.auth!.userId) {
+      res.status(400).json({ success: false, error: 'You cannot revoke your own super-admin access' });
+      return;
+    }
+
+    const [updated] = await db
+      .update(users)
+      .set({ isSuperAdmin, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({ id: users.id, isSuperAdmin: users.isSuperAdmin });
+
+    if (!updated) {
+      res.status(404).json({ success: false, error: 'User not found' });
+      return;
+    }
+
+    logger.info({ targetUserId: userId, isSuperAdmin, by: req.auth!.userId }, 'Super-admin flag updated');
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    logger.error({ err }, 'Failed to update super-admin flag');
+    res.status(500).json({ success: false, error: 'Failed to update super-admin' });
+  }
+}
+
+// ─── Impersonation ─────────────────────────────────────────────────────────
+
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
+
+export async function impersonateTenant(req: Request, res: Response) {
+  try {
+    const tenantId = req.params.id as string;
+
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+    if (!tenant) {
+      res.status(404).json({ success: false, error: 'Tenant not found' });
+      return;
+    }
+
+    // Find any owner/admin of the target tenant to scope the token to.
+    const [member] = await db
+      .select()
+      .from(tenantMembers)
+      .where(eq(tenantMembers.tenantId, tenantId))
+      .limit(1);
+
+    if (!member) {
+      res.status(400).json({ success: false, error: 'Tenant has no members to impersonate as' });
+      return;
+    }
+
+    // Short-lived (15m), tenant-scoped, traceable token.
+    const payload = {
+      userId: member.userId,
+      tenantId,
+      email: req.auth!.email,
+      tenantRole: member.role,
+      isSuperAdmin: false,
+      impersonatedBy: req.auth!.userId,
+    };
+    const token = jwt.sign(payload, env.JWT_SECRET, { expiresIn: '15m' });
+
+    logger.warn({
+      by: req.auth!.userId,
+      impersonatedTenant: tenantId,
+      impersonatedUser: member.userId,
+    }, 'Super-admin started impersonation session');
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        tenantId,
+        tenantName: tenant.name,
+        tenantSlug: tenant.slug,
+        expiresInSeconds: 15 * 60,
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, 'Failed to start impersonation');
+    res.status(500).json({ success: false, error: 'Failed to start impersonation' });
+  }
+}
+
+// ─── Tenant detail with users ──────────────────────────────────────────────
+
+export async function getTenantDetail(req: Request, res: Response) {
+  try {
+    const id = req.params.id as string;
+
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
+    if (!tenant) {
+      res.status(404).json({ success: false, error: 'Tenant not found' });
+      return;
+    }
+
+    const members = await db
+      .select({
+        userId: tenantMembers.userId,
+        role: tenantMembers.role,
+        joinedAt: tenantMembers.createdAt,
+        userName: users.name,
+        userIsSuperAdmin: users.isSuperAdmin,
+      })
+      .from(tenantMembers)
+      .leftJoin(users, eq(users.id, tenantMembers.userId))
+      .where(eq(tenantMembers.tenantId, id));
+
+    const userIds = members.map((m) => m.userId);
+    const accountEmails = userIds.length > 0
+      ? await db
+          .select({ userId: accounts.userId, email: accounts.email, provider: accounts.provider })
+          .from(accounts)
+      : [];
+    const emailByUser = new Map<string, { email: string; provider: string }>();
+    for (const a of accountEmails) {
+      if (!emailByUser.has(a.userId)) emailByUser.set(a.userId, { email: a.email, provider: a.provider });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...tenant,
+        members: members.map((m) => ({
+          userId: m.userId,
+          name: m.userName,
+          email: emailByUser.get(m.userId)?.email ?? null,
+          provider: emailByUser.get(m.userId)?.provider ?? null,
+          role: m.role,
+          joinedAt: m.joinedAt,
+          isSuperAdmin: m.userIsSuperAdmin,
+        })),
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, 'Failed to get tenant detail');
+    res.status(500).json({ success: false, error: 'Failed to get tenant detail' });
+  }
+}
+
 // ─── List all users across all tenants ──────────────────────────────────────
 
 export async function listAllUsers(_req: Request, res: Response) {
