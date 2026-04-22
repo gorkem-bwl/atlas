@@ -3,6 +3,7 @@ import { join } from 'path';
 import { pool } from '../config/database';
 import { logger } from '../utils/logger';
 import { migrateWorkMerge } from './migrations/2026-04-15-work-merge';
+import { migrateCrmWorkflowSteps } from './migrations/2026-04-22-crm-workflow-steps';
 
 const MIGRATIONS_DIR = join(__dirname, 'migrations');
 
@@ -280,5 +281,12 @@ async function migrateLegacyData() {
     }
   } catch (e) {
     logger.error({ err: e }, 'work-merge migration failed');
+  }
+
+  // CRM workflow multi-step migration — idempotent.
+  try {
+    await migrateCrmWorkflowSteps();
+  } catch (err) {
+    logger.error({ err }, 'crm_workflow_steps migration failed');
   }
 }

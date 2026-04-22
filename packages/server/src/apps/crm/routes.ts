@@ -111,11 +111,18 @@ router.delete('/activities/:id', crmController.deleteActivity);
 
 // Workflow Automations
 router.get('/workflows', crmController.listWorkflows);
+router.get('/workflows/:id', crmController.getWorkflow);
 router.post('/workflows/seed', requireSeedAdmin, crmController.seedExampleWorkflows);
 router.post('/workflows', crmController.createWorkflow);
 router.put('/workflows/:id', withConcurrencyCheck(crmWorkflows), crmController.updateWorkflow);
 router.delete('/workflows/:id', crmController.deleteWorkflow);
 router.post('/workflows/:id/toggle', crmController.toggleWorkflow);
+
+// Workflow steps
+router.post('/workflows/:id/steps', crmController.appendStep);
+router.patch('/workflows/:id/steps/:stepId', crmController.updateStep);
+router.delete('/workflows/:id/steps/:stepId', crmController.deleteStep);
+router.post('/workflows/:id/steps/reorder', crmController.reorderSteps);
 
 // Leads
 router.get('/leads/list', crmController.listLeads);

@@ -3,6 +3,7 @@ import {
   timestamp, index, uniqueIndex, real, type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { customType } from 'drizzle-orm/pg-core';
+import type { StepCondition } from '@atlas-platform/shared';
 
 // Custom tsvector type for full-text search
 const tsvector = customType<{ data: string }>({
@@ -1549,8 +1550,6 @@ export const crmWorkflows = pgTable('crm_workflows', {
   name: varchar('name', { length: 500 }).notNull(),
   trigger: varchar('trigger', { length: 100 }).notNull(),
   triggerConfig: jsonb('trigger_config').$type<Record<string, unknown>>().notNull().default({}),
-  action: varchar('action', { length: 100 }).notNull(),
-  actionConfig: jsonb('action_config').$type<Record<string, unknown>>().notNull().default({}),
   isActive: boolean('is_active').notNull().default(true),
   executionCount: integer('execution_count').notNull().default(0),
   lastExecutedAt: timestamp('last_executed_at', { withTimezone: true }),
@@ -1559,6 +1558,21 @@ export const crmWorkflows = pgTable('crm_workflows', {
 }, (table) => ({
   tenantIdx: index('idx_crm_workflows_tenant').on(table.tenantId),
   triggerIdx: index('idx_crm_workflows_trigger').on(table.trigger),
+}));
+
+export const crmWorkflowSteps = pgTable('crm_workflow_steps', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workflowId: uuid('workflow_id').notNull()
+    .references(() => crmWorkflows.id, { onDelete: 'cascade' }),
+  position: integer('position').notNull(),
+  action: varchar('action', { length: 100 }).notNull(),
+  actionConfig: jsonb('action_config').$type<Record<string, unknown>>().notNull().default({}),
+  condition: jsonb('condition').$type<StepCondition | null>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  workflowIdx: index('idx_crm_workflow_steps_workflow').on(table.workflowId),
+  positionIdx: uniqueIndex('idx_crm_workflow_steps_workflow_position').on(table.workflowId, table.position),
 }));
 
 // ─── CRM: Sales Teams ────────────────────────────────────────────

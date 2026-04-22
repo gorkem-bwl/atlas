@@ -1,10 +1,26 @@
 import { db } from '../../../config/database';
-import { crmWorkflows, crmDeals, crmContacts, crmCompanies, crmActivities, userSettings, notifications } from '../../../db/schema';
+import {
+  crmWorkflows,
+  crmWorkflowSteps,
+  crmDeals,
+  crmContacts,
+  crmCompanies,
+  crmActivities,
+  userSettings,
+  notifications,
+} from '../../../db/schema';
 import { tasks as tasksTable } from '../../../db/schema';
-import { eq, and, asc, desc, sql } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, inArray } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { resolveMaybeKey, i18nKey, I18N_KEY_PREFIX } from '../../../utils/i18n';
 import { getAccountIdForUser } from '../../../utils/account-lookup';
+import type {
+  StepCondition,
+  StepConditionOperator,
+  WorkflowAction,
+  WorkflowTrigger,
+} from '@atlas-platform/shared';
+import { CONDITION_FIELD_TYPES } from '@atlas-platform/shared';
 
 // ─── Seed i18n key catalog ──────────────────────────────────────────
 // Every seeded workflow below uses `__i18n:` prefixed keys instead of literal
@@ -26,34 +42,105 @@ import { getAccountIdForUser } from '../../../utils/account-lookup';
 
 // ─── Input types ────────────────────────────────────────────────────
 
+interface StepInput {
+  action: WorkflowAction;
+  actionConfig: Record<string, unknown>;
+  condition?: StepCondition | null;
+}
+
 interface CreateWorkflowInput {
   name: string;
-  trigger: string;
+  trigger: WorkflowTrigger;
   triggerConfig?: Record<string, unknown>;
-  action: string;
-  actionConfig: Record<string, unknown>;
+  steps: StepInput[];
 }
 
 interface UpdateWorkflowInput {
   name?: string;
-  trigger?: string;
+  trigger?: WorkflowTrigger;
   triggerConfig?: Record<string, unknown>;
-  action?: string;
-  actionConfig?: Record<string, unknown>;
   isActive?: boolean;
+}
+
+export interface WorkflowWithSteps {
+  id: string;
+  tenantId: string;
+  userId: string;
+  name: string;
+  trigger: string;
+  triggerConfig: Record<string, unknown>;
+  isActive: boolean;
+  executionCount: number;
+  lastExecutedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  steps: Array<{
+    id: string;
+    workflowId: string;
+    position: number;
+    action: string;
+    actionConfig: Record<string, unknown>;
+    condition: StepCondition | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
 }
 
 // ─── Workflow CRUD ──────────────────────────────────────────────────
 
-export async function listWorkflows(userId: string, tenantId: string) {
-  return db
+export async function listWorkflows(userId: string, tenantId: string): Promise<WorkflowWithSteps[]> {
+  const workflows = await db
     .select()
     .from(crmWorkflows)
     .where(and(eq(crmWorkflows.userId, userId), eq(crmWorkflows.tenantId, tenantId)))
     .orderBy(desc(crmWorkflows.createdAt));
+
+  if (workflows.length === 0) return [];
+
+  const steps = await db
+    .select()
+    .from(crmWorkflowSteps)
+    .where(inArray(crmWorkflowSteps.workflowId, workflows.map((w) => w.id)))
+    .orderBy(asc(crmWorkflowSteps.position));
+
+  const stepsByWorkflow = new Map<string, WorkflowWithSteps['steps']>();
+  for (const s of steps) {
+    const arr = stepsByWorkflow.get(s.workflowId) ?? [];
+    arr.push(s as WorkflowWithSteps['steps'][number]);
+    stepsByWorkflow.set(s.workflowId, arr);
+  }
+
+  return workflows.map((w) => ({
+    ...w,
+    steps: stepsByWorkflow.get(w.id) ?? [],
+  }));
 }
 
-export async function createWorkflow(userId: string, tenantId: string, input: CreateWorkflowInput) {
+export async function getWorkflow(userId: string, workflowId: string): Promise<WorkflowWithSteps | null> {
+  const [workflow] = await db
+    .select()
+    .from(crmWorkflows)
+    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
+    .limit(1);
+  if (!workflow) return null;
+
+  const steps = await db
+    .select()
+    .from(crmWorkflowSteps)
+    .where(eq(crmWorkflowSteps.workflowId, workflowId))
+    .orderBy(asc(crmWorkflowSteps.position));
+
+  return { ...workflow, steps: steps as WorkflowWithSteps['steps'] };
+}
+
+export async function createWorkflow(
+  userId: string,
+  tenantId: string,
+  input: CreateWorkflowInput,
+): Promise<WorkflowWithSteps> {
+  if (!input.steps || input.steps.length === 0) {
+    throw new Error('Workflow must have at least one step');
+  }
   const now = new Date();
 
   const [created] = await db
@@ -64,26 +151,37 @@ export async function createWorkflow(userId: string, tenantId: string, input: Cr
       name: input.name,
       trigger: input.trigger,
       triggerConfig: input.triggerConfig ?? {},
-      action: input.action,
-      actionConfig: input.actionConfig,
       createdAt: now,
       updatedAt: now,
     })
     .returning();
 
-  logger.info({ userId, workflowId: created.id }, 'CRM workflow created');
-  return created;
+  const stepRows = input.steps.map((s, i) => ({
+    workflowId: created.id,
+    position: i,
+    action: s.action,
+    actionConfig: s.actionConfig,
+    condition: s.condition ?? null,
+    createdAt: now,
+    updatedAt: now,
+  }));
+  await db.insert(crmWorkflowSteps).values(stepRows);
+
+  logger.info({ userId, workflowId: created.id, stepCount: stepRows.length }, 'CRM workflow created');
+  return (await getWorkflow(userId, created.id))!;
 }
 
-export async function updateWorkflow(userId: string, workflowId: string, input: UpdateWorkflowInput) {
+export async function updateWorkflow(
+  userId: string,
+  workflowId: string,
+  input: UpdateWorkflowInput,
+): Promise<WorkflowWithSteps | null> {
   const now = new Date();
   const updates: Record<string, unknown> = { updatedAt: now };
 
   if (input.name !== undefined) updates.name = input.name;
   if (input.trigger !== undefined) updates.trigger = input.trigger;
   if (input.triggerConfig !== undefined) updates.triggerConfig = input.triggerConfig;
-  if (input.action !== undefined) updates.action = input.action;
-  if (input.actionConfig !== undefined) updates.actionConfig = input.actionConfig;
   if (input.isActive !== undefined) updates.isActive = input.isActive;
 
   await db
@@ -91,28 +189,21 @@ export async function updateWorkflow(userId: string, workflowId: string, input: 
     .set(updates)
     .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)));
 
-  const [updated] = await db
-    .select()
-    .from(crmWorkflows)
-    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
-    .limit(1);
-
-  return updated || null;
+  return getWorkflow(userId, workflowId);
 }
 
-export async function deleteWorkflow(userId: string, workflowId: string) {
+export async function deleteWorkflow(userId: string, workflowId: string): Promise<void> {
   await db
     .delete(crmWorkflows)
     .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)));
 }
 
-export async function toggleWorkflow(userId: string, workflowId: string) {
+export async function toggleWorkflow(userId: string, workflowId: string): Promise<WorkflowWithSteps | null> {
   const [existing] = await db
     .select()
     .from(crmWorkflows)
     .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
     .limit(1);
-
   if (!existing) return null;
 
   const now = new Date();
@@ -121,16 +212,172 @@ export async function toggleWorkflow(userId: string, workflowId: string) {
     .set({ isActive: !existing.isActive, updatedAt: now })
     .where(eq(crmWorkflows.id, workflowId));
 
-  const [updated] = await db
-    .select()
-    .from(crmWorkflows)
-    .where(eq(crmWorkflows.id, workflowId))
-    .limit(1);
-
-  return updated || null;
+  return getWorkflow(userId, workflowId);
 }
 
-// ─── Workflow Execution ─────────────────────────────────────────────
+// ─── Step CRUD ──────────────────────────────────────────────────────
+
+export async function appendStep(
+  userId: string,
+  workflowId: string,
+  step: StepInput,
+): Promise<WorkflowWithSteps['steps'][number] | null> {
+  // Verify the workflow belongs to this user.
+  const [workflow] = await db
+    .select({ id: crmWorkflows.id })
+    .from(crmWorkflows)
+    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
+    .limit(1);
+  if (!workflow) return null;
+
+  const [maxRow] = await db
+    .select({ max: sql<number | null>`MAX(${crmWorkflowSteps.position})` })
+    .from(crmWorkflowSteps)
+    .where(eq(crmWorkflowSteps.workflowId, workflowId));
+  const nextPosition = (maxRow?.max ?? -1) + 1;
+
+  const now = new Date();
+  const [inserted] = await db
+    .insert(crmWorkflowSteps)
+    .values({
+      workflowId,
+      position: nextPosition,
+      action: step.action,
+      actionConfig: step.actionConfig,
+      condition: step.condition ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  // Bump the workflow's updatedAt for concurrency tracking.
+  await db.update(crmWorkflows)
+    .set({ updatedAt: now })
+    .where(eq(crmWorkflows.id, workflowId));
+
+  return inserted as WorkflowWithSteps['steps'][number];
+}
+
+export async function updateStep(
+  userId: string,
+  workflowId: string,
+  stepId: string,
+  patch: Partial<StepInput>,
+): Promise<WorkflowWithSteps['steps'][number] | null> {
+  // Ownership check via workflow.
+  const [workflow] = await db
+    .select({ id: crmWorkflows.id })
+    .from(crmWorkflows)
+    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
+    .limit(1);
+  if (!workflow) return null;
+
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+  if (patch.action !== undefined) updates.action = patch.action;
+  if (patch.actionConfig !== undefined) updates.actionConfig = patch.actionConfig;
+  if (patch.condition !== undefined) updates.condition = patch.condition;
+
+  await db.update(crmWorkflowSteps)
+    .set(updates)
+    .where(and(eq(crmWorkflowSteps.id, stepId), eq(crmWorkflowSteps.workflowId, workflowId)));
+
+  const [row] = await db.select().from(crmWorkflowSteps)
+    .where(eq(crmWorkflowSteps.id, stepId)).limit(1);
+
+  await db.update(crmWorkflows)
+    .set({ updatedAt: new Date() })
+    .where(eq(crmWorkflows.id, workflowId));
+
+  return (row ?? null) as WorkflowWithSteps['steps'][number] | null;
+}
+
+export async function deleteStep(
+  userId: string,
+  workflowId: string,
+  stepId: string,
+): Promise<{ deleted: boolean; error?: 'LAST_STEP' | 'NOT_FOUND' }> {
+  const [workflow] = await db
+    .select({ id: crmWorkflows.id })
+    .from(crmWorkflows)
+    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
+    .limit(1);
+  if (!workflow) return { deleted: false, error: 'NOT_FOUND' };
+
+  const steps = await db.select({ id: crmWorkflowSteps.id, position: crmWorkflowSteps.position })
+    .from(crmWorkflowSteps)
+    .where(eq(crmWorkflowSteps.workflowId, workflowId))
+    .orderBy(asc(crmWorkflowSteps.position));
+
+  if (steps.length <= 1) return { deleted: false, error: 'LAST_STEP' };
+
+  const target = steps.find((s) => s.id === stepId);
+  if (!target) return { deleted: false, error: 'NOT_FOUND' };
+
+  await db.delete(crmWorkflowSteps).where(eq(crmWorkflowSteps.id, stepId));
+
+  // Close up position gaps.
+  await db.execute(sql`
+    UPDATE crm_workflow_steps
+    SET position = position - 1, updated_at = now()
+    WHERE workflow_id = ${workflowId} AND position > ${target.position}
+  `);
+
+  await db.update(crmWorkflows)
+    .set({ updatedAt: new Date() })
+    .where(eq(crmWorkflows.id, workflowId));
+
+  return { deleted: true };
+}
+
+export async function reorderSteps(
+  userId: string,
+  workflowId: string,
+  stepIds: string[],
+): Promise<{ ok: boolean; error?: 'MISMATCH' | 'NOT_FOUND' }> {
+  const [workflow] = await db
+    .select({ id: crmWorkflows.id })
+    .from(crmWorkflows)
+    .where(and(eq(crmWorkflows.id, workflowId), eq(crmWorkflows.userId, userId)))
+    .limit(1);
+  if (!workflow) return { ok: false, error: 'NOT_FOUND' };
+
+  const existing = await db.select({ id: crmWorkflowSteps.id })
+    .from(crmWorkflowSteps)
+    .where(eq(crmWorkflowSteps.workflowId, workflowId));
+
+  if (existing.length !== stepIds.length) return { ok: false, error: 'MISMATCH' };
+  const existingSet = new Set(existing.map((e) => e.id));
+  for (const id of stepIds) if (!existingSet.has(id)) return { ok: false, error: 'MISMATCH' };
+
+  // Two-phase update to avoid colliding with the unique (workflowId, position) index.
+  // Phase 1: push all positions out to a non-conflicting range.
+  await db.execute(sql`
+    UPDATE crm_workflow_steps SET position = position + 1000, updated_at = now()
+    WHERE workflow_id = ${workflowId}
+  `);
+  // Phase 2: assign target positions by id.
+  for (let i = 0; i < stepIds.length; i++) {
+    await db.update(crmWorkflowSteps)
+      .set({ position: i, updatedAt: new Date() })
+      .where(eq(crmWorkflowSteps.id, stepIds[i]));
+  }
+
+  await db.update(crmWorkflows)
+    .set({ updatedAt: new Date() })
+    .where(eq(crmWorkflows.id, workflowId));
+
+  return { ok: true };
+}
+
+// ─── Executor ───────────────────────────────────────────────────────
+
+type RunContext = Record<string, unknown> & {
+  __resolved?: {
+    deal?: Record<string, unknown> | null;
+    contact?: Record<string, unknown> | null;
+    company?: Record<string, unknown> | null;
+  };
+};
 
 export async function executeWorkflows(
   tenantId: string,
@@ -138,7 +385,6 @@ export async function executeWorkflows(
   trigger: string,
   context: Record<string, unknown>,
 ) {
-  // Find all active workflows matching this trigger for the account
   const workflows = await db
     .select()
     .from(crmWorkflows)
@@ -150,15 +396,32 @@ export async function executeWorkflows(
 
   for (const workflow of workflows) {
     try {
-      // Check trigger config matches context
-      if (!matchesTriggerConfig(workflow.triggerConfig, trigger, context)) {
-        continue;
+      if (!matchesTriggerConfig(workflow.triggerConfig, trigger, context)) continue;
+
+      const steps = await db
+        .select()
+        .from(crmWorkflowSteps)
+        .where(eq(crmWorkflowSteps.workflowId, workflow.id))
+        .orderBy(asc(crmWorkflowSteps.position));
+
+      const runCtx: RunContext = { ...context, __resolved: {} };
+
+      for (const step of steps) {
+        try {
+          if (step.condition) {
+            const pass = await evaluateCondition(step.condition, runCtx);
+            if (!pass) {
+              logger.debug({ workflowId: workflow.id, stepId: step.id, field: step.condition.field }, 'CRM workflow step skipped by condition');
+              continue;
+            }
+          }
+          await executeAction(userId, tenantId, step.action, step.actionConfig, runCtx);
+        } catch (err) {
+          logger.error({ err, workflowId: workflow.id, stepId: step.id }, 'CRM workflow step failed');
+          // Continue to next step — per-step errors are non-fatal.
+        }
       }
 
-      // Execute the action
-      await executeAction(userId, tenantId, workflow.action, workflow.actionConfig, context);
-
-      // Update execution stats
       const now = new Date();
       await db
         .update(crmWorkflows)
@@ -169,9 +432,9 @@ export async function executeWorkflows(
         })
         .where(eq(crmWorkflows.id, workflow.id));
 
-      logger.info({ workflowId: workflow.id, trigger, action: workflow.action }, 'CRM workflow executed');
-    } catch (error) {
-      logger.error({ error, workflowId: workflow.id, trigger }, 'CRM workflow execution failed');
+      logger.info({ workflowId: workflow.id, trigger, stepCount: steps.length }, 'CRM workflow executed');
+    } catch (err) {
+      logger.error({ err, workflowId: workflow.id, trigger }, 'CRM workflow execution failed');
     }
   }
 }
@@ -182,17 +445,103 @@ function matchesTriggerConfig(
   context: Record<string, unknown>,
 ): boolean {
   if (!config || Object.keys(config).length === 0) return true;
-
   if (trigger === 'deal_stage_changed') {
     if (config.fromStage && config.fromStage !== context.fromStage) return false;
     if (config.toStage && config.toStage !== context.toStage) return false;
   }
-
   if (trigger === 'activity_logged') {
     if (config.activityType && config.activityType !== context.activityType) return false;
   }
-
   return true;
+}
+
+// ─── Condition evaluation ──────────────────────────────────────────
+
+async function resolveFieldPath(field: string, ctx: RunContext): Promise<unknown> {
+  const [scope, prop] = field.split('.');
+  if (!scope || !prop) return undefined;
+
+  if (scope === 'trigger') {
+    // Map allow-listed trigger.* fields back to the raw context keys.
+    if (prop === 'fromStage') return ctx.fromStage;
+    if (prop === 'toStage') return ctx.toStage;
+    if (prop === 'activityType') return ctx.activityType;
+    return undefined;
+  }
+
+  const resolved = ctx.__resolved ?? {};
+  ctx.__resolved = resolved;
+
+  if (scope === 'deal') {
+    if (!('deal' in resolved)) {
+      const id = ctx.dealId as string | undefined;
+      resolved.deal = id ? (await db.select().from(crmDeals).where(eq(crmDeals.id, id)).limit(1))[0] ?? null : null;
+    }
+    return resolved.deal ? (resolved.deal as Record<string, unknown>)[prop] : undefined;
+  }
+
+  if (scope === 'contact') {
+    if (!('contact' in resolved)) {
+      const id = ctx.contactId as string | undefined;
+      resolved.contact = id ? (await db.select().from(crmContacts).where(eq(crmContacts.id, id)).limit(1))[0] ?? null : null;
+    }
+    return resolved.contact ? (resolved.contact as Record<string, unknown>)[prop] : undefined;
+  }
+
+  if (scope === 'company') {
+    if (!('company' in resolved)) {
+      const id = ctx.companyId as string | undefined;
+      resolved.company = id ? (await db.select().from(crmCompanies).where(eq(crmCompanies.id, id)).limit(1))[0] ?? null : null;
+    }
+    return resolved.company ? (resolved.company as Record<string, unknown>)[prop] : undefined;
+  }
+
+  return undefined;
+}
+
+async function evaluateCondition(cond: StepCondition, ctx: RunContext): Promise<boolean> {
+  // Reject unknown fields at runtime as a defense-in-depth: API validation
+  // already rejects them, but a DB row written before a future change might slip through.
+  if (!(cond.field in CONDITION_FIELD_TYPES)) {
+    logger.warn({ field: cond.field }, 'CRM workflow condition references unknown field');
+    return false;
+  }
+
+  const actual = await resolveFieldPath(cond.field, ctx);
+  return compare(actual, cond.operator, cond.value);
+}
+
+function compare(actual: unknown, op: StepConditionOperator, expected: unknown): boolean {
+  const isEmpty = (v: unknown) =>
+    v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
+
+  switch (op) {
+    case 'is_empty': return isEmpty(actual);
+    case 'is_not_empty': return !isEmpty(actual);
+    case 'eq': return actual === expected;
+    case 'neq': return actual !== expected;
+    case 'gt': case 'gte': case 'lt': case 'lte': {
+      if (typeof actual !== 'number' || typeof expected !== 'number') return false;
+      if (op === 'gt') return actual > expected;
+      if (op === 'gte') return actual >= expected;
+      if (op === 'lt') return actual < expected;
+      return actual <= expected;
+    }
+    case 'contains': {
+      if (Array.isArray(actual)) return actual.includes(expected as never);
+      if (typeof actual === 'string' && typeof expected === 'string') return actual.includes(expected);
+      return false;
+    }
+    case 'not_contains': {
+      if (Array.isArray(actual)) return !actual.includes(expected as never);
+      if (typeof actual === 'string' && typeof expected === 'string') return !actual.includes(expected);
+      return false;
+    }
+    default: {
+      logger.warn({ op }, 'CRM workflow condition uses unknown operator');
+      return false;
+    }
+  }
 }
 
 async function getUserLanguage(userId: string): Promise<string> {
@@ -402,44 +751,53 @@ const SEED_TAG_MIGRATIONS: Record<string, string> = {
 };
 
 export async function migrateSeedWorkflowsToKeys(tenantId: string): Promise<{ migrated: number }> {
-  const rows = await db
+  const workflowRows = await db
     .select()
     .from(crmWorkflows)
     .where(eq(crmWorkflows.tenantId, tenantId));
 
   let migrated = 0;
-  for (const row of rows) {
-    const updates: Record<string, unknown> = {};
 
-    // Name
+  for (const row of workflowRows) {
+    // Name migration (unchanged logic).
     if (typeof row.name === 'string' && !row.name.startsWith(I18N_KEY_PREFIX)) {
       const replacement = SEED_NAME_MIGRATIONS[row.name];
-      if (replacement) updates.name = replacement;
+      if (replacement) {
+        await db.update(crmWorkflows)
+          .set({ name: replacement, updatedAt: new Date() })
+          .where(eq(crmWorkflows.id, row.id));
+        migrated++;
+      }
     }
 
-    // Action config
-    const config = (row.actionConfig ?? {}) as Record<string, unknown>;
-    const nextConfig: Record<string, unknown> = { ...config };
-    let configChanged = false;
+    // Step actionConfig migration.
+    const steps = await db.select().from(crmWorkflowSteps)
+      .where(eq(crmWorkflowSteps.workflowId, row.id));
 
-    if (typeof config.taskTitle === 'string' && !config.taskTitle.startsWith(I18N_KEY_PREFIX)) {
-      const replacement = SEED_TASK_TITLE_MIGRATIONS[config.taskTitle];
-      if (replacement) { nextConfig.taskTitle = replacement; configChanged = true; }
-    }
-    if (typeof config.body === 'string' && !config.body.startsWith(I18N_KEY_PREFIX)) {
-      const replacement = SEED_BODY_MIGRATIONS[config.body];
-      if (replacement) { nextConfig.body = replacement; configChanged = true; }
-    }
-    if (typeof config.tag === 'string' && !config.tag.startsWith(I18N_KEY_PREFIX)) {
-      const replacement = SEED_TAG_MIGRATIONS[config.tag];
-      if (replacement) { nextConfig.tag = replacement; configChanged = true; }
-    }
-    if (configChanged) updates.actionConfig = nextConfig;
+    for (const step of steps) {
+      const config = (step.actionConfig ?? {}) as Record<string, unknown>;
+      const nextConfig: Record<string, unknown> = { ...config };
+      let changed = false;
 
-    if (Object.keys(updates).length > 0) {
-      updates.updatedAt = new Date();
-      await db.update(crmWorkflows).set(updates).where(eq(crmWorkflows.id, row.id));
-      migrated++;
+      if (typeof config.taskTitle === 'string' && !config.taskTitle.startsWith(I18N_KEY_PREFIX)) {
+        const r = SEED_TASK_TITLE_MIGRATIONS[config.taskTitle];
+        if (r) { nextConfig.taskTitle = r; changed = true; }
+      }
+      if (typeof config.body === 'string' && !config.body.startsWith(I18N_KEY_PREFIX)) {
+        const r = SEED_BODY_MIGRATIONS[config.body];
+        if (r) { nextConfig.body = r; changed = true; }
+      }
+      if (typeof config.tag === 'string' && !config.tag.startsWith(I18N_KEY_PREFIX)) {
+        const r = SEED_TAG_MIGRATIONS[config.tag];
+        if (r) { nextConfig.tag = r; changed = true; }
+      }
+
+      if (changed) {
+        await db.update(crmWorkflowSteps)
+          .set({ actionConfig: nextConfig, updatedAt: new Date() })
+          .where(eq(crmWorkflowSteps.id, step.id));
+        migrated++;
+      }
     }
   }
 
@@ -476,80 +834,99 @@ export async function seedExampleWorkflows(userId: string, tenantId: string) {
 
   const workflows: Array<{
     name: string;
-    trigger: string;
+    trigger: WorkflowTrigger;
     triggerConfig: Record<string, unknown>;
-    action: string;
-    actionConfig: Record<string, unknown>;
+    steps: Array<{ action: WorkflowAction; actionConfig: Record<string, unknown> }>;
   }> = [
     {
       name: i18nKey('crm.workflows.seeds.names.qualifiedScheduleDemo'),
       trigger: 'deal_stage_changed',
       triggerConfig: qualifiedId ? { toStage: qualifiedId } : {},
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.scheduleDiscoveryCall') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.scheduleDiscoveryCall') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.proposalPrepareDocument'),
       trigger: 'deal_stage_changed',
       triggerConfig: proposalId ? { toStage: proposalId } : {},
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.prepareAndSendProposal') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.prepareAndSendProposal') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.wonWelcomeTask'),
       trigger: 'deal_won',
       triggerConfig: {},
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendWelcomePackage') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendWelcomePackage') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.wonSetProbability'),
       trigger: 'deal_won',
       triggerConfig: {},
-      action: 'update_field',
-      actionConfig: { fieldName: 'probability', fieldValue: '100' },
+      steps: [{
+        action: 'update_field',
+        actionConfig: { fieldName: 'probability', fieldValue: '100' },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.wonTagCustomer'),
       trigger: 'deal_won',
       triggerConfig: {},
-      action: 'add_tag',
-      actionConfig: { tag: i18nKey('crm.workflows.seeds.tags.customer') },
+      steps: [{
+        action: 'add_tag',
+        actionConfig: { tag: i18nKey('crm.workflows.seeds.tags.customer') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.lostReviewTask'),
       trigger: 'deal_lost',
       triggerConfig: {},
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.scheduleDealLossReview') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.scheduleDealLossReview') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.lostLogActivity'),
       trigger: 'deal_lost',
       triggerConfig: {},
-      action: 'log_activity',
-      actionConfig: { activityType: 'note', body: i18nKey('crm.workflows.seeds.bodies.dealWasLost') },
+      steps: [{
+        action: 'log_activity',
+        actionConfig: { activityType: 'note', body: i18nKey('crm.workflows.seeds.bodies.dealWasLost') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.newContactIntroEmail'),
       trigger: 'contact_created',
       triggerConfig: {},
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendIntroductionEmail') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendIntroductionEmail') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.callLoggedFollowUp'),
       trigger: 'activity_logged',
       triggerConfig: { activityType: 'call' },
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendFollowUpAfterCall') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.sendFollowUpAfterCall') },
+      }],
     },
     {
       name: i18nKey('crm.workflows.seeds.names.meetingLoggedNotes'),
       trigger: 'activity_logged',
       triggerConfig: { activityType: 'meeting' },
-      action: 'create_task',
-      actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.writeMeetingNotes') },
+      steps: [{
+        action: 'create_task',
+        actionConfig: { taskTitle: i18nKey('crm.workflows.seeds.taskTitles.writeMeetingNotes') },
+      }],
     },
   ];
 
