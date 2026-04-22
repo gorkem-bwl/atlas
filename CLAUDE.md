@@ -21,6 +21,7 @@ Detailed documentation lives in `/docs/`. Read the relevant doc before building 
 | [App Architecture](docs/app-architecture.md) | App registry pattern, per-app features/routes/tables, adding new apps | Building a new app, understanding how apps register |
 | [Design System](docs/design-system.md) | CSS variables, component library (31 components), layout patterns, i18n | Building UI, creating components, styling, translations |
 | [Infrastructure](docs/infrastructure.md) | Docker, deployment, CI/CD, CLI, env vars, SSL, backups, monitoring | Deploying, configuring, troubleshooting production |
+| [Architecture for agents](docs/architecture-for-agents.md) | Registry patterns, data flow, auth layers, UI primitives lookup, debugging recipes, hard rules | Onboarding to the codebase; before touching a new area |
 
 ---
 
