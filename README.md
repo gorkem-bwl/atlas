@@ -66,7 +66,7 @@ Caddy automatically obtains and renews Let's Encrypt SSL certificates. Ports 80 
 docker compose up -d
 
 # 2. Install dependencies
-npm install --legacy-peer-deps
+npm install
 
 # 3. Create environment file
 cp .env.example .env

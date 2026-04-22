@@ -12,7 +12,7 @@ COPY packages/server/package.json packages/server/
 COPY packages/client/package.json packages/client/
 
 # Install all dependencies (including dev for building)
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 # Copy source code (cache-bust: changes to any source invalidates build)
 COPY packages/shared packages/shared
@@ -45,7 +45,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 
 # Install production dependencies only
-RUN npm ci --legacy-peer-deps --omit=dev
+RUN npm ci --omit=dev
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/shared/dist packages/shared/dist

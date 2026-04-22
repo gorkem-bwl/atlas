@@ -18,7 +18,7 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       - name: Build shared package
         run: npm run build --workspace=packages/shared
@@ -65,7 +65,7 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       - name: Build shared package
         run: npm run build --workspace=packages/shared
@@ -109,7 +109,7 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
 
       - name: Build shared package
         run: npm run build --workspace=packages/shared

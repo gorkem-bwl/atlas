@@ -213,13 +213,12 @@ Pulled from MEMORY.md and CLAUDE.md. Agents that skip these create real bugs:
 - The module isn't imported from `registry.ts`. Every `paths/*.ts` file needs an `import './paths/myapp';` side-effect line.
 
 **"`npm install` fails with peer dep errors."**
-- Pre-existing tiptap conflict. Use `--legacy-peer-deps`. (Known tech debt.)
+- Should work cleanly as of v2.3.2. If you see a new peer conflict, check whether a new transitive dep pulled in a mismatched tiptap v3.x.
 
 ---
 
 ## Current pain points (known, not yet fixed)
 
-- **tiptap peer conflict** requires `--legacy-peer-deps` on every install.
 - **Translation files ~800KB each** are loaded upfront; no code-splitting yet.
 - **Schema drift is possible** — there is no CI step that diffs Drizzle vs live DB. Relies on devs remembering to add `addColumnIfMissing`.
 - **Most routes still use `register()` not `defineRoute()`** — so runtime validation is opt-in, not the default. Migrating in bulk is unsafe until every schema has been reconciled against controllers.
