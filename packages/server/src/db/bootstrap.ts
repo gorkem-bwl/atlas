@@ -206,6 +206,61 @@ async function migrateLegacyData() {
     'integer NOT NULL DEFAULT 0');
   await addColumnIfMissing('users', 'is_super_admin',
     'boolean NOT NULL DEFAULT false');
+  // Backfill batch — drift detected by `npm run db:check-drift`.
+  await addColumnIfMissing('crm_deals', 'currency',
+    "varchar(10) NOT NULL DEFAULT 'USD'");
+  await addColumnIfMissing('crm_lead_forms', 'is_archived',
+    'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('crm_saved_views', 'is_archived',
+    'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('hr_expense_categories', 'is_archived',
+    'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('hr_expense_categories', 'updated_at',
+    'timestamp with time zone NOT NULL DEFAULT now()');
+  await addColumnIfMissing('hr_expense_policies', 'is_archived',
+    'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('project_time_entries', 'paid',
+    'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('project_time_entries', 'tags',
+    "jsonb NOT NULL DEFAULT '[]'::jsonb");
+
+  // Missing tables — create if absent.
+  try {
+    const c = await pool.connect();
+    try {
+      await c.query(`
+        CREATE TABLE IF NOT EXISTS project_rates (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id uuid NOT NULL REFERENCES tenants(id),
+          title varchar(200) NOT NULL,
+          factor real NOT NULL DEFAULT 1,
+          extra_per_hour real NOT NULL DEFAULT 0,
+          is_archived boolean NOT NULL DEFAULT false,
+          sort_order integer NOT NULL DEFAULT 0,
+          created_at timestamptz NOT NULL DEFAULT now(),
+          updated_at timestamptz NOT NULL DEFAULT now()
+        )
+      `);
+      await c.query(`CREATE INDEX IF NOT EXISTS idx_project_rates_tenant ON project_rates(tenant_id)`);
+      await c.query(`
+        CREATE TABLE IF NOT EXISTS exchange_rates (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          base_currency varchar(10) NOT NULL,
+          target_currency varchar(10) NOT NULL,
+          rate real NOT NULL,
+          provider varchar(50) NOT NULL,
+          fetched_at timestamptz NOT NULL DEFAULT now()
+        )
+      `);
+    } finally {
+      c.release();
+    }
+  } catch (err) {
+    logger.error({ err }, 'project_rates / exchange_rates CREATE failed');
+  }
+
+  await addColumnIfMissing('project_time_entries', 'rate_id',
+    'uuid REFERENCES project_rates(id) ON DELETE SET NULL');
 
   // Work-app merge: copy task_projects → project_projects, seed isPrivate,
   // collapse tenant_apps. Guard: only run while task_projects still exists.

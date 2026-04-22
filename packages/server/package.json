@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "lint": "eslint src --ext .ts",
     "openapi:build": "tsx src/openapi/build.ts",
+    "db:check-drift": "tsx src/db/check-drift.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

@@ -73,6 +73,9 @@ jobs:
       - name: Run integration tests
         run: npm run test:integration --workspace=packages/server
 
+      - name: Check schema drift
+        run: npm run db:check-drift --workspace=packages/server
+
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
