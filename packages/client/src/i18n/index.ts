@@ -25,18 +25,32 @@ const LOCALE_LOADERS: Record<Exclude<LanguageCode, 'en'>, () => Promise<{ defaul
   tr: () => import('./locales/tr.json'),
 };
 
-async function loadLanguage(code: string) {
+// Dedupe simultaneous load requests — the `languageChanged` handler can
+// fire twice in quick succession on init (detector resolves, app toggles
+// soon after) and both would start their own dynamic import otherwise.
+const inFlight = new Map<string, Promise<void>>();
+
+async function loadLanguage(code: string): Promise<void> {
   if (code === 'en' || i18n.hasResourceBundle(code, 'translation')) return;
+  const existing = inFlight.get(code);
+  if (existing) return existing;
   const loader = LOCALE_LOADERS[code as Exclude<LanguageCode, 'en'>];
   if (!loader) return;
-  try {
-    const mod = await loader();
-    i18n.addResourceBundle(code, 'translation', mod.default);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(`Failed to load locale ${code}`, err);
-  }
+  const promise = loader()
+    .then((mod) => { i18n.addResourceBundle(code, 'translation', mod.default); })
+    .catch((err) => { console.error(`Failed to load locale ${code}`, err); })
+    .finally(() => { inFlight.delete(code); });
+  inFlight.set(code, promise);
+  return promise;
 }
+
+// Register the loader BEFORE .init(). .init() triggers changeLanguage()
+// internally once the detector resolves, which fires `languageChanged`;
+// if we registered the handler after .init(), we'd miss that first event
+// for the common case (user's stored language is not English).
+i18n.on('languageChanged', (lng) => {
+  void loadLanguage(lng);
+});
 
 i18n
   .use(LanguageDetector)
@@ -57,14 +71,5 @@ i18n
       caches: ['localStorage'],
     },
   });
-
-// When i18next switches languages (either from the detector on init or
-// from a user change), lazy-load the bundle if it's not already present.
-i18n.on('languageChanged', (lng) => {
-  void loadLanguage(lng);
-});
-
-// Kick off the initial load for whatever language the detector picked.
-void loadLanguage(i18n.language || 'en');
 
 export default i18n;

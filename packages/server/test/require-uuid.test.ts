@@ -1,13 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 import { requireUuidParam, UUID_REGEX } from '../src/middleware/require-uuid';
-
-function mockRes() {
-  const res: Partial<Response> = {};
-  res.status = vi.fn().mockReturnThis();
-  res.json = vi.fn().mockReturnThis();
-  return res as Response;
-}
+import { mockRes } from './helpers/test-utils';
 
 describe('UUID_REGEX', () => {
   it.each([

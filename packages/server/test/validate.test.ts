@@ -1,14 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 import { z } from 'zod';
 import { validate } from '../src/openapi/validate';
-
-function mockRes() {
-  const res: Partial<Response> = {};
-  res.status = vi.fn().mockReturnThis();
-  res.json = vi.fn().mockReturnThis();
-  return res as Response;
-}
+import { mockRes } from './helpers/test-utils';
 
 describe('validate() middleware', () => {
   it('passes valid params/query/body', () => {

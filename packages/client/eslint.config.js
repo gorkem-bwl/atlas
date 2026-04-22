@@ -32,10 +32,13 @@ const RESTRICTIONS = [
     selector: "JSXOpeningElement[name.name='textarea']",
     message: "Use <Textarea> from components/ui/ instead of <textarea>.",
   },
-  // Hex color literals inside JSX style attributes — use CSS vars.
+  // Color literals inside JSX style attributes — use CSS vars.
+  // Covers hex (#abc, #abcdef, #abcdef80), rgb/rgba, hsl/hsla, oklch.
+  // Named colors (e.g. 'red', 'white') aren't caught — accept the gap;
+  // they're rare and grep-able.
   {
-    selector: "JSXAttribute[name.name='style'] Literal[value=/^#[0-9a-fA-F]{3,8}$/]",
-    message: "Use CSS variables from styles/theme.css (var(--color-*)) instead of hex literals.",
+    selector: "JSXAttribute[name.name='style'] Literal[value=/^(#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|oklch\\()/]",
+    message: "Use CSS variables from styles/theme.css (var(--color-*)) instead of color literals.",
   },
   // Native modal dialogs — always wrong in a themed app.
   {

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 
+// TEST_JWT_SECRET / TEST_JWT_REFRESH_SECRET are inlined here because
+// vi.mock factories run before imports. Keep in sync with helpers/test-utils.
 vi.mock('../src/config/env', () => ({
   env: {
     JWT_SECRET: 'test-jwt-secret-min-32-chars-long!!',
@@ -8,6 +10,8 @@ vi.mock('../src/config/env', () => ({
     NODE_ENV: 'test',
   },
 }));
+
+import { mockRes } from './helpers/test-utils';
 
 // Minimal db mock — each test stages its own chained return values.
 const selectChain = {
@@ -46,13 +50,6 @@ vi.mock('../src/utils/logger', () => ({
 }));
 
 import { updateSuperAdmin, impersonateTenant } from '../src/controllers/admin.controller';
-
-function mockRes() {
-  const res: Partial<Response> = {};
-  res.status = vi.fn().mockReturnThis();
-  res.json = vi.fn().mockReturnThis();
-  return res as Response;
-}
 
 describe('admin controller — updateSuperAdmin', () => {
   beforeEach(() => vi.clearAllMocks());

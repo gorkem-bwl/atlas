@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import type { Request } from 'express';
 
+// Note: TEST_JWT_SECRET / TEST_JWT_REFRESH_SECRET from helpers/test-utils
+// are inlined in the mock below because vi.mock factories run before
+// imports are materialised. Keep the two in sync.
 vi.mock('../src/config/env', () => ({
   env: {
     JWT_SECRET: 'test-jwt-secret-min-32-chars-long!!',
@@ -9,6 +11,8 @@ vi.mock('../src/config/env', () => ({
     NODE_ENV: 'test',
   },
 }));
+
+import { mockRes, signTestToken } from './helpers/test-utils';
 
 const dbSelectChain = {
   from: vi.fn().mockReturnThis(),
@@ -22,15 +26,8 @@ vi.mock('../src/config/database', () => ({
 
 import { adminAuthMiddleware } from '../src/middleware/admin-auth';
 
-function mockRes() {
-  const res: Partial<Response> = {};
-  res.status = vi.fn().mockReturnThis();
-  res.json = vi.fn().mockReturnThis();
-  return res as Response;
-}
-
-function reqWith(auth: Record<string, unknown> | null, secret = 'test-jwt-secret-min-32-chars-long!!') {
-  const token = auth ? jwt.sign(auth, secret, { expiresIn: '1h' }) : '';
+function reqWith(auth: Record<string, unknown> | null, secret?: string) {
+  const token = auth ? signTestToken(auth, { secret }) : '';
   return {
     headers: { authorization: token ? `Bearer ${token}` : '' },
   } as unknown as Request;
@@ -117,7 +114,7 @@ describe('adminAuthMiddleware', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('tenant-role=owner alone is NOT sufficient (v2.3.0 auth hardening)', async () => {
+  it('tenant-role=owner alone is NOT sufficient — super-admin is distinct from tenant ownership', async () => {
     const res = mockRes();
     const next = vi.fn();
     const req = reqWith({ userId: 'u1', tenantId: 't1', email: 'a@b.c', tenantRole: 'owner', isSuperAdmin: false });
