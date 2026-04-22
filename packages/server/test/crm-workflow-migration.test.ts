@@ -32,34 +32,46 @@ describe.skipIf(!RUN)('crm_workflow_steps migration', () => {
 
     const c = await pool.connect();
     try {
-      // Create a throwaway tenant if the schema has the table.
-      const t = await c.query(
-        `INSERT INTO tenants (id, name, slug) VALUES (gen_random_uuid(), 'test', 'test-mig-' || floor(random() * 1e9)) RETURNING id`,
-      );
-      tenantId = t.rows[0].id;
+      // Wrap fixture inserts in a transaction so a failure between the tenant
+      // and workflow inserts doesn't leak an orphan tenant row.
+      await c.query('BEGIN');
+      try {
+        // Simulate a pre-migration DB by re-adding the legacy columns if they were already dropped.
+        await c.query(`ALTER TABLE crm_workflows ADD COLUMN IF NOT EXISTS action varchar(100)`);
+        await c.query(`ALTER TABLE crm_workflows ADD COLUMN IF NOT EXISTS action_config jsonb DEFAULT '{}'::jsonb`);
 
-      // Simulate a pre-migration DB by re-adding the legacy columns if they were already dropped.
-      await c.query(`ALTER TABLE crm_workflows ADD COLUMN IF NOT EXISTS action varchar(100)`);
-      await c.query(`ALTER TABLE crm_workflows ADD COLUMN IF NOT EXISTS action_config jsonb DEFAULT '{}'::jsonb`);
-
-      const w = await c.query(
-        `INSERT INTO crm_workflows (id, tenant_id, user_id, name, trigger, trigger_config, is_active, action, action_config)
-         VALUES (gen_random_uuid(), $1, $1, 'legacy', 'deal_won', '{}'::jsonb, true, 'create_task', '{"taskTitle":"t"}'::jsonb)
-         RETURNING id`,
-        [tenantId],
-      );
-      workflowId = w.rows[0].id;
+        const t = await c.query(
+          `INSERT INTO tenants (id, name, slug) VALUES (gen_random_uuid(), 'test', 'test-mig-' || floor(random() * 1e9)) RETURNING id`,
+        );
+        const w = await c.query(
+          `INSERT INTO crm_workflows (id, tenant_id, user_id, name, trigger, trigger_config, is_active, action, action_config)
+           VALUES (gen_random_uuid(), $1, $1, 'legacy', 'deal_won', '{}'::jsonb, true, 'create_task', '{"taskTitle":"t"}'::jsonb)
+           RETURNING id`,
+          [t.rows[0].id],
+        );
+        await c.query('COMMIT');
+        tenantId = t.rows[0].id;
+        workflowId = w.rows[0].id;
+      } catch (err) {
+        await c.query('ROLLBACK');
+        throw err;
+      }
     } finally {
       c.release();
     }
   });
 
   afterAll(async () => {
+    if (!pool) return;
     const c = await pool.connect();
     try {
-      await c.query(`DELETE FROM crm_workflow_steps WHERE workflow_id = $1`, [workflowId]);
-      await c.query(`DELETE FROM crm_workflows WHERE id = $1`, [workflowId]);
-      await c.query(`DELETE FROM tenants WHERE id = $1`, [tenantId]);
+      if (workflowId) {
+        await c.query(`DELETE FROM crm_workflow_steps WHERE workflow_id = $1`, [workflowId]);
+        await c.query(`DELETE FROM crm_workflows WHERE id = $1`, [workflowId]);
+      }
+      if (tenantId) {
+        await c.query(`DELETE FROM tenants WHERE id = $1`, [tenantId]);
+      }
     } finally {
       c.release();
     }
