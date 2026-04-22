@@ -23,12 +23,11 @@ export async function setup() {
     await client.end();
   }
 
-  // Import and run the app's migrations. Note: runMigrations now drops
-  // legacy `account_id` columns from tasks/drive/crm tables that predate
-  // the tenant-only model, so test databases created from older snapshots
-  // self-heal here without any extra setup.
-  const { runMigrations } = await import('../../src/db/migrate');
-  await runMigrations();
+  // Boot the app's migration pipeline: replays every SQL migration snapshot
+  // plus idempotent legacy-data fixups (drift columns, work-merge, crm
+  // workflow-steps, etc.).
+  const { bootstrapDatabase } = await import('../../src/db/bootstrap');
+  await bootstrapDatabase();
 }
 
 export async function teardown() {

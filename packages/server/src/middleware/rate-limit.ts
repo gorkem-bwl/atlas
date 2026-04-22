@@ -22,6 +22,9 @@ export const authLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip in tests — integration suites repeatedly exercise /auth/setup and
+  // /auth/login per-test to isolate DB state, which legitimately exceeds 10/min.
+  skip: () => process.env.NODE_ENV === 'test',
   message: { success: false, error: 'Too many auth attempts, please try again later' },
 });
 

@@ -111,18 +111,40 @@ const Activity = z.object({
   updatedAt: IsoDateTime,
 });
 
+const StepCondition = z.object({
+  field: z.string(),
+  operator: z.enum(['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'not_contains', 'is_empty', 'is_not_empty']),
+  value: z.union([z.string(), z.number(), z.null()]),
+}).nullable();
+
+const WorkflowStep = z.object({
+  id: Uuid,
+  workflowId: Uuid,
+  position: z.number().int(),
+  action: z.string(),
+  actionConfig: z.record(z.string(), z.unknown()),
+  condition: StepCondition,
+  createdAt: IsoDateTime,
+  updatedAt: IsoDateTime,
+});
+
+const WorkflowStepInput = z.object({
+  action: z.string(),
+  actionConfig: z.record(z.string(), z.unknown()),
+  condition: StepCondition.optional(),
+});
+
 const Workflow = z.object({
   id: Uuid,
   name: z.string(),
   trigger: z.string(),
   triggerConfig: z.record(z.string(), z.unknown()),
-  action: z.string(),
-  actionConfig: z.record(z.string(), z.unknown()),
   isActive: z.boolean(),
   executionCount: z.number().int(),
   lastExecutedAt: IsoDateTime.nullable(),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
+  steps: z.array(WorkflowStep),
 });
 
 const Team = z.object({
@@ -441,18 +463,48 @@ register({ method: 'delete', path: '/crm/activities/:id', tags: [TAG], summary: 
 // ============================================================
 // Workflows (automations)
 // ============================================================
-register({ method: 'get', path: '/crm/workflows', tags: [TAG], summary: 'List workflow automations',
+register({ method: 'get', path: '/crm/workflows', tags: [TAG], summary: 'List workflow automations with embedded steps',
   response: envelope(z.object({ workflows: z.array(Workflow) })) });
-register({ method: 'post', path: '/crm/workflows', tags: [TAG], summary: 'Create a workflow automation',
-  body: Workflow.omit({ id: true, executionCount: true, lastExecutedAt: true, createdAt: true, updatedAt: true }).partial()
-    .extend({ name: z.string(), trigger: z.string(), action: z.string() }),
+register({ method: 'get', path: '/crm/workflows/:id', tags: [TAG], summary: 'Get a single workflow with its steps',
+  params: z.object({ id: Uuid }), response: envelope(Workflow) });
+register({ method: 'post', path: '/crm/workflows', tags: [TAG], summary: 'Create a workflow automation with one or more steps',
+  body: z.object({
+    name: z.string(),
+    trigger: z.string(),
+    triggerConfig: z.record(z.string(), z.unknown()).optional(),
+    steps: z.array(WorkflowStepInput).min(1),
+  }),
   response: envelope(Workflow) });
-register({ method: 'put', path: '/crm/workflows/:id', tags: [TAG], summary: 'Update a workflow automation',
-  params: z.object({ id: Uuid }), body: Workflow.partial(), concurrency: true, response: envelope(Workflow) });
-register({ method: 'delete', path: '/crm/workflows/:id', tags: [TAG], summary: 'Delete a workflow automation',
+register({ method: 'put', path: '/crm/workflows/:id', tags: [TAG], summary: 'Update workflow metadata (does not touch steps)',
+  params: z.object({ id: Uuid }),
+  body: z.object({
+    name: z.string().optional(),
+    trigger: z.string().optional(),
+    triggerConfig: z.record(z.string(), z.unknown()).optional(),
+    isActive: z.boolean().optional(),
+  }),
+  concurrency: true,
+  response: envelope(Workflow) });
+register({ method: 'delete', path: '/crm/workflows/:id', tags: [TAG], summary: 'Delete a workflow automation (cascades to steps)',
   params: z.object({ id: Uuid }) });
 register({ method: 'post', path: '/crm/workflows/:id/toggle', tags: [TAG], summary: 'Toggle a workflow on/off',
   params: z.object({ id: Uuid }), response: envelope(Workflow) });
+
+// Workflow steps
+register({ method: 'post', path: '/crm/workflows/:id/steps', tags: [TAG], summary: 'Append a step to a workflow',
+  params: z.object({ id: Uuid }),
+  body: WorkflowStepInput,
+  response: envelope(WorkflowStep) });
+register({ method: 'patch', path: '/crm/workflows/:id/steps/:stepId', tags: [TAG], summary: 'Update a workflow step',
+  params: z.object({ id: Uuid, stepId: Uuid }),
+  body: WorkflowStepInput.partial(),
+  concurrency: true,
+  response: envelope(WorkflowStep) });
+register({ method: 'delete', path: '/crm/workflows/:id/steps/:stepId', tags: [TAG], summary: 'Delete a workflow step (400 LAST_STEP if it is the only step)',
+  params: z.object({ id: Uuid, stepId: Uuid }) });
+register({ method: 'post', path: '/crm/workflows/:id/steps/reorder', tags: [TAG], summary: 'Reorder all steps — body must list every step id',
+  params: z.object({ id: Uuid }),
+  body: z.object({ stepIds: z.array(Uuid).min(1) }) });
 
 // ============================================================
 // Leads
