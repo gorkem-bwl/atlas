@@ -602,11 +602,22 @@ export function HomePage() {
     return () => clearInterval(id);
   }, [cycleImage, bgRotate]);
 
-  // Preload next image
+  // Preload next image — deferred to idle time so it never competes with
+  // first paint. The next image is only used when the user triggers a
+  // rotation, which can tolerate a cold fetch.
   useEffect(() => {
     const nextIdx = (imageIndex + 1) % BG_IMAGES.length;
-    const img = new Image();
-    img.src = BG_IMAGES[nextIdx];
+    const load = () => {
+      const img = new Image();
+      img.src = BG_IMAGES[nextIdx];
+    };
+    const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    const id = ric ? ric(load) : window.setTimeout(load, 2000);
+    return () => {
+      const cic = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+      if (cic) cic(id);
+      else window.clearTimeout(id);
+    };
   }, [imageIndex]);
 
 

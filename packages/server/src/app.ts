@@ -20,6 +20,8 @@ export function createApp() {
     const clientDist = path.join(__dirname, '../../client/dist');
     // Hashed assets (JS/CSS) — cache forever, Vite includes content hash in filenames
     app.use('/assets', express.static(path.join(clientDist, 'assets'), { maxAge: '1y', immutable: true }));
+    // Home-screen wallpapers — 30 days, safe to cache aggressively (filenames are stable).
+    app.use('/wallpapers', express.static(path.join(clientDist, 'wallpapers'), { maxAge: '30d' }));
     // index.html and other root files — never cache so updates are picked up immediately
     app.use(express.static(clientDist, { maxAge: 0, setHeaders: (res, filePath) => {
       if (filePath.endsWith('.html')) {
