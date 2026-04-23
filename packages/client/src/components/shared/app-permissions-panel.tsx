@@ -38,7 +38,7 @@ const APPS_SUPPORTING_OWN_RECORD_ACCESS = new Set(['crm']);
 const ROLE_COLORS: Record<AppRole, string> = {
   admin: '#16a34a',
   editor: '#2563eb',
-  viewer: 'var(--color-text-tertiary)',
+  viewer: '#6b7280',
 };
 
 const ROLE_DESCRIPTIONS: Record<AppRole, string> = {

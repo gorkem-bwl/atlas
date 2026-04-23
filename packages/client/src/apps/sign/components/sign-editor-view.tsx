@@ -295,7 +295,7 @@ export function SignEditorView({
                         }}
                       />
                     ) : (
-                      <Chip onClick={() => setAddingTag(true)} color="var(--color-text-tertiary)">
+                      <Chip onClick={() => setAddingTag(true)} color="#6b7280">
                         + {t('sign.editor.addTag')}
                       </Chip>
                     )}
