@@ -1934,7 +1934,11 @@
       "noHistory": "Henüz revizyon geçmişi yok.",
       "snapshotTotal": "Toplam",
       "snapshotItems": "{{count}} satır öğesi",
-      "snapshotItems_plural": "{{count}} satır öğesi"
+      "snapshotItems_plural": "{{count}} satır öğesi",
+      "convertToInvoice": "Faturaya dönüştür",
+      "alreadyConverted": "Bu teklif zaten bir faturaya dönüştürülmüş",
+      "convertedToInvoice": "Teklif faturaya dönüştürüldü",
+      "convertToInvoiceFailed": "Teklif faturaya dönüştürülemedi"
     },
     "workflows": {
       "notificationTitle": "İş akışı bildirimi",
@@ -4508,7 +4512,9 @@
       "thisWeek": "Bu hafta",
       "thisMonth": "Bu ay",
       "thisQuarter": "Bu çeyrek",
-      "thisYear": "Bu yıl"
+      "thisYear": "Bu yıl",
+      "multiCurrencyNotice": "Yalnızca {{currency}} faturaları gösteriliyor; diğer para birimlerinde {{count}} fatura hariç tutuldu",
+      "multiCurrencyNotice_plural": "Yalnızca {{currency}} faturaları gösteriliyor; diğer para birimlerinde {{count}} fatura hariç tutuldu"
     },
     "importPdf": "PDF'den içe aktar"
   },

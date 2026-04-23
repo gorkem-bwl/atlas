@@ -1993,7 +1993,11 @@
       "noHistory": "No revision history yet.",
       "snapshotTotal": "Total",
       "snapshotItems": "{{count}} line item",
-      "snapshotItems_plural": "{{count}} line items"
+      "snapshotItems_plural": "{{count}} line items",
+      "convertToInvoice": "Convert to invoice",
+      "alreadyConverted": "This proposal has already been converted to an invoice",
+      "convertedToInvoice": "Proposal converted to invoice",
+      "convertToInvoiceFailed": "Failed to convert proposal to invoice"
     }
   },
   "drive": {
@@ -4508,7 +4512,9 @@
       "thisWeek": "This week",
       "thisMonth": "This month",
       "thisQuarter": "This quarter",
-      "thisYear": "This year"
+      "thisYear": "This year",
+      "multiCurrencyNotice": "Showing {{currency}} invoices only; {{count}} invoice in other currencies excluded",
+      "multiCurrencyNotice_plural": "Showing {{currency}} invoices only; {{count}} invoices in other currencies excluded"
     },
     "importPdf": "Import from PDF"
   },

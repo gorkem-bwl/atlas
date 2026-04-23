@@ -1934,7 +1934,11 @@
       "noHistory": "Aucun historique de révision pour l'instant.",
       "snapshotTotal": "Total",
       "snapshotItems": "{{count}} ligne",
-      "snapshotItems_plural": "{{count}} lignes"
+      "snapshotItems_plural": "{{count}} lignes",
+      "convertToInvoice": "Convertir en facture",
+      "alreadyConverted": "Cette proposition a déjà été convertie en facture",
+      "convertedToInvoice": "Proposition convertie en facture",
+      "convertToInvoiceFailed": "Échec de la conversion en facture"
     },
     "workflows": {
       "notificationTitle": "Notification de flux de travail",
@@ -4508,7 +4512,9 @@
       "thisWeek": "Cette semaine",
       "thisMonth": "Ce mois",
       "thisQuarter": "Ce trimestre",
-      "thisYear": "Cette année"
+      "thisYear": "Cette année",
+      "multiCurrencyNotice": "Affichage des factures {{currency}} uniquement ; {{count}} facture dans d'autres devises exclue",
+      "multiCurrencyNotice_plural": "Affichage des factures {{currency}} uniquement ; {{count}} factures dans d'autres devises exclues"
     },
     "importPdf": "Importer depuis un PDF"
   },

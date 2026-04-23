@@ -12,7 +12,7 @@ export async function listInvoices(req: Request, res: Response) {
     const perm = req.invoicesPerm!;
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { companyId, contactId, dealId, projectId, status, search, includeArchived } = req.query;
+    const { companyId, contactId, dealId, projectId, proposalId, status, search, includeArchived } = req.query;
 
     const isAdmin = perm.role === 'admin';
     const invoicesList = await invoiceService.listInvoices(userId, tenantId, {
@@ -20,6 +20,7 @@ export async function listInvoices(req: Request, res: Response) {
       contactId: contactId as string | undefined,
       dealId: dealId as string | undefined,
       projectId: projectId as string | undefined,
+      proposalId: proposalId as string | undefined,
       status: status as string | undefined,
       search: search as string | undefined,
       includeArchived: includeArchived === 'true',

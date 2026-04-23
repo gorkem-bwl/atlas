@@ -1934,7 +1934,11 @@
       "noHistory": "Noch kein Revisionsverlauf vorhanden.",
       "snapshotTotal": "Gesamt",
       "snapshotItems": "{{count}} Position",
-      "snapshotItems_plural": "{{count}} Positionen"
+      "snapshotItems_plural": "{{count}} Positionen",
+      "convertToInvoice": "In Rechnung umwandeln",
+      "alreadyConverted": "Dieses Angebot wurde bereits in eine Rechnung umgewandelt",
+      "convertedToInvoice": "Angebot wurde in Rechnung umgewandelt",
+      "convertToInvoiceFailed": "Angebot konnte nicht in Rechnung umgewandelt werden"
     },
     "workflows": {
       "notificationTitle": "Workflow-Benachrichtigung",
@@ -4508,7 +4512,9 @@
       "thisWeek": "Diese Woche",
       "thisMonth": "Dieser Monat",
       "thisQuarter": "Dieses Quartal",
-      "thisYear": "Dieses Jahr"
+      "thisYear": "Dieses Jahr",
+      "multiCurrencyNotice": "Es werden nur {{currency}}-Rechnungen angezeigt; {{count}} Rechnung in anderen Währungen ausgeschlossen",
+      "multiCurrencyNotice_plural": "Es werden nur {{currency}}-Rechnungen angezeigt; {{count}} Rechnungen in anderen Währungen ausgeschlossen"
     },
     "importPdf": "Aus PDF importieren"
   },

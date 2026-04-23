@@ -466,6 +466,94 @@ export async function acceptProposal(token: string) {
   });
 }
 
+// ─── Convert to Invoice ─────────────────────────────────────────────
+
+/**
+ * Converts a proposal to a draft invoice (audit #62 — option A).
+ * Does NOT change the proposal status (user decision: stays put).
+ * Returns the created invoice id.
+ */
+export async function convertProposalToInvoice(
+  tenantId: string,
+  proposalId: string,
+  userId: string,
+  recordAccess?: CrmRecordAccess,
+): Promise<string | null> {
+  const conditions = [eq(crmProposals.tenantId, tenantId), eq(crmProposals.id, proposalId), eq(crmProposals.isArchived, false)];
+  if ((!recordAccess || recordAccess === 'own')) {
+    conditions.push(eq(crmProposals.userId, userId));
+  }
+
+  const [proposal] = await db
+    .select()
+    .from(crmProposals)
+    .where(and(...conditions))
+    .limit(1);
+
+  if (!proposal) return null;
+
+  // Guard: reject if a linked invoice already exists for this proposal (audit #62)
+  const [existingInvoice] = await db
+    .select({ id: invoices.id })
+    .from(invoices)
+    .where(and(eq(invoices.proposalId, proposal.id), eq(invoices.tenantId, tenantId), eq(invoices.isArchived, false)))
+    .limit(1);
+
+  if (existingInvoice) {
+    throw new Error('ALREADY_CONVERTED');
+  }
+
+  const now = new Date();
+  const invoiceNumber = await getNextInvoiceNumber(tenantId);
+  const items = (proposal.lineItems as LineItem[]) ?? [];
+
+  return db.transaction(async (tx) => {
+    const [inv] = await tx
+      .insert(invoices)
+      .values({
+        tenantId,
+        userId,
+        companyId: proposal.companyId ?? '',
+        contactId: proposal.contactId ?? null,
+        dealId: proposal.dealId ?? null,
+        proposalId: proposal.id,
+        invoiceNumber,
+        status: 'draft',
+        subtotal: proposal.subtotal,
+        taxPercent: proposal.taxPercent,
+        taxAmount: proposal.taxAmount,
+        discountPercent: proposal.discountPercent,
+        discountAmount: proposal.discountAmount,
+        total: proposal.total,
+        currency: proposal.currency,
+        issueDate: now,
+        dueDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        notes: proposal.notes ?? null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    if (items.length > 0) {
+      await tx.insert(invoiceLineItems).values(
+        items.map((li, idx) => ({
+          invoiceId: inv.id,
+          description: li.description,
+          quantity: li.quantity,
+          unitPrice: li.unitPrice,
+          amount: li.quantity * li.unitPrice,
+          taxRate: li.taxRate ?? 0,
+          sortOrder: idx,
+          createdAt: now,
+        })),
+      );
+    }
+
+    logger.info({ proposalId, invoiceId: inv.id, tenantId }, 'Proposal converted to invoice');
+    return inv.id;
+  });
+}
+
 // ─── Public: decline ───────────────────────────────────────────────
 
 export async function declineProposal(token: string) {

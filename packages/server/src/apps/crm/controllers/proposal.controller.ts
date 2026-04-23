@@ -233,6 +233,47 @@ export async function restoreProposalRevision(req: Request, res: Response) {
   }
 }
 
+export async function convertProposalToInvoice(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+
+    const perm = req.crmPerm!;
+    if (!canAccessEntity(perm.role, 'proposals', 'view', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission' });
+      return;
+    }
+
+    const invoiceId = await proposalService.convertProposalToInvoice(tenantId, id, userId, perm.recordAccess);
+    if (!invoiceId) {
+      res.status(404).json({ success: false, error: 'Proposal not found' });
+      return;
+    }
+
+    // Activity feed event
+    const { emitAppEvent } = await import('../../../services/event.service');
+    emitAppEvent({
+      tenantId,
+      userId,
+      appId: 'crm',
+      eventType: 'proposal.converted',
+      title: 'converted a proposal to invoice',
+      metadata: { proposalId: id, invoiceId },
+    }).catch(() => {});
+
+    res.json({ success: true, data: { invoiceId } });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : '';
+    if (msg === 'ALREADY_CONVERTED') {
+      res.status(409).json({ success: false, error: 'Invoice already exists for this proposal', code: 'ALREADY_CONVERTED' });
+      return;
+    }
+    logger.error({ error }, 'Failed to convert proposal to invoice');
+    res.status(500).json({ success: false, error: 'Failed to convert proposal to invoice' });
+  }
+}
+
 // ─── Public controllers (no auth) ──────────────────────────────────
 
 export async function getPublicProposal(req: Request, res: Response) {

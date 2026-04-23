@@ -1697,7 +1697,7 @@ export function useRestoreProposalRevision() {
 /** Checks whether a proposal already has a linked invoice (to disable duplicate conversion). */
 export function useProposalInvoices(proposalId: string | undefined) {
   return useQuery({
-    queryKey: ['invoices', 'by-proposal', proposalId],
+    queryKey: proposalId ? queryKeys.invoices.byProposal(proposalId) : ['invoices', 'by-proposal', null],
     queryFn: async () => {
       const { data } = await api.get(`/invoices/list?proposalId=${proposalId}`);
       return (data.data as { invoices: Array<{ id: string }> }).invoices;
@@ -1714,8 +1714,9 @@ export function useConvertProposalToInvoice() {
       const { data } = await api.post(`/crm/proposals/${proposalId}/convert-to-invoice`);
       return data.data as { invoiceId: string };
     },
-    onSuccess: () => {
+    onSuccess: (_data, proposalId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.byProposal(proposalId) });
     },
   });
 }

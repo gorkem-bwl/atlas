@@ -146,6 +146,7 @@ export const queryKeys = {
     payments: (id: string) => ['invoices', 'payments', id] as const,
     recurringList: ['invoices', 'recurring', 'list'] as const,
     recurringDetail: (id: string) => ['invoices', 'recurring', 'detail', id] as const,
+    byProposal: (proposalId: string) => ['invoices', 'by-proposal', proposalId] as const,
   },
   crm: {
     all: ['crm'] as const,

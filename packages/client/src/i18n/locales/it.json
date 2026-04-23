@@ -1934,7 +1934,11 @@
       "noHistory": "Nessuna cronologia delle revisioni ancora.",
       "snapshotTotal": "Totale",
       "snapshotItems": "{{count}} voce",
-      "snapshotItems_plural": "{{count}} voci"
+      "snapshotItems_plural": "{{count}} voci",
+      "convertToInvoice": "Converti in fattura",
+      "alreadyConverted": "Questa proposta è già stata convertita in fattura",
+      "convertedToInvoice": "Proposta convertita in fattura",
+      "convertToInvoiceFailed": "Impossibile convertire la proposta in fattura"
     },
     "workflows": {
       "notificationTitle": "Notifica del flusso di lavoro",
@@ -4508,7 +4512,9 @@
       "thisWeek": "Questa settimana",
       "thisMonth": "Questo mese",
       "thisQuarter": "Questo trimestre",
-      "thisYear": "Quest'anno"
+      "thisYear": "Quest'anno",
+      "multiCurrencyNotice": "Visualizzazione solo fatture in {{currency}}; {{count}} fattura in altre valute esclusa",
+      "multiCurrencyNotice_plural": "Visualizzazione solo fatture in {{currency}}; {{count}} fatture in altre valute escluse"
     },
     "importPdf": "Importa da PDF"
   },

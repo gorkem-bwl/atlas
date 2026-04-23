@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
-  Send, Copy, Trash2, Edit3, Link2, ArrowLeft, ChevronDown, ChevronRight, History,
+  Send, Copy, Trash2, Edit3, Link2, ArrowLeft, ChevronDown, ChevronRight, History, FileText,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { IconButton } from '../../../components/ui/icon-button';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
+import { Tooltip } from '../../../components/ui/tooltip';
 import { StatusTimeline } from '../../../components/shared/status-timeline';
 import { LineItemsEditor, type LineItem } from '../../../components/shared/line-items-editor';
 import { TotalsBlock } from '../../../components/shared/totals-block';
@@ -18,6 +20,8 @@ import {
   useMyCrmPermission,
   useProposalRevisions,
   useRestoreProposalRevision,
+  useProposalInvoices,
+  useConvertProposalToInvoice,
   canAccess,
   type Proposal,
   type ProposalRevision,
@@ -34,6 +38,7 @@ interface ProposalDetailPanelProps {
 
 export function ProposalDetailPanel({ proposalId, onBack, onEdit }: ProposalDetailPanelProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: perm } = useMyCrmPermission();
   const canUpdate = canAccess(perm?.role, 'proposals', 'update');
   const canCreate = canAccess(perm?.role, 'proposals', 'create');
@@ -42,6 +47,9 @@ export function ProposalDetailPanel({ proposalId, onBack, onEdit }: ProposalDeta
   const sendProposal = useSendProposal();
   const duplicateProposal = useDuplicateProposal();
   const deleteProposal = useDeleteProposal();
+  const convertToInvoice = useConvertProposalToInvoice();
+  const { data: proposalInvoices = [] } = useProposalInvoices(proposalId);
+  const hasLinkedInvoice = proposalInvoices.length > 0;
   const { addToast } = useToastStore();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -241,6 +249,32 @@ export function ProposalDetailPanel({ proposalId, onBack, onEdit }: ProposalDeta
             <Button variant="primary" size="sm" icon={<Send size={14} />} onClick={() => sendProposal.mutate(proposal.id)} disabled={sendProposal.isPending}>
               {t('crm.proposals.send')}
             </Button>
+          )}
+          {canCreate && (
+            <Tooltip
+              content={hasLinkedInvoice ? t('crm.proposals.alreadyConverted') : undefined}
+              side="top"
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<FileText size={14} />}
+                disabled={hasLinkedInvoice || convertToInvoice.isPending}
+                onClick={() => {
+                  convertToInvoice.mutate(proposal.id, {
+                    onSuccess: ({ invoiceId }) => {
+                      addToast({ type: 'success', message: t('crm.proposals.convertedToInvoice') });
+                      navigate(`/invoices?view=invoice-detail&invoiceId=${invoiceId}`);
+                    },
+                    onError: () => {
+                      addToast({ type: 'error', message: t('crm.proposals.convertToInvoiceFailed') });
+                    },
+                  });
+                }}
+              >
+                {t('crm.proposals.convertToInvoice')}
+              </Button>
+            </Tooltip>
           )}
           {canCreate && (
             <Button
