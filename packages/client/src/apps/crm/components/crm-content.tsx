@@ -45,7 +45,6 @@ export function CrmContent({
   selectedContactId, setSelectedContactId,
   selectedCompanyId, setSelectedCompanyId,
   selectedDeal, selectedContact, selectedCompany,
-  searchQuery,
   selectedIds, setSelectedIds,
   focusedIndex, setFocusedIndex,
   editingCell, setEditingCell,
@@ -81,7 +80,6 @@ export function CrmContent({
   selectedDeal: CrmDeal | null | undefined;
   selectedContact: CrmContact | null | undefined;
   selectedCompany: CrmCompany | null | undefined;
-  searchQuery: string;
   selectedIds: Set<string>;
   setSelectedIds: (ids: Set<string>) => void;
   focusedIndex: number | null;
@@ -152,7 +150,6 @@ export function CrmContent({
             stages={stages}
             onMoveDeal={handleMoveDeal}
             onDealClick={handleDealClick}
-            searchQuery={searchQuery}
           />
         ))}
 
@@ -162,7 +159,6 @@ export function CrmContent({
             stages={stages}
             selectedId={selectedDealId}
             onSelect={handleDealClick}
-            searchQuery={searchQuery}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             focusedIndex={focusedIndex}
@@ -183,7 +179,6 @@ export function CrmContent({
             contacts={filteredContacts}
             selectedId={selectedContactId}
             onSelect={(id) => { setSearchParams({ view: 'contact-detail', contactId: id }, { replace: true }); }}
-            searchQuery={searchQuery}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             focusedIndex={focusedIndex}
@@ -214,7 +209,6 @@ export function CrmContent({
             companies={filteredCompanies}
             selectedId={selectedCompanyId}
             onSelect={(id) => { setSearchParams({ view: 'company-detail', companyId: id }, { replace: true }); }}
-            searchQuery={searchQuery}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             focusedIndex={focusedIndex}
@@ -242,7 +236,6 @@ export function CrmContent({
         {activeView === 'activities' && (loadingActivities ? <ListSkeleton /> : (
           <ActivitiesListView
             activities={activities}
-            searchQuery={searchQuery}
           />
         ))}
 

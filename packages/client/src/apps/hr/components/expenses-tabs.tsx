@@ -55,11 +55,7 @@ function readPersistedTab(): ExpenseTabId | null {
   return null;
 }
 
-interface ExpensesTabsProps {
-  searchQuery?: string;
-}
-
-export function ExpensesTabs({ searchQuery = '' }: ExpensesTabsProps) {
+export function ExpensesTabs() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: hrPerm } = useMyAppPermission('hr');
@@ -159,7 +155,6 @@ export function ExpensesTabs({ searchQuery = '' }: ExpensesTabsProps) {
           <MyExpensesView
             onSelect={setSelectedExpenseId}
             onAdd={() => setShowExpenseForm(true)}
-            searchQuery={searchQuery}
             selectedId={selectedExpenseId}
           />
         )}

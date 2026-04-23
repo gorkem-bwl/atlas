@@ -18,7 +18,7 @@ import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state
 import { StatusDot } from '../../../../components/ui/status-dot';
 
 export function DealsListView({
-  deals, stages, selectedId, onSelect, searchQuery,
+  deals, stages, selectedId, onSelect,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
   companies, onAdd, canEdit = true, groupBy = null,
@@ -27,7 +27,6 @@ export function DealsListView({
   stages: CrmDealStage[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  searchQuery: string;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   focusedIndex: number | null;
@@ -43,16 +42,6 @@ export function DealsListView({
 }) {
   const { t } = useTranslation();
   const updateDeal = useUpdateDeal();
-
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return deals;
-    const q = searchQuery.toLowerCase();
-    return deals.filter((d) =>
-      d.title.toLowerCase().includes(q) ||
-      (d.companyName?.toLowerCase().includes(q)) ||
-      (d.contactName?.toLowerCase().includes(q)),
-    );
-  }, [deals, searchQuery]);
 
   const companyDomainMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -78,16 +67,7 @@ export function DealsListView({
     onEditingCellChange(null);
   };
 
-  if (filtered.length === 0) {
-    if (searchQuery) {
-      return (
-        <div className="crm-empty-state">
-          <Briefcase size={48} className="crm-empty-state-icon" />
-          <div className="crm-empty-state-title">{t('crm.empty.noMatchingDeals')}</div>
-          <div className="crm-empty-state-desc">{t('crm.empty.tryDifferentSearch')}</div>
-        </div>
-      );
-    }
+  if (deals.length === 0) {
     return (
       <FeatureEmptyState
         illustration="pipeline"
@@ -177,7 +157,7 @@ export function DealsListView({
   return (
     <DataTable
       persistSortKey="crm_deals"
-      data={filtered}
+      data={deals}
       columns={dealColumns}
       searchable
       exportable

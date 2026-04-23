@@ -9,20 +9,11 @@ import { Badge } from '../../../../components/ui/badge';
 import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state';
 
 export function ActivitiesListView({
-  activities, searchQuery,
+  activities,
 }: {
   activities: CrmActivity[];
-  searchQuery: string;
 }) {
   const { t } = useTranslation();
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return activities;
-    const q = searchQuery.toLowerCase();
-    return activities.filter((a) =>
-      a.body.toLowerCase().includes(q) ||
-      a.type.toLowerCase().includes(q),
-    );
-  }, [activities, searchQuery]);
 
   const columns: DataTableColumn<CrmActivity>[] = useMemo(() => [
     {
@@ -127,16 +118,7 @@ export function ActivitiesListView({
     },
   ], [t]);
 
-  if (filtered.length === 0) {
-    if (searchQuery) {
-      return (
-        <div className="crm-empty-state">
-          <Clock size={48} className="crm-empty-state-icon" />
-          <div className="crm-empty-state-title">{t('crm.empty.noMatchingActivities')}</div>
-          <div className="crm-empty-state-desc">{t('crm.empty.tryDifferentSearch')}</div>
-        </div>
-      );
-    }
+  if (activities.length === 0) {
     return (
       <FeatureEmptyState
         illustration="calendar"
@@ -155,14 +137,14 @@ export function ActivitiesListView({
     <div style={{ flex: 1, overflow: 'auto', padding: 'var(--spacing-lg)' }}>
       <DataTable
         persistSortKey="crm_activities"
-        data={filtered}
+        data={activities}
         columns={columns}
         storageKey="crm-activities"
         searchable
         columnSelector
         resizableColumns
         exportable
-        paginated={filtered.length > 25}
+        paginated={activities.length > 25}
         defaultPageSize={25}
         emptyIcon={<Clock size={40} />}
         emptyTitle={t('crm.activities.noActivities')}

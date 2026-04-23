@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Building2, Users, Plus, Globe, Tag,
@@ -15,7 +14,7 @@ import { DataTable, type DataTableColumn } from '../../../../components/ui/data-
 import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state';
 
 export function CompaniesListView({
-  companies, selectedId, onSelect, searchQuery,
+  companies, selectedId, onSelect,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
   onAdd, canEdit = true, groupBy = null,
@@ -23,7 +22,6 @@ export function CompaniesListView({
   companies: CrmCompany[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  searchQuery: string;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   focusedIndex: number | null;
@@ -38,16 +36,6 @@ export function CompaniesListView({
 }) {
   const { t } = useTranslation();
   const updateCompany = useUpdateCompany();
-
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return companies;
-    const q = searchQuery.toLowerCase();
-    return companies.filter((c) =>
-      c.name.toLowerCase().includes(q) ||
-      (c.domain?.toLowerCase().includes(q)) ||
-      (c.industry?.toLowerCase().includes(q)),
-    );
-  }, [companies, searchQuery]);
 
   const handleCellClick = (rowId: string, column: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,16 +54,7 @@ export function CompaniesListView({
     onEditingCellChange(null);
   };
 
-  if (filtered.length === 0) {
-    if (searchQuery) {
-      return (
-        <div className="crm-empty-state">
-          <Building2 size={48} className="crm-empty-state-icon" />
-          <div className="crm-empty-state-title">{t('crm.empty.noMatchingCompanies')}</div>
-          <div className="crm-empty-state-desc">{t('crm.empty.tryDifferentSearch')}</div>
-        </div>
-      );
-    }
+  if (companies.length === 0) {
     return (
       <FeatureEmptyState
         illustration="contacts"
@@ -147,7 +126,7 @@ export function CompaniesListView({
   return (
     <DataTable
       persistSortKey="crm_companies"
-      data={filtered}
+      data={companies}
       columns={companyColumns}
       searchable
       exportable

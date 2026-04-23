@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Plus, Search, X, Trash2, Merge,
+  Plus, Trash2, Merge, X,
 } from 'lucide-react';
 import { isTenantAdmin } from '@atlas-platform/shared';
 import {
@@ -35,7 +35,6 @@ import { CrmSidebar } from './components/crm-sidebar';
 import { CrmToolbar } from './components/crm-toolbar';
 import { CrmContent } from './components/crm-content';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
 import { IconButton } from '../../components/ui/icon-button';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
@@ -61,9 +60,6 @@ export function CrmPage() {
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Multi-select & table interaction state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -139,7 +135,6 @@ export function CrmPage() {
   // Close selection on view change
   useEffect(() => {
     setSelectedDealId(null); setSelectedContactId(null); setSelectedCompanyId(null);
-    setSearchQuery(''); setShowSearch(false);
     setSelectedIds(new Set()); setFocusedIndex(null); setEditingCell(null);
     setGroupBy(null);
     const pending = pendingViewRef.current;
@@ -202,21 +197,14 @@ export function CrmPage() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        if (showSearch) { setShowSearch(false); setSearchQuery(''); }
-        else if (selectedDealId || selectedContactId || selectedCompanyId) {
+        if (selectedDealId || selectedContactId || selectedCompanyId) {
           setSelectedDealId(null); setSelectedContactId(null); setSelectedCompanyId(null);
         }
-      }
-      const target = e.target as HTMLElement;
-      if (e.key === '/' && !(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-        e.preventDefault();
-        setShowSearch(true);
-        setTimeout(() => searchInputRef.current?.focus(), 50);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedDealId, selectedContactId, selectedCompanyId, showSearch]);
+  }, [selectedDealId, selectedContactId, selectedCompanyId]);
 
   const sectionTitle = useMemo(() => {
     switch (activeView) {
@@ -299,8 +287,6 @@ export function CrmPage() {
         actions={
           activeView !== 'dashboard' && activeView !== 'automations' && activeView !== 'deal-detail' && activeView !== 'lead-detail' && activeView !== 'contact-detail' && activeView !== 'company-detail' ? (
             <>
-              <IconButton icon={<Search size={14} />} label={t('crm.actions.search')} size={28} active={showSearch}
-                onClick={() => { setShowSearch(!showSearch); if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50); }} />
               {((activeView === 'pipeline' || activeView === 'deals') && canAccess(myRole, 'deals', 'create')) ||
                (activeView === 'contacts' && canAccess(myRole, 'contacts', 'create')) ||
                (activeView === 'companies' && canAccess(myRole, 'companies', 'create')) ||
@@ -311,16 +297,6 @@ export function CrmPage() {
           ) : undefined
         }
       >
-        {showSearch && (
-          <div className="crm-search-bar">
-            <Input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('crm.actions.search')} iconLeft={<Search size={14} />} size="sm"
-              style={{ border: 'none', background: 'transparent' }} />
-            <IconButton icon={<X size={14} />} label={t('common.close')} size={24}
-              onClick={() => { setShowSearch(false); setSearchQuery(''); }} />
-          </div>
-        )}
-
         <CrmToolbar
           activeView={activeView}
           importEntityType={importEntityType as 'deals' | 'contacts' | 'companies'}
@@ -347,7 +323,6 @@ export function CrmPage() {
           selectedContactId={selectedContactId} setSelectedContactId={setSelectedContactId}
           selectedCompanyId={selectedCompanyId} setSelectedCompanyId={setSelectedCompanyId}
           selectedDeal={selectedDeal} selectedContact={selectedContact} selectedCompany={selectedCompany}
-          searchQuery={searchQuery}
           selectedIds={selectedIds} setSelectedIds={setSelectedIds}
           focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex}
           editingCell={editingCell} setEditingCell={setEditingCell}

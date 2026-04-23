@@ -17,14 +17,12 @@ export function EmployeesListView({
   departments,
   selectedId,
   onSelect,
-  searchQuery,
   onAdd,
 }: {
   employees: HrEmployee[];
   departments: HrDepartment[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  searchQuery: string;
   onAdd: () => void;
 }) {
   const { t } = useTranslation();
@@ -34,16 +32,6 @@ export function EmployeesListView({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return employees;
-    const q = searchQuery.toLowerCase();
-    return employees.filter(
-      (e) =>
-        e.name.toLowerCase().includes(q) ||
-        e.email.toLowerCase().includes(q) ||
-        e.role.toLowerCase().includes(q),
-    );
-  }, [employees, searchQuery]);
 
   const handleBulkDelete = async () => {
     const ids = Array.from(selected);
@@ -109,16 +97,7 @@ export function EmployeesListView({
     return cols;
   }, [t, showDept, departments]);
 
-  if (filtered.length === 0) {
-    if (searchQuery) {
-      return (
-        <div className="hr-empty-state">
-          <Users size={48} className="hr-empty-state-icon" />
-          <div className="hr-empty-state-title">{t('hr.employees.noMatch')}</div>
-          <div className="hr-empty-state-desc">{t('hr.employees.noMatchDesc')}</div>
-        </div>
-      );
-    }
+  if (employees.length === 0) {
     return (
       <FeatureEmptyState
         illustration="employees"
@@ -140,7 +119,7 @@ export function EmployeesListView({
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <DataTable
         persistSortKey="hr_employees"
-        data={filtered}
+        data={employees}
         columns={empColumns}
         selectable
         selectedIds={selected}

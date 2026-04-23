@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Users, Building2, CalendarDays, Plus, Search, Settings2, X,
+  Users, Building2, CalendarDays, Plus, Settings2,
   User,
   LayoutDashboard, GitBranch,
   UserCheck,
@@ -22,8 +22,6 @@ import {
 } from './hooks';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../components/layout/app-sidebar';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { IconButton } from '../../components/ui/icon-button';
 import { ContentArea } from '../../components/ui/content-area';
 import { TopBar } from '../../components/layout/top-bar';
 import { urlForCategory } from '../../config/settings-url';
@@ -91,10 +89,6 @@ export function HrPage() {
     setSearchParams({ view: nav });
     setSelectedEmployeeId(null);
   }, [setSearchParams]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
   // Modal state
   const [showCreateEmployee, setShowCreateEmployee] = useState(false);
   const [showCreateDepartment, setShowCreateDepartment] = useState(false);
@@ -182,20 +176,12 @@ export function HrPage() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        if (showSearch) { setShowSearch(false); setSearchQuery(''); }
-        else if (selectedEmployeeId) setSelectedEmployeeId(null);
-      }
-      const target = e.target as HTMLElement;
-      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-      if (e.key === '/' && !isInput) {
-        e.preventDefault();
-        setShowSearch(true);
-        setTimeout(() => searchInputRef.current?.focus(), 50);
+        if (selectedEmployeeId) setSelectedEmployeeId(null);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEmployeeId, showSearch]);
+  }, [selectedEmployeeId]);
 
   // Portal users can only access portal views — redirect if they try admin views via URL.
   // Don't fire during permission loading, otherwise the user sees a
@@ -368,40 +354,13 @@ export function HrPage() {
       {activeNav !== 'employee-detail' && activeNav !== 'my-profile' && <ContentArea
         title={sectionTitle}
         actions={
-          <>
-            {(activeNav === 'employees' || activeNav.startsWith('dept:')) && (
-              <IconButton
-                icon={<Search size={14} />}
-                label={t('hr.actions.search')}
-                size={28}
-                active={showSearch}
-                onClick={() => { setShowSearch(!showSearch); if (!showSearch) setTimeout(() => searchInputRef.current?.focus(), 50); }}
-              />
-            )}
-            {showAddButton && (
-              <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
-                {activeNav === 'departments' ? t('hr.actions.addDepartment') : activeNav === 'time-off' ? t('hr.actions.requestTimeOff') : t('hr.actions.addEmployee')}
-              </Button>
-            )}
-          </>
+          showAddButton ? (
+            <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleAdd}>
+              {activeNav === 'departments' ? t('hr.actions.addDepartment') : activeNav === 'time-off' ? t('hr.actions.requestTimeOff') : t('hr.actions.addEmployee')}
+            </Button>
+          ) : undefined
         }
       >
-        {/* Search bar */}
-        {showSearch && (activeNav === 'employees' || activeNav.startsWith('dept:')) && (
-          <div className="hr-search-bar">
-            <Input
-              ref={searchInputRef}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('hr.actions.searchPlaceholder')}
-              iconLeft={<Search size={14} />}
-              size="sm"
-              style={{ border: 'none', background: 'transparent' }}
-            />
-            <IconButton icon={<X size={14} />} label={t('common.close')} size={24} onClick={() => { setShowSearch(false); setSearchQuery(''); }} />
-          </div>
-        )}
-
         {/* Content area */}
         {activeNav === 'dashboard' && <DashboardView />}
 
@@ -415,7 +374,6 @@ export function HrPage() {
             departments={departments}
             selectedId={selectedEmployeeId}
             onSelect={(id) => setSearchParams({ view: 'employee-detail', employee: id }, { replace: true })}
-            searchQuery={searchQuery}
             onAdd={handleAdd}
           />
         )}
@@ -435,7 +393,7 @@ export function HrPage() {
 
         {activeNav === 'attendance' && <AttendanceView employees={allEmployees} />}
         {activeNav === 'leave' && <LeaveTabs employees={allEmployees} />}
-        {activeNav === 'expenses' && <ExpensesTabs searchQuery={searchQuery} />}
+        {activeNav === 'expenses' && <ExpensesTabs />}
       </ContentArea>}
 
       {/* Full-page employee detail (rendered outside ContentArea to avoid double header) */}

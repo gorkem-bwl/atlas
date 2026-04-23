@@ -14,7 +14,7 @@ import { DataTable, type DataTableColumn } from '../../../../components/ui/data-
 import { FeatureEmptyState } from '../../../../components/ui/feature-empty-state';
 
 export function ContactsListView({
-  contacts, selectedId, onSelect, searchQuery,
+  contacts, selectedId, onSelect,
   selectedIds, onSelectionChange, focusedIndex, onFocusedIndexChange,
   editingCell, onEditingCellChange, sort, onSortChange,
   companies, onAdd, canEdit = true, groupBy = null,
@@ -22,7 +22,6 @@ export function ContactsListView({
   contacts: CrmContact[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  searchQuery: string;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   focusedIndex: number | null;
@@ -38,16 +37,6 @@ export function ContactsListView({
 }) {
   const { t } = useTranslation();
   const updateContact = useUpdateContact();
-
-  const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return contacts;
-    const q = searchQuery.toLowerCase();
-    return contacts.filter((c) =>
-      c.name.toLowerCase().includes(q) ||
-      (c.email?.toLowerCase().includes(q)) ||
-      (c.companyName?.toLowerCase().includes(q)),
-    );
-  }, [contacts, searchQuery]);
 
   const companyDomainMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -73,16 +62,7 @@ export function ContactsListView({
     onEditingCellChange(null);
   };
 
-  if (filtered.length === 0) {
-    if (searchQuery) {
-      return (
-        <div className="crm-empty-state">
-          <Users size={48} className="crm-empty-state-icon" />
-          <div className="crm-empty-state-title">{t('crm.empty.noMatchingContacts')}</div>
-          <div className="crm-empty-state-desc">{t('crm.empty.tryDifferentSearch')}</div>
-        </div>
-      );
-    }
+  if (contacts.length === 0) {
     return (
       <FeatureEmptyState
         illustration="contacts"
@@ -158,7 +138,7 @@ export function ContactsListView({
   return (
     <DataTable
       persistSortKey="crm_contacts"
-      data={filtered}
+      data={contacts}
       columns={contactColumns}
       selectable
       selectedIds={selectedIds}

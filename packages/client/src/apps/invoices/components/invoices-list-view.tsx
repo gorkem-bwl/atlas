@@ -77,9 +77,8 @@ function countByStatus(invoices: Invoice[]): Record<StatusFilter, number> {
 
 const FILTER_OPTIONS: StatusFilter[] = ['all', 'draft', 'unpaid', 'overdue', 'paid', 'waived'];
 
-export function InvoicesListView({ invoices, searchQuery, onOpenDetail, selectedId, onAdd, onImportPdf }: {
+export function InvoicesListView({ invoices, onOpenDetail, selectedId, onAdd, onImportPdf }: {
   invoices: Invoice[];
-  searchQuery: string;
   onOpenDetail: (id: string) => void;
   selectedId: string | null;
   onAdd?: () => void;
@@ -91,18 +90,10 @@ export function InvoicesListView({ invoices, searchQuery, onOpenDetail, selected
   const counts = useMemo(() => countByStatus(invoices), [invoices]);
 
   const filtered = useMemo(() => {
-    let result = filterByStatus(invoices, statusFilter);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((inv) =>
-        inv.invoiceNumber.toLowerCase().includes(q) ||
-        (inv.companyName?.toLowerCase().includes(q)),
-      );
-    }
-    return result;
-  }, [invoices, statusFilter, searchQuery]);
+    return filterByStatus(invoices, statusFilter);
+  }, [invoices, statusFilter]);
 
-  if (invoices.length === 0 && !searchQuery) {
+  if (invoices.length === 0) {
     return (
       <FeatureEmptyState
         illustration="documents"

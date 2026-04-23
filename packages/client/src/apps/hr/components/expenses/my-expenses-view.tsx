@@ -14,7 +14,6 @@ import { formatDate, formatCurrency } from '../../../../lib/format';
 interface MyExpensesViewProps {
   onSelect: (id: string) => void;
   onAdd: () => void;
-  searchQuery: string;
   selectedId: string | null;
 }
 
@@ -27,7 +26,7 @@ const STATUS_TABS: Array<{ value: ExpenseStatus | 'all'; key: string }> = [
   { value: 'paid', key: 'paid' },
 ];
 
-export function MyExpensesView({ onSelect, onAdd, searchQuery, selectedId }: MyExpensesViewProps) {
+export function MyExpensesView({ onSelect, onAdd, selectedId }: MyExpensesViewProps) {
   const { t } = useTranslation();
   const { data: expenses, isLoading, isError, refetch } = useMyExpenses();
   const [statusFilter, setStatusFilter] = useState<ExpenseStatus | 'all'>('all');
@@ -40,18 +39,8 @@ export function MyExpensesView({ onSelect, onAdd, searchQuery, selectedId }: MyE
       result = result.filter((e) => e.status === statusFilter);
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.description.toLowerCase().includes(q) ||
-          e.merchantName?.toLowerCase().includes(q) ||
-          e.categoryName?.toLowerCase().includes(q)
-      );
-    }
-
     return result;
-  }, [expenses, statusFilter, searchQuery]);
+  }, [expenses, statusFilter]);
 
   if (isError) return <QueryErrorState onRetry={refetch} />;
   if (isLoading) {
