@@ -115,7 +115,7 @@ export async function sendInvoiceEmail(
     }
 
     // Require a portal token — the public portal route is
-    // /api/invoices/portal/:token/:invoiceId, so without a token the
+    // /api/v1/invoices/portal/:token/:invoiceId, so without a token the
     // CTA in the email would 404.
     if (!company.portalToken) {
       logger.warn(
@@ -126,9 +126,9 @@ export async function sendInvoiceEmail(
     }
 
     // Build portal URL — matches the public route mounted at
-    // /api/invoices/portal/:token/:invoiceId (see invoices/routes.ts)
+    // /api/v1/invoices/portal/:token/:invoiceId (see invoices/routes.ts)
     const baseUrl = env.CLIENT_PUBLIC_URL || env.SERVER_PUBLIC_URL;
-    const portalUrl = `${baseUrl}/api/invoices/portal/${company.portalToken}/${invoice.id}`;
+    const portalUrl = `${baseUrl}/api/v1/invoices/portal/${company.portalToken}/${invoice.id}`;
 
     // Build email content. balanceDue falls back to invoice.total, which
     // is correct for freshly-issued invoices with no payments. The

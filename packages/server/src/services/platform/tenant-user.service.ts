@@ -11,8 +11,11 @@ import type { TenantMemberRole } from '@atlas-platform/shared';
 import { env } from '../../config/env';
 import { sendEmail } from '../email.service';
 
-// Default app permissions for new members — everything except CRM, HR, System
-const DEFAULT_MEMBER_APPS = ['tasks', 'drive', 'docs', 'draw', 'tables', 'sign', 'projects'];
+// Default app permissions for new members — everything except CRM, HR, System.
+// 'work' replaces the old separate 'tasks' and 'projects' apps (merged in v1.9.x).
+// 'tables' was deprecated in v1.10.0; permission has no effect but kept here for
+// backward-compat with existing tenants that may still query against the old key.
+const DEFAULT_MEMBER_APPS = ['work', 'drive', 'docs', 'draw', 'sign'];
 
 async function grantDefaultPermissions(tenantId: string, userId: string) {
   for (const appId of DEFAULT_MEMBER_APPS) {

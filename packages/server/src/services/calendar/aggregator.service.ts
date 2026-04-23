@@ -37,7 +37,7 @@ export async function getAggregatedEvents(
   const [crmPerm, hrPerm, tasksPerm] = await Promise.all([
     getAppPermission(tenantId, userId, 'crm').catch(() => null),
     getAppPermission(tenantId, userId, 'hr').catch(() => null),
-    getAppPermission(tenantId, userId, 'tasks').catch(() => null),
+    getAppPermission(tenantId, userId, 'work').catch(() => null),
   ]);
   const hasCrm = crmPerm && crmPerm.role !== ('none' as string);
   const hasHr = hrPerm && hrPerm.role !== ('none' as string);

@@ -38,13 +38,11 @@ const BASE_ROLE_OPTIONS = [
 ];
 
 const DEFAULT_APP_PERMS = [
-  { appId: 'tasks', enabled: true, role: 'editor', recordAccess: 'all' },
+  { appId: 'work', enabled: true, role: 'editor', recordAccess: 'all' },
   { appId: 'drive', enabled: true, role: 'editor', recordAccess: 'all' },
   { appId: 'docs', enabled: true, role: 'editor', recordAccess: 'all' },
   { appId: 'draw', enabled: true, role: 'editor', recordAccess: 'all' },
-  { appId: 'tables', enabled: true, role: 'editor', recordAccess: 'all' },
   { appId: 'sign', enabled: true, role: 'editor', recordAccess: 'all' },
-  { appId: 'projects', enabled: true, role: 'editor', recordAccess: 'all' },
   { appId: 'crm', enabled: false, role: 'editor', recordAccess: 'own' },
   { appId: 'hr', enabled: false, role: 'viewer', recordAccess: 'own' },
 ];

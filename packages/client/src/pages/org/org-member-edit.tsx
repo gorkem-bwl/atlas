@@ -163,7 +163,7 @@ export function OrgMemberEditPage() {
       label: t('org.memberEdit.presetReset'),
       apply: () => {
         const defaults: Record<string, { role: AppRole; recordAccess: AppRecordAccess }> = {};
-        const defaultApps = ['tasks', 'drive', 'docs', 'draw', 'tables', 'sign', 'projects'];
+        const defaultApps = ['work', 'drive', 'docs', 'draw', 'sign'];
         for (const id of defaultApps) {
           defaults[id] = { role: 'editor', recordAccess: 'all' };
         }

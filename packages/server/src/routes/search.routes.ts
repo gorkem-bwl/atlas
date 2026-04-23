@@ -10,11 +10,9 @@ import { logger } from '../utils/logger';
 const SEARCHABLE_APP_IDS = [
   'crm',
   'hr',
-  'projects',
+  'work',
   'invoices',
   'sign',
-  'tables',
-  'tasks',
   'docs',
   'draw',
 ] as const;

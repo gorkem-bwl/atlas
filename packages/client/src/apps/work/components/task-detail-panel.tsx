@@ -78,7 +78,7 @@ export function TaskDetailPanel({
       <div className="task-detail-header">
         <span className="task-detail-header-label">{t('tasks.taskDetail')}</span>
         <div className="task-detail-header-actions">
-          <PresenceAvatars appId="tasks" recordId={task.id} />
+          <PresenceAvatars appId="work" recordId={task.id} />
           {canDelete && (
             <IconButton
               icon={<Trash2 size={14} />}
@@ -97,7 +97,7 @@ export function TaskDetailPanel({
         </div>
       </div>
 
-      <SmartButtonBar appId="tasks" recordId={task.id} />
+      <SmartButtonBar appId="work" recordId={task.id} />
 
       {/* Body */}
       <div className="task-detail-body task-list-scroll">

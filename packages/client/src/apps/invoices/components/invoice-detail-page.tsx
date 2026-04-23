@@ -153,7 +153,7 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
                 addToast({ type: 'error', message: t('invoices.detail.shareNoCompany') });
                 return;
               }
-              const portalUrl = `${window.location.origin}/api/invoices/portal/${company.portalToken}/${invoice.id}`;
+              const portalUrl = `${window.location.origin}/api/v1/invoices/portal/${company.portalToken}/${invoice.id}`;
               navigator.clipboard.writeText(portalUrl);
               addToast({ type: 'success', message: t('invoices.linkCopied') });
             }}

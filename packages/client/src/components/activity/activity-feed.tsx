@@ -31,7 +31,7 @@ function getDateGroup(dateStr: string): DateGroup {
 // Filter chips configuration
 // ---------------------------------------------------------------------------
 
-const APP_FILTERS = ['all', 'crm', 'sign', 'hr', 'tasks', 'drive', 'docs'] as const;
+const APP_FILTERS = ['all', 'crm', 'sign', 'hr', 'work', 'drive', 'docs'] as const;
 type AppFilter = (typeof APP_FILTERS)[number];
 
 // ---------------------------------------------------------------------------
