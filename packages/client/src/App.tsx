@@ -22,7 +22,7 @@ import { ConflictDialog } from './components/shared/conflict-dialog';
 import { ImpersonationBanner } from './apps/system/components/impersonation-banner';
 import { type ReactNode } from 'react';
 import { useMyAccessibleApps } from './hooks/use-app-permissions';
-import { GlobalDock } from './components/layout/global-dock';
+import { AppRail } from './components/layout/app-rail';
 import { OrgLayout } from './pages/org/org-layout';
 import { OrgMembersPage } from './pages/org/org-members';
 import { OrgMemberEditPage } from './pages/org/org-member-edit';
@@ -65,14 +65,13 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** Renders the global dock on authenticated app pages, but NOT on home, login, setup, etc. */
-function GlobalDockWrapper() {
+/** Renders the app rail on authenticated app pages. Hidden on Home, auth pages, and public share pages. */
+function AppRailWrapper() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const location = useLocation();
 
   if (!isAuthenticated) return null;
 
-  // Hide on pages that have their own dock or are non-app pages
   const hiddenPaths = ['/', '/login', '/register', '/setup', '/onboarding', '/forgot-password'];
   const path = location.pathname;
   if (hiddenPaths.includes(path)) return null;
@@ -81,7 +80,7 @@ function GlobalDockWrapper() {
   if (path.startsWith('/sign/') || path.startsWith('/proposal/')) return null;
   if (path.startsWith('/drive/upload/')) return null;
 
-  return <GlobalDock />;
+  return <AppRail />;
 }
 
 function AppGuard({ appId, children }: { appId: string; children: ReactNode }) {
@@ -160,7 +159,7 @@ export function App() {
 
                 <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
               </Routes>
-              <GlobalDockWrapper />
+              <AppRailWrapper />
               <CommandPalette />
               <SettingsModal />
               <ConflictDialog />
