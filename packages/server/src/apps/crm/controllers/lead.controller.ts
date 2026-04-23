@@ -13,7 +13,7 @@ export async function listLeads(req: Request, res: Response) {
     const { status, source, search } = req.query;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No access to leads' });
       return;
     }
@@ -57,7 +57,7 @@ export async function createLead(req: Request, res: Response) {
     const { name, email, phone, companyName, source, notes } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to create leads' });
       return;
     }
@@ -98,7 +98,7 @@ export async function updateLead(req: Request, res: Response) {
     const { name, email, phone, companyName, source, status, notes, tags, sortOrder, isArchived } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to update leads' });
       return;
     }
@@ -125,7 +125,7 @@ export async function deleteLead(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission to delete leads' });
       return;
     }
@@ -145,7 +145,7 @@ export async function enrichLead(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -168,7 +168,7 @@ export async function convertLead(req: Request, res: Response) {
     const { dealTitle, dealStageId, dealValue } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -242,7 +242,7 @@ export async function listLeadForms(req: Request, res: Response) {
     const tenantId = req.auth!.tenantId;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -262,7 +262,7 @@ export async function createLeadForm(req: Request, res: Response) {
     const { name } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -283,7 +283,7 @@ export async function updateLeadForm(req: Request, res: Response) {
     const { name, fields, isActive } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -310,7 +310,7 @@ export async function deleteLeadForm(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'leads', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }

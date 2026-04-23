@@ -14,7 +14,7 @@ export async function listNotes(req: Request, res: Response) {
     const { dealId, contactId, companyId } = req.query;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'notes', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -38,7 +38,7 @@ export async function createNote(req: Request, res: Response) {
     const { title, content, dealId, contactId, companyId } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'notes', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -83,7 +83,7 @@ export async function updateNote(req: Request, res: Response) {
     const { title, content, isPinned, isArchived } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'notes', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -106,7 +106,7 @@ export async function deleteNote(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'notes', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }

@@ -12,7 +12,7 @@ export async function listProposals(req: Request, res: Response) {
     const { dealId, companyId, status, search } = req.query;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -40,7 +40,7 @@ export async function getProposal(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -65,7 +65,7 @@ export async function createProposal(req: Request, res: Response) {
     const { title, dealId, contactId, companyId, content, lineItems, taxPercent, discountPercent, currency, validUntil, notes } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -96,7 +96,7 @@ export async function updateProposal(req: Request, res: Response) {
     const { title, dealId, contactId, companyId, content, lineItems, taxPercent, discountPercent, currency, validUntil, notes, changeReason } = req.body;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -125,7 +125,7 @@ export async function deleteProposal(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'delete', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'delete', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -145,7 +145,7 @@ export async function sendProposal(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -170,7 +170,7 @@ export async function duplicateProposal(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'create', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -194,7 +194,7 @@ export async function listProposalRevisions(req: Request, res: Response) {
     const id = req.params.id as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'view', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }
@@ -215,7 +215,7 @@ export async function restoreProposalRevision(req: Request, res: Response) {
     const revisionId = req.params.revisionId as string;
 
     const perm = req.crmPerm!;
-    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+    if (!canAccessEntity(perm.role, 'proposals', 'update', perm.entityPermissions)) {
       res.status(403).json({ success: false, error: 'No permission' });
       return;
     }

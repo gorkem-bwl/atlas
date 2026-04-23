@@ -103,7 +103,7 @@ export interface CrmTeamMember {
   createdAt: string;
 }
 
-export type CrmEntity = 'deals' | 'contacts' | 'companies' | 'activities' | 'workflows' | 'dashboard';
+export type CrmEntity = 'deals' | 'contacts' | 'companies' | 'activities' | 'leads' | 'notes' | 'proposals' | 'workflows' | 'dashboard';
 export type CrmOperation = 'view' | 'create' | 'update' | 'delete';
 
 export interface CrmPermission {
