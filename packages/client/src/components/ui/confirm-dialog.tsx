@@ -1,7 +1,7 @@
-import { useState, type CSSProperties } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from './modal';
+import { Button } from './button';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -27,8 +27,6 @@ export function ConfirmDialog({
   const { t } = useTranslation();
   const resolvedConfirmLabel = confirmLabel ?? t('common.confirm');
   const resolvedCancelLabel = cancelLabel ?? t('common.cancel');
-  const [confirmHovered, setConfirmHovered] = useState(false);
-  const [cancelHovered, setCancelHovered] = useState(false);
 
   const handleConfirm = () => {
     onConfirm();
@@ -36,17 +34,18 @@ export function ConfirmDialog({
   };
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange} width={400} zIndex={300} title={title}>
-      <div style={{ padding: 'var(--spacing-xl)' }}>
+    <Modal open={open} onOpenChange={onOpenChange} width={440} zIndex={300} title={title}>
+      <Modal.Header title={title} />
+      <Modal.Body padding="var(--spacing-xl)">
         <div style={{ display: 'flex', gap: 'var(--spacing-lg)' }}>
           <div
             style={{
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               borderRadius: 'var(--radius-lg)',
               background: destructive
-                ? 'color-mix(in srgb, var(--color-error) 10%, transparent)'
-                : 'color-mix(in srgb, var(--color-warning) 10%, transparent)',
+                ? 'color-mix(in srgb, var(--color-error) 12%, transparent)'
+                : 'color-mix(in srgb, var(--color-warning) 12%, transparent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -54,94 +53,34 @@ export function ConfirmDialog({
             }}
           >
             <AlertTriangle
-              size={20}
+              size={18}
               style={{
                 color: destructive ? 'var(--color-error)' : 'var(--color-warning)',
               }}
             />
           </div>
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 'var(--font-size-lg)',
-                fontWeight: 'var(--font-weight-semibold)' as CSSProperties['fontWeight'],
-                color: 'var(--color-text-primary)',
-                fontFamily: 'var(--font-family)',
-                marginBottom: 'var(--spacing-xs)',
-              }}
-            >
-              {title}
-            </div>
-            <div
-              style={{
-                fontSize: 'var(--font-size-md)',
-                color: 'var(--color-text-secondary)',
-                fontFamily: 'var(--font-family)',
-                lineHeight: 'var(--line-height-normal)',
-              }}
-            >
-              {description}
-            </div>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: 'var(--font-size-md)',
+              color: 'var(--color-text-secondary)',
+              fontFamily: 'var(--font-family)',
+              lineHeight: 'var(--line-height-normal)',
+            }}
+          >
+            {description}
           </div>
         </div>
-
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 'var(--spacing-sm)',
-            marginTop: 'var(--spacing-xl)',
-          }}
-        >
-          <button
-            onClick={() => onOpenChange(false)}
-            onMouseEnter={() => setCancelHovered(true)}
-            onMouseLeave={() => setCancelHovered(false)}
-            style={{
-              height: 34,
-              padding: '0 var(--spacing-lg)',
-              background: cancelHovered ? 'var(--color-surface-hover)' : 'transparent',
-              border: '1px solid var(--color-border-primary)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--font-size-md)',
-              fontFamily: 'var(--font-family)',
-              cursor: 'pointer',
-              transition: 'background var(--transition-fast), color var(--transition-fast)',
-            }}
-          >
-            {resolvedCancelLabel}
-          </button>
-
-          <button
-            onClick={handleConfirm}
-            onMouseEnter={() => setConfirmHovered(true)}
-            onMouseLeave={() => setConfirmHovered(false)}
-            style={{
-              height: 34,
-              padding: '0 var(--spacing-lg)',
-              background: destructive
-                ? confirmHovered
-                  ? '#c53030'
-                  : 'var(--color-error)'
-                : confirmHovered
-                  ? 'var(--color-accent-primary-hover)'
-                  : 'var(--color-accent-primary)',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              color: '#ffffff',
-              fontSize: 'var(--font-size-md)',
-              fontWeight: 'var(--font-weight-medium)' as CSSProperties['fontWeight'],
-              fontFamily: 'var(--font-family)',
-              cursor: 'pointer',
-              transition: 'background var(--transition-fast)',
-            }}
-          >
-            {resolvedConfirmLabel}
-          </button>
-        </div>
-      </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          {resolvedCancelLabel}
+        </Button>
+        <Button variant={destructive ? 'danger' : 'primary'} onClick={handleConfirm}>
+          {resolvedConfirmLabel}
+        </Button>
+      </Modal.Footer>
     </Modal>
   );
 }

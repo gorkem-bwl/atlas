@@ -251,6 +251,7 @@ export function RecurringInvoicesList() {
           data={recurringList}
           columns={columns}
           storageKey="recurring_invoices"
+          onRowClick={(item) => handleOpenEdit(item)}
           searchable
           searchPlaceholder={t('invoices.recurring.searchPlaceholder', { defaultValue: 'Search...' })}
           resizableColumns
