@@ -164,7 +164,7 @@ export function CalendarView({
                 height: 22,
                 borderRadius: '50%',
                 background: isCurrentDay ? 'var(--color-accent-primary)' : 'transparent',
-                ...(isCurrentDay ? { color: '#fff' } : {}),
+                ...(isCurrentDay ? { color: 'var(--color-bg-primary)' } : {}),
               }}>
                 {day}
               </div>

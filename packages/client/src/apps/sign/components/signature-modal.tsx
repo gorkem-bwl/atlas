@@ -170,7 +170,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
                 border: '1px solid var(--color-border-primary)',
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
-                background: '#fff',
+                background: 'var(--color-bg-elevated)',
               }}
             >
               <SignatureCanvas
@@ -233,7 +233,7 @@ export function SignatureModal({ open, onOpenChange, onApply, fieldType }: Signa
                   padding: '16px 12px',
                   border: '1px solid var(--color-border-primary)',
                   borderRadius: 'var(--radius-md)',
-                  background: '#fff',
+                  background: 'var(--color-bg-elevated)',
                   fontFamily: FONTS[selectedFont].family,
                   fontSize: 'var(--font-size-2xl)',
                   color: '#000',

@@ -77,7 +77,7 @@ export function MoveModal({
               textAlign: 'left',
             }}
           >
-            <FolderPlus size={16} color="#64748b" />
+            <FolderPlus size={16} color="var(--color-text-tertiary)" />
             {folder.name}
           </button>
         ))}

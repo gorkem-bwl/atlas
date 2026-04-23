@@ -181,7 +181,7 @@ function PolicyCard({
   };
 
   const getLeaveTypeName = (id: string) => leaveTypes.find(lt => lt.id === id)?.name ?? id;
-  const getLeaveTypeColor = (id: string) => leaveTypes.find(lt => lt.id === id)?.color ?? '#6b7280';
+  const getLeaveTypeColor = (id: string) => leaveTypes.find(lt => lt.id === id)?.color ?? 'var(--color-text-tertiary)';
   const getLeaveTypeIsPaid = (id: string) => leaveTypes.find(lt => lt.id === id)?.isPaid ?? true;
 
   return (

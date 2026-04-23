@@ -104,7 +104,7 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
             display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-md) var(--spacing-lg)',
             borderBottom: '1px solid var(--color-border-secondary)',
           }}>
-            <StatusDot color={app.leaveTypeColor || '#6b7280'} size={10} />
+            <StatusDot color={app.leaveTypeColor || 'var(--color-text-tertiary)'} size={10} />
             <span style={{ width: 140, flexShrink: 0, fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family)' }}>
               {app.employeeName}
             </span>

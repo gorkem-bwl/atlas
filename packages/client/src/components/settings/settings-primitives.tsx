@@ -147,7 +147,7 @@ export function SettingsToggle({
           width: 16,
           height: 16,
           borderRadius: '50%',
-          background: '#fff',
+          background: 'var(--color-bg-elevated)',
           transition: 'left 0.2s ease',
           boxShadow: '0 1px 3px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.06)',
         }}

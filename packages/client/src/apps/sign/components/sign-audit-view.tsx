@@ -57,12 +57,12 @@ export function SignAuditView({
               }}>
                 {entry.action === 'document.created' && <FileText size={13} style={{ color: '#8b5cf6' }} />}
                 {entry.action === 'signing_link.created' && <Link2 size={13} style={{ color: '#f59e0b' }} />}
-                {entry.action === 'document.viewed' && <FileText size={13} style={{ color: '#6b7280' }} />}
-                {entry.action === 'document.signed' && <PenTool size={13} style={{ color: '#10b981' }} />}
-                {entry.action === 'signing_token.completed' && <CheckCircle size={13} style={{ color: '#10b981' }} />}
-                {entry.action === 'document.completed' && <CheckCircle size={13} style={{ color: '#10b981' }} />}
-                {entry.action === 'document.voided' && <Ban size={13} style={{ color: '#ef4444' }} />}
-                {entry.action === 'document.declined' && <AlertTriangle size={13} style={{ color: '#ef4444' }} />}
+                {entry.action === 'document.viewed' && <FileText size={13} style={{ color: 'var(--color-text-tertiary)' }} />}
+                {entry.action === 'document.signed' && <PenTool size={13} style={{ color: 'var(--color-success)' }} />}
+                {entry.action === 'signing_token.completed' && <CheckCircle size={13} style={{ color: 'var(--color-success)' }} />}
+                {entry.action === 'document.completed' && <CheckCircle size={13} style={{ color: 'var(--color-success)' }} />}
+                {entry.action === 'document.voided' && <Ban size={13} style={{ color: 'var(--color-error)' }} />}
+                {entry.action === 'document.declined' && <AlertTriangle size={13} style={{ color: 'var(--color-error)' }} />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>

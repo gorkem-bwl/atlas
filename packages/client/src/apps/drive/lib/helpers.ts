@@ -128,7 +128,7 @@ export function getTokenParam(): string {
 export function parseTag(tag: string): { color: string; label: string } {
   const idx = tag.indexOf(':');
   if (idx > 0) return { color: tag.slice(0, idx), label: tag.slice(idx + 1) };
-  return { color: '#6b7280', label: tag };
+  return { color: 'var(--color-text-tertiary)', label: tag };
 }
 
 export function isTextPreviewable(mimeType: string | null, name: string): boolean {

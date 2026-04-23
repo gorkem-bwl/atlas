@@ -68,7 +68,7 @@ export function PipelineWidget(_props: AppWidgetProps) {
 
       {/* Won/Lost indicators */}
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 14, marginTop: 2 }}>
-        <span style={{ color: '#10b981' }}>
+        <span style={{ color: 'var(--color-success)' }}>
           {wonThisMonth} {t('crm.widgetWon')}
         </span>
         <span style={{ color: lostThisMonth > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.6)' }}>

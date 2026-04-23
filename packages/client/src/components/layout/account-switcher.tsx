@@ -95,7 +95,7 @@ function AccountRow({
             transition: 'color var(--transition-normal)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = '#ef4444';
+            e.currentTarget.style.color = 'var(--color-error)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = 'var(--color-text-tertiary)';

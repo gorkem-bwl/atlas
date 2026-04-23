@@ -25,9 +25,9 @@ import { queryKeys } from '../../config/query-keys';
 // ─── Gauge Color Logic ─────────────────────────────────────────────
 
 function gaugeColor(percent: number): string {
-  if (percent >= 85) return '#ef4444';
-  if (percent >= 60) return '#f59e0b';
-  return '#10b981';
+  if (percent >= 85) return 'var(--color-error)';
+  if (percent >= 60) return 'var(--color-warning)';
+  return 'var(--color-success)';
 }
 
 // ─── Uptime Formatter ──────────────────────────────────────────────
@@ -159,7 +159,7 @@ function RefreshDot() {
         width: 6,
         height: 6,
         borderRadius: '50%',
-        background: '#10b981',
+        background: 'var(--color-success)',
         animation: 'pulse 2s ease-in-out infinite',
         marginLeft: 6,
       }}

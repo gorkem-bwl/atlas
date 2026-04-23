@@ -43,7 +43,7 @@ export function getAvatarColor(name: string): string {
 
 export function NameAvatar({ name }: { name: string }) {
   return (
-    <span style={{ width: 24, height: 24, borderRadius: '50%', background: getAvatarColor(name), color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
+    <span style={{ width: 24, height: 24, borderRadius: '50%', background: getAvatarColor(name), color: 'var(--color-bg-primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
       {name.charAt(0).toUpperCase()}
     </span>
   );
@@ -103,11 +103,11 @@ export function getActivityDueStatus(activity: CrmActivity): ActivityDueStatus {
 }
 
 export const DUE_STATUS_COLORS: Record<ActivityDueStatus, string> = {
-  'overdue': '#ef4444',
-  'due-today': '#f59e0b',
-  'due-future': '#10b981',
-  'no-date': '#6b7280',
-  'completed': '#6b7280',
+  'overdue': 'var(--color-error)',
+  'due-today': 'var(--color-warning)',
+  'due-future': 'var(--color-success)',
+  'no-date': 'var(--color-text-tertiary)',
+  'completed': 'var(--color-text-tertiary)',
 };
 
 export function getActivityDueLabel(activity: CrmActivity, t: (key: string, opts?: Record<string, unknown>) => string): string | null {

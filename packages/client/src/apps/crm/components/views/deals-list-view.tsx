@@ -155,7 +155,7 @@ export function DealsListView({
         <InlineSelectCell value={deal.stageId} options={stages.map((s) => ({ value: s.id, label: s.name }))} onSave={(v) => handleSave(deal.id, 'stage', v)} onCancel={() => onEditingCellChange(null)} />
       ) : (
         <span style={{ cursor: 'pointer' }} onClick={(e) => handleCellClick(deal.id, 'stage', e)}>
-          {deal.stageName && <Badge variant="default"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><StatusDot color={deal.stageColor || '#6b7280'} size={6} />{deal.stageName}</span></Badge>}
+          {deal.stageName && <Badge variant="default"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><StatusDot color={deal.stageColor || 'var(--color-text-tertiary)'} size={6} />{deal.stageName}</span></Badge>}
         </span>
       ),
       searchValue: (deal) => deal.stageName || '',

@@ -291,7 +291,7 @@ export function FieldPropertiesPanel({
               width: 14,
               height: 14,
               borderRadius: '50%',
-              background: '#fff',
+              background: 'var(--color-bg-elevated)',
               boxShadow: 'var(--shadow-sm)',
               transition: 'left 0.15s',
             }}
@@ -342,7 +342,7 @@ export function FieldPropertiesPanel({
               width: 14,
               height: 14,
               borderRadius: '50%',
-              background: '#fff',
+              background: 'var(--color-bg-elevated)',
               boxShadow: 'var(--shadow-sm)',
               transition: 'left 0.15s',
             }}

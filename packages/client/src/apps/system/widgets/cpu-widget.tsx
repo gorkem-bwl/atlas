@@ -4,9 +4,9 @@ import { useSystemMetrics } from '../hooks';
 import type { AppWidgetProps } from '../../../config/app-manifest.client';
 
 function gaugeColor(percent: number): string {
-  if (percent >= 85) return '#ef4444';
-  if (percent >= 60) return '#f59e0b';
-  return '#10b981';
+  if (percent >= 85) return 'var(--color-error)';
+  if (percent >= 60) return 'var(--color-warning)';
+  return 'var(--color-success)';
 }
 
 export function CpuWidget(_props: AppWidgetProps) {

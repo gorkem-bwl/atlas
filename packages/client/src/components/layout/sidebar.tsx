@@ -34,7 +34,7 @@ function getNavItems() {
   return [
     ...appRegistry.getNavItems(),
     { id: 'org', labelKey: 'sidebar.organization', icon: Building2, color: '#7889a0', route: ROUTES.ORG },
-    { id: 'settings', labelKey: 'sidebar.settings', icon: Settings, color: '#6b7280', route: ROUTES.SETTINGS },
+    { id: 'settings', labelKey: 'sidebar.settings', icon: Settings, color: 'var(--color-text-tertiary)', route: ROUTES.SETTINGS },
   ];
 }
 

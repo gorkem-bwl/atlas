@@ -286,7 +286,7 @@ export function AutomationsView({ stages }: { stages: CrmDealStage[] }) {
                   width: 16,
                   height: 16,
                   borderRadius: '50%',
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--color-bg-elevated)',
                   transition: 'left 0.2s',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
                 }} />

@@ -61,7 +61,7 @@ export function SignWidget(_props: AppWidgetProps) {
 
       {/* Signed / Draft indicators */}
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 10, marginTop: 2 }}>
-        <span style={{ color: '#10b981' }}>
+        <span style={{ color: 'var(--color-success)' }}>
           {signed} {t('sign.widgetCompleted')}
         </span>
         <span style={{ color: 'rgba(255,255,255,0.4)' }}>

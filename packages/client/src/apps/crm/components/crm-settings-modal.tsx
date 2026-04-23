@@ -152,7 +152,7 @@ function SortableStageRow({
             {stage.probability}%
           </span>
           {stage.rottingDays != null && (
-            <span style={{ fontSize: 'var(--font-size-xs)', color: '#f59e0b', fontFamily: 'var(--font-family)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-warning)', fontFamily: 'var(--font-family)', whiteSpace: 'nowrap' }}>
               {stage.rottingDays}d
             </span>
           )}

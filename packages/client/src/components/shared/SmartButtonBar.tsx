@@ -88,7 +88,7 @@ function SmartButton({
   const app = appRegistry.get(targetAppId);
   const Icon = app?.icon;
   const name = app?.name ?? targetAppId;
-  const color = app?.color ?? '#6b7280';
+  const color = app?.color ?? 'var(--color-text-tertiary)';
 
   return (
     <Popover>

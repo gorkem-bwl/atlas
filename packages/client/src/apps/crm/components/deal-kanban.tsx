@@ -220,7 +220,7 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick, searchQuery
                       if (daysInStage <= rottingDays) return null;
                       return (
                         <Tooltip content={t('crm.deals.rottingWarning', { days: daysInStage, limit: rottingDays })}>
-                          <span style={{ color: daysInStage > rottingDays * 1.5 ? '#ef4444' : '#f59e0b', flexShrink: 0, marginTop: 1 }}>
+                          <span style={{ color: daysInStage > rottingDays * 1.5 ? 'var(--color-error)' : 'var(--color-warning)', flexShrink: 0, marginTop: 1 }}>
                             <AlertTriangle size={12} />
                           </span>
                         </Tooltip>
@@ -272,7 +272,7 @@ export function DealKanban({ deals, stages, onMoveDeal, onDealClick, searchQuery
                         height: 24,
                         borderRadius: '50%',
                         background: 'var(--color-accent-primary)',
-                        color: '#fff',
+                        color: 'var(--color-bg-primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
