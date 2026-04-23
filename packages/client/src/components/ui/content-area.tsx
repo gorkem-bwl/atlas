@@ -29,6 +29,8 @@ interface ContentAreaProps {
 }
 
 export function ContentArea({ title, subtitle, breadcrumbs, actions, headerSlot, children }: ContentAreaProps) {
+  const hasHeader = Boolean(headerSlot || breadcrumbs || subtitle || actions);
+
   return (
     <div
       style={{
@@ -39,7 +41,8 @@ export function ContentArea({ title, subtitle, breadcrumbs, actions, headerSlot,
         minWidth: 0,
       }}
     >
-      {/* Header frame — owned by ContentArea; contents are either default or headerSlot */}
+      {hasHeader && (
+      /* Header frame — owned by ContentArea; contents are either default or headerSlot */
       <div
         style={{
           display: 'flex',
@@ -125,6 +128,7 @@ export function ContentArea({ title, subtitle, breadcrumbs, actions, headerSlot,
           </>
         )}
       </div>
+      )}
 
       {/* Content — owns dock-bottom reserve */}
       <div
