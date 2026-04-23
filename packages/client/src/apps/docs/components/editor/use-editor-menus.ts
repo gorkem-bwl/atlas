@@ -14,13 +14,11 @@ export function useEditorMenus({
   editorRef,
   docList,
   drawingList,
-  tableList,
   editorContainerRef,
 }: {
   editorRef: React.MutableRefObject<ReturnType<typeof useEditor>>;
   docList?: Array<{ id: string; title: string; icon: string | null }>;
   drawingList?: Array<{ id: string; title: string }>;
-  tableList?: Array<{ id: string; title: string }>;
   editorContainerRef: React.RefObject<HTMLDivElement | null>;
 }) {
   // Slash menu state
@@ -39,9 +37,6 @@ export function useEditorMenus({
 
   // Drawing embed picker state
   const [drawingPickerOpen, setDrawingPickerOpen] = useState(false);
-
-  // Table embed picker state
-  const [tablePickerOpen, setTablePickerOpen] = useState(false);
 
   // ── Slash menu ──
 
@@ -68,7 +63,7 @@ export function useEditorMenus({
     slashStartRef.current = null;
   }, []);
 
-  // Dynamic slash commands (includes Drawing/Spreadsheet if those props are provided)
+  // Dynamic slash commands (includes Drawing if that prop is provided)
   const allSlashCommands = useMemo(() => {
     const cmds = [...SLASH_COMMANDS];
     if (drawingList && drawingList.length > 0) {
@@ -79,16 +74,8 @@ export function useEditorMenus({
         command: () => { setDrawingPickerOpen(true); },
       });
     }
-    if (tableList && tableList.length > 0) {
-      cmds.push({
-        title: 'Spreadsheet',
-        description: 'Embed a linked spreadsheet',
-        icon: '\u2637',
-        command: () => { setTablePickerOpen(true); },
-      });
-    }
     return cmds;
-  }, [drawingList, tableList]);
+  }, [drawingList]);
 
   function getFilteredCommands(query: string): SlashCommandItem[] {
     if (!query) return allSlashCommands;
@@ -170,13 +157,6 @@ export function useEditorMenus({
     if (!editor) return;
     editor.chain().focus().insertDrawingEmbed({ drawingId: drawing.id, title: drawing.title }).run();
     setDrawingPickerOpen(false);
-  }
-
-  function insertTableEmbed(table: { id: string; title: string }) {
-    const editor = editorRef.current;
-    if (!editor) return;
-    editor.chain().focus().insertTableEmbed({ tableId: table.id, title: table.title }).run();
-    setTablePickerOpen(false);
   }
 
   // ── onUpdate handler for slash/mention detection ──
@@ -300,10 +280,7 @@ export function useEditorMenus({
     // Pickers
     drawingPickerOpen,
     setDrawingPickerOpen,
-    tablePickerOpen,
-    setTablePickerOpen,
     insertDrawingEmbed,
-    insertTableEmbed,
     // Handlers for useEditor config
     handleEditorUpdate,
     handleMenuKeyDown,

@@ -22,7 +22,6 @@ import { PageMention } from './extensions/page-mention';
 import { ResizableImage } from './extensions/resizable-image';
 import { SearchReplace } from './extensions/search-replace';
 import { DrawingEmbed } from './extensions/drawing-embed';
-import { TableEmbed } from './extensions/table-embed';
 import { useDocSettingsStore, type DocFontStyle } from '../settings-store';
 import { Keyboard } from 'lucide-react';
 import '../../../styles/docs.css';
@@ -37,7 +36,7 @@ import { MentionMenu } from './editor/mention-menu';
 import { TableToolbar } from './editor/table-toolbar';
 import { SearchBar } from './editor/search-bar';
 import { KeyboardShortcutsHelp } from './editor/keyboard-shortcuts-help';
-import { DrawingPicker, TablePicker } from './editor/embed-pickers';
+import { DrawingPicker } from './editor/embed-pickers';
 import { useEditorEffects } from './editor/use-editor-effects';
 import { useEditorMenus } from './editor/use-editor-menus';
 
@@ -53,7 +52,6 @@ interface DocEditorProps {
   documents?: Array<{ id: string; title: string; icon: string | null }>;
   onNavigate?: (docId: string) => void;
   drawings?: Array<{ id: string; title: string }>;
-  tables?: Array<{ id: string; title: string }>;
 }
 
 const DOC_FONT_FAMILIES: Record<DocFontStyle, string> = {
@@ -64,7 +62,7 @@ const DOC_FONT_FAMILIES: Record<DocFontStyle, string> = {
 
 // ─── DocEditor ──────────────────────────────────────────────────────────
 
-export function DocEditor({ value, onChange, readOnly = false, documents: docList, onNavigate, drawings: drawingList, tables: tableList }: DocEditorProps) {
+export function DocEditor({ value, onChange, readOnly = false, documents: docList, onNavigate, drawings: drawingList }: DocEditorProps) {
   const fontStyle = useDocSettingsStore((s) => s.fontStyle);
   const smallText = useDocSettingsStore((s) => s.smallText);
   const fullWidth = useDocSettingsStore((s) => s.fullWidth);
@@ -88,7 +86,6 @@ export function DocEditor({ value, onChange, readOnly = false, documents: docLis
     editorRef,
     docList,
     drawingList,
-    tableList,
     editorContainerRef,
   });
 
@@ -115,9 +112,9 @@ export function DocEditor({ value, onChange, readOnly = false, documents: docLis
       Table.configure({ resizable: true }), TableRow, TableCell, TableHeader,
       ResizableImage,
       UniqueID.configure({
-        types: ['heading', 'paragraph', 'bulletList', 'orderedList', 'taskList', 'codeBlock', 'blockquote', 'table', 'resizableImage', 'callout', 'drawingEmbed', 'tableEmbed'],
+        types: ['heading', 'paragraph', 'bulletList', 'orderedList', 'taskList', 'codeBlock', 'blockquote', 'table', 'resizableImage', 'callout', 'drawingEmbed'],
       }),
-      SearchReplace, Callout, PageMention, DrawingEmbed, TableEmbed,
+      SearchReplace, Callout, PageMention, DrawingEmbed,
     ],
     editorProps: {
       attributes: {
@@ -269,7 +266,7 @@ export function DocEditor({ value, onChange, readOnly = false, documents: docLis
             shouldShow={({ editor: e, state }) => {
               const { from, to } = state.selection;
               if (from === to) return false;
-              if (e.isActive('image') || e.isActive('drawingEmbed') || e.isActive('tableEmbed') || e.isActive('resizableImage')) return false;
+              if (e.isActive('image') || e.isActive('drawingEmbed') || e.isActive('resizableImage')) return false;
               return true;
             }}
           >
@@ -317,10 +314,6 @@ export function DocEditor({ value, onChange, readOnly = false, documents: docLis
 
         {menus.drawingPickerOpen && drawingList && (
           <DrawingPicker drawings={drawingList} onSelect={menus.insertDrawingEmbed} onClose={() => menus.setDrawingPickerOpen(false)} />
-        )}
-
-        {menus.tablePickerOpen && tableList && (
-          <TablePicker tables={tableList} onSelect={menus.insertTableEmbed} onClose={() => menus.setTablePickerOpen(false)} />
         )}
 
         {!readOnly && tableToolbarPos && <TableToolbar editor={editor} position={tableToolbarPos} />}

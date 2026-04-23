@@ -285,7 +285,6 @@ export function DocsPage() {
                   allDocuments={listData?.documents}
                   onNavigate={handleSelect}
                   allDrawings={drawingListData?.drawings?.map((d) => ({ id: d.id, title: d.title }))}
-                  allTables={[]}
                 />
               </div>
             ) : (

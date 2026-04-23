@@ -63,6 +63,7 @@ export async function listInvoices(userId: string, tenantId: string, filters?: {
   contactId?: string;
   dealId?: string;
   projectId?: string;
+  proposalId?: string;
   status?: string;
   search?: string;
   includeArchived?: boolean;
@@ -88,6 +89,9 @@ export async function listInvoices(userId: string, tenantId: string, filters?: {
   }
   if (filters?.projectId) {
     conditions.push(eq(invoices.projectId, filters.projectId));
+  }
+  if (filters?.proposalId) {
+    conditions.push(eq(invoices.proposalId, filters.proposalId));
   }
   // Status filter supports both stored statuses and computed virtual states
   // ('overdue' and 'unpaid'), which are derived from balance_due + due_date.

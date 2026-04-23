@@ -148,14 +148,15 @@ export function InvoiceBuilderModal({
     }
   }, [invoice, open, prefill, defaultCurrency, defaultTaxRate]);
 
-  // Calculations
+  // Calculations — tax on net (tax applied after discount), matching server logic
   const subtotal = useMemo(
     () => lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0),
     [lineItems],
   );
-  const taxAmount = subtotal * (taxPercent / 100);
   const discountAmount = subtotal * (discountPercent / 100);
-  const total = subtotal + taxAmount - discountAmount;
+  const taxableBase = subtotal - discountAmount;
+  const taxAmount = taxableBase * (taxPercent / 100);
+  const total = taxableBase + taxAmount;
 
   // Save handler
   const handleSave = (status?: string) => {

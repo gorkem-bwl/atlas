@@ -35,8 +35,6 @@ interface DocumentViewProps {
   onNavigate?: (docId: string) => void;
   /** All drawings for embed picker */
   allDrawings?: Array<{ id: string; title: string }>;
-  /** All tables for embed picker */
-  allTables?: Array<{ id: string; title: string }>;
 }
 
 export function DocumentView({
@@ -49,7 +47,6 @@ export function DocumentView({
   allDocuments,
   onNavigate,
   allDrawings,
-  allTables,
 }: DocumentViewProps) {
   const { t } = useTranslation();
   const { canEdit } = useAppActions('docs');
@@ -205,7 +202,6 @@ export function DocumentView({
         documents={allDocuments}
         onNavigate={onNavigate}
         drawings={allDrawings}
-        tables={allTables}
       />
 
       <BacklinksSection docId={doc.id} />

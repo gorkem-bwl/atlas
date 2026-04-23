@@ -26,9 +26,11 @@ export function TotalsBlock({
 }: TotalsBlockProps) {
   const { t } = useTranslation();
 
-  const taxAmount = subtotal * (taxPercent / 100);
+  // Tax on net: apply discount first, then tax — matches server invoice.service.ts
   const discountAmount = subtotal * (discountPercent / 100);
-  const total = subtotal + taxAmount - discountAmount;
+  const taxableBase = subtotal - discountAmount;
+  const taxAmount = taxableBase * (taxPercent / 100);
+  const total = taxableBase + taxAmount;
 
   return (
     <div
