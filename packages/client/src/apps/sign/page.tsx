@@ -36,7 +36,7 @@ export function SignPage() {
   const { openSettings } = useUIStore();
 
   return (
-    <div className="sign-page">
+    <div className="sign-page" style={{ marginLeft: 56 }}>
       {/* Hidden file input */}
       <input
         ref={s.fileInputRef}

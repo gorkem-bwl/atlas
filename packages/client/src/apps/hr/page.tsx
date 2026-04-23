@@ -247,7 +247,7 @@ export function HrPage() {
       : undefined;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', marginLeft: 56 }}>
       {/* Sidebar */}
       <AppSidebar
         storageKey="atlas_hr_sidebar"

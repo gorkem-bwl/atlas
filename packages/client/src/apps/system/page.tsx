@@ -181,7 +181,7 @@ export function SystemPage() {
   const { openSettings } = useUIStore();
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', marginLeft: 56 }}>
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }

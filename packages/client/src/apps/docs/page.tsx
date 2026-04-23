@@ -229,6 +229,7 @@ export function DocsPage() {
         width: '100%',
         background: 'var(--color-bg-primary)',
         fontFamily: 'var(--font-family)',
+        marginLeft: 56,
       }}
     >
       <DocSidebar

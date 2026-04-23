@@ -93,7 +93,7 @@ export function InvoicesPage() {
         : t('invoices.sidebar.invoices');
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', marginLeft: 56 }}>
       <InvoicesSidebar activeView={activeView} setActiveView={setActiveView} />
 
       <ContentArea

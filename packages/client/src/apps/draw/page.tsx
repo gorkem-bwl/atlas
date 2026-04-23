@@ -171,6 +171,7 @@ export function DrawPage() {
         width: '100%',
         background: 'var(--color-bg-primary)',
         fontFamily: 'var(--font-family)',
+        marginLeft: 56,
       }}
     >
       <DrawSidebar

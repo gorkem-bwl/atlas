@@ -102,7 +102,7 @@ export function DrivePage() {
   };
 
   return (
-    <div className="drive-page">
+    <div className="drive-page" style={{ marginLeft: 56 }}>
       <input ref={d.fileInputRef} type="file" multiple style={{ display: 'none' }} onChange={d.handleFileInputChange} />
 
       {/* Sidebar */}

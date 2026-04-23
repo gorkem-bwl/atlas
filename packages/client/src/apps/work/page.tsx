@@ -20,7 +20,7 @@ export function WorkPage() {
   const view = parseView(sp.get('view'));
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', marginLeft: 56 }}>
       <WorkSidebar />
       {projectId ? (
         <ProjectDetailPage projectId={projectId} />

@@ -85,6 +85,7 @@ export function OrgLayout() {
       height: '100vh',
       overflow: 'hidden',
       fontFamily: 'var(--font-family)',
+      marginLeft: 56,
       background: 'var(--color-bg-primary)',
       color: 'var(--color-text-primary)',
     }}>

@@ -279,7 +279,7 @@ export function CrmPage() {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', marginLeft: 56 }}>
       <CrmSidebar
         activeView={activeView}
         setActiveView={setActiveView}

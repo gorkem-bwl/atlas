@@ -1087,6 +1087,7 @@ export function CalendarPage() {
         background: 'var(--color-bg-primary)',
         fontFamily: 'var(--font-family)',
         overflow: 'hidden',
+        marginLeft: 56,
       }}
     >
         {/* Left sidebar */}
