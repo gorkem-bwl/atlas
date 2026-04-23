@@ -342,7 +342,10 @@ export function DataTable<T extends { id: string }>({
     const onMouseMove = (e: MouseEvent) => {
       const drag = resizeDragRef.current;
       if (!drag) return;
-      const next = Math.max(60, Math.round(drag.startWidth + (e.clientX - drag.startX)));
+      const raw = Math.round(drag.startWidth + (e.clientX - drag.startX));
+      const containerW = containerRef.current?.clientWidth ?? Infinity;
+      const maxW = Math.max(200, containerW - 200);
+      const next = Math.max(60, Math.min(maxW, raw));
       setColumnWidths(prev => ({ ...prev, [drag.key]: next }));
     };
     const onMouseUp = () => {
