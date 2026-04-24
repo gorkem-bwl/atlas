@@ -10,21 +10,9 @@ import {
   SettingsRow,
   SettingsSelect,
 } from './settings-primitives';
+import { CURRENCY_CODE_OPTIONS, CURRENCY_SYMBOL_OPTIONS } from '@atlas-platform/shared';
 
-const CURRENCY_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'USD', label: 'USD — $' },
-  { value: 'EUR', label: 'EUR — €' },
-  { value: 'GBP', label: 'GBP — £' },
-  { value: 'JPY', label: 'JPY — ¥' },
-  { value: 'TRY', label: 'TRY — ₺' },
-  { value: 'INR', label: 'INR — ₹' },
-  { value: 'KRW', label: 'KRW — ₩' },
-  { value: 'BRL', label: 'BRL — R$' },
-  { value: 'CHF', label: 'CHF' },
-  { value: 'SEK', label: 'SEK — kr' },
-  { value: 'CAD', label: 'CAD — C$' },
-  { value: 'AUD', label: 'AUD — A$' },
-];
+const CURRENCY_OPTIONS = CURRENCY_CODE_OPTIONS as Array<{ value: string; label: string }>;
 
 // ---------------------------------------------------------------------------
 // Timezone helpers
@@ -156,19 +144,9 @@ export function FormatsPanel() {
         <SettingsRow label={t('settings.currencyLabel')} description={t('settings.currencyDesc')}>
           <SettingsSelect
             value={currencySymbol}
-            options={[
-              { value: '$', label: '$ USD' },
-              { value: '€', label: '€ EUR' },
-              { value: '£', label: '£ GBP' },
-              { value: '¥', label: '¥ JPY' },
-              { value: '₺', label: '₺ TRY' },
-              { value: '₹', label: '₹ INR' },
-              { value: '₩', label: '₩ KRW' },
-              { value: 'R$', label: 'R$ BRL' },
-              { value: 'CHF', label: 'CHF' },
-              { value: 'kr', label: 'kr SEK' },
-            ]}
+            options={CURRENCY_SYMBOL_OPTIONS as Array<{ value: string; label: string }>}
             onChange={setCurrencySymbol}
+            searchPlaceholder={t('common.search', 'Search…') as string}
           />
         </SettingsRow>
       </SettingsSection>

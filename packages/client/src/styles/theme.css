@@ -75,6 +75,7 @@
   --sidebar-text: rgb(18, 18, 18);
   --sidebar-active: #f0f1fd;
   --sidebar-hover: #f1f1f2;
+  --rail-bg: #f0f1f3;
 }
 
 [data-theme="dark"] {
@@ -122,6 +123,7 @@
   --sidebar-text: #edeef2;
   --sidebar-active: #24253a;
   --sidebar-hover: #23242a;
+  --rail-bg: #0a0b0d;
 }
 
 [data-density="compact"] {

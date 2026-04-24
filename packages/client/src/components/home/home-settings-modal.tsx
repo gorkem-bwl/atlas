@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../lib/api-client';
 import { queryKeys } from '../../config/query-keys';
-import { SettingsSection, SettingsRow, SettingsToggle } from '../settings/settings-primitives';
+import { SettingsSection, SettingsRow, SettingsToggle, SelectableCard } from '../settings/settings-primitives';
 import { Input } from '../ui/input';
 import { widgetRegistry } from './widgets/registry';
 import { appRegistry } from '../../config/app-registry';
@@ -127,27 +127,17 @@ export function HomeBackgroundPanel() {
           {typeOptions.map((opt) => {
             const isActive = bgType === opt.value;
             return (
-              <button
+              <SelectableCard
                 key={opt.value}
+                selected={isActive}
+                orientation="horizontal"
                 onClick={() => {
                   if (opt.value === 'unsplash') setBg('unsplash', null);
                   else if (opt.value === 'solid') setBg('solid', SOLID_COLORS[0]);
                   else if (opt.value === 'gradient') setBg('gradient', GRADIENTS[0]);
                   else if (opt.value === 'custom') setBg('custom', '#1a1a2e');
                 }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 14px',
-                  background: isActive ? 'var(--color-bg-tertiary)' : 'transparent',
-                  border: isActive ? '1px solid var(--color-accent-primary)' : '1px solid var(--color-border-secondary)',
-                  borderRadius: 'var(--radius-lg)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'var(--font-family)',
-                  transition: 'all 0.15s',
-                }}
+                style={{ padding: '10px 14px', gap: 12 }}
               >
                 <div
                   style={{
@@ -167,7 +157,7 @@ export function HomeBackgroundPanel() {
                     {opt.desc}
                   </div>
                 </div>
-              </button>
+              </SelectableCard>
             );
           })}
         </div>

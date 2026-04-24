@@ -168,7 +168,7 @@ export function AppRail() {
         left: 0,
         bottom: 0,
         width: RAIL_WIDTH,
-        background: 'var(--color-bg-secondary)',
+        background: 'var(--rail-bg)',
         borderRight: '1px solid var(--color-border-primary)',
         display: 'flex',
         flexDirection: 'column',

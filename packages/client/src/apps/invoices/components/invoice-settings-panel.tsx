@@ -7,17 +7,9 @@ import { Button } from '../../../components/ui/button';
 import { QueryErrorState } from '../../../components/ui/query-error-state';
 import { useToastStore } from '../../../stores/toast-store';
 import type { UpdateInvoiceSettingsInput } from '@atlas-platform/shared';
+import { CURRENCY_CODE_OPTIONS } from '@atlas-platform/shared';
 
-const CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD - US Dollar' },
-  { value: 'EUR', label: 'EUR - Euro' },
-  { value: 'GBP', label: 'GBP - British Pound' },
-  { value: 'TRY', label: 'TRY - Turkish Lira' },
-  { value: 'JPY', label: 'JPY - Japanese Yen' },
-  { value: 'CAD', label: 'CAD - Canadian Dollar' },
-  { value: 'AUD', label: 'AUD - Australian Dollar' },
-  { value: 'CHF', label: 'CHF - Swiss Franc' },
-];
+const CURRENCY_OPTIONS: Array<{ value: string; label: string }> = [...CURRENCY_CODE_OPTIONS];
 
 const sectionLabelStyle: React.CSSProperties = {
   fontSize: 'var(--font-size-xs)',

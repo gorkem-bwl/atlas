@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Upload, UserPlus } from 'lucide-react';
-import { type HrExpense, type PaymentMethod } from '@atlas-platform/shared';
+import { type HrExpense, type PaymentMethod, CURRENCY_CODE_OPTIONS } from '@atlas-platform/shared';
 import {
   useCreateExpense,
   useUpdateExpense,
@@ -26,20 +26,7 @@ interface ExpenseFormModalProps {
   expense?: HrExpense | null;
 }
 
-const CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD — $' },
-  { value: 'EUR', label: 'EUR — €' },
-  { value: 'GBP', label: 'GBP — £' },
-  { value: 'JPY', label: 'JPY — ¥' },
-  { value: 'TRY', label: 'TRY — ₺' },
-  { value: 'INR', label: 'INR — ₹' },
-  { value: 'KRW', label: 'KRW — ₩' },
-  { value: 'BRL', label: 'BRL — R$' },
-  { value: 'CHF', label: 'CHF' },
-  { value: 'SEK', label: 'SEK — kr' },
-  { value: 'CAD', label: 'CAD — C$' },
-  { value: 'AUD', label: 'AUD — A$' },
-];
+const CURRENCY_OPTIONS: Array<{ value: string; label: string }> = [...CURRENCY_CODE_OPTIONS];
 
 const PAYMENT_METHOD_OPTIONS: Array<{ value: PaymentMethod; label: string }> = [
   { value: 'personal_card', label: 'Personal card' },

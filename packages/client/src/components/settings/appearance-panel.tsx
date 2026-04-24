@@ -106,39 +106,11 @@ export function AppearancePanel() {
           {fontOptions.map((font) => {
             const isActive = fontFamily === font.value;
             return (
-              <button
+              <SelectableCard
                 key={font.value}
+                selected={isActive}
                 onClick={() => setFontFamily(font.value)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: 'var(--spacing-md) var(--spacing-sm)',
-                  background: isActive
-                    ? 'var(--color-accent-subtle)'
-                    : 'transparent',
-                  border: isActive
-                    ? '1.5px solid var(--color-accent-primary)'
-                    : '1px solid var(--color-border-secondary)',
-                  borderRadius: 'var(--radius-lg)',
-                  cursor: 'pointer',
-                  fontFamily: font.css,
-                  transition: 'border-color var(--transition-normal), background var(--transition-normal)',
-                  outline: 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                    e.currentTarget.style.background = 'var(--color-surface-hover)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
+                style={{ padding: 'var(--spacing-md) var(--spacing-sm)', fontFamily: font.css, gap: 6 }}
               >
                 <span style={{
                   fontSize: 'var(--font-size-lg)',
@@ -154,7 +126,7 @@ export function AppearancePanel() {
                 }}>
                   {font.label}
                 </span>
-              </button>
+              </SelectableCard>
             );
           })}
         </div>

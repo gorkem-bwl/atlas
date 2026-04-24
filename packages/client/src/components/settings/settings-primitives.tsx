@@ -1,5 +1,5 @@
-import { useState, type CSSProperties, type ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 
 // ---------------------------------------------------------------------------
@@ -165,13 +165,30 @@ export function SelectableCard({
   onClick,
   children,
   style,
+  orientation = 'vertical',
 }: {
   selected: boolean;
   onClick: () => void;
   children: ReactNode;
   style?: CSSProperties;
+  /** `vertical` = icon-above-label cards (Theme, Font). `horizontal` = radio-row cards (Background type). */
+  orientation?: 'vertical' | 'horizontal';
 }) {
   const [hovered, setHovered] = useState(false);
+
+  // Always a 1px border — selected state is conveyed by color + an inset
+  // accent ring so the element doesn't jump 0.5px when selection changes.
+  const border = selected
+    ? '1px solid var(--color-accent-primary)'
+    : `1px solid ${hovered ? 'var(--color-border-primary)' : 'var(--color-border-secondary)'}`;
+
+  // Unified selected background: a faint gradient that mixes accent-primary
+  // into the elevated surface. The same value is used everywhere (theme, font,
+  // background-type) so cards look consistent across settings pages.
+  const selectedBg =
+    'linear-gradient(180deg, color-mix(in srgb, var(--color-accent-primary) 10%, var(--color-bg-elevated)) 0%, color-mix(in srgb, var(--color-accent-primary) 4%, var(--color-bg-elevated)) 100%)';
+  const idleBg =
+    'linear-gradient(180deg, var(--color-bg-elevated) 0%, var(--color-bg-tertiary) 100%)';
 
   return (
     <button
@@ -180,24 +197,22 @@ export function SelectableCard({
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: orientation === 'vertical' ? 'column' : 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 'var(--spacing-sm)',
+        justifyContent: orientation === 'vertical' ? 'center' : 'flex-start',
+        gap: orientation === 'vertical' ? 'var(--spacing-sm)' : 'var(--spacing-md)',
         padding: 'var(--spacing-lg)',
         borderRadius: 'var(--radius-lg)',
-        border: selected
-          ? '1.5px solid var(--color-accent-primary)'
-          : `1px solid ${hovered ? 'var(--color-border-primary)' : 'var(--color-border-secondary)'}`,
-        background: selected
-          ? 'color-mix(in srgb, var(--color-accent-primary) 8%, transparent)'
-          : hovered
-            ? 'var(--color-surface-hover)'
-            : 'var(--color-bg-tertiary)',
+        border,
+        background: selected ? selectedBg : hovered ? 'var(--color-surface-hover)' : idleBg,
+        boxShadow: selected
+          ? 'inset 0 0 0 1px color-mix(in srgb, var(--color-accent-primary) 40%, transparent)'
+          : 'none',
         cursor: 'pointer',
-        transition: 'border-color var(--transition-normal), background var(--transition-normal)',
+        transition: 'border-color var(--transition-normal), background var(--transition-normal), box-shadow var(--transition-normal)',
         fontFamily: 'var(--font-family)',
         outline: 'none',
+        textAlign: orientation === 'vertical' ? 'center' : 'left',
         ...style,
       }}
       onFocus={() => {}}
@@ -305,25 +320,46 @@ export function SettingsSelect<T extends string | number>({
   value,
   options,
   onChange,
+  searchable,
+  searchPlaceholder,
+  minWidth = 140,
 }: {
   value: T;
   options: Array<{ value: T; label: string }>;
   onChange: (value: T) => void;
+  /** Show an inline filter input + scroll the option list. Turns on automatically for > 15 options. */
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  minWidth?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const current = options.find((o) => o.value === value);
+  const isSearchable = searchable ?? options.length > 15;
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const filteredOptions = useMemo(() => {
+    if (!isSearchable || !query.trim()) return options;
+    const q = query.toLowerCase();
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [isSearchable, options, query]);
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div
+      style={{ position: 'relative', display: 'inline-block' }}
+      onBlur={(e) => {
+        // Close when focus leaves the entire wrapper (button + popup).
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setTimeout(() => setOpen(false), 150);
+        }
+      }}
+    >
       <Button
         variant="secondary"
         size="sm"
         onClick={() => setOpen(!open)}
-        onBlur={() => {
-          setTimeout(() => setOpen(false), 150);
-        }}
         style={{
-          minWidth: 140,
+          minWidth,
           width: 'auto',
           justifyContent: 'space-between',
           padding: '0 var(--spacing-sm) 0 var(--spacing-md)',
@@ -336,46 +372,88 @@ export function SettingsSelect<T extends string | number>({
 
       {open && (
         <div
+          ref={panelRef}
           style={{
             position: 'absolute',
             top: '100%',
             right: 0,
             marginTop: 4,
             minWidth: '100%',
+            width: isSearchable ? 320 : undefined,
             background: 'var(--color-bg-elevated)',
             border: '1px solid var(--color-border-primary)',
             borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-md)',
             zIndex: 10,
             padding: 'var(--spacing-xs)',
+            maxHeight: isSearchable ? 360 : undefined,
+            display: 'flex',
+            flexDirection: 'column',
             overflow: 'hidden',
           }}
         >
-          {options.map((opt) => (
-            <Button
-              key={String(opt.value)}
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
+          {isSearchable && (
+            <div
               style={{
-                width: '100%',
-                justifyContent: 'flex-start',
-                padding: 'var(--spacing-xs) var(--spacing-sm)',
-                borderRadius: 'var(--radius-sm)',
-                background: opt.value === value ? 'var(--color-surface-selected)' : 'transparent',
-                color: opt.value === value ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
-                fontWeight: opt.value === value
-                  ? ('var(--font-weight-medium)' as CSSProperties['fontWeight'])
-                  : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
-                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 8px',
+                marginBottom: 4,
+                borderBottom: '1px solid var(--color-border-secondary)',
               }}
             >
-              {opt.label}
-            </Button>
-          ))}
+              <Search size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={searchPlaceholder ?? 'Search…'}
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 13,
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family)',
+                }}
+              />
+            </div>
+          )}
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {filteredOptions.length === 0 && (
+              <div style={{ padding: '10px 12px', fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+                No matches
+              </div>
+            )}
+            {filteredOptions.map((opt) => (
+              <Button
+                key={String(opt.value)}
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                  setQuery('');
+                }}
+                style={{
+                  width: '100%',
+                  justifyContent: 'flex-start',
+                  padding: 'var(--spacing-xs) var(--spacing-sm)',
+                  borderRadius: 'var(--radius-sm)',
+                  background: opt.value === value ? 'var(--color-surface-selected)' : 'transparent',
+                  color: opt.value === value ? 'var(--color-accent-primary)' : 'var(--color-text-primary)',
+                  fontWeight: opt.value === value
+                    ? ('var(--font-weight-medium)' as CSSProperties['fontWeight'])
+                    : ('var(--font-weight-normal)' as CSSProperties['fontWeight']),
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
         </div>
       )}
     </div>
