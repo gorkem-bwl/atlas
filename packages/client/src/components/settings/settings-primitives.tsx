@@ -410,24 +410,27 @@ export function SettingsSelect<T extends string | number>({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '6px 8px',
+                gap: 8,
+                padding: '10px 12px',
                 marginBottom: 4,
                 borderBottom: '1px solid var(--color-border-secondary)',
               }}
             >
-              <Search size={13} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
+              <Search size={14} style={{ color: 'var(--color-text-tertiary)', flexShrink: 0 }} />
               <input
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchPlaceholder ?? 'Search…'}
+                className="settings-select-search-input"
                 style={{
                   flex: 1,
                   border: 'none',
                   outline: 'none',
                   background: 'transparent',
                   fontSize: 13,
+                  lineHeight: 1.4,
+                  padding: 0,
                   color: 'var(--color-text-primary)',
                   fontFamily: 'var(--font-family)',
                 }}

@@ -89,3 +89,11 @@
 :where(input, select, textarea, button):focus {
   outline: none;
 }
+
+/* The autofocused search input inside SettingsSelect sits borderless
+   inside a rounded panel — the 3px accent ring from the global rule
+   above reads as a misplaced dark rectangle around it. Suppress it. */
+.settings-select-search-input:focus-visible {
+  box-shadow: none;
+  border-color: transparent;
+}

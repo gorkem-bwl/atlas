@@ -1,4 +1,28 @@
 import { useSettingsStore } from '../stores/settings-store';
+import { queryClient } from '../providers/query-provider';
+import { queryKeys } from '../config/query-keys';
+import { getCurrency } from '@atlas-platform/shared';
+import type { TenantFormatSettings } from '../hooks/use-tenant-format-settings';
+
+/**
+ * Returns the display symbol for the current tenant's default currency.
+ *
+ * Single source of truth: tenantFormats.defaultCurrency (ISO 4217 code)
+ * set by admins under Settings → Formats → Organization defaults.
+ * We resolve the symbol via the shared CURRENCIES table rather than
+ * storing a separate per-user symbol. If the tenant formats haven't
+ * loaded yet (cold start), fall back to the user-settings legacy
+ * `currencySymbol` so we don't briefly render a bare number.
+ */
+function getCurrencySymbol(): string {
+  const cached = queryClient.getQueryData<TenantFormatSettings>(queryKeys.settings.tenantFormats);
+  if (cached?.defaultCurrency) {
+    const info = getCurrency(cached.defaultCurrency);
+    if (info) return info.symbol;
+  }
+  const legacy = useSettingsStore.getState().currencySymbol;
+  return legacy || '$';
+}
 
 export function formatBytes(bytes: number | null): string {
   if (bytes === null) return '\u2014';
@@ -87,14 +111,12 @@ export function formatRelativeDate(date: string | Date | null | undefined): stri
 // ─── Currency Formatting ──────────────────────────────────────────
 
 /**
- * Format a number as currency using the user's currency symbol and number format.
+ * Format a number as currency using the tenant's default currency symbol.
  */
 export function formatCurrency(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-
-  const { currencySymbol } = useSettingsStore.getState();
-  const formatted = formatNumber(value);
-  return `${currencySymbol}${formatted}`;
+  const symbol = getCurrencySymbol();
+  return `${symbol}${formatNumber(value)}`;
 }
 
 /**
@@ -102,15 +124,15 @@ export function formatCurrency(value: number | null | undefined): string {
  */
 export function formatCurrencyCompact(value: number | null | undefined): string {
   if (value == null) return '\u2014';
-  const { currencySymbol } = useSettingsStore.getState();
+  const symbol = getCurrencySymbol();
 
   if (Math.abs(value) >= 1_000_000) {
-    return `${currencySymbol}${(value / 1_000_000).toFixed(1)}M`;
+    return `${symbol}${(value / 1_000_000).toFixed(1)}M`;
   }
   if (Math.abs(value) >= 1_000) {
-    return `${currencySymbol}${(value / 1_000).toFixed(1)}K`;
+    return `${symbol}${(value / 1_000).toFixed(1)}K`;
   }
-  return `${currencySymbol}${formatNumber(value)}`;
+  return `${symbol}${formatNumber(value)}`;
 }
 
 // ─── Number Formatting ────────────────────────────────────────────

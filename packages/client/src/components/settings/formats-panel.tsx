@@ -10,7 +10,7 @@ import {
   SettingsRow,
   SettingsSelect,
 } from './settings-primitives';
-import { CURRENCY_CODE_OPTIONS, CURRENCY_SYMBOL_OPTIONS } from '@atlas-platform/shared';
+import { CURRENCY_CODE_OPTIONS } from '@atlas-platform/shared';
 
 const CURRENCY_OPTIONS = CURRENCY_CODE_OPTIONS as Array<{ value: string; label: string }>;
 
@@ -61,13 +61,11 @@ export function FormatsPanel() {
     timeFormat,
     timezone,
     numberFormat,
-    currencySymbol,
     calendarStartDay,
     setDateFormat,
     setTimeFormat,
     setTimezone,
     setNumberFormat,
-    setCurrencySymbol,
     setCalendarStartDay,
   } = useSettingsStore();
 
@@ -127,8 +125,8 @@ export function FormatsPanel() {
         </SettingsRow>
       </SettingsSection>
 
-      {/* ── Numbers & currency ──────────────────────────────────────── */}
-      <SettingsSection title={t('settings.numbersAndCurrency')}>
+      {/* ── Numbers ────────────────────────────────────────────────── */}
+      <SettingsSection title={t('settings.numbersSection', 'Numbers')}>
         <SettingsRow label={t('settings.numberFormat')} description={t('settings.numberFormatDesc')}>
           <SettingsSelect
             value={numberFormat}
@@ -140,15 +138,6 @@ export function FormatsPanel() {
             onChange={setNumberFormat}
           />
         </SettingsRow>
-
-        <SettingsRow label={t('settings.currencyLabel')} description={t('settings.currencyDesc')}>
-          <SettingsSelect
-            value={currencySymbol}
-            options={CURRENCY_SYMBOL_OPTIONS as Array<{ value: string; label: string }>}
-            onChange={setCurrencySymbol}
-            searchPlaceholder={t('common.search', 'Search…') as string}
-          />
-        </SettingsRow>
       </SettingsSection>
 
       {/* ── Calendar ────────────────────────────────────────────────── */}
@@ -157,8 +146,8 @@ export function FormatsPanel() {
           <SettingsSelect
             value={calendarStartDay}
             options={[
-              { value: 'sunday' as const, label: t('settings.sunday') },
               { value: 'monday' as const, label: t('settings.monday') },
+              { value: 'sunday' as const, label: t('settings.sunday') },
             ]}
             onChange={setCalendarStartDay}
           />

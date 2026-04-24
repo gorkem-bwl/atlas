@@ -21,7 +21,6 @@ import {
   SettingsSelect,
 } from '../../../components/settings/settings-primitives';
 import { useCrmSettingsStore } from '../settings-store';
-import { useSettingsStore } from '../../../stores/settings-store';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { IconButton } from '../../../components/ui/icon-button';
@@ -484,7 +483,6 @@ export function CrmActivityTypesPanel() {
 export function CrmGeneralPanel() {
   const { t } = useTranslation();
   const { defaultView, setDefaultView } = useCrmSettingsStore();
-  const { currencySymbol, setCurrencySymbol } = useSettingsStore();
 
   return (
     <div>
@@ -503,21 +501,6 @@ export function CrmGeneralPanel() {
               { value: 'forecast', label: t('crm.forecast.title') },
             ]}
             onChange={setDefaultView}
-          />
-        </SettingsRow>
-        <SettingsRow label={t('crm.settings.currency')} description={t('crm.settings.currencyDesc')}>
-          <SettingsSelect
-            value={currencySymbol}
-            options={[
-              { value: '$', label: '$ (USD)' },
-              { value: '€', label: '€ (EUR)' },
-              { value: '£', label: '£ (GBP)' },
-              { value: '¥', label: '¥ (JPY)' },
-              { value: '₺', label: '₺ (TRY)' },
-              { value: '₹', label: '₹ (INR)' },
-              { value: 'CHF', label: 'CHF' },
-            ]}
-            onChange={setCurrencySymbol}
           />
         </SettingsRow>
       </SettingsSection>

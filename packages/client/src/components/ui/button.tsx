@@ -7,27 +7,33 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children?: ReactNode;
 }
 
+// Leaner button variants: no drop shadows, no inner highlights. Selection
+// and affordance come from colour + a 1px border. Matches the flat style
+// used by Linear / Stripe / Vercel.
 const variantStyles: Record<NonNullable<ButtonProps['variant']>, CSSProperties> = {
   primary: {
     background: 'var(--color-accent-primary)',
     color: 'var(--color-text-inverse)',
-    border: '1px solid transparent',
-    boxShadow: '0 1px 2px color-mix(in srgb, var(--color-accent-primary) 25%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.18)',
+    border: '1px solid var(--color-accent-primary)',
+    boxShadow: 'none',
   },
   secondary: {
     background: 'var(--color-bg-elevated)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-border-primary)',
+    boxShadow: 'none',
   },
   ghost: {
     background: 'transparent',
     color: 'var(--color-text-secondary)',
     border: '1px solid transparent',
+    boxShadow: 'none',
   },
   danger: {
     background: 'transparent',
     color: 'var(--color-error)',
     border: '1px solid var(--color-error)',
+    boxShadow: 'none',
   },
 };
 
