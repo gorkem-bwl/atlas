@@ -3,7 +3,7 @@
 </p>
 
 
-A self-hosted business platform that brings CRM, HRM, invoicing, agreements, documents, tasks, file storage, and whiteboards into one connected workspace for your team. An open alternative to [Zoho](https://zoho.com/) and [Odoo](https://www.odoo.com/).
+A self-hosted business platform that brings CRM, HRM, invoicing, agreements, documents, projects & tasks, file storage, and whiteboards into one connected workspace for your team. An open alternative to [Zoho](https://zoho.com/) and [Odoo](https://www.odoo.com/).
 
 https://github.com/user-attachments/assets/15ec33e3-0308-4a95-b58f-5b8b2d83a7d9
 
@@ -43,7 +43,7 @@ docker compose -f docker-compose.production.yml up -d
 
 Open **http://localhost:3001** and create your admin account. Secrets are auto-generated on first run.
 
-To pin a specific version: `IMAGE_TAG=2.5.0 docker compose -f docker-compose.production.yml up -d`
+To pin a specific version: `IMAGE_TAG=2.6.0 docker compose -f docker-compose.production.yml up -d`
 
 ## HTTPS with Caddy (optional)
 
@@ -114,8 +114,8 @@ On a self-hosted deployment, replace `localhost:3001` with your Atlas domain.
   </tr>
   <tr>
     <td>
-      <img src="docs/screenshots/projects.png" alt="Projects" /><br/>
-      <b>Projects</b> — Time tracking, invoicing, clients, reports, budgets
+      <img src="docs/screenshots/projects.png" alt="Work" /><br/>
+      <b>Work</b> — Projects, tasks, time tracking, billing, reports, budgets
     </td>
     <td>
       <img src="docs/screenshots/calendar.png" alt="Calendar" /><br/>
@@ -138,15 +138,11 @@ On a self-hosted deployment, replace `localhost:3001` with your Atlas domain.
       <b>Drive</b> — File storage with versioning, sharing, comments, activity log, password-protected links
     </td>
     <td>
-      <img src="docs/screenshots/tasks.png" alt="Tasks" /><br/>
-      <b>Tasks</b> — Task management with calendar, dependencies, attachments, assignees, comments
-    </td>
-  </tr>
-  <tr>
-    <td>
       <img src="docs/screenshots/write.png" alt="Write" /><br/>
       <b>Write</b> — Rich text editor with cover images, comments, templates
     </td>
+  </tr>
+  <tr>
     <td>
       <img src="docs/screenshots/system.png" alt="System" /><br/>
       <b>System</b> — CPU/memory/disk monitoring, email settings, role-based app permissions
@@ -208,7 +204,7 @@ Atlas is designed so you only pay for the integrations you want. If you skip the
 
 | Feature | Requires |
 |---------|----------|
-| CRM, HRM, Projects, Invoices, Agreements, Drive (Atlas-native), Tasks, Write, Draw, Calendar (local events), internal messaging | **Nothing extra.** Runs on Postgres alone. |
+| CRM, HRM, Work (projects + tasks), Invoices, Agreements, Drive (Atlas-native), Write, Draw, Calendar (local events) | **Nothing extra.** Runs on Postgres alone. |
 | Password-reset emails | SMTP |
 | Team-member invitation emails | SMTP |
 | Sign / agreement reminder emails | SMTP |
