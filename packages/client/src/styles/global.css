@@ -69,37 +69,7 @@
   outline-offset: 2px;
 }
 
-/* Scrollbar styling — thin, invisible until container is hovered */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-*:hover {
-  scrollbar-color: color-mix(in srgb, var(--color-text-tertiary) 35%, transparent) transparent;
-}
-
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: var(--radius-full);
-}
-
-:hover::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-text-tertiary) 35%, transparent);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-text-tertiary) 55%, transparent);
-}
+/* Scrollbar styles live in ui.css — single source of truth. */
 
 /* Dialog/Modal styles */
 .dialog-overlay {

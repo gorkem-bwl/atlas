@@ -50,7 +50,8 @@ export function requireAppPermission(appId: string, operation: AppOperation = 'v
     try {
       const userId = req.auth!.userId;
       const tenantId = req.auth?.tenantId;
-      const perm = await getAppPermission(tenantId, userId, appId);
+      const isSuperAdmin = req.auth?.isSuperAdmin === true;
+      const perm = await getAppPermission(tenantId, userId, appId, isSuperAdmin);
       if (!canAccess(perm.role, operation)) {
         res.status(403).json({ success: false, error: `No permission to access ${appId}` });
         return;

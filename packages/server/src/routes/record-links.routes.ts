@@ -17,7 +17,7 @@ export async function getLinkCountsHandler(req: Request, res: Response): Promise
       return;
     }
     const appId = req.params.appId as string;
-    const perm = await getAppPermission(tenantId, req.auth!.userId, appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'view')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -38,7 +38,7 @@ export async function getLinkDetailsHandler(req: Request, res: Response): Promis
       return;
     }
     const appId = req.params.appId as string;
-    const perm = await getAppPermission(tenantId, req.auth!.userId, appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'view')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -59,7 +59,7 @@ export async function getLinksForRecordHandler(req: Request, res: Response): Pro
       return;
     }
     const appId = req.params.appId as string;
-    const perm = await getAppPermission(tenantId, req.auth!.userId, appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'view')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -88,12 +88,12 @@ export async function createLinkHandler(req: Request, res: Response): Promise<vo
     }
 
     // Require 'update' on BOTH sides — creating a link is a mutation on both apps.
-    const sourcePerm = await getAppPermission(tenantId, req.auth!.userId, sourceAppId);
+    const sourcePerm = await getAppPermission(tenantId, req.auth!.userId, sourceAppId, req.auth?.isSuperAdmin === true);
     if (!canAccess(sourcePerm.role, 'update')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
     }
-    const targetPerm = await getAppPermission(tenantId, req.auth!.userId, targetAppId);
+    const targetPerm = await getAppPermission(tenantId, req.auth!.userId, targetAppId, req.auth?.isSuperAdmin === true);
     if (!canAccess(targetPerm.role, 'update')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;

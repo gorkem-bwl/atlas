@@ -17,7 +17,7 @@ export async function listFieldsHandler(req: Request, res: Response): Promise<vo
       return;
     }
     const appId = req.params.appId as string;
-    const perm = await getAppPermission(tenantId, req.auth!.userId, appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'view')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -44,7 +44,7 @@ export async function createFieldHandler(req: Request, res: Response): Promise<v
     }
 
     const appId = req.params.appId as string;
-    const perm = await getAppPermission(tenantId, req.auth!.userId, appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -93,7 +93,7 @@ export async function updateFieldHandler(req: Request, res: Response): Promise<v
       return;
     }
 
-    const perm = await getAppPermission(tenantId, req.auth!.userId, existing.appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, existing.appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;
@@ -131,7 +131,7 @@ export async function deleteFieldHandler(req: Request, res: Response): Promise<v
       return;
     }
 
-    const perm = await getAppPermission(tenantId, req.auth!.userId, existing.appId);
+    const perm = await getAppPermission(tenantId, req.auth!.userId, existing.appId, req.auth?.isSuperAdmin === true);
     if (!canAccess(perm.role, 'update')) {
       res.status(403).json({ success: false, error: 'Forbidden' });
       return;

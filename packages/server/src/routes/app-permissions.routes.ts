@@ -110,7 +110,7 @@ router.get('/:appId/me', async (req: Request, res: Response) => {
     const userId = req.auth!.userId;
     const appId = req.params.appId as string;
 
-    const permission = await appPermissionsService.getAppPermission(tenantId, userId, appId);
+    const permission = await appPermissionsService.getAppPermission(tenantId, userId, appId, req.auth?.isSuperAdmin === true);
     res.json({ success: true, data: permission });
   } catch (err) {
     logger.error({ err }, 'Failed to get app permission');

@@ -33,7 +33,7 @@ router.get('/', async (req: Request, res: Response) => {
     const permEntries = await Promise.all(
       SEARCHABLE_APP_IDS.map(
         async (appId) =>
-          [appId, await getAppPermission(tenantId, userId, appId)] as const,
+          [appId, await getAppPermission(tenantId, userId, appId, req.auth?.isSuperAdmin === true)] as const,
       ),
     );
     const permissions: AppPermissionsMap = new Map(permEntries);
