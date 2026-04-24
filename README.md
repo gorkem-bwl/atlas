@@ -43,7 +43,7 @@ docker compose -f docker-compose.production.yml up -d
 
 Open **http://localhost:3001** and create your admin account. Secrets are auto-generated on first run.
 
-To pin a specific version: `IMAGE_TAG=2.6.0 docker compose -f docker-compose.production.yml up -d`
+To pin a specific version: `IMAGE_TAG=<version> docker compose -f docker-compose.production.yml up -d` — see the [latest release](https://github.com/gorkem-bwl/atlas/releases/latest) for the current tag.
 
 ## HTTPS with Caddy (optional)
 
