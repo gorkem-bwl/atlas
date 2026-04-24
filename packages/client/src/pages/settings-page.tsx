@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import { useNavigate, useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { getSettingsCategories, type SettingsCategory, type SettingsPanel } from '../config/settings-registry';
 import { appRegistry } from '../apps';
 import { SettingsSidebar } from '../components/settings/settings-sidebar';
@@ -41,23 +41,12 @@ interface PanelViewProps {
 }
 
 function SettingsPanelView({ categories, category, panel }: PanelViewProps) {
-  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const currentPath = urlForPanel(category.id, panel.id);
 
   useEffect(() => {
     writeLastVisited(currentPath);
   }, [currentPath]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      if (document.querySelector('[role="dialog"]')) return;
-      navigate(-1);
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [navigate]);
 
   useEffect(() => {
     const el = scrollRef.current;

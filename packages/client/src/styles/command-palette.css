@@ -39,7 +39,8 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: 14px var(--spacing-lg);
+  min-height: 52px;
   border-bottom: 1px solid var(--color-border-secondary);
 }
 
@@ -51,7 +52,8 @@
   font-size: var(--font-size-md);
   font-family: var(--font-family);
   color: var(--color-text-primary);
-  padding: 0;
+  padding: 6px 0;
+  line-height: 1.4;
 }
 
 .cmd-input[cmdk-input]::placeholder {

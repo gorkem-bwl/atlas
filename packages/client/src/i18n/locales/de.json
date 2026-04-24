@@ -1901,7 +1901,9 @@
       "lastSynced": "Zuletzt synchronisiert",
       "notYetSynced": "Noch nicht synchronisiert",
       "probabilityPct": "%",
-      "probabilityHint": "Gewinnwahrscheinlichkeit (0-100)"
+      "probabilityHint": "Gewinnwahrscheinlichkeit (0-100)",
+      "rottingHint": "Warnen nach so vielen Tagen ohne Aktivität",
+      "daysShort": "T"
     },
     "widgetTitle": "Pipeline",
     "widgetActiveDeals": "aktive Deals",

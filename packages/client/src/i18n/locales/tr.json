@@ -1901,7 +1901,9 @@
       "lastSynced": "Son senkronizasyon",
       "notYetSynced": "Henüz senkronize edilmedi",
       "probabilityPct": "%",
-      "probabilityHint": "Kazanma olasılığı (0-100)"
+      "probabilityHint": "Kazanma olasılığı (0-100)",
+      "rottingHint": "Aktivite olmadan şu kadar gün sonra uyar",
+      "daysShort": "g"
     },
     "widgetTitle": "Satış hattı",
     "widgetActiveDeals": "aktif anlaşma",

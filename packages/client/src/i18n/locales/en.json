@@ -1960,7 +1960,9 @@
       "lastSynced": "Last synced",
       "notYetSynced": "Not yet synced",
       "probabilityPct": "%",
-      "probabilityHint": "Win probability (0-100)"
+      "probabilityHint": "Win probability (0-100)",
+      "rottingHint": "Warn after this many days without activity",
+      "daysShort": "d"
     },
     "widgetTitle": "Pipeline",
     "widgetActiveDeals": "active deals",

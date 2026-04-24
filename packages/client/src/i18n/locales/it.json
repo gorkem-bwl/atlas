@@ -1901,7 +1901,9 @@
       "lastSynced": "Ultima sincronizzazione",
       "notYetSynced": "Non ancora sincronizzato",
       "probabilityPct": "%",
-      "probabilityHint": "Probabilità di successo (0-100)"
+      "probabilityHint": "Probabilità di successo (0-100)",
+      "rottingHint": "Avvisa dopo questi giorni senza attività",
+      "daysShort": "g"
     },
     "widgetTitle": "Pipeline",
     "widgetActiveDeals": "trattative attive",

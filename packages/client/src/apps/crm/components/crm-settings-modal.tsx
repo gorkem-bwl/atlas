@@ -123,25 +123,32 @@ function SortableStageRow({
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && onSaveEdit()}
             />
-            <Input
-              value={editProbability}
-              onChange={(e) => onEditProbabilityChange(e.target.value)}
-              size="sm"
-              type="number"
-              min={0}
-              max={100}
-              placeholder={t('crm.settings.probabilityPct', '%')}
-              title={t('crm.settings.probabilityHint', 'Win probability (0-100)') as string}
-              style={{ width: 70 }}
-            />
-            <Input
-              value={editRottingDays}
-              onChange={(e) => onEditRottingDaysChange(e.target.value)}
-              size="sm"
-              type="number"
-              placeholder={t('crm.deals.rottingDays')}
-              style={{ width: 90 }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <Input
+                value={editProbability}
+                onChange={(e) => onEditProbabilityChange(e.target.value)}
+                size="sm"
+                type="number"
+                min={0}
+                max={100}
+                placeholder="0"
+                title={t('crm.settings.probabilityHint', 'Win probability (0-100)') as string}
+                style={{ width: 60, textAlign: 'right' }}
+              />
+              <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>%</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <Input
+                value={editRottingDays}
+                onChange={(e) => onEditRottingDaysChange(e.target.value)}
+                size="sm"
+                type="number"
+                placeholder="0"
+                title={t('crm.settings.rottingHint', 'Warn after this many days without activity') as string}
+                style={{ width: 60, textAlign: 'right' }}
+              />
+              <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>{t('crm.settings.daysShort', 'd')}</span>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
             <div style={{ display: 'flex', gap: 2, flexWrap: 'nowrap', flexShrink: 0 }}>
@@ -305,17 +312,21 @@ export function CrmStagesPanel() {
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
-            <Input
-              value={newProbability}
-              onChange={(e) => setNewProbability(e.target.value)}
-              placeholder={t('crm.settings.probabilityPct', '%')}
-              size="sm"
-              type="number"
-              min={0}
-              max={100}
-              style={{ width: 70 }}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <Input
+                value={newProbability}
+                onChange={(e) => setNewProbability(e.target.value)}
+                placeholder="0"
+                title={t('crm.settings.probabilityHint', 'Win probability (0-100)') as string}
+                size="sm"
+                type="number"
+                min={0}
+                max={100}
+                style={{ width: 60, textAlign: 'right' }}
+                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+              />
+              <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>%</span>
+            </div>
             <div style={{ display: 'flex', gap: 2, flexWrap: 'nowrap', flexShrink: 0 }}>
               {STAGE_COLORS.slice(0, 5).map((c) => (
                 <button
