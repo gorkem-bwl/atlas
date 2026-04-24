@@ -35,17 +35,24 @@ const HINT_KEYS = [
   'commandPalette.hints.navigateWithK',
 ] as const;
 
-const PLATFORM_NAV = [
+const PLATFORM_NAV: ReadonlyArray<{
+  id: string;
+  labelKey: string;
+  icon: typeof Home;
+  path: string;
+  keywords?: readonly string[];
+}> = [
   { id: 'home', labelKey: 'sidebar.home', icon: Home, path: '/' },
   { id: 'crm', labelKey: 'sidebar.crm', icon: Users, path: '/crm' },
   { id: 'hr', labelKey: 'sidebar.hr', icon: UserCog, path: '/hr' },
-  { id: 'work', labelKey: 'sidebar.work', icon: Briefcase, path: '/work' },
+  // The Work app is the tasks/projects app — keep "tasks" as a keyword so
+  // users who type "tasks" still find it.
+  { id: 'work', labelKey: 'sidebar.work', icon: Briefcase, path: '/work', keywords: ['tasks', 'todo', 'projects'] },
   { id: 'calendar', labelKey: 'sidebar.calendar', icon: CalendarDays, path: '/calendar' },
-  { id: 'sign', labelKey: 'sidebar.sign', icon: FileSignature, path: '/sign-app' },
+  { id: 'sign', labelKey: 'sidebar.sign', icon: FileSignature, path: '/sign-app', keywords: ['agreements', 'esign'] },
   { id: 'invoices', labelKey: 'sidebar.invoices', icon: Receipt, path: '/invoices' },
-  { id: 'drive', labelKey: 'sidebar.drive', icon: HardDrive, path: '/drive' },
-  { id: 'tasks', labelKey: 'sidebar.tasks', icon: CheckSquare, path: '/tasks' },
-  { id: 'docs', labelKey: 'sidebar.docs', icon: PenLine, path: '/docs' },
+  { id: 'drive', labelKey: 'sidebar.drive', icon: HardDrive, path: '/drive', keywords: ['files'] },
+  { id: 'docs', labelKey: 'sidebar.docs', icon: PenLine, path: '/docs', keywords: ['write', 'documents', 'notes'] },
   { id: 'draw', labelKey: 'sidebar.draw', icon: FileText, path: '/draw' },
   { id: 'system', labelKey: 'sidebar.system', icon: Building, path: '/system' },
   { id: 'settings', labelKey: 'settings.title', icon: Settings, path: '/settings' },
@@ -168,7 +175,7 @@ export function CommandPalette() {
 
         <Command.Group heading={t('common.navigation')}>
           {PLATFORM_NAV.map(item => { const I = item.icon; return (
-            <Command.Item key={item.id} value={item.id} onSelect={handleSelect} className="cmd-item">
+            <Command.Item key={item.id} value={item.id} keywords={item.keywords ? [...item.keywords] : undefined} onSelect={handleSelect} className="cmd-item">
               <span className="cmd-item-icon"><I size={14} /></span>
               <span className="cmd-item-title">{t(item.labelKey)}</span>
             </Command.Item>
