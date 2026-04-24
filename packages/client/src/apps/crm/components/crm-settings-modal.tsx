@@ -39,6 +39,13 @@ const STAGE_COLORS = [
   '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6',
 ];
 
+function parseProbability(input: string): number | undefined {
+  const trimmed = input.trim();
+  if (!trimmed) return undefined;
+  const n = parseInt(trimmed, 10);
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : undefined;
+}
+
 // ─── Sortable Stage Row ───────────────────────────────────────────
 
 function SortableStageRow({
@@ -214,8 +221,7 @@ export function CrmStagesPanel() {
   const saveEdit = () => {
     if (editingId && editName.trim()) {
       const rottingDays = editRottingDays.trim() ? parseInt(editRottingDays, 10) : null;
-      const parsedProb = editProbability.trim() ? parseInt(editProbability, 10) : NaN;
-      const probability = Number.isFinite(parsedProb) ? Math.max(0, Math.min(100, parsedProb)) : undefined;
+      const probability = parseProbability(editProbability);
       const stage = stages.find((s) => s.id === editingId);
       updateStage.mutate({
         id: editingId,
@@ -231,8 +237,7 @@ export function CrmStagesPanel() {
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    const parsedProb = newProbability.trim() ? parseInt(newProbability, 10) : NaN;
-    const probability = Number.isFinite(parsedProb) ? Math.max(0, Math.min(100, parsedProb)) : undefined;
+    const probability = parseProbability(newProbability);
     createStage.mutate({
       name: newName.trim(),
       color: newColor,
