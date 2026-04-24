@@ -1899,7 +1899,9 @@
       "connectionDesc": "Google hesabınız bağlı",
       "syncStatus": "Senkronizasyon durumu",
       "lastSynced": "Son senkronizasyon",
-      "notYetSynced": "Henüz senkronize edilmedi"
+      "notYetSynced": "Henüz senkronize edilmedi",
+      "probabilityPct": "%",
+      "probabilityHint": "Kazanma olasılığı (0-100)"
     },
     "widgetTitle": "Satış hattı",
     "widgetActiveDeals": "aktif anlaşma",

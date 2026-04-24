@@ -1958,7 +1958,9 @@
       "connectionDesc": "Your Google account is connected",
       "syncStatus": "Sync status",
       "lastSynced": "Last synced",
-      "notYetSynced": "Not yet synced"
+      "notYetSynced": "Not yet synced",
+      "probabilityPct": "%",
+      "probabilityHint": "Win probability (0-100)"
     },
     "widgetTitle": "Pipeline",
     "widgetActiveDeals": "active deals",

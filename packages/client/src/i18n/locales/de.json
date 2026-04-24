@@ -1899,7 +1899,9 @@
       "connectionDesc": "Ihr Google-Konto ist verbunden",
       "syncStatus": "Sync-Status",
       "lastSynced": "Zuletzt synchronisiert",
-      "notYetSynced": "Noch nicht synchronisiert"
+      "notYetSynced": "Noch nicht synchronisiert",
+      "probabilityPct": "%",
+      "probabilityHint": "Gewinnwahrscheinlichkeit (0-100)"
     },
     "widgetTitle": "Pipeline",
     "widgetActiveDeals": "aktive Deals",

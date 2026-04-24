@@ -47,10 +47,12 @@ function SortableStageRow({
   editName,
   editColor,
   editRottingDays,
+  editProbability,
   onStartEdit,
   onEditNameChange,
   onEditColorChange,
   onEditRottingDaysChange,
+  onEditProbabilityChange,
   onSaveEdit,
   onCancelEdit,
   onDelete,
@@ -60,10 +62,12 @@ function SortableStageRow({
   editName: string;
   editColor: string;
   editRottingDays: string;
+  editProbability: string;
   onStartEdit: () => void;
   onEditNameChange: (v: string) => void;
   onEditColorChange: (v: string) => void;
   onEditRottingDaysChange: (v: string) => void;
+  onEditProbabilityChange: (v: string) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
   onDelete: () => void;
@@ -111,6 +115,17 @@ function SortableStageRow({
               style={{ flex: 1 }}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && onSaveEdit()}
+            />
+            <Input
+              value={editProbability}
+              onChange={(e) => onEditProbabilityChange(e.target.value)}
+              size="sm"
+              type="number"
+              min={0}
+              max={100}
+              placeholder={t('crm.settings.probabilityPct', '%')}
+              title={t('crm.settings.probabilityHint', 'Win probability (0-100)') as string}
+              style={{ width: 70 }}
             />
             <Input
               value={editRottingDays}
@@ -178,9 +193,11 @@ export function CrmStagesPanel() {
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('#6b7280');
   const [editRottingDays, setEditRottingDays] = useState<string>('');
+  const [editProbability, setEditProbability] = useState<string>('');
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#6b7280');
+  const [newProbability, setNewProbability] = useState<string>('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -191,23 +208,40 @@ export function CrmStagesPanel() {
     setEditName(stage.name);
     setEditColor(stage.color);
     setEditRottingDays(stage.rottingDays != null ? String(stage.rottingDays) : '');
+    setEditProbability(String(stage.probability));
   };
 
   const saveEdit = () => {
     if (editingId && editName.trim()) {
       const rottingDays = editRottingDays.trim() ? parseInt(editRottingDays, 10) : null;
+      const parsedProb = editProbability.trim() ? parseInt(editProbability, 10) : NaN;
+      const probability = Number.isFinite(parsedProb) ? Math.max(0, Math.min(100, parsedProb)) : undefined;
       const stage = stages.find((s) => s.id === editingId);
-      updateStage.mutate({ id: editingId, updatedAt: stage?.updatedAt, name: editName.trim(), color: editColor, rottingDays: isNaN(rottingDays as number) ? null : rottingDays });
+      updateStage.mutate({
+        id: editingId,
+        updatedAt: stage?.updatedAt,
+        name: editName.trim(),
+        color: editColor,
+        rottingDays: isNaN(rottingDays as number) ? null : rottingDays,
+        ...(probability !== undefined ? { probability } : {}),
+      });
       setEditingId(null);
     }
   };
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    createStage.mutate({ name: newName.trim(), color: newColor }, {
+    const parsedProb = newProbability.trim() ? parseInt(newProbability, 10) : NaN;
+    const probability = Number.isFinite(parsedProb) ? Math.max(0, Math.min(100, parsedProb)) : undefined;
+    createStage.mutate({
+      name: newName.trim(),
+      color: newColor,
+      ...(probability !== undefined ? { probability } : {}),
+    }, {
       onSuccess: () => {
         setNewName('');
         setNewColor('#6b7280');
+        setNewProbability('');
         setShowAdd(false);
       },
     });
@@ -239,10 +273,12 @@ export function CrmStagesPanel() {
                   editName={editName}
                   editColor={editColor}
                   editRottingDays={editRottingDays}
+                  editProbability={editProbability}
                   onStartEdit={() => startEdit(stage)}
                   onEditNameChange={setEditName}
                   onEditColorChange={setEditColor}
                   onEditRottingDaysChange={setEditRottingDays}
+                  onEditProbabilityChange={setEditProbability}
                   onSaveEdit={saveEdit}
                   onCancelEdit={() => setEditingId(null)}
                   onDelete={() => deleteStage.mutate(stage.id)}
@@ -264,6 +300,17 @@ export function CrmStagesPanel() {
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
+            <Input
+              value={newProbability}
+              onChange={(e) => setNewProbability(e.target.value)}
+              placeholder={t('crm.settings.probabilityPct', '%')}
+              size="sm"
+              type="number"
+              min={0}
+              max={100}
+              style={{ width: 70 }}
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
             <div style={{ display: 'flex', gap: 2, flexWrap: 'nowrap', flexShrink: 0 }}>
               {STAGE_COLORS.slice(0, 5).map((c) => (
                 <button
@@ -279,7 +326,7 @@ export function CrmStagesPanel() {
               ))}
             </div>
             <Button variant="primary" size="sm" onClick={handleAdd} disabled={!newName.trim()}>{t('crm.settings.add')}</Button>
-            <Button variant="ghost" size="sm" onClick={() => { setShowAdd(false); setNewName(''); }}>{t('common.cancel')}</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setShowAdd(false); setNewName(''); setNewProbability(''); }}>{t('common.cancel')}</Button>
           </div>
         ) : (
           <Button variant="ghost" size="sm" icon={<Plus size={14} />} onClick={() => setShowAdd(true)} style={{ alignSelf: 'flex-start', marginTop: 'var(--spacing-xs)' }}>
