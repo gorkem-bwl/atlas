@@ -61,6 +61,19 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
     }
   }, [showRequest, reqEmployeeId, myEmployee]);
 
+  // The HR submit endpoint returns { error: "Insufficient leave balance.
+  // Available: 0, Required: 3" } in axios's response.data.error on 400.
+  // Error.message would be the generic "Request failed with status 400";
+  // we want the friendly server message. Same extraction pattern used in
+  // login.tsx, register.tsx, sign-public.tsx, org-members.tsx.
+  const submitWithErrorToast = (id: string) => submitApp.mutate(id, {
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { error?: string } } };
+      const msg = e?.response?.data?.error || t('hr.myLeave.submitFailed');
+      addToast({ type: 'error', message: msg });
+    },
+  });
+
   const handleRequest = () => {
     if (!reqEmployeeId || !reqLeaveTypeId || !reqStartDate || !reqEndDate) return;
     createApp.mutate({
@@ -71,12 +84,7 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
       onSuccess: (data) => {
         setShowRequest(false);
         setReqEmployeeId(''); setReqLeaveTypeId(''); setReqStartDate(''); setReqEndDate(''); setReqReason(''); setReqHalfDay(false);
-        if (data?.id) submitApp.mutate(data.id, {
-          onError: (err: unknown) => {
-            const msg = err instanceof Error ? err.message : t('hr.myLeave.submitFailed');
-            addToast({ type: 'error', message: msg });
-          },
-        });
+        if (data?.id) submitWithErrorToast(data.id);
       },
     });
   };
@@ -138,12 +146,7 @@ export function MyLeaveView({ employees }: { employees: HrEmployee[] }) {
                 </>
               )}
               {app.status === 'draft' && app.employeeId === myEmployee?.id && (
-                <IconButton icon={<Send size={14} />} label={t('hr.myLeave.retrySubmit')} size={26} onClick={() => submitApp.mutate(app.id, {
-                  onError: (err: unknown) => {
-                    const msg = err instanceof Error ? err.message : t('hr.myLeave.submitFailed');
-                    addToast({ type: 'error', message: msg });
-                  },
-                })} />
+                <IconButton icon={<Send size={14} />} label={t('hr.myLeave.retrySubmit')} size={26} onClick={() => submitWithErrorToast(app.id)} />
               )}
               {app.status === 'approved' && app.employeeId === myEmployee?.id && (
                 <IconButton icon={<X size={14} />} label={t('hr.myLeave.cancel')} size={26} destructive onClick={() => cancelApp.mutate(app.id)} />
