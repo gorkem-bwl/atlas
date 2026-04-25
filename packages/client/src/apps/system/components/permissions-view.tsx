@@ -74,6 +74,19 @@ export function PermissionsView() {
     return m;
   }, [data]);
 
+  // Must run on every render (including the loading/error renders) so the
+  // hook order stays stable. The early returns below would otherwise change
+  // the hook count between renders and trip React error #310.
+  const users = useMemo(() => {
+    const sorted = [...(data?.users ?? [])];
+    sorted.sort((a, b) => {
+      if (a.userId === currentUserId) return -1;
+      if (b.userId === currentUserId) return 1;
+      return 0;
+    });
+    return sorted;
+  }, [data?.users, currentUserId]);
+
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -94,15 +107,6 @@ export function PermissionsView() {
   }
 
   const { apps } = data;
-  const users = useMemo(() => {
-    const sorted = [...data.users];
-    sorted.sort((a, b) => {
-      if (a.userId === currentUserId) return -1;
-      if (b.userId === currentUserId) return 1;
-      return 0;
-    });
-    return sorted;
-  }, [data.users, currentUserId]);
 
   const handleRoleChange = (
     userId: string,
