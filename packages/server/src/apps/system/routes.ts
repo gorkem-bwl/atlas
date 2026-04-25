@@ -36,6 +36,10 @@ function requireTenantOwner(req: Request, res: Response, next: NextFunction) {
 const router = Router();
 router.use(authMiddleware);
 
+// Product tour — every authenticated tenant member can read and mark their own tour.
+router.get('/tour', systemController.getTour);
+router.patch('/tour/complete', systemController.completeTour);
+
 router.get('/metrics', requireAdmin, systemController.getMetrics);
 router.get('/email-settings', requireAdmin, systemController.getEmailSettings);
 router.put('/email-settings', requireAdmin, systemController.updateEmailSettings);
