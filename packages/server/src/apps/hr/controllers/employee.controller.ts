@@ -103,7 +103,11 @@ export async function createEmployee(req: Request, res: Response) {
       return;
     }
 
-    const { name, email, role, departmentId, startDate, phone, avatarUrl, status, linkedUserId, tags } = req.body;
+    const {
+      name, email, role, departmentId, startDate, phone, avatarUrl, status, linkedUserId, tags,
+      dateOfBirth, gender, emergencyContactName, emergencyContactPhone, emergencyContactRelation,
+      employmentType, managerId, jobTitle, workLocation, salary, salaryCurrency, salaryPeriod,
+    } = req.body;
 
     if (!name?.trim()) {
       res.status(400).json({ success: false, error: 'Name is required' });
@@ -116,6 +120,8 @@ export async function createEmployee(req: Request, res: Response) {
 
     const employee = await hrService.createEmployee(userId, tenantId, {
       name: name.trim(), email: email.trim(), role, departmentId, startDate, phone, avatarUrl, status, linkedUserId, tags,
+      dateOfBirth, gender, emergencyContactName, emergencyContactPhone, emergencyContactRelation,
+      employmentType, managerId, jobTitle, workLocation, salary, salaryCurrency, salaryPeriod,
     });
 
     if (req.auth!.tenantId) {

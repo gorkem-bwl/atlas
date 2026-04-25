@@ -4,16 +4,18 @@ import { Modal } from '../../../../components/ui/modal';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Select } from '../../../../components/ui/select';
-import { useCreateEmployee, type HrDepartment } from '../../hooks';
+import { useCreateEmployee, type HrDepartment, type HrEmployee } from '../../hooks';
 
 export function CreateEmployeeModal({
   open,
   onClose,
   departments,
+  employees,
 }: {
   open: boolean;
   onClose: () => void;
   departments: HrDepartment[];
+  employees: HrEmployee[];
 }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
@@ -21,6 +23,7 @@ export function CreateEmployeeModal({
   const [role, setRole] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [managerId, setManagerId] = useState('');
   const createEmployee = useCreateEmployee();
 
   const reset = () => {
@@ -29,6 +32,7 @@ export function CreateEmployeeModal({
     setRole('');
     setDepartmentId('');
     setStartDate('');
+    setManagerId('');
   };
 
   const handleSubmit = () => {
@@ -44,20 +48,8 @@ export function CreateEmployeeModal({
         startDate: startDate || new Date().toISOString().slice(0, 10),
         avatarUrl: null,
         tags: [],
-        notes: null,
-        dateOfBirth: null,
-        gender: null,
-        emergencyContactName: null,
-        emergencyContactPhone: null,
-        emergencyContactRelation: null,
-        employmentType: 'full-time',
-        managerId: null,
-        jobTitle: null,
-        workLocation: null,
-        salary: null,
-        salaryCurrency: 'USD',
-        salaryPeriod: 'yearly',
-      } as any,
+        managerId: managerId || null,
+      },
       {
         onSuccess: () => {
           reset();
@@ -85,6 +77,18 @@ export function CreateEmployeeModal({
                 ...departments.map((d) => ({ value: d.id, label: d.name })),
               ]}
               placeholder={t('hr.fields.selectDepartment')}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+            <label className="hr-field-label">{t('hr.fields.manager')}</label>
+            <Select
+              value={managerId}
+              onChange={setManagerId}
+              options={[
+                { value: '', label: t('hr.fields.noManager') },
+                ...employees.map((e) => ({ value: e.id, label: e.name })),
+              ]}
+              placeholder={t('hr.fields.selectManager')}
             />
           </div>
           <Input label={t('hr.fields.startDate')} type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />

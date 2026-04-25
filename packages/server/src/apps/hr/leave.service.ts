@@ -1,8 +1,9 @@
 import { db } from '../../config/database';
 import { hrLeaveApplications, hrLeaveTypes, leaveBalances, employees, hrHolidays, hrHolidayCalendars } from '../../db/schema';
-import { eq, and, asc, desc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, or, isNull, asc, desc, sql, gte, lte } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import { calculateWorkingDays } from './services/leave-config.service';
+import { getManagerLinkedUserId } from './services/employee.service';
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -167,9 +168,9 @@ export async function submitLeaveApplication(tenantId: string, id: string) {
     throw new Error(`Insufficient leave balance. Available: ${remaining}, Required: ${app.totalDays}`);
   }
 
-  // Auto-set approver from employee's manager
-  const [emp] = await db.select().from(employees).where(eq(employees.id, app.employeeId)).limit(1);
-  const approverId = emp?.managerId ?? null;
+  // approverId stores a userId (matched against req.auth.userId on
+  // approve), not an employeeId — so resolve via linked user account.
+  const approverId = await getManagerLinkedUserId(app.employeeId);
 
   const [updated] = await db.update(hrLeaveApplications).set({
     status: 'pending', approverId, balanceBefore: remaining, updatedAt: now,
@@ -281,7 +282,17 @@ export async function getLeaveCalendar(tenantId: string, month: string) {
     .orderBy(asc(hrLeaveApplications.startDate));
 }
 
-export async function getPendingApprovals(tenantId: string, approverId: string) {
+export async function getPendingApprovals(
+  tenantId: string,
+  approverId: string,
+  isHrAdmin: boolean,
+) {
+  // HR admins/editors also see leaves with no assigned approver, so an
+  // employee with no manager doesn't get their request stuck invisible.
+  const visibility = isHrAdmin
+    ? or(eq(hrLeaveApplications.approverId, approverId), isNull(hrLeaveApplications.approverId))
+    : eq(hrLeaveApplications.approverId, approverId);
+
   return db.select({
     id: hrLeaveApplications.id,
     employeeId: hrLeaveApplications.employeeId,
@@ -300,7 +311,7 @@ export async function getPendingApprovals(tenantId: string, approverId: string) 
     .leftJoin(hrLeaveTypes, eq(hrLeaveApplications.leaveTypeId, hrLeaveTypes.id))
     .where(and(
       eq(hrLeaveApplications.tenantId, tenantId),
-      eq(hrLeaveApplications.approverId, approverId),
+      visibility,
       eq(hrLeaveApplications.status, 'pending'),
       eq(hrLeaveApplications.isArchived, false),
     ))

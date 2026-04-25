@@ -439,7 +439,7 @@ export function HrPage() {
       </div>
 
       {/* Modals */}
-      <CreateEmployeeModal open={showCreateEmployee} onClose={() => setShowCreateEmployee(false)} departments={departments} />
+      <CreateEmployeeModal open={showCreateEmployee} onClose={() => setShowCreateEmployee(false)} departments={departments} employees={allEmployees} />
       <CreateDepartmentModal open={showCreateDepartment} onClose={() => setShowCreateDepartment(false)} />
       <RequestTimeOffModal open={showCreateTimeOff} onClose={() => setShowCreateTimeOff(false)} employees={allEmployees} />
       {editingDepartment && (

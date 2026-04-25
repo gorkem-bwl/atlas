@@ -175,7 +175,7 @@ export function useEmployeeCounts(options?: { enabled?: boolean }) {
 export function useCreateEmployee() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Omit<HrEmployee, 'id' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (input: Partial<Omit<HrEmployee, 'id' | 'createdAt' | 'updatedAt'>> & { name: string; email: string }) => {
       const { data } = await api.post('/hr', input);
       return data.data as HrEmployee;
     },

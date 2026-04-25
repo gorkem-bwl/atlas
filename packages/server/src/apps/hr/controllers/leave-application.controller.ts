@@ -278,8 +278,10 @@ export async function getPendingApprovals(req: Request, res: Response) {
   try {
     const tenantId = req.auth!.tenantId;
     const userId = req.auth!.userId;
+    const role = req.hrPerm?.role;
+    const isHrAdmin = role === 'admin' || role === 'editor';
 
-    const data = await leaveService.getPendingApprovals(tenantId, userId);
+    const data = await leaveService.getPendingApprovals(tenantId, userId, isHrAdmin);
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to get pending approvals');
