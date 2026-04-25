@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { register, envelope, Uuid, IsoDateTime, IsoDate } from '../_helpers';
+import { TASK_STATUS_VALUES } from '@atlas-platform/shared';
 
 const TAG = 'Work';
 
@@ -15,7 +16,7 @@ const Task = z.object({
   icon: z.string().nullable(),
   type: z.enum(['task', 'heading']),
   headingId: Uuid.nullable(),
-  status: z.enum(['todo', 'in_progress', 'done', 'cancelled']),
+  status: z.enum(TASK_STATUS_VALUES),
   when: z.enum(['inbox', 'today', 'evening', 'anytime', 'someday', 'upcoming']),
   priority: z.enum(['none', 'low', 'medium', 'high', 'urgent']),
   dueDate: z.string().nullable(),

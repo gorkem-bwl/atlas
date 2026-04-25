@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, X, Link2, AlertTriangle, CheckCircle2, CircleDot } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task } from '@atlas-platform/shared';
+import { isDoneStatus } from '@atlas-platform/shared';
 import { useTaskDependencies, useAddDependency, useRemoveDependency } from '../hooks';
 import { useAppActions } from '../../../hooks/use-app-permissions';
 import { IconButton } from '../../../components/ui/icon-button';
@@ -176,7 +177,7 @@ export function DependencySection({ taskId, allTasks }: { taskId: string; allTas
                     setIsAdding(false);
                   }}
                 >
-                  {task.status === 'completed' ? (
+                  {isDoneStatus(task.status) ? (
                     <CheckCircle2 size={12} color="var(--color-success)" />
                   ) : (
                     <CircleDot size={12} color="var(--color-text-tertiary)" />

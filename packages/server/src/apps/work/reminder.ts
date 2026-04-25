@@ -1,9 +1,10 @@
 import { db } from '../../config/database';
 import { tasks, users } from '../../db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { logger } from '../../utils/logger';
 import { sendEmail } from '../../services/email.service';
 import { env } from '../../config/env';
+import { OPEN_TASK_STATUSES } from '@atlas-platform/shared';
 
 /**
  * Send reminders for tasks with due dates of today.
@@ -33,7 +34,7 @@ export async function sendDueTaskReminders(): Promise<number> {
       .from(tasks)
       .where(
         and(
-          eq(tasks.status, 'todo'),
+          inArray(tasks.status, OPEN_TASK_STATUSES),
           eq(tasks.isArchived, false),
           eq(tasks.dueDate, todayStr),
           sql`(

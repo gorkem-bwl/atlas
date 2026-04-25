@@ -1,6 +1,8 @@
 import { db } from '../../../config/database';
 import { tasks, users, tenantMembers } from '../../../db/schema';
-import { eq, and, asc, desc, sql, isNull, isNotNull, or } from 'drizzle-orm';
+import { eq, and, asc, desc, sql, isNull, isNotNull, or, inArray } from 'drizzle-orm';
+import { isClosedStatus, OPEN_TASK_STATUSES } from '@atlas-platform/shared';
+import type { TaskStatus } from '@atlas-platform/shared';
 
 async function assertAssigneeInTenant(assigneeId: string, tenantId: string) {
   const [member] = await db.select({ userId: tenantMembers.userId }).from(tenantMembers)
@@ -60,7 +62,7 @@ function fmt(date: Date): string {
 export type TaskView = 'my' | 'assigned' | 'created' | 'all';
 
 export async function listTasks(userId: string, filters?: {
-  status?: string;
+  status?: TaskStatus;
   when?: string;
   projectId?: string | null;
   assigneeId?: string;
@@ -214,11 +216,7 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
   }
   if (input.status !== undefined) {
     updates.status = input.status;
-    if (input.status === 'completed' || input.status === 'cancelled') {
-      updates.completedAt = now;
-    } else {
-      updates.completedAt = null;
-    }
+    updates.completedAt = isClosedStatus(input.status) ? now : null;
   }
   if (input.when !== undefined) updates.when = input.when;
   if (input.priority !== undefined) updates.priority = input.priority;
@@ -249,12 +247,8 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
 
   if (!updated) return null;
 
-  // Auto-create next recurring instance when completed/cancelled
-  if (
-    input.status &&
-    (input.status === 'completed' || input.status === 'cancelled') &&
-    updated.recurrenceRule
-  ) {
+  // Auto-create next recurring instance when the task closes (done or cancelled).
+  if (input.status && isClosedStatus(input.status) && updated.recurrenceRule) {
     const nextDueDate = calculateNextDueDate(updated.dueDate, updated.recurrenceRule as RecurrenceRule);
     const parentId = updated.recurrenceParentId || updated.id;
 
@@ -347,7 +341,7 @@ export async function getTaskCounts(userId: string) {
   };
 
   for (const t of allTasks) {
-    if (t.status === 'completed' || t.status === 'cancelled') {
+    if (isClosedStatus(t.status)) {
       counts.logbook++;
     } else {
       counts.total++;
@@ -364,7 +358,7 @@ export async function getTaskCounts(userId: string) {
     .where(
       and(
         readableTasksFilter(userId), eq(tasks.isArchived, false),
-        eq(tasks.status, 'todo'), isNotNull(tasks.dueDate),
+        inArray(tasks.status, OPEN_TASK_STATUSES), isNotNull(tasks.dueDate),
       ),
     );
   counts.upcoming = tasksWithDueDate.length;
@@ -375,7 +369,7 @@ export async function getTaskCounts(userId: string) {
     .where(
       and(
         readableTasksFilter(userId), eq(tasks.isArchived, false),
-        eq(tasks.status, 'todo'), eq(tasks.assigneeId, userId),
+        inArray(tasks.status, OPEN_TASK_STATUSES), eq(tasks.assigneeId, userId),
       ),
     );
   counts.assignedToMe = assignedToMe.length;

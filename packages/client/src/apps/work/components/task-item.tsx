@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task, TaskProject, TenantUser } from '@atlas-platform/shared';
+import { isDoneStatus } from '@atlas-platform/shared';
 import { useTasksSettingsStore } from '../settings-store';
 import { useAppActions } from '../../../hooks/use-app-permissions';
 import { useAuthStore } from '../../../stores/auth-store';
@@ -78,7 +79,7 @@ function TaskItemInner({
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!canEdit) return;
-    if (task.status === 'completed') {
+    if (isDoneStatus(task.status)) {
       onComplete(); // uncomplete immediately
       return;
     }
@@ -146,11 +147,11 @@ function TaskItemInner({
       </div>
 
       <button
-        className={`task-checkbox${task.status === 'completed' || completing ? ' completed' : ''}`}
+        className={`task-checkbox${isDoneStatus(task.status) || completing ? ' completed' : ''}`}
         onClick={handleComplete}
-        aria-label={task.status === 'completed' ? t('tasks.markIncomplete') : t('tasks.markComplete')}
+        aria-label={isDoneStatus(task.status) ? t('tasks.markIncomplete') : t('tasks.markComplete')}
       >
-        {(task.status === 'completed' || completing) && (
+        {(isDoneStatus(task.status) || completing) && (
           <Check size={12} color="var(--color-text-inverse)" strokeWidth={3} className="task-check-icon" />
         )}
       </button>
@@ -173,7 +174,7 @@ function TaskItemInner({
             />
           ) : (
             <span
-              className={`task-title-text${task.status === 'completed' ? ' completed' : ''}`}
+              className={`task-title-text${isDoneStatus(task.status) ? ' completed' : ''}`}
               onClick={handleTitleClick}
             >
               {task.title || t('tasks.untitled')}

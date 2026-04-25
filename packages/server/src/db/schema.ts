@@ -3,7 +3,7 @@ import {
   timestamp, date, index, uniqueIndex, primaryKey, real, type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { customType } from 'drizzle-orm/pg-core';
-import type { StepCondition } from '@atlas-platform/shared';
+import type { StepCondition, TaskStatus } from '@atlas-platform/shared';
 
 // Custom tsvector type for full-text search
 const tsvector = customType<{ data: string }>({
@@ -312,7 +312,7 @@ export const tasks = pgTable('tasks', {
   icon: text('icon'),
   type: text('type').notNull().default('task'),
   headingId: uuid('heading_id'),
-  status: text('status').notNull().default('todo'),
+  status: text('status').$type<TaskStatus>().notNull().default('todo'),
   when: text('when').notNull().default('inbox'),
   priority: text('priority').notNull().default('none'),
   dueDate: text('due_date'),

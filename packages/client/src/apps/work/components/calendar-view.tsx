@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task } from '@atlas-platform/shared';
+import { isClosedStatus } from '@atlas-platform/shared';
 import { getTodayStr } from '../lib/helpers';
 import { Button } from '../../../components/ui/button';
 
@@ -39,7 +40,7 @@ export function CalendarView({
   const tasksByDate = useMemo(() => {
     const map = new Map<string, Task[]>();
     for (const task of tasks) {
-      if (task.dueDate && task.status !== 'completed' && task.status !== 'cancelled') {
+      if (task.dueDate && !isClosedStatus(task.status)) {
         const dateKey = task.dueDate.slice(0, 10);
         if (!map.has(dateKey)) map.set(dateKey, []);
         map.get(dateKey)!.push(task);

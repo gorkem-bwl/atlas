@@ -46,10 +46,10 @@ describe('Tasks API (integration)', () => {
     const res = await request(app)
       .patch(`/api/v1/work/tasks/${created.body.data.id}`)
       .set('Authorization', `Bearer ${auth.accessToken}`)
-      .send({ status: 'done', title: 'Updated' })
+      .send({ status: 'completed', title: 'Updated' })
       .expect(200);
 
-    expect(res.body.data.status).toBe('done');
+    expect(res.body.data.status).toBe('completed');
     expect(res.body.data.title).toBe('Updated');
   });
 
@@ -88,7 +88,7 @@ describe('Tasks API (integration)', () => {
     await request(app)
       .post('/api/v1/work/tasks')
       .set('Authorization', `Bearer ${auth.accessToken}`)
-      .send({ title: 'Task 2', status: 'done' })
+      .send({ title: 'Task 2', status: 'completed' })
       .expect((r: any) => { if (![200, 201].includes(r.status)) throw new Error(`Expected 200/201, got ${r.status}`); });
 
     const res = await request(app)

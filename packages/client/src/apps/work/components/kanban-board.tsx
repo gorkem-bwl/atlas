@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task, TaskProject, TaskWhen } from '@atlas-platform/shared';
+import { isDoneStatus, isClosedStatus } from '@atlas-platform/shared';
 import { useUpdateTask, useReorderTasks } from '../hooks';
 
 // ─── Column definitions ──────────────────────────────────────────────
@@ -130,11 +131,11 @@ function KanbanCard({
     >
       <div className="kanban-card-top">
         <button
-          className={`task-checkbox${task.status === 'completed' ? ' completed' : ''}`}
+          className={`task-checkbox${isDoneStatus(task.status) ? ' completed' : ''}`}
           onClick={(e) => { e.stopPropagation(); onComplete(task.id); }}
           aria-label={t('tasks.complete')}
         >
-          {task.status === 'completed' && (
+          {isDoneStatus(task.status) && (
             <Check size={10} color="var(--color-text-inverse)" strokeWidth={3} className="task-check-icon" />
           )}
         </button>
@@ -142,7 +143,7 @@ function KanbanCard({
           {task.priority !== 'none' && (
             <div className={`task-priority-dot ${task.priority}`} />
           )}
-          <span className={`kanban-card-title${task.status === 'completed' ? ' completed' : ''}`}>
+          <span className={`kanban-card-title${isDoneStatus(task.status) ? ' completed' : ''}`}>
             {task.title || t('tasks.noTasks')}
           </span>
         </div>
@@ -260,7 +261,7 @@ export function KanbanBoard({
     for (const col of COLUMNS) groups[col.id] = [];
     for (const task of tasks) {
       if (task.type === 'heading') continue;
-      if (task.status === 'completed' || task.status === 'cancelled') continue;
+      if (isClosedStatus(task.status)) continue;
       const colId = getColumnForTask(task);
       if (groups[colId]) groups[colId].push(task);
     }

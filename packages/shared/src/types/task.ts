@@ -1,6 +1,26 @@
 // ─── Task types ─────────────────────────────────────────────────────
 
-export type TaskStatus = 'todo' | 'completed' | 'cancelled';
+export const TASK_STATUS_VALUES = ['todo', 'completed', 'cancelled'] as const;
+export type TaskStatus = typeof TASK_STATUS_VALUES[number];
+
+// Cancelled is closed (hidden from inboxes/reminders) but not done
+// (no completion event, checkbox stays unchecked).
+const TASK_STATUS_CATEGORY = {
+  todo: 'open',
+  completed: 'done',
+  cancelled: 'cancelled',
+} as const satisfies Record<TaskStatus, 'open' | 'done' | 'cancelled'>;
+
+export const isOpenStatus = (s: TaskStatus): boolean =>
+  TASK_STATUS_CATEGORY[s] === 'open';
+export const isDoneStatus = (s: TaskStatus): boolean =>
+  TASK_STATUS_CATEGORY[s] === 'done';
+export const isClosedStatus = (s: TaskStatus): boolean =>
+  TASK_STATUS_CATEGORY[s] !== 'open';
+
+export const OPEN_TASK_STATUSES: readonly TaskStatus[] =
+  TASK_STATUS_VALUES.filter(isOpenStatus);
+
 export type TaskWhen = 'inbox' | 'today' | 'evening' | 'anytime' | 'someday';
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high';
 export type TaskType = 'task' | 'heading';

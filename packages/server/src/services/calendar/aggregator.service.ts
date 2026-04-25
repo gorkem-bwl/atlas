@@ -3,10 +3,11 @@ import {
   accounts, crmActivities, crmDeals, crmContacts,
   hrLeaveApplications, employees, hrLeaveTypes, tasks,
 } from '../../db/schema';
-import { eq, and, gte, lte, isNotNull, not, inArray, or } from 'drizzle-orm';
+import { eq, and, gte, lte, isNotNull, inArray, or } from 'drizzle-orm';
 import { listEvents } from './crud.service';
 import { getAppPermission, type ResolvedAppPermission } from '../app-permissions.service';
 import { logger } from '../../utils/logger';
+import { OPEN_TASK_STATUSES } from '@atlas-platform/shared';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ export async function getAggregatedEvents(
           isNotNull(tasks.dueDate),
           gte(tasks.dueDate, timeMin.slice(0, 10)),
           lte(tasks.dueDate, timeMax.slice(0, 10)),
-          not(inArray(tasks.status, ['completed', 'cancelled'])),
+          inArray(tasks.status, OPEN_TASK_STATUSES),
           eq(tasks.isArchived, false),
           or(eq(tasks.userId, userId), eq(tasks.visibility, 'team')),
         ));

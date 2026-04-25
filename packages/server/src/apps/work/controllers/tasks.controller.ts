@@ -6,6 +6,8 @@ import { emitAppEvent } from '../../../services/event.service';
 import { parseMentionsAndNotify } from '../../../utils/mentions';
 import { assertCanDelete } from '../../../middleware/assert-can-delete';
 import type { TaskView } from '../services/task.service';
+import { isDoneStatus } from '@atlas-platform/shared';
+import type { TaskStatus } from '@atlas-platform/shared';
 
 // ─── Tasks ──────────────────────────────────────────────────────────
 
@@ -15,7 +17,7 @@ export async function listTasks(req: Request, res: Response) {
     const { status, when, projectId, includeArchived, assigneeId, view } = req.query;
 
     const tasks = await workService.listTasks(userId, {
-      status: status as string | undefined,
+      status: status as TaskStatus | undefined,
       when: when as string | undefined,
       projectId: projectId === 'null' ? null : (projectId as string | undefined),
       assigneeId: assigneeId as string | undefined,
@@ -102,7 +104,7 @@ export async function updateTask(req: Request, res: Response) {
       return;
     }
 
-    if (status === 'completed' && req.auth!.tenantId) {
+    if (status && isDoneStatus(status as TaskStatus) && req.auth!.tenantId) {
       emitAppEvent({
         tenantId: req.auth!.tenantId, userId, appId: 'work',
         eventType: 'task.completed', title: `completed task: ${task.title}`,
