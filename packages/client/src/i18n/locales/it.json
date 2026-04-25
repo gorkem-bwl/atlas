@@ -4723,6 +4723,23 @@
         "completedHide": "Nascondi",
         "confirmBeforeDelete": "Conferma prima di eliminare",
         "confirmBeforeDeleteHelp": "Chiedi prima di rimuovere definitivamente un’attività."
+      },
+      "statuses": {
+        "title": "Stati attività",
+        "description": "Definisci gli stati attraverso cui un'attività può passare. Gli stati integrati possono essere rinominati ma non eliminati.",
+        "categoryOpen": "Aperto",
+        "categoryDone": "Completato",
+        "categoryCancelled": "Annullato",
+        "builtIn": "Integrato",
+        "addTitle": "Aggiungi stato",
+        "addDescription": "La categoria indica al sistema come comportarsi (Aperto nasconde dal logbook, Completato scatena l'evento di completamento).",
+        "namePlaceholder": "es. In revisione",
+        "add": "Aggiungi stato",
+        "created": "Stato creato",
+        "archived": "Stato archiviato",
+        "archiveFailed": "Impossibile archiviare lo stato",
+        "archiveConfirmTitle": "Archiviare questo stato?",
+        "archiveConfirmDescription": "Le attività con questo stato saranno spostate sullo stato aperto predefinito. Lo stato viene nascosto, non eliminato."
       }
     },
     "notifications": {

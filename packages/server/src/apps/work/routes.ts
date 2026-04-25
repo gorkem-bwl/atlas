@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth';
 import { requireAppPermission } from '../../middleware/require-app-permission';
 import { withConcurrencyCheck } from '../../middleware/concurrency-check';
-import { tasks, projectProjects, projectTimeEntries } from '../../db/schema';
+import { tasks, projectProjects, projectTimeEntries, taskStatuses } from '../../db/schema';
 import * as controller from './controller';
+import * as taskStatusController from './controllers/task-statuses.controller';
 
 const router = Router();
 
@@ -13,6 +14,13 @@ router.use(requireAppPermission('work'));
 // Tenant-wide work settings (admin-only mutation via canAccess gate)
 router.get('/settings', controller.getWorkSettings);
 router.patch('/settings', controller.updateWorkSettings);
+
+// Task statuses (per-tenant)
+router.get('/task-statuses', taskStatusController.listStatuses);
+router.post('/task-statuses', taskStatusController.createStatus);
+router.patch('/task-statuses/reorder', taskStatusController.reorderStatuses);
+router.patch('/task-statuses/:id', withConcurrencyCheck(taskStatuses), taskStatusController.updateStatus);
+router.delete('/task-statuses/:id', taskStatusController.archiveStatus);
 
 // Tasks
 router.get('/tasks', controller.listTasks);

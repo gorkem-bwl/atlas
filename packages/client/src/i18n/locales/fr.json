@@ -4723,6 +4723,23 @@
         "completedHide": "Masquer",
         "confirmBeforeDelete": "Confirmer avant de supprimer",
         "confirmBeforeDeleteHelp": "Demander avant la suppression définitive d’une tâche."
+      },
+      "statuses": {
+        "title": "Statuts de tâche",
+        "description": "Définissez les statuts par lesquels une tâche peut passer. Les statuts intégrés peuvent être renommés mais pas supprimés.",
+        "categoryOpen": "Ouvert",
+        "categoryDone": "Terminé",
+        "categoryCancelled": "Annulé",
+        "builtIn": "Intégré",
+        "addTitle": "Ajouter un statut",
+        "addDescription": "La catégorie indique au système comment se comporter (Ouvert masque du journal, Terminé déclenche l'événement de complétion).",
+        "namePlaceholder": "ex : En revue",
+        "add": "Ajouter un statut",
+        "created": "Statut créé",
+        "archived": "Statut archivé",
+        "archiveFailed": "Impossible d'archiver le statut",
+        "archiveConfirmTitle": "Archiver ce statut ?",
+        "archiveConfirmDescription": "Les tâches utilisant ce statut seront déplacées vers le statut ouvert par défaut. Le statut est masqué, pas supprimé."
       }
     },
     "notifications": {

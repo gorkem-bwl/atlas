@@ -42,6 +42,14 @@ export async function createTenant(input: CreateTenantInput, ownerId: string) {
     logger.warn({ err, tenantId: tenant.id }, 'Failed to seed default apps — apps can be enabled manually');
   }
 
+  // Seed default task statuses (issue #8 phase 2)
+  try {
+    const { seedDefaultTaskStatuses } = await import('../../apps/work/services/task-status.service');
+    await seedDefaultTaskStatuses(tenant.id);
+  } catch (err) {
+    logger.warn({ err, tenantId: tenant.id }, 'Failed to seed default task statuses');
+  }
+
   logger.info({ tenantId: tenant.id, slug: input.slug }, 'Tenant created');
   return tenant;
 }

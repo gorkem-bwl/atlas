@@ -298,6 +298,32 @@ export const documentVersions = pgTable('document_versions', {
   docIdx: index('idx_document_versions_doc').on(table.documentId, table.createdAt),
 }));
 
+// ─── Task Statuses ──────────────────────────────────────────────────
+
+export const taskStatuses = pgTable('task_statuses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 64 }).notNull(),
+  // 'open' | 'done' | 'cancelled' — see shared TaskStatusCategory
+  category: varchar('category', { length: 16 }).notNull(),
+  color: varchar('color', { length: 16 }).notNull().default('#6B7280'),
+  // legacySlug maps a tenant-defined status back to the v1 string column.
+  // 'todo' for the open default, 'completed' for the done default,
+  // 'cancelled' for the cancelled default. NULL for new statuses created
+  // by the user — those have no legacy mapping. Backfill (Phase 2) sets
+  // taskStatusId based on this slug; cutover (Phase 6) drops tasks.status
+  // and this column.
+  legacySlug: varchar('legacy_slug', { length: 32 }),
+  isDefault: boolean('is_default').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isArchived: boolean('is_archived').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_task_statuses_tenant').on(table.tenantId, table.sortOrder),
+  tenantSlugIdx: uniqueIndex('idx_task_statuses_tenant_slug').on(table.tenantId, table.legacySlug),
+}));
+
 // ─── Tasks ──────────────────────────────────────────────────────────
 
 export const tasks = pgTable('tasks', {
@@ -313,6 +339,10 @@ export const tasks = pgTable('tasks', {
   type: text('type').notNull().default('task'),
   headingId: uuid('heading_id'),
   status: text('status').$type<TaskStatus>().notNull().default('todo'),
+  // Phase 2 (issue #8): shadow column. Read path still uses `status` text
+  // until Phase 5 cuts over. Nullable on insert because legacy rows may
+  // not have a mapping yet — bootstrap.ts backfills based on legacySlug.
+  taskStatusId: uuid('task_status_id'),
   when: text('when').notNull().default('inbox'),
   priority: text('priority').notNull().default('none'),
   dueDate: text('due_date'),
@@ -335,6 +365,7 @@ export const tasks = pgTable('tasks', {
   projectIdx: index('idx_tasks_project').on(table.projectId, table.sortOrder),
   dueDateIdx: index('idx_tasks_due_date').on(table.userId, table.dueDate),
   userPrivateIdx: index('idx_tasks_user_private').on(table.userId, table.isPrivate),
+  tenantStatusIdIdx: index('idx_tasks_tenant_status_id').on(table.tenantId, table.taskStatusId),
 }));
 
 // ─── Drive (file storage) ────────────────────────────────────────────

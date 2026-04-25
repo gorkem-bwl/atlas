@@ -306,3 +306,45 @@ register({ method: 'patch', path: '/work/time-entries/:id', tags: [TAG], summary
   params: z.object({ id: Uuid }), body: TimeEntry.partial(), response: envelope(TimeEntry) });
 register({ method: 'delete', path: '/work/time-entries/:id', tags: [TAG], summary: 'Delete a time entry',
   params: z.object({ id: Uuid }) });
+
+// ─── Task Statuses (per-tenant custom statuses) ─────────────────────
+
+const TaskStatusCategoryEnum = z.enum(['open', 'done', 'cancelled']);
+
+const TaskStatusRow = z.object({
+  id: Uuid,
+  tenantId: Uuid,
+  name: z.string(),
+  category: TaskStatusCategoryEnum,
+  color: z.string(),
+  legacySlug: z.string().nullable(),
+  isDefault: z.boolean(),
+  sortOrder: z.number().int(),
+  isArchived: z.boolean(),
+  createdAt: IsoDateTime,
+  updatedAt: IsoDateTime,
+});
+
+register({ method: 'get', path: '/work/task-statuses', tags: [TAG], summary: 'List task statuses for the tenant',
+  response: envelope(z.array(TaskStatusRow)) });
+register({ method: 'post', path: '/work/task-statuses', tags: [TAG], summary: 'Create a task status',
+  body: z.object({
+    name: z.string().min(1).max(64),
+    category: TaskStatusCategoryEnum,
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    sortOrder: z.number().int().optional(),
+  }),
+  response: envelope(TaskStatusRow) });
+register({ method: 'patch', path: '/work/task-statuses/reorder', tags: [TAG], summary: 'Reorder task statuses',
+  body: z.object({ ids: z.array(Uuid) }) });
+register({ method: 'patch', path: '/work/task-statuses/:id', tags: [TAG], summary: 'Update a task status',
+  params: z.object({ id: Uuid }),
+  body: z.object({
+    name: z.string().min(1).max(64).optional(),
+    category: TaskStatusCategoryEnum.optional(),
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    sortOrder: z.number().int().optional(),
+  }),
+  response: envelope(TaskStatusRow) });
+register({ method: 'delete', path: '/work/task-statuses/:id', tags: [TAG], summary: 'Archive a task status',
+  params: z.object({ id: Uuid }) });

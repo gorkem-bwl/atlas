@@ -4723,6 +4723,23 @@
         "completedHide": "Verbergen",
         "confirmBeforeDelete": "Vor dem Löschen bestätigen",
         "confirmBeforeDeleteHelp": "Vor dem endgültigen Entfernen einer Aufgabe fragen."
+      },
+      "statuses": {
+        "title": "Aufgabenstatus",
+        "description": "Lege fest, welche Status Aufgaben durchlaufen können. Eingebaute Status können umbenannt werden, aber nicht gelöscht.",
+        "categoryOpen": "Offen",
+        "categoryDone": "Erledigt",
+        "categoryCancelled": "Abgebrochen",
+        "builtIn": "Standard",
+        "addTitle": "Status hinzufügen",
+        "addDescription": "Die Kategorie steuert das Verhalten (Offen blendet aus dem Logbuch aus, Erledigt löst das Abschluss-Event aus).",
+        "namePlaceholder": "z. B. In Prüfung",
+        "add": "Status hinzufügen",
+        "created": "Status erstellt",
+        "archived": "Status archiviert",
+        "archiveFailed": "Status konnte nicht archiviert werden",
+        "archiveConfirmTitle": "Diesen Status archivieren?",
+        "archiveConfirmDescription": "Aufgaben mit diesem Status werden auf den Standard-Offen-Status verschoben. Der Status wird nur ausgeblendet, nicht dauerhaft gelöscht."
       }
     },
     "notifications": {

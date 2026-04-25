@@ -4723,6 +4723,23 @@
         "completedHide": "Gizle",
         "confirmBeforeDelete": "Silmeden önce onay iste",
         "confirmBeforeDeleteHelp": "Bir görevi kalıcı olarak silmeden önce sor."
+      },
+      "statuses": {
+        "title": "Görev durumları",
+        "description": "Görevlerin geçebileceği durumları tanımlayın. Yerleşik durumlar yeniden adlandırılabilir ancak silinemez.",
+        "categoryOpen": "Açık",
+        "categoryDone": "Tamamlandı",
+        "categoryCancelled": "İptal edildi",
+        "builtIn": "Yerleşik",
+        "addTitle": "Durum ekle",
+        "addDescription": "Kategori, sistemin durumu nasıl ele alacağını belirler (Açık logbook'tan gizler, Tamamlandı tamamlama olayını tetikler).",
+        "namePlaceholder": "örn. İncelemede",
+        "add": "Durum ekle",
+        "created": "Durum oluşturuldu",
+        "archived": "Durum arşivlendi",
+        "archiveFailed": "Durum arşivlenemedi",
+        "archiveConfirmTitle": "Bu durum arşivlensin mi?",
+        "archiveConfirmDescription": "Bu durumu kullanan görevler varsayılan açık duruma taşınacak. Durum gizlenir, kalıcı olarak silinmez."
       }
     },
     "notifications": {

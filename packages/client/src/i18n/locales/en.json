@@ -4723,6 +4723,23 @@
         "completedHide": "Hide",
         "confirmBeforeDelete": "Confirm before deleting",
         "confirmBeforeDeleteHelp": "Ask before permanently removing a task."
+      },
+      "statuses": {
+        "title": "Task statuses",
+        "description": "Define the statuses tasks can move through. Built-in statuses can be renamed and recolored but not deleted.",
+        "categoryOpen": "Open",
+        "categoryDone": "Done",
+        "categoryCancelled": "Cancelled",
+        "builtIn": "Built-in",
+        "addTitle": "Add a status",
+        "addDescription": "Use a category to tell the system how a status should behave (open hides from the logbook, done fires the completion event).",
+        "namePlaceholder": "e.g. In Review",
+        "add": "Add status",
+        "created": "Status created",
+        "archived": "Status archived",
+        "archiveFailed": "Could not archive status",
+        "archiveConfirmTitle": "Archive this status?",
+        "archiveConfirmDescription": "Tasks using this status will be moved to the default open status. The status itself is hidden, not permanently deleted."
       }
     },
     "notifications": {

@@ -294,5 +294,8 @@ export const queryKeys = {
       },
       settings: ['work', 'projects', 'settings'] as const,
     },
+    taskStatuses: {
+      all: ['work', 'task-statuses'] as const,
+    },
   },
 };

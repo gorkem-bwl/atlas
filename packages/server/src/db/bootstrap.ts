@@ -221,6 +221,78 @@ async function migrateLegacyData() {
     logger.error({ err }, 'employees.holiday_calendar_id backfill failed');
   }
 
+  // task_statuses + tasks.task_status_id — issue #8 phase 2.
+  // Per-tenant custom task statuses. Phase 2 ships the schema, seeds
+  // defaults on tenant creation (in tenant.service), and backfills
+  // taskStatusId on existing rows by mapping tasks.status (text) to the
+  // seeded status with matching legacySlug. The text column remains the
+  // source of truth until phase 5 cuts the read path; phase 6 drops it.
+  try {
+    const c = await pool.connect();
+    try {
+      await c.query(`
+        CREATE TABLE IF NOT EXISTS task_statuses (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+          name varchar(64) NOT NULL,
+          category varchar(16) NOT NULL,
+          color varchar(16) NOT NULL DEFAULT '#6B7280',
+          legacy_slug varchar(32),
+          is_default boolean NOT NULL DEFAULT false,
+          sort_order integer NOT NULL DEFAULT 0,
+          is_archived boolean NOT NULL DEFAULT false,
+          created_at timestamptz NOT NULL DEFAULT now(),
+          updated_at timestamptz NOT NULL DEFAULT now()
+        )
+      `);
+      await c.query(
+        `CREATE INDEX IF NOT EXISTS idx_task_statuses_tenant ON task_statuses(tenant_id, sort_order)`,
+      );
+      await c.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_task_statuses_tenant_slug ON task_statuses(tenant_id, legacy_slug) WHERE legacy_slug IS NOT NULL`,
+      );
+      await c.query(
+        `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_status_id uuid`,
+      );
+      await c.query(
+        `CREATE INDEX IF NOT EXISTS idx_tasks_tenant_status_id ON tasks(tenant_id, task_status_id)`,
+      );
+      // Seed defaults for tenants that exist but have no statuses yet
+      // (catches tenants that pre-date Phase 2 — new tenants are seeded
+      // by seedDefaultTaskStatuses in tenant.service).
+      // KEEP IN SYNC with DEFAULT_TASK_STATUSES in
+      // packages/server/src/apps/work/services/task-status.service.ts
+      await c.query(`
+        INSERT INTO task_statuses (tenant_id, name, category, color, legacy_slug, is_default, sort_order)
+        SELECT t.id, v.name, v.category, v.color, v.legacy_slug, v.is_default, v.sort_order
+        FROM tenants t
+        CROSS JOIN (VALUES
+          ('To Do',       'open',      '#6B7280', 'todo',      true,  0),
+          ('In Progress', 'open',      '#3B82F6', NULL,        false, 1),
+          ('Done',        'done',      '#10B981', 'completed', true,  2),
+          ('Cancelled',   'cancelled', '#9CA3AF', 'cancelled', false, 3)
+        ) AS v(name, category, color, legacy_slug, is_default, sort_order)
+        WHERE NOT EXISTS (
+          SELECT 1 FROM task_statuses ts WHERE ts.tenant_id = t.id
+        )
+      `);
+      // Backfill task_status_id on tasks that don't have it yet, using
+      // the legacy_slug → status map. Idempotent.
+      await c.query(`
+        UPDATE tasks t
+        SET task_status_id = ts.id
+        FROM task_statuses ts
+        WHERE t.task_status_id IS NULL
+          AND ts.tenant_id = t.tenant_id
+          AND ts.legacy_slug = t.status
+      `);
+    } finally {
+      c.release();
+    }
+  } catch (err) {
+    logger.error({ err }, 'task_statuses bootstrap failed');
+  }
+
   // tenants.storage_quota_bytes — added to the schema after the initial
   // migration snapshot. Bootstrap only runs the snapshot on empty DBs, so
   // every existing deployment is missing this column. Idempotent backfill:

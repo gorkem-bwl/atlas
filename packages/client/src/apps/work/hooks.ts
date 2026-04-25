@@ -1006,3 +1006,84 @@ export function useUpdateWorkSettings() {
   });
 }
 
+
+// ─── Task Statuses (issue #8 phase 4) ─────────────────────────────
+
+export type TaskStatusCategory = 'open' | 'done' | 'cancelled';
+
+export interface TaskStatusRow {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: TaskStatusCategory;
+  color: string;
+  legacySlug: string | null;
+  isDefault: boolean;
+  sortOrder: number;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useTaskStatuses() {
+  return useQuery({
+    queryKey: queryKeys.work.taskStatuses.all,
+    queryFn: async () => {
+      const { data } = await api.get('/work/task-statuses');
+      return data.data as TaskStatusRow[];
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useCreateTaskStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; category: TaskStatusCategory; color?: string }) => {
+      const { data } = await api.post('/work/task-statuses', input);
+      return data.data as TaskStatusRow;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.taskStatuses.all });
+    },
+  });
+}
+
+export function useUpdateTaskStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string; name?: string; category?: TaskStatusCategory; color?: string; sortOrder?: number }) => {
+      const { data } = await api.patch(`/work/task-statuses/${id}`, input, {
+        headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
+      });
+      return data.data as TaskStatusRow;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.taskStatuses.all });
+    },
+  });
+}
+
+export function useArchiveTaskStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/work/task-statuses/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.taskStatuses.all });
+    },
+  });
+}
+
+export function useReorderTaskStatuses() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await api.patch('/work/task-statuses/reorder', { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.taskStatuses.all });
+    },
+  });
+}

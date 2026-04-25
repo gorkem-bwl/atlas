@@ -3,6 +3,7 @@ import { tasks, users, tenantMembers } from '../../../db/schema';
 import { eq, and, asc, desc, sql, isNull, isNotNull, or, inArray } from 'drizzle-orm';
 import { isClosedStatus, OPEN_TASK_STATUSES } from '@atlas-platform/shared';
 import type { TaskStatus } from '@atlas-platform/shared';
+import { resolveStatusIdBySlug } from './task-status.service';
 
 async function assertAssigneeInTenant(assigneeId: string, tenantId: string) {
   const [member] = await db.select({ userId: tenantMembers.userId }).from(tenantMembers)
@@ -158,6 +159,13 @@ export async function createTask(userId: string, tenantId: string, input: Omit<C
   // Privacy: project tasks are public, personal tasks are private
   const isPrivate = !input.projectId;
 
+  // Resolve the default-open status id up front so the insert is one
+  // round trip. resolveStatusIdBySlug returns null only if the tenant's
+  // 'todo' default status was deleted — in that case taskStatusId stays
+  // null and the legacy text column remains the source of truth until
+  // someone re-seeds.
+  const seededId = await resolveStatusIdBySlug(tenantId, 'todo');
+
   const [created] = await db
     .insert(tasks)
     .values({
@@ -178,6 +186,7 @@ export async function createTask(userId: string, tenantId: string, input: Omit<C
       isPrivate,
       sourceEmailId: input.sourceEmailId ?? null,
       sourceEmailSubject: input.sourceEmailSubject ?? null,
+      taskStatusId: seededId ?? null,
       sortOrder,
       createdAt: now,
       updatedAt: now,
@@ -217,6 +226,8 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
   if (input.status !== undefined) {
     updates.status = input.status;
     updates.completedAt = isClosedStatus(input.status) ? now : null;
+    const resolvedId = await resolveStatusIdBySlug(existing.tenantId, input.status);
+    if (resolvedId) updates.taskStatusId = resolvedId;
   }
   if (input.when !== undefined) updates.when = input.when;
   if (input.priority !== undefined) updates.priority = input.priority;
@@ -259,6 +270,13 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
 
     const nextSortOrder = (maxSort?.max ?? -1) + 1;
 
+    // Recurrence resets status: the next instance gets the default-open
+    // status (text column falls through to schema default 'todo'; the
+    // FK gets the matching seeded id). A non-default open status on the
+    // parent (e.g. "In Progress") does NOT carry over by design — each
+    // occurrence starts fresh.
+    const seededId = await resolveStatusIdBySlug(updated.tenantId, 'todo');
+
     const [nextTask] = await db
       .insert(tasks)
       .values({
@@ -269,6 +287,7 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
         dueDate: nextDueDate, tags: updated.tags as string[],
         recurrenceRule: updated.recurrenceRule, recurrenceParentId: parentId,
         isPrivate: updated.isPrivate,
+        taskStatusId: seededId ?? null,
         sortOrder: nextSortOrder, createdAt: now, updatedAt: now,
       })
       .returning();

@@ -14,6 +14,7 @@ import {
 } from '../hooks';
 import { queryKeys } from '../../../config/query-keys';
 import type { Task, TaskWhen } from '@atlas-platform/shared';
+import { isDoneStatus } from '@atlas-platform/shared';
 import { ContentArea } from '../../../components/ui/content-area';
 import { useTasksSettingsStore } from '../settings-store';
 import { useAuthStore } from '../../../stores/auth-store';
@@ -229,7 +230,7 @@ export function WorkTasksView({ view, title }: Props) {
 
   const handleComplete = useCallback((taskId: string) => {
     const task = allTasks.find(t => t.id === taskId) ?? completedTasks.find(t => t.id === taskId);
-    updateTask.mutate({ id: taskId, status: task?.status === 'completed' ? 'todo' : 'completed' });
+    updateTask.mutate({ id: taskId, status: task && isDoneStatus(task.status) ? 'todo' : 'completed' });
   }, [updateTask, allTasks, completedTasks]);
 
   const handleDragStart = useCallback((e: React.DragEvent, taskId: string) => {
