@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Allow only one CI run per ref. Newer pushes cancel in-progress runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── 1. Lint + typecheck ──────────────────────────────────────────────
+  # Fastest signal: TS errors and lint issues. No DB needed.
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Typecheck server
+        run: npm run typecheck --workspace=packages/server
+
+      - name: Typecheck client
+        run: npm run typecheck --workspace=packages/client
+
+  # ─── 2. Server unit tests ─────────────────────────────────────────────
+  # Runs against the mocked db at test/setup.ts. Some test suites are
+  # skip-with-todo (drive — needs db.execute mock or migration to
+  # integration). See test/drive-service.test.ts and rbac-matrix.drive.
+  server-unit:
+    name: Server unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Build OpenAPI document
+        run: npm run openapi:build --workspace=packages/server
+
+      - name: Run server unit tests
+        run: npm test --workspace=packages/server
+
+  # ─── 3. Server integration tests ─────────────────────────────────────
+  # Real Postgres service container. Bootstrap runs the full schema
+  # against an empty database; tests issue real Drizzle queries. Higher
+  # signal than unit tests — catches schema/query/drift issues unit
+  # tests can't.
+  server-integration:
+    name: Server integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: atlas_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/atlas_test
+      JWT_SECRET: ci-jwt-secret-min-32-chars-for-test!!
+      JWT_REFRESH_SECRET: ci-jwt-refresh-secret-32chars-for-test!!
+      TOKEN_ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Run server integration tests
+        run: npm run test:integration --workspace=packages/server
+
+  # ─── 4. Client unit tests ─────────────────────────────────────────────
+  # Runs against happy-dom. 13 test files are excluded in vitest.config
+  # (drifted as components/hooks evolved); they need rebuild before
+  # being re-added. See packages/client/vitest.config.ts.
+  client-unit:
+    name: Client unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+
+      - name: Run client unit tests
+        run: npm test --workspace=packages/client

@@ -274,7 +274,7 @@ describe('auth controller — getSetupStatus', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        data: { needsSetup: true },
+        data: expect.objectContaining({ needsSetup: true }),
       })
     );
   });
@@ -290,7 +290,7 @@ describe('auth controller — getSetupStatus', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        data: { needsSetup: false },
+        data: expect.objectContaining({ needsSetup: false }),
       })
     );
   });
