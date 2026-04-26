@@ -32,4 +32,16 @@ export const docsManifest: ClientAppManifest = {
       { id: 'startup', label: 'Startup', icon: Rocket, component: DocsStartupPanel },
     ],
   },
+  tour: {
+    variant: 'activity',
+    illustrationData: {
+      contact: { initials: 'QR', avatarColor: '#c4856c', name: 'Q4 Roadmap', meta: 'Document · 8 collaborators', badge: { label: 'Live', tone: 'success' } },
+      events: [
+        { text: 'Maria edited "Goals"', timestamp: 'just now', isLive: true },
+        { text: 'Tom added a comment on §3', timestamp: '4 min ago' },
+        { text: 'Anna shared with Sales team', timestamp: 'yesterday' },
+        { text: 'Document created from template', timestamp: '5d ago' },
+      ],
+    },
+  },
 };
