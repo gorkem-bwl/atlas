@@ -613,6 +613,10 @@
       "agendaView": "Vista agenda",
       "thisHelp": "Questa guida",
       "refreshSync": "Aggiorna / sincronizza"
+    },
+    "tour": {
+      "title": "Calendar",
+      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
     }
   },
   "docs": {
@@ -737,7 +741,11 @@
     "tableAddColAfter": "+Col →",
     "tableDeleteCol": "−Col",
     "tableDelete": "Tabella",
-    "importedFrom": "Importato da {{filename}}"
+    "importedFrom": "Importato da {{filename}}",
+    "tour": {
+      "title": "Write",
+      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+    }
   },
   "draw": {
     "title": "Draw",
@@ -830,7 +838,11 @@
       "h3Desc": "Scarica come PNG, SVG o copia negli appunti"
     },
     "present": "Presenta",
-    "exitPresent": "Esci dalla presentazione"
+    "exitPresent": "Esci dalla presentazione",
+    "tour": {
+      "title": "Draw",
+      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
+    }
   },
   "tasks": {
     "title": "Tasks",
@@ -2007,6 +2019,10 @@
           "customer": "cliente"
         }
       }
+    },
+    "tour": {
+      "title": "CRM",
+      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
     }
   },
   "drive": {
@@ -2391,6 +2407,10 @@
       "uploadInstructionsLabel": "Istruzioni per chi carica (facoltativo)",
       "uploadInstructionsPlaceholder": "es. Carica il contratto firmato",
       "requireEmail": "Chiedi nome e email"
+    },
+    "tour": {
+      "title": "Drive",
+      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
     }
   },
   "hr": {
@@ -2468,7 +2488,6 @@
       "jobTitlePlaceholder": "es. Ingegnere Senior",
       "workLocation": "Sede di lavoro",
       "workLocationPlaceholder": "es. Remoto, Milano",
-      "manager": "Responsabile",
       "salary": "Stipendio",
       "currency": "Valuta",
       "period": "Periodo",
@@ -3033,7 +3052,11 @@
       "confirmDeleteTitle": "Eliminare la spesa?",
       "confirmDeleteDesc": "Questa spesa verrà rimossa definitivamente. L'operazione non può essere annullata."
     },
-    "readOnlyNotice": "Vista di sola lettura — contatta il tuo amministratore HR per apportare modifiche."
+    "readOnlyNotice": "Vista di sola lettura — contatta il tuo amministratore HR per apportare modifiche.",
+    "tour": {
+      "title": "HR",
+      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+    }
   },
   "sign": {
     "title": "Accordi",
@@ -3302,6 +3325,10 @@
       "reminderCadenceHelp": "Giorni tra i promemoria di firma",
       "signatureExpiry": "Scadenza firma",
       "signatureExpiryHelp": "Giorni prima che le firme in sospeso scadano"
+    },
+    "tour": {
+      "title": "Sign",
+      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
     }
   },
   "system": {
@@ -3394,6 +3421,10 @@
       "saved": "Salvato",
       "saving": "Salvataggio...",
       "saveBeforeTest": "Salva le impostazioni prima di inviare un'email di test."
+    },
+    "tour": {
+      "title": "System",
+      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
     }
   },
   "widgets": {
@@ -4560,7 +4591,11 @@
       "multiCurrencyNotice": "Visualizzazione solo fatture in {{currency}}; {{count}} fattura in altre valute esclusa",
       "multiCurrencyNotice_plural": "Visualizzazione solo fatture in {{currency}}; {{count}} fatture in altre valute escluse"
     },
-    "importPdf": "Importa da PDF"
+    "importPdf": "Importa da PDF",
+    "tour": {
+      "title": "Invoices",
+      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+    }
   },
   "work": {
     "quickActions": {
@@ -4757,6 +4792,10 @@
     },
     "notifications": {
       "taskReassignedAway": "Sei stato rimosso da un’attività: {{title}}"
+    },
+    "tour": {
+      "title": "Tasks & Projects",
+      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
     }
   },
   "pdfImport": {

@@ -42,4 +42,17 @@ export const crmManifest: ClientAppManifest = {
       { id: 'integrations', label: 'Integrations', icon: Settings, component: CrmIntegrationsPanel, adminOnly: true },
     ],
   },
+  tour: {
+    variant: 'list',
+    illustrationData: {
+      rows: [
+        { initials: 'JR', avatarColor: '#a78bfa', primary: 'James Rodriguez', secondary: 'Horizon Media Group', badge: { label: 'Active', tone: 'success' } },
+        { initials: 'EC', avatarColor: '#10b981', primary: 'Emily Chen', secondary: 'CloudNine Solutions', badge: { label: 'Lead', tone: 'info' } },
+        { initials: 'DK', avatarColor: '#f59e0b', primary: 'David Kim', secondary: 'Northwind Logistics', badge: { label: 'Prospect', tone: 'warning' } },
+        { initials: 'SP', avatarColor: '#ef4444', primary: 'Sara Park', secondary: 'Pinecrest Studio', badge: { label: 'Cold', tone: 'danger' } },
+      ],
+      fadeFrom: 2,
+      collaborator: { name: 'Maria', color: '#6366f1', targetRowIndex: 1 },
+    },
+  },
 };

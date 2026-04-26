@@ -613,6 +613,10 @@
       "agendaView": "Terminübersicht",
       "thisHelp": "Diese Hilfe",
       "refreshSync": "Aktualisieren / synchronisieren"
+    },
+    "tour": {
+      "title": "Calendar",
+      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
     }
   },
   "docs": {
@@ -737,7 +741,11 @@
     "tableAddColAfter": "+Spalte →",
     "tableDeleteCol": "−Spalte",
     "tableDelete": "Tabelle",
-    "importedFrom": "Importiert von {{filename}}"
+    "importedFrom": "Importiert von {{filename}}",
+    "tour": {
+      "title": "Write",
+      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+    }
   },
   "draw": {
     "title": "Draw",
@@ -830,7 +838,11 @@
       "h3Desc": "Als PNG, SVG herunterladen oder in die Zwischenablage kopieren"
     },
     "present": "Präsentieren",
-    "exitPresent": "Präsentation beenden"
+    "exitPresent": "Präsentation beenden",
+    "tour": {
+      "title": "Draw",
+      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
+    }
   },
   "tasks": {
     "title": "Tasks",
@@ -2007,6 +2019,10 @@
           "customer": "Kunde"
         }
       }
+    },
+    "tour": {
+      "title": "CRM",
+      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
     }
   },
   "drive": {
@@ -2391,6 +2407,10 @@
       "uploadInstructionsLabel": "Anweisungen für Hochladende (optional)",
       "uploadInstructionsPlaceholder": "z. B. Bitte den unterschriebenen Vertrag hochladen",
       "requireEmail": "Name und E-Mail abfragen"
+    },
+    "tour": {
+      "title": "Drive",
+      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
     }
   },
   "hr": {
@@ -2446,7 +2466,7 @@
       "none": "Keine",
       "selectDepartment": "Abteilung waehlen...",
       "selectEmployee": "Mitarbeiter waehlen...",
-      "manager": "Manager",
+      "manager": "Vorgesetzter",
       "noManager": "Kein Manager",
       "selectManager": "Manager waehlen...",
       "departmentName": "Abteilungsname",
@@ -2468,7 +2488,6 @@
       "jobTitlePlaceholder": "z.B. Senior Ingenieur",
       "workLocation": "Arbeitsort",
       "workLocationPlaceholder": "z.B. Remote, Berlin",
-      "manager": "Vorgesetzter",
       "salary": "Gehalt",
       "currency": "Waehrung",
       "period": "Zeitraum",
@@ -3033,7 +3052,11 @@
       "confirmDeleteTitle": "Ausgabe löschen?",
       "confirmDeleteDesc": "Diese Ausgabe wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
     },
-    "readOnlyNotice": "Schreibgeschützte Ansicht — wenden Sie sich an Ihren HR-Admin für Änderungen."
+    "readOnlyNotice": "Schreibgeschützte Ansicht — wenden Sie sich an Ihren HR-Admin für Änderungen.",
+    "tour": {
+      "title": "HR",
+      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+    }
   },
   "sign": {
     "title": "Vereinbarungen",
@@ -3302,6 +3325,10 @@
       "reminderCadenceHelp": "Tage zwischen Signaturerinnerungen",
       "signatureExpiry": "Signaturablauf",
       "signatureExpiryHelp": "Tage bis ausstehende Signaturen ablaufen"
+    },
+    "tour": {
+      "title": "Sign",
+      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
     }
   },
   "system": {
@@ -3394,6 +3421,10 @@
       "saved": "Gespeichert",
       "saving": "Wird gespeichert...",
       "saveBeforeTest": "Speichern Sie Ihre Einstellungen, bevor Sie eine Test-E-Mail senden."
+    },
+    "tour": {
+      "title": "System",
+      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
     }
   },
   "widgets": {
@@ -4560,7 +4591,11 @@
       "multiCurrencyNotice": "Es werden nur {{currency}}-Rechnungen angezeigt; {{count}} Rechnung in anderen Währungen ausgeschlossen",
       "multiCurrencyNotice_plural": "Es werden nur {{currency}}-Rechnungen angezeigt; {{count}} Rechnungen in anderen Währungen ausgeschlossen"
     },
-    "importPdf": "Aus PDF importieren"
+    "importPdf": "Aus PDF importieren",
+    "tour": {
+      "title": "Invoices",
+      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+    }
   },
   "work": {
     "quickActions": {
@@ -4757,6 +4792,10 @@
     },
     "notifications": {
       "taskReassignedAway": "Sie wurden von einer Aufgabe abgezogen: {{title}}"
+    },
+    "tour": {
+      "title": "Tasks & Projects",
+      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
     }
   },
   "pdfImport": {

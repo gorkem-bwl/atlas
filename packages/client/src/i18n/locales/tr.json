@@ -613,6 +613,10 @@
       "agendaView": "Ajanda görünümü",
       "thisHelp": "Bu yardım",
       "refreshSync": "Yenile / senkronize et"
+    },
+    "tour": {
+      "title": "Calendar",
+      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
     }
   },
   "docs": {
@@ -737,7 +741,11 @@
     "tableAddColAfter": "+Sütun →",
     "tableDeleteCol": "−Sütun",
     "tableDelete": "Tablo",
-    "importedFrom": "{{filename}} dosyasından içe aktarıldı"
+    "importedFrom": "{{filename}} dosyasından içe aktarıldı",
+    "tour": {
+      "title": "Write",
+      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+    }
   },
   "draw": {
     "title": "Draw",
@@ -830,6 +838,10 @@
       "h2Desc": "Akış şemaları, tel kafesler veya zihin haritalarından başlayın",
       "h3Title": "Her yere dışa aktarın",
       "h3Desc": "PNG, SVG olarak indirin veya panoya kopyalayın"
+    },
+    "tour": {
+      "title": "Draw",
+      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
     }
   },
   "tasks": {
@@ -2007,6 +2019,10 @@
           "customer": "müşteri"
         }
       }
+    },
+    "tour": {
+      "title": "CRM",
+      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
     }
   },
   "drive": {
@@ -2391,6 +2407,10 @@
       "uploadInstructionsLabel": "Yükleyenler için talimat (isteğe bağlı)",
       "uploadInstructionsPlaceholder": "örn. İmzalı sözleşmenizi yükleyin",
       "requireEmail": "Ad ve e-posta iste"
+    },
+    "tour": {
+      "title": "Drive",
+      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
     }
   },
   "hr": {
@@ -2468,7 +2488,6 @@
       "jobTitlePlaceholder": "örnek: Kıdemli Mühendis",
       "workLocation": "Çalışma yeri",
       "workLocationPlaceholder": "örnek: Uzaktan, İstanbul",
-      "manager": "Yönetici",
       "salary": "Maaş",
       "currency": "Para birimi",
       "period": "Dönem",
@@ -3033,7 +3052,11 @@
       "confirmDeleteTitle": "Gideri sil?",
       "confirmDeleteDesc": "Bu gider kalıcı olarak kaldırılacak. Bu işlem geri alınamaz."
     },
-    "readOnlyNotice": "Salt okunur görünüm — değişiklik için İK yöneticinizle iletişime geçin."
+    "readOnlyNotice": "Salt okunur görünüm — değişiklik için İK yöneticinizle iletişime geçin.",
+    "tour": {
+      "title": "HR",
+      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+    }
   },
   "sign": {
     "title": "Sözleşmeler",
@@ -3302,6 +3325,10 @@
       "reminderCadenceHelp": "İmza hatırlatmaları arasındaki gün sayısı",
       "signatureExpiry": "İmza süresi dolumu",
       "signatureExpiryHelp": "Bekleyen imzaların süresinin dolması için gün sayısı"
+    },
+    "tour": {
+      "title": "Sign",
+      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
     }
   },
   "system": {
@@ -3394,6 +3421,10 @@
       "saved": "Kaydedildi",
       "saving": "Kaydediliyor...",
       "saveBeforeTest": "Test e-postası göndermeden önce ayarları kaydedin."
+    },
+    "tour": {
+      "title": "System",
+      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
     }
   },
   "widgets": {
@@ -4560,7 +4591,11 @@
       "multiCurrencyNotice": "Yalnızca {{currency}} faturaları gösteriliyor; diğer para birimlerinde {{count}} fatura hariç tutuldu",
       "multiCurrencyNotice_plural": "Yalnızca {{currency}} faturaları gösteriliyor; diğer para birimlerinde {{count}} fatura hariç tutuldu"
     },
-    "importPdf": "PDF'den içe aktar"
+    "importPdf": "PDF'den içe aktar",
+    "tour": {
+      "title": "Invoices",
+      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+    }
   },
   "work": {
     "quickActions": {
@@ -4757,6 +4792,10 @@
     },
     "notifications": {
       "taskReassignedAway": "Bir görevden çıkarıldınız: {{title}}"
+    },
+    "tour": {
+      "title": "Tasks & Projects",
+      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
     }
   },
   "pdfImport": {
