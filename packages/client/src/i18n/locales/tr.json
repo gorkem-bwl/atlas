@@ -123,6 +123,14 @@
     "hasAccount": "Zaten hesabınız var mı? Giriş yapın",
     "genericError": "Kayıt başarısız oldu"
   },
+  "tour": {
+    "previous": "Geri",
+    "next": "İleri",
+    "finish": "Bitir",
+    "skip": "Turu atla",
+    "stepCounter": "{{current}} / {{total}}",
+    "menuReplay": "Turu başlat"
+  },
   "sidebar": {
     "important": "Önemli",
     "other": "Diğer",

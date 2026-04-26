@@ -123,6 +123,14 @@
     "hasAccount": "Bereits ein Konto? Anmelden",
     "genericError": "Registrierung fehlgeschlagen"
   },
+  "tour": {
+    "previous": "Zurück",
+    "next": "Weiter",
+    "finish": "Fertig",
+    "skip": "Tour überspringen",
+    "stepCounter": "{{current}} von {{total}}",
+    "menuReplay": "Tour starten"
+  },
   "sidebar": {
     "important": "Wichtig",
     "other": "Sonstige",

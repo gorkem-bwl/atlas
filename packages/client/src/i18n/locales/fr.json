@@ -123,6 +123,14 @@
     "hasAccount": "Vous avez déjà un compte ? Se connecter",
     "genericError": "L'inscription a échoué"
   },
+  "tour": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "skip": "Passer la visite",
+    "stepCounter": "{{current}} sur {{total}}",
+    "menuReplay": "Lancer la visite"
+  },
   "sidebar": {
     "important": "Important",
     "other": "Autre",

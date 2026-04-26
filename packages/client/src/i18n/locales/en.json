@@ -123,6 +123,14 @@
     "hasAccount": "Already have an account? Sign in",
     "genericError": "Registration failed"
   },
+  "tour": {
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish",
+    "skip": "Skip tour",
+    "stepCounter": "{{current}} of {{total}}",
+    "menuReplay": "Take the tour"
+  },
   "sidebar": {
     "allMail": "All mail",
     "important": "Important",

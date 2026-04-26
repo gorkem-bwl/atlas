@@ -123,6 +123,14 @@
     "hasAccount": "Hai già un account? Accedi",
     "genericError": "Registrazione fallita"
   },
+  "tour": {
+    "previous": "Indietro",
+    "next": "Avanti",
+    "finish": "Fine",
+    "skip": "Salta tour",
+    "stepCounter": "{{current}} di {{total}}",
+    "menuReplay": "Avvia il tour"
+  },
   "sidebar": {
     "important": "Importanti",
     "other": "Altro",
