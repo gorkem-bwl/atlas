@@ -615,8 +615,8 @@
       "refreshSync": "Aktualisieren / synchronisieren"
     },
     "tour": {
-      "title": "Calendar",
-      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
+      "title": "Kalender",
+      "description": "Ein einheitlicher Kalender für Personen, Projekte und CRM-Ereignisse. Jede Erinnerung, jeder Teilnehmer — an einem Ort."
     }
   },
   "docs": {
@@ -743,8 +743,8 @@
     "tableDelete": "Tabelle",
     "importedFrom": "Importiert von {{filename}}",
     "tour": {
-      "title": "Write",
-      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+      "title": "Schreiben",
+      "description": "Kollaborative Dokumente mit umfangreicher Formatierung und Kommentaren. Jede Änderung nachverfolgbar, jedes Teammitglied sichtbar."
     }
   },
   "draw": {
@@ -840,8 +840,8 @@
     "present": "Präsentieren",
     "exitPresent": "Präsentation beenden",
     "tour": {
-      "title": "Draw",
-      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
+      "title": "Zeichnen",
+      "description": "Whiteboards und Diagramme, die direkt neben allem anderen leben. Abläufe skizzieren, brainstormen, Ideen visualisieren."
     }
   },
   "tasks": {
@@ -2022,7 +2022,7 @@
     },
     "tour": {
       "title": "CRM",
-      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
+      "description": "Ihre vollständige Kundendatenbank. Kontakte verwalten, Chancen in Ihrer Pipeline verfolgen und jede Interaktion dokumentieren."
     }
   },
   "drive": {
@@ -2410,7 +2410,7 @@
     },
     "tour": {
       "title": "Drive",
-      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
+      "description": "Dateien zentralisieren, mit Teammitgliedern teilen und den Versionsverlauf behalten. Wird von jeder anderen Atlas-App genutzt."
     }
   },
   "hr": {
@@ -3055,7 +3055,7 @@
     "readOnlyNotice": "Schreibgeschützte Ansicht — wenden Sie sich an Ihren HR-Admin für Änderungen.",
     "tour": {
       "title": "HR",
-      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+      "description": "Mitarbeiter, Urlaub, Leistungsbeurteilungen und Lebenszyklusereignisse verwalten. Alles Personalrelevante in einer Zeitleiste."
     }
   },
   "sign": {
@@ -3327,8 +3327,8 @@
       "signatureExpiryHelp": "Tage bis ausstehende Signaturen ablaufen"
     },
     "tour": {
-      "title": "Sign",
-      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
+      "title": "Signieren",
+      "description": "Verträge zur Unterschrift versenden, Unterzeichnungsschritte verfolgen und sehen, wann jede Partei unterschreibt. Keine externen Tools nötig."
     }
   },
   "system": {
@@ -3424,7 +3424,7 @@
     },
     "tour": {
       "title": "System",
-      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
+      "description": "Arbeitsbereich-Einstellungen — Berechtigungen, Abrechnung, Prüfprotokoll, Integrationen. Die Schaltzentrale Ihres Mandanten."
     }
   },
   "widgets": {
@@ -4593,8 +4593,8 @@
     },
     "importPdf": "Aus PDF importieren",
     "tour": {
-      "title": "Invoices",
-      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+      "title": "Rechnungen",
+      "description": "Rechnungen versenden, Zahlungen und überfällige Salden verfolgen und säumige Zahler automatisch mahnen."
     }
   },
   "work": {
@@ -4794,8 +4794,8 @@
       "taskReassignedAway": "Sie wurden von einer Aufgabe abgezogen: {{title}}"
     },
     "tour": {
-      "title": "Tasks & Projects",
-      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
+      "title": "Aufgaben & Projekte",
+      "description": "Arbeit in Projekten planen, Aufgaben auf einem Kanban-Board verfolgen und Teamkollegen in Echtzeit beobachten."
     }
   },
   "pdfImport": {

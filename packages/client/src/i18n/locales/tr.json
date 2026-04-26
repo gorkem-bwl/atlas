@@ -615,8 +615,8 @@
       "refreshSync": "Yenile / senkronize et"
     },
     "tour": {
-      "title": "Calendar",
-      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
+      "title": "Takvim",
+      "description": "Kişiler, projeler ve CRM etkinliklerini tek bir takvimde birleştirin. Her hatırlatıcı, her katılımcı — tek bir yerde."
     }
   },
   "docs": {
@@ -743,8 +743,8 @@
     "tableDelete": "Tablo",
     "importedFrom": "{{filename}} dosyasından içe aktarıldı",
     "tour": {
-      "title": "Write",
-      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+      "title": "Yaz",
+      "description": "Zengin biçimlendirme ve yorumlarla işbirlikçi belgeler. Her değişiklik kaydedilir, her ekip üyesi görünür."
     }
   },
   "draw": {
@@ -840,8 +840,8 @@
       "h3Desc": "PNG, SVG olarak indirin veya panoya kopyalayın"
     },
     "tour": {
-      "title": "Draw",
-      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
+      "title": "Çiz",
+      "description": "Her şeyin yanı başında yaşayan beyaz tahtalar ve diyagramlar. Akışları taslakla, beyin fırtınası yap, aklındakini çiz."
     }
   },
   "tasks": {
@@ -2022,7 +2022,7 @@
     },
     "tour": {
       "title": "CRM",
-      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
+      "description": "Eksiksiz müşteri veritabanınız. Kişileri yönetin, pipeline'ınızdaki fırsatları takip edin ve her etkileşimi kaydedin."
     }
   },
   "drive": {
@@ -2410,7 +2410,7 @@
     },
     "tour": {
       "title": "Drive",
-      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
+      "description": "Dosyaları merkezileştirin, ekip üyeleriyle paylaşın ve versiyon geçmişini koruyun. Diğer tüm Atlas uygulamaları tarafından kullanılır."
     }
   },
   "hr": {
@@ -3055,7 +3055,7 @@
     "readOnlyNotice": "Salt okunur görünüm — değişiklik için İK yöneticinizle iletişime geçin.",
     "tour": {
       "title": "HR",
-      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+      "description": "Çalışanları, izinleri, performans değerlendirmelerini ve yaşam döngüsü olaylarını yönetin. Personelle ilgili her şey tek bir zaman çizelgesinde."
     }
   },
   "sign": {
@@ -3327,8 +3327,8 @@
       "signatureExpiryHelp": "Bekleyen imzaların süresinin dolması için gün sayısı"
     },
     "tour": {
-      "title": "Sign",
-      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
+      "title": "İmza",
+      "description": "Sözleşmeleri imzaya gönderin, imzalama aşamalarını takip edin ve her tarafın ne zaman imzaladığını görün. Harici araçlara gerek yok."
     }
   },
   "system": {
@@ -3423,8 +3423,8 @@
       "saveBeforeTest": "Test e-postası göndermeden önce ayarları kaydedin."
     },
     "tour": {
-      "title": "System",
-      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
+      "title": "Sistem",
+      "description": "Çalışma alanı ayarları — izinler, faturalama, denetim günlüğü, entegrasyonlar. Kiracınızın kontrol odası."
     }
   },
   "widgets": {
@@ -4593,8 +4593,8 @@
     },
     "importPdf": "PDF'den içe aktar",
     "tour": {
-      "title": "Invoices",
-      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+      "title": "Faturalar",
+      "description": "Fatura gönderin, ödemeleri ve gecikmiş bakiyeleri takip edin, geç ödeyenlerin peşinden otomatik olarak düşün."
     }
   },
   "work": {
@@ -4794,8 +4794,8 @@
       "taskReassignedAway": "Bir görevden çıkarıldınız: {{title}}"
     },
     "tour": {
-      "title": "Tasks & Projects",
-      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
+      "title": "Görevler & Projeler",
+      "description": "İşi projelerde planlayın, görevleri kanban panosu üzerinde takip edin ve ekip üyelerinin gerçek zamanlı hareketlerini izleyin."
     }
   },
   "pdfImport": {

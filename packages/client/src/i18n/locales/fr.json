@@ -615,8 +615,8 @@
       "refreshSync": "Actualiser / synchroniser"
     },
     "tour": {
-      "title": "Calendar",
-      "description": "One unified calendar across people, projects, and CRM events. Every reminder, every attendee, in one place."
+      "title": "Calendrier",
+      "description": "Un calendrier unifié pour les personnes, projets et événements CRM. Chaque rappel, chaque participant — au même endroit."
     }
   },
   "docs": {
@@ -743,8 +743,8 @@
     "tableDelete": "Tableau",
     "importedFrom": "Importé depuis {{filename}}",
     "tour": {
-      "title": "Write",
-      "description": "Collaborative docs with rich formatting and comments. Every change tracked, every teammate visible."
+      "title": "Rédiger",
+      "description": "Documents collaboratifs avec mise en forme riche et commentaires. Chaque modification tracée, chaque coéquipier visible."
     }
   },
   "draw": {
@@ -840,8 +840,8 @@
     "present": "Présenter",
     "exitPresent": "Quitter la présentation",
     "tour": {
-      "title": "Draw",
-      "description": "Whiteboards and diagrams that live alongside everything else. Sketch flows, brainstorm, draw what you mean."
+      "title": "Dessiner",
+      "description": "Tableaux blancs et diagrammes qui vivent aux côtés du reste. Esquissez des flux, brainstormez, visualisez vos idées."
     }
   },
   "tasks": {
@@ -2022,7 +2022,7 @@
     },
     "tour": {
       "title": "CRM",
-      "description": "Your complete client database. Manage contacts, track opportunities through your pipeline, and log every interaction."
+      "description": "Votre base de données clients complète. Gérez les contacts, suivez les opportunités dans votre pipeline et consignez chaque interaction."
     }
   },
   "drive": {
@@ -2410,7 +2410,7 @@
     },
     "tour": {
       "title": "Drive",
-      "description": "Centralize files, share with teammates, and keep version history. Used by every other Atlas app."
+      "description": "Centralisez vos fichiers, partagez avec vos coéquipiers et conservez l'historique des versions. Utilisé par toutes les autres apps Atlas."
     }
   },
   "hr": {
@@ -3055,7 +3055,7 @@
     "readOnlyNotice": "Vue en lecture seule — contactez votre administrateur RH pour effectuer des modifications.",
     "tour": {
       "title": "HR",
-      "description": "Manage employees, time off, performance reviews, and lifecycle events. Everything personnel-related in one timeline."
+      "description": "Gérez les employés, les congés, les évaluations de performance et les événements du cycle de vie. Tout ce qui est RH en une seule chronologie."
     }
   },
   "sign": {
@@ -3327,8 +3327,8 @@
       "signatureExpiryHelp": "Jours avant l'expiration des signatures en attente"
     },
     "tour": {
-      "title": "Sign",
-      "description": "Send agreements for signature, track signing stages, and see when each party signs. No external tools needed."
+      "title": "Signature",
+      "description": "Envoyez des accords à signer, suivez les étapes de signature et voyez quand chaque partie signe. Aucun outil externe nécessaire."
     }
   },
   "system": {
@@ -3423,8 +3423,8 @@
       "saveBeforeTest": "Enregistrez vos paramètres avant d'envoyer un e-mail de test."
     },
     "tour": {
-      "title": "System",
-      "description": "Workspace settings — permissions, billing, audit log, integrations. The control room for your tenant."
+      "title": "Système",
+      "description": "Paramètres de l'espace de travail — permissions, facturation, journal d'audit, intégrations. La salle de contrôle de votre espace."
     }
   },
   "widgets": {
@@ -4593,8 +4593,8 @@
     },
     "importPdf": "Importer depuis un PDF",
     "tour": {
-      "title": "Invoices",
-      "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
+      "title": "Factures",
+      "description": "Envoyez des factures, suivez les paiements et les soldes en retard, et relancez automatiquement les mauvais payeurs."
     }
   },
   "work": {
@@ -4794,8 +4794,8 @@
       "taskReassignedAway": "Vous avez été retiré d’une tâche : {{title}}"
     },
     "tour": {
-      "title": "Tasks & Projects",
-      "description": "Plan work in projects, track tasks across a kanban board, and watch teammates move things in real time."
+      "title": "Tâches & Projets",
+      "description": "Planifiez le travail en projets, suivez les tâches sur un tableau kanban et regardez vos coéquipiers avancer en temps réel."
     }
   },
   "pdfImport": {
