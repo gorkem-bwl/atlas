@@ -19,6 +19,9 @@ export const queryKeys = {
   search: {
     global: (q: string) => ['search', 'global', q] as const,
   },
+  tour: {
+    status: ['tour', 'status'] as const,
+  },
   docs: {
     all: ['docs'] as const,
     list: ['docs', 'list'] as const,
