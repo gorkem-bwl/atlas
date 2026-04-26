@@ -60,18 +60,20 @@ export function TourModal({
       </div>
 
       <div className="tour-modal-footer">
-        <span className="tour-modal-step-counter">
-          {t('tour.stepCounter', { current: stepIndex + 1, total: totalSteps })}
-        </span>
+        <div className="tour-modal-footer-left">
+          <span className="tour-modal-step-counter">
+            {t('tour.stepCounter', { current: stepIndex + 1, total: totalSteps })}
+          </span>
+          <button type="button" className="tour-modal-skip-link" onClick={onSkip}>
+            {t('tour.skip')}
+          </button>
+        </div>
         <div className="tour-modal-actions">
           {!isFirst && (
             <button type="button" className="tour-modal-btn tour-modal-btn--ghost" onClick={onPrev}>
               {t('tour.previous')}
             </button>
           )}
-          <button type="button" className="tour-modal-btn tour-modal-btn--ghost tour-modal-btn--skip" onClick={onSkip}>
-            {t('tour.skip')}
-          </button>
           <button type="button" className="tour-modal-btn tour-modal-btn--primary" onClick={onNext}>
             {isLast ? t('tour.finish') : t('tour.next')}
           </button>

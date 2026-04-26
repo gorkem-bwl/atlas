@@ -76,13 +76,26 @@ export function TourOverlay() {
       );
     };
 
-    recompute();
+    // Initial measure: kick after two animation frames + 50ms so the dock
+    // has finished any post-mouseleave transition before we read its rect.
+    // Without this, the very first step measures mid-transition and the
+    // modal lands at a slightly different vertical position than steps 2+.
+    let raf1 = 0, raf2 = 0;
+    const delay = window.setTimeout(() => {
+      raf1 = window.requestAnimationFrame(() => {
+        raf2 = window.requestAnimationFrame(recompute);
+      });
+    }, 50);
+
     window.addEventListener('resize', recompute);
     const ro = new ResizeObserver(recompute);
     const dock = document.querySelector('[data-tour-target]');
     if (dock?.parentElement) ro.observe(dock.parentElement);
 
     return () => {
+      window.clearTimeout(delay);
+      if (raf1) window.cancelAnimationFrame(raf1);
+      if (raf2) window.cancelAnimationFrame(raf2);
       window.removeEventListener('resize', recompute);
       ro.disconnect();
     };
