@@ -29,4 +29,28 @@ export const signManifest: ClientAppManifest = {
       { id: 'general', label: 'General', icon: Settings, component: SignGeneralPanel, adminOnly: true },
     ],
   },
+  tour: {
+    variant: 'kanban',
+    illustrationData: {
+      columns: [
+        { label: 'Drafting', count: 2, cards: [
+          { primary: 'Vendor MSA', secondary: 'Legal · 12 pages' },
+        ]},
+        { label: 'Awaiting signature', count: 4, cards: [
+          { primary: 'Q4 services contract', secondary: 'Sales · 2 signers' },
+          { primary: 'NDA — Beacon Co.', secondary: 'Sales · 1 signer' },
+        ]},
+        { label: 'Signed', count: 18, cards: [
+          { primary: 'Lease renewal', secondary: 'Operations' },
+        ]},
+      ],
+      draggedCard: {
+        fromColumn: 1,
+        toColumn: 2,
+        primary: 'Vendor SOW',
+        secondary: 'Procurement',
+        collaborator: { name: 'Alex', color: '#8b5cf6' },
+      },
+    },
+  },
 };
