@@ -76,16 +76,15 @@ export function TourOverlay() {
       );
     };
 
-    // Initial measure: kick after two animation frames + 50ms so the dock
-    // has finished any post-mouseleave transition before we read its rect.
-    // Without this, the very first step measures mid-transition and the
-    // modal lands at a slightly different vertical position than steps 2+.
-    let raf1 = 0, raf2 = 0;
-    const delay = window.setTimeout(() => {
-      raf1 = window.requestAnimationFrame(() => {
-        raf2 = window.requestAnimationFrame(recompute);
-      });
-    }, 50);
+    // Initial recompute synchronously (gets us close), then schedule
+    // follow-up recomputes at increasing delays. The very first measurement
+    // happens while the dock is still settling its layout from the page
+    // load, so we re-measure at 50ms, 200ms, and 500ms to catch the final
+    // resting position. This mirrors what happens when the user navigates
+    // Prev→Next and back: by then the dock has fully settled.
+    recompute();
+    const delays = [50, 200, 500];
+    const timers = delays.map((d) => window.setTimeout(recompute, d));
 
     window.addEventListener('resize', recompute);
     const ro = new ResizeObserver(recompute);
@@ -93,9 +92,7 @@ export function TourOverlay() {
     if (dock?.parentElement) ro.observe(dock.parentElement);
 
     return () => {
-      window.clearTimeout(delay);
-      if (raf1) window.cancelAnimationFrame(raf1);
-      if (raf2) window.cancelAnimationFrame(raf2);
+      timers.forEach((id) => window.clearTimeout(id));
       window.removeEventListener('resize', recompute);
       ro.disconnect();
     };
