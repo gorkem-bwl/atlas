@@ -2,6 +2,7 @@ import type { ComponentType, CSSProperties, LazyExoticComponent } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { AppManifestBase } from '@atlas-platform/shared';
 import type { SettingsCategory } from './settings-registry';
+import type { TourConfig } from '../components/tour/tour-types';
 
 /**
  * Icon component shape used by the manifest. Either a `LucideIcon` (for the
@@ -64,4 +65,7 @@ export interface ClientAppManifest extends AppManifestBase {
 
   /** Client-side widget components this app registers */
   widgets?: ClientAppWidget[];
+
+  /** First-run product tour configuration. Apps without this are skipped in the tour. */
+  tour?: TourConfig;
 }
