@@ -32,7 +32,20 @@ export function TourOverlay() {
       return;
     }
 
+    // Reset all dock items to idle size before measuring — the dock's
+    // magnification logic may have left transient inline styles behind that
+    // would skew getBoundingClientRect() on the very first step.
+    const resetDockItems = () => {
+      document.querySelectorAll<HTMLElement>('.dock-item').forEach((el) => {
+        el.style.width = '52px';
+        el.style.height = '52px';
+        el.style.marginTop = '0px';
+        el.style.setProperty('--dock-icon-size', '30px');
+      });
+    };
+
     const recompute = () => {
+      resetDockItems();
       const dockItem = document.querySelector<HTMLElement>(
         `[data-tour-target="${currentStep.appId}"]`,
       );
@@ -134,20 +147,7 @@ export function TourOverlay() {
   return (
     <>
       <div className="tour-backdrop" onClick={handleSkip} />
-
-      <div
-        className="tour-spotlight"
-        style={{
-          background: `radial-gradient(circle at ${position.spotlightX}px ${position.spotlightY}px, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.08) 60px, rgba(255,255,255,0) 130px, rgba(0,0,0,0) 100%)`,
-        }}
-      />
-
-      <div
-        className="tour-vignette"
-        style={{
-          background: `radial-gradient(circle at ${position.spotlightX}px ${position.spotlightY}px, transparent 0, transparent 140px, rgba(0,0,0,0.35) 320px)`,
-        }}
-      />
+      <div className="tour-dock-mask" />
 
       <div
         className="tour-icon-ring"

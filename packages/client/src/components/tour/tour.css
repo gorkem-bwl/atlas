@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: rgba(8, 12, 24, 0.72);
+  background: transparent;
   pointer-events: auto;
 }
 
@@ -20,6 +20,19 @@
   position: fixed;
   inset: 0;
   z-index: 9002;
+  pointer-events: none;
+}
+
+/* Dock-aware backdrop: covers entire viewport EXCEPT a 120px band at the bottom
+   reserved for the dock. Keeps every dock icon visible at full brightness. */
+.tour-dock-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 120px;
+  z-index: 9000;
+  background: rgba(8, 12, 24, 0.55);
   pointer-events: none;
 }
 
