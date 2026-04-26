@@ -9,6 +9,7 @@ import {
   ArrowRight, Settings, LogOut,
   HardDrive,
   Building2,
+  Sparkles,
 } from 'lucide-react';
 import { isTenantAdmin, isTenantOwner } from '@atlas-platform/shared';
 import { useAuthStore } from '../stores/auth-store';
@@ -23,7 +24,7 @@ import { ActivityFeed } from '../components/activity/activity-feed';
 import { DockPet, type PetType } from '../components/home/dock-pet';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import { TourOverlay } from '../components/tour/tour-overlay';
-import { useTourBootstrap } from '../components/tour/use-tour-bootstrap';
+import { useTourBootstrap, replayTour } from '../components/tour/use-tour-bootstrap';
 import { useTour } from '../components/tour/use-tour';
 import '../styles/home.css';
 
@@ -984,6 +985,38 @@ export function HomePage() {
           }}
         >
           <Settings size={18} />
+        </button>
+
+        {/* Take the tour */}
+        <button
+          onClick={() => replayTour()}
+          aria-label={t('tour.menuReplay')}
+          title={t('tour.menuReplay')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            background: 'rgba(255,255,255,0.12)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: '50%',
+            color: 'rgba(255,255,255,0.75)',
+            cursor: 'pointer',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            transition: 'background 0.2s, color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
+            e.currentTarget.style.color = '#fff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+            e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+          }}
+        >
+          <Sparkles size={18} />
         </button>
 
         {/* Logout */}
