@@ -22,6 +22,9 @@ import { useMyAccessibleApps } from '../hooks/use-app-permissions';
 import { ActivityFeed } from '../components/activity/activity-feed';
 import { DockPet, type PetType } from '../components/home/dock-pet';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
+import { TourOverlay } from '../components/tour/tour-overlay';
+import { useTourBootstrap } from '../components/tour/use-tour-bootstrap';
+import { useTour } from '../components/tour/use-tour';
 import '../styles/home.css';
 
 // Base render size of a dock icon when the dock item is at its idle 52px
@@ -550,6 +553,9 @@ export function HomePage() {
   const parallax = useMouseParallax(15);
   const queryClient = useQueryClient();
 
+  useTourBootstrap();
+  const tourIsOpen = useTour((s) => s.isOpen);
+
   // User settings for home background + recent items
   const { data: userSettings } = useQuery({
     queryKey: queryKeys.settings.all,
@@ -666,6 +672,7 @@ export function HomePage() {
   const dockRef = useRef<HTMLElement>(null);
 
   const handleDockItemHover = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if (useTour.getState().isOpen) return;
     const dock = dockRef.current;
     if (!dock) return;
     const mouseX = e.clientX;
@@ -1246,8 +1253,10 @@ export function HomePage() {
           )}
         </div>
 
-        {/* Dock pet */}
-        <DockPet pet={(userSettings?.homeDockPet as PetType) || 'cat'} bottomOffset={84} dockRef={dockRef} />
+        {/* Dock pet — hidden during product tour */}
+        {!tourIsOpen && (
+          <DockPet pet={(userSettings?.homeDockPet as PetType) || 'cat'} bottomOffset={84} dockRef={dockRef} />
+        )}
 
         {/* Bottom dock bar */}
         <nav
@@ -1281,6 +1290,7 @@ export function HomePage() {
               <div
                 key={app.id}
                 className="dock-item"
+                data-tour-target={app.id}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -1484,6 +1494,8 @@ export function HomePage() {
         confirmLabel={t('home.clearDemoData', 'Clear all')}
         onConfirm={handleClearDemoData}
       />
+
+      <TourOverlay />
     </div>
   );
 }
