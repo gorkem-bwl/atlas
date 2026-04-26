@@ -889,6 +889,7 @@
     "notes": "Notes",
     "when": "When",
     "priority": {
+      "urgent": "Urgent",
       "high": "High",
       "medium": "Medium",
       "low": "Low",
@@ -1128,7 +1129,15 @@
     "widgetDueToday": "due today",
     "widgetOverdue": "overdue",
     "widgetCompleted": "this week",
-    "download": "Download"
+    "download": "Download",
+    "tableView": "Table view",
+    "fields": {
+      "title": "Title",
+      "project": "Project",
+      "priority": "Priority",
+      "dueDate": "Due date",
+      "assignee": "Assignee"
+    }
   },
   "errors": {
     "recipientRequired": "At least one recipient is required",

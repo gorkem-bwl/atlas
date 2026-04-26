@@ -3,7 +3,7 @@ import { createAppSettingsHook } from '../../lib/create-app-settings-store';
 export type TaskDefaultView = 'inbox' | 'today' | 'anytime';
 export type TaskCompletedBehavior = 'fade' | 'move' | 'hide';
 export type TaskSortOrder = 'manual' | 'priority' | 'dueDate' | 'title' | 'created';
-export type TaskViewMode = 'list' | 'board';
+export type TaskViewMode = 'list' | 'board' | 'table';
 
 interface TasksSettings {
   defaultView: TaskDefaultView;

@@ -862,6 +862,7 @@
     "notes": "Notlar",
     "when": "Ne zaman",
     "priority": {
+      "urgent": "Acil",
       "high": "Yüksek",
       "medium": "Orta",
       "low": "Düşük",
@@ -1101,7 +1102,15 @@
     "widgetDueToday": "bugün bitiyor",
     "widgetOverdue": "gecikmiş",
     "widgetCompleted": "bu hafta",
-    "download": "İndir"
+    "download": "İndir",
+    "tableView": "Tablo görünümü",
+    "fields": {
+      "title": "Başlık",
+      "project": "Proje",
+      "priority": "Öncelik",
+      "dueDate": "Bitiş tarihi",
+      "assignee": "Atanan"
+    }
   },
   "errors": {
     "recipientRequired": "En az bir alıcı gereklidir",

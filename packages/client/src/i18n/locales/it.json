@@ -862,6 +862,7 @@
     "notes": "Note",
     "when": "Quando",
     "priority": {
+      "urgent": "Urgente",
       "high": "Alta",
       "medium": "Media",
       "low": "Bassa",
@@ -1101,7 +1102,15 @@
     "widgetDueToday": "in scadenza oggi",
     "widgetOverdue": "in ritardo",
     "widgetCompleted": "questa settimana",
-    "download": "Scarica"
+    "download": "Scarica",
+    "tableView": "Vista tabella",
+    "fields": {
+      "title": "Titolo",
+      "project": "Progetto",
+      "priority": "Priorità",
+      "dueDate": "Scadenza",
+      "assignee": "Assegnato"
+    }
   },
   "errors": {
     "recipientRequired": "È necessario almeno un destinatario",
