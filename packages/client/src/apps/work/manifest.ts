@@ -36,4 +36,29 @@ export const workManifest: ClientAppManifest = {
       { id: 'behavior', label: 'Behavior', icon: Zap, component: WorkBehaviorPanel },
     ],
   },
+  tour: {
+    variant: 'kanban',
+    illustrationData: {
+      columns: [
+        { label: 'Backlog', count: 6, cards: [
+          { primary: 'Audit homepage copy', secondary: 'Marketing' },
+          { primary: 'Migrate logger', secondary: 'Platform' },
+        ]},
+        { label: 'In progress', count: 3, cards: [
+          { primary: 'Q4 roadmap deck', secondary: 'Strategy' },
+          { primary: 'Tour overlay', secondary: 'Engineering' },
+        ]},
+        { label: 'Done', count: 11, cards: [
+          { primary: 'Launch invoice templates', secondary: 'Billing' },
+        ]},
+      ],
+      draggedCard: {
+        fromColumn: 0,
+        toColumn: 1,
+        primary: 'Refresh sidebar icons',
+        secondary: 'Design',
+        collaborator: { name: 'Tom', color: '#6366f1' },
+      },
+    },
+  },
 };
