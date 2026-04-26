@@ -42,4 +42,16 @@ export const systemManifest: ClientAppManifest = {
       component: MemoryWidget,
     },
   ],
+  tour: {
+    variant: 'list',
+    illustrationData: {
+      rows: [
+        { initials: 'PM', avatarColor: '#13715B', primary: 'Permissions', secondary: 'Who can see what — per app' },
+        { initials: 'BL', avatarColor: '#0ea5e9', primary: 'Billing', secondary: 'Plan · Atlas Team · 24 seats' },
+        { initials: 'AU', avatarColor: '#f59e0b', primary: 'Audit log', secondary: '142 events this week' },
+        { initials: 'IN', avatarColor: '#a78bfa', primary: 'Integrations', secondary: '6 connected services' },
+      ],
+      fadeFrom: 3,
+    },
+  },
 };
