@@ -216,7 +216,10 @@ export function useUpdateCompany() {
       queryClient.setQueryData(queryKeys.crm.companies.detail(company.id), company);
       queryClient.setQueriesData<{ companies: CrmCompany[] } | undefined>(
         { queryKey: queryKeys.crm.companies.all },
-        (prev) => prev ? { ...prev, companies: prev.companies.map(c => c.id === company.id ? company : c) } : prev,
+        (prev) => {
+          if (!prev || !Array.isArray((prev as { companies?: unknown }).companies)) return prev;
+          return { ...prev, companies: prev.companies.map(c => c.id === company.id ? company : c) };
+        },
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
     },
@@ -304,7 +307,10 @@ export function useUpdateContact() {
       queryClient.setQueryData(queryKeys.crm.contacts.detail(contact.id), contact);
       queryClient.setQueriesData<{ contacts: CrmContact[] } | undefined>(
         { queryKey: queryKeys.crm.contacts.all },
-        (prev) => prev ? { ...prev, contacts: prev.contacts.map(c => c.id === contact.id ? contact : c) } : prev,
+        (prev) => {
+          if (!prev || !Array.isArray((prev as { contacts?: unknown }).contacts)) return prev;
+          return { ...prev, contacts: prev.contacts.map(c => c.id === contact.id ? contact : c) };
+        },
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
     },
@@ -446,7 +452,11 @@ export function useUpdateDeal() {
       queryClient.setQueryData(queryKeys.crm.deals.detail(deal.id), deal);
       queryClient.setQueriesData<{ deals: CrmDeal[] } | undefined>(
         { queryKey: queryKeys.crm.deals.all },
-        (prev) => prev ? { ...prev, deals: prev.deals.map(d => d.id === deal.id ? deal : d) } : prev,
+        (prev) => {
+          // Skip detail caches under the same prefix — they have shape CrmDeal, not { deals: [] }
+          if (!prev || !Array.isArray((prev as { deals?: unknown }).deals)) return prev;
+          return { ...prev, deals: prev.deals.map(d => d.id === deal.id ? deal : d) };
+        },
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
     },
@@ -1093,7 +1103,11 @@ export function useUpdateLead() {
       queryClient.setQueryData(queryKeys.crm.leads.detail(lead.id), lead);
       queryClient.setQueriesData<{ leads: CrmLead[] } | undefined>(
         { queryKey: queryKeys.crm.leads.all },
-        (prev) => prev ? { ...prev, leads: prev.leads.map(l => l.id === lead.id ? lead : l) } : prev,
+        (prev) => {
+          // Skip detail caches under the same prefix — they have shape CrmLead, not { leads: [] }
+          if (!prev || !Array.isArray((prev as { leads?: unknown }).leads)) return prev;
+          return { ...prev, leads: prev.leads.map(l => l.id === lead.id ? lead : l) };
+        },
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.crm.all });
     },
