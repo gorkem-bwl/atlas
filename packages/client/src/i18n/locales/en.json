@@ -87,7 +87,8 @@
     },
     "signOut": "Sign out",
     "noResults": "No results",
-    "navigation": "Navigation"
+    "navigation": "Navigation",
+    "add": "Add"
   },
   "auth": {
     "appName": "Atlas",
@@ -1138,7 +1139,15 @@
       "priority": "Priority",
       "dueDate": "Due date",
       "assignee": "Assignee"
-    }
+    },
+    "timeTracking": "Time tracking",
+    "startTimer": "Start timer",
+    "stopTimer": "Stop timer",
+    "logTime": "Log time",
+    "attachProjectToTrack": "Attach this task to a project to track time",
+    "selectProject": "Select a project…",
+    "timerRunningElsewhere": "A timer is running on another task",
+    "timeNotePlaceholder": "Note (optional)"
   },
   "errors": {
     "recipientRequired": "At least one recipient is required",

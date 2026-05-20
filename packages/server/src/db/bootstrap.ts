@@ -71,6 +71,18 @@ export async function bootstrapDatabase() {
             skipped += 1;
           } else if (code === '42P01' && /ALTER TABLE/i.test(stmt)) {
             skipped += 1;
+          } else if (
+            /ALTER TABLE/i.test(stmt) && /ADD CONSTRAINT/i.test(stmt) &&
+            (code === '23503' || code === '42710')
+          ) {
+            // Re-adding a baseline FK constraint that no longer fits the
+            // migrated data (23503 fk_violation, e.g. the legacy
+            // tasks → task_projects FK after the work-merge) or that already
+            // exists (42710 duplicate_object). Both are benign on replay:
+            // later legacy-data steps repoint constraints to their current
+            // target. Without this guard the snapshot replay bricks every
+            // restart of an already-migrated DB.
+            skipped += 1;
           } else {
             logger.error({ err, file, stmt: stmt.slice(0, 200) }, 'Migration statement failed');
             throw err;

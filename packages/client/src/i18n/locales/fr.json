@@ -87,7 +87,8 @@
     },
     "signOut": "Se déconnecter",
     "noResults": "Aucun résultat",
-    "navigation": "Navigation"
+    "navigation": "Navigation",
+    "add": "Ajouter"
   },
   "auth": {
     "appName": "Atlas",
@@ -1111,7 +1112,15 @@
       "priority": "Priorité",
       "dueDate": "Échéance",
       "assignee": "Responsable"
-    }
+    },
+    "timeTracking": "Suivi du temps",
+    "startTimer": "Démarrer le minuteur",
+    "stopTimer": "Arrêter le minuteur",
+    "logTime": "Saisir le temps",
+    "attachProjectToTrack": "Associez cette tâche à un projet pour suivre le temps",
+    "selectProject": "Sélectionner un projet…",
+    "timerRunningElsewhere": "Un minuteur est en cours sur une autre tâche",
+    "timeNotePlaceholder": "Note (facultatif)"
   },
   "errors": {
     "recipientRequired": "Au moins un destinataire est requis",

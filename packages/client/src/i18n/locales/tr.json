@@ -87,7 +87,8 @@
     },
     "signOut": "Çıkış yap",
     "noResults": "Sonuç bulunamadı",
-    "navigation": "Gezinme"
+    "navigation": "Gezinme",
+    "add": "Ekle"
   },
   "auth": {
     "appName": "Atlas",
@@ -1111,7 +1112,15 @@
       "priority": "Öncelik",
       "dueDate": "Son tarih",
       "assignee": "Atanan"
-    }
+    },
+    "timeTracking": "Zaman takibi",
+    "startTimer": "Zamanlayıcıyı başlat",
+    "stopTimer": "Zamanlayıcıyı durdur",
+    "logTime": "Zaman gir",
+    "attachProjectToTrack": "Zaman takibi için bu görevi bir projeye bağlayın",
+    "selectProject": "Bir proje seçin…",
+    "timerRunningElsewhere": "Başka bir görevde zamanlayıcı çalışıyor",
+    "timeNotePlaceholder": "Not (isteğe bağlı)"
   },
   "errors": {
     "recipientRequired": "En az bir alıcı gereklidir",
