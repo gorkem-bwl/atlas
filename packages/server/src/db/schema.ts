@@ -1765,6 +1765,10 @@ export const projectTimeEntries = pgTable('project_time_entries', {
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
   userId: uuid('user_id').notNull(),
   projectId: uuid('project_id').notNull().references(() => projectProjects.id, { onDelete: 'cascade' }),
+  // Optional link to the task this time was tracked against. Task time
+  // tracking writes into this table (not a separate one) so it flows into
+  // project totals, the time tab, dashboards, reports, and billing for free.
+  taskId: uuid('task_id').references(() => tasks.id, { onDelete: 'set null' }),
   durationMinutes: integer('duration_minutes').notNull().default(0),
   workDate: varchar('work_date', { length: 10 }).notNull(),
   startTime: varchar('start_time', { length: 5 }),
@@ -1787,37 +1791,12 @@ export const projectTimeEntries = pgTable('project_time_entries', {
   projectIdx: index('idx_project_time_entries_project').on(table.projectId),
   userDateIdx: index('idx_project_time_entries_user_date').on(table.userId, table.workDate),
   billedIdx: index('idx_project_time_entries_billed').on(table.billed, table.billable),
+  taskIdx: index('idx_project_time_entries_task').on(table.taskId),
 }));
 
 // ─── Work: Task time tracking ───────────────────────────────────────
-// Time logged against a specific task. Tracking always requires a
-// project, so project_id is NOT NULL — these entries roll up into the
-// project's overall time totals (read-layer aggregation in
-// project-time.service). work_date / start_time / end_time are stamped
-// in the user's configured timezone (user_settings.timezone), not UTC.
-export const taskTimeEntries = pgTable('task_time_entries', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
-  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  taskId: uuid('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
-  projectId: uuid('project_id').notNull().references(() => projectProjects.id, { onDelete: 'cascade' }),
-  durationMinutes: integer('duration_minutes').notNull().default(0),
-  workDate: varchar('work_date', { length: 10 }).notNull(),
-  startTime: varchar('start_time', { length: 5 }),
-  endTime: varchar('end_time', { length: 5 }),
-  notes: text('notes'),
-  tags: jsonb('tags').$type<string[]>().notNull().default([]),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  tenantIdx: index('idx_task_time_entries_tenant').on(table.tenantId),
-  taskIdx: index('idx_task_time_entries_task').on(table.taskId),
-  projectIdx: index('idx_task_time_entries_project').on(table.projectId),
-  userDateIdx: index('idx_task_time_entries_user_date').on(table.userId, table.workDate),
-}));
-
 // One running timer per user. On stop, the elapsed time is written as a
-// task_time_entries row and the active timer is deleted.
+// project_time_entries row (with task_id set) and the timer is deleted.
 export const activeTimers = pgTable('active_timers', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
