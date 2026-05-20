@@ -6,6 +6,7 @@ import { migrateWorkMerge } from './migrations/2026-04-15-work-merge';
 import { migrateCrmWorkflowSteps } from './migrations/2026-04-22-crm-workflow-steps';
 import { migrateMessageChannels } from './migrations/2026-04-28-message-channels';
 import { migrateGmailMessagePartialIndex } from './migrations/2026-04-29-gmail-message-partial-index';
+import { migrateTaskTimeTracking } from './migrations/2026-05-20-task-time-tracking';
 import { db } from '../config/database';
 import { tenants } from './schema';
 import { seedBlocklistForTenants } from '../apps/crm/services/blocklist-seed.service';
@@ -475,6 +476,13 @@ async function migrateLegacyData() {
     await migrateGmailMessagePartialIndex();
   } catch (err) {
     logger.error({ err }, 'gmail-message-partial-index migration failed');
+  }
+
+  // Task time tracking tables (task_time_entries + active_timers) — idempotent.
+  try {
+    await migrateTaskTimeTracking();
+  } catch (err) {
+    logger.error({ err }, 'task-time-tracking migration failed');
   }
 
   // Drop the 5 dead user_settings.tables_* columns left over from the

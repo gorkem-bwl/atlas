@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectProjects, projectMembers, crmCompanies, users, accounts, projectTimeEntries, invoiceLineItems,
+  projectProjects, projectMembers, crmCompanies, users, accounts, projectTimeEntries, invoiceLineItems, taskTimeEntries,
 } from '../../../db/schema';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
@@ -68,6 +68,17 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
     .groupBy(projectTimeEntries.projectId)
     .as('time_agg');
 
+  // Task-tracked time rolls into the project total (read-layer only — it
+  // is not billable and never touches invoice_line_items).
+  const taskTimeAgg = db
+    .select({
+      projectId: taskTimeEntries.projectId,
+      taskTrackedMinutes: sql<number>`COALESCE(SUM(${taskTimeEntries.durationMinutes}), 0)`.as('task_tracked_minutes'),
+    })
+    .from(taskTimeEntries)
+    .groupBy(taskTimeEntries.projectId)
+    .as('task_time_agg');
+
   // Aggregate billed amounts from invoice line items once per project.
   const billingAgg = db
     .select({
@@ -99,7 +110,7 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
       createdAt: projectProjects.createdAt,
       updatedAt: projectProjects.updatedAt,
       companyName: crmCompanies.name,
-      totalTrackedMinutes: sql<number>`COALESCE(${timeAgg.totalTrackedMinutes}, 0)`,
+      totalTrackedMinutes: sql<number>`COALESCE(${timeAgg.totalTrackedMinutes}, 0) + COALESCE(${taskTimeAgg.taskTrackedMinutes}, 0)`,
       totalBilledAmount: sql<number>`COALESCE(${billingAgg.totalBilledAmount}, 0)`,
       unbilledMinutes: sql<number>`COALESCE(${timeAgg.unbilledMinutes}, 0)`,
       billableMinutes: sql<number>`COALESCE(${timeAgg.billableMinutes}, 0)`,
@@ -108,6 +119,7 @@ export async function listProjects(userId: string, tenantId: string, filters?: {
     .from(projectProjects)
     .leftJoin(crmCompanies, eq(projectProjects.companyId, crmCompanies.id))
     .leftJoin(timeAgg, eq(timeAgg.projectId, projectProjects.id))
+    .leftJoin(taskTimeAgg, eq(taskTimeAgg.projectId, projectProjects.id))
     .leftJoin(billingAgg, eq(billingAgg.projectId, projectProjects.id))
     .where(and(...conditions))
     .orderBy(asc(projectProjects.sortOrder), asc(projectProjects.createdAt));
@@ -149,7 +161,7 @@ export async function getProject(userId: string, tenantId: string, id: string) {
       createdAt: projectProjects.createdAt,
       updatedAt: projectProjects.updatedAt,
       companyName: crmCompanies.name,
-      totalTrackedMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false), 0)`.as('total_tracked_minutes'),
+      totalTrackedMinutes: sql<number>`COALESCE((SELECT SUM(duration_minutes) FROM project_time_entries WHERE project_id = ${projectProjects.id} AND is_archived = false), 0) + COALESCE((SELECT SUM(duration_minutes) FROM task_time_entries WHERE project_id = ${projectProjects.id}), 0)`.as('total_tracked_minutes'),
       totalBilledAmount: sql<number>`COALESCE((SELECT SUM(ili.amount) FROM invoice_line_items ili INNER JOIN project_time_entries pte ON pte.id = ili.time_entry_id WHERE pte.project_id = ${projectProjects.id}), 0)`.as('total_billed_amount'),
     })
     .from(projectProjects)

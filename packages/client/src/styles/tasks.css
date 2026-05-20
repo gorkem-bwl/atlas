@@ -1000,6 +1000,26 @@
   cursor: grabbing;
 }
 
+/* Time-tracking toggle: hidden until row hover, but always shown while
+   the timer is running on this task. */
+.task-track-btn {
+  opacity: 0;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+}
+
+.task-item:hover .task-track-btn {
+  opacity: 0.6;
+}
+
+.task-track-btn:hover {
+  opacity: 1 !important;
+  background: var(--color-surface-hover) !important;
+}
+
+.task-track-btn.running {
+  opacity: 1 !important;
+}
+
 .task-item.dragging {
   opacity: 0.3;
   background: color-mix(in srgb, var(--color-text-primary) 3%, transparent);

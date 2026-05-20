@@ -1087,3 +1087,162 @@ export function useReorderTaskStatuses() {
     },
   });
 }
+
+// ─── Task Time Tracking Hooks ───────────────────────────────────────
+
+export interface TaskTimeEntry {
+  id: string;
+  taskId: string;
+  projectId: string;
+  userId: string;
+  durationMinutes: number;
+  workDate: string;
+  startTime: string | null;
+  endTime: string | null;
+  notes: string | null;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActiveTimer {
+  id: string;
+  taskId: string;
+  projectId: string;
+  startedAt: string;
+  note: string | null;
+}
+
+interface TaskTimeResponse {
+  entries: TaskTimeEntry[];
+  totalMinutes: number;
+}
+
+export function useTaskTimeEntries(taskId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.work.tasks.time(taskId!),
+    queryFn: async () => {
+      const { data } = await api.get(`/work/tasks/${taskId}/time-entries`);
+      return data.data as TaskTimeResponse;
+    },
+    enabled: !!taskId,
+    staleTime: 10_000,
+  });
+}
+
+export function useLogTaskTime() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, ...input }: {
+      taskId: string;
+      projectId?: string | null;
+      durationMinutes: number;
+      workDate?: string;
+      startTime?: string | null;
+      endTime?: string | null;
+      notes?: string | null;
+      tags?: string[];
+    }) => {
+      const { data } = await api.post(`/work/tasks/${taskId}/time-entries`, input);
+      return data.data as TaskTimeEntry;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.time(vars.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.all });
+    },
+  });
+}
+
+export function useUpdateTaskTimeEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, entryId, ...input }: {
+      taskId: string;
+      entryId: string;
+      durationMinutes?: number;
+      workDate?: string;
+      startTime?: string | null;
+      endTime?: string | null;
+      notes?: string | null;
+      tags?: string[];
+    }) => {
+      const { data } = await api.patch(`/work/tasks/${taskId}/time-entries/${entryId}`, input);
+      return data.data as TaskTimeEntry;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.time(vars.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.all });
+    },
+  });
+}
+
+export function useDeleteTaskTimeEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, entryId }: { taskId: string; entryId: string }) => {
+      await api.delete(`/work/tasks/${taskId}/time-entries/${entryId}`);
+      return taskId;
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.time(vars.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.all });
+    },
+  });
+}
+
+export function useActiveTimer() {
+  return useQuery({
+    queryKey: queryKeys.work.timer,
+    queryFn: async () => {
+      const { data } = await api.get('/work/timer/active');
+      return data.data as ActiveTimer | null;
+    },
+    // Light polling so a timer started elsewhere stays in sync.
+    refetchInterval: 30_000,
+    staleTime: 5_000,
+  });
+}
+
+export function useStartTaskTimer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ taskId, projectId, note }: { taskId: string; projectId?: string | null; note?: string | null }) => {
+      const { data } = await api.post(`/work/tasks/${taskId}/timer/start`, { projectId, note });
+      return data.data as ActiveTimer;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.timer });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
+    },
+  });
+}
+
+export function useStopTimer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (taskId?: string) => {
+      const { data } = await api.post('/work/timer/stop', {});
+      return { entry: data.data as TaskTimeEntry, taskId };
+    },
+    onSuccess: ({ taskId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.timer });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.projects.all });
+      if (taskId) queryClient.invalidateQueries({ queryKey: queryKeys.work.tasks.time(taskId) });
+    },
+  });
+}
+
+export function useCancelTimer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.post('/work/timer/cancel', {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.work.timer });
+    },
+  });
+}

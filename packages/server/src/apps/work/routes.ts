@@ -5,6 +5,7 @@ import { withConcurrencyCheck } from '../../middleware/concurrency-check';
 import { tasks, projectProjects, projectTimeEntries, taskStatuses } from '../../db/schema';
 import * as controller from './controller';
 import * as taskStatusController from './controllers/task-statuses.controller';
+import * as taskTimeController from './controllers/task-time.controller';
 
 const router = Router();
 
@@ -62,6 +63,16 @@ router.delete('/tasks/:taskId/attachments/:attachmentId', controller.deleteAttac
 router.get('/tasks/:taskId/dependencies', controller.listDependencies);
 router.post('/tasks/:taskId/dependencies', controller.addDependency);
 router.delete('/tasks/:taskId/dependencies/:blockerTaskId', controller.removeDependency);
+
+// Task time tracking (per-task entries + live timer)
+router.get('/timer/active', taskTimeController.getActiveTimer);
+router.post('/timer/stop', taskTimeController.stopTaskTimer);
+router.post('/timer/cancel', taskTimeController.cancelTaskTimer);
+router.get('/tasks/:id/time-entries', taskTimeController.listTaskTimeEntries);
+router.post('/tasks/:id/time-entries', taskTimeController.createTaskTimeEntry);
+router.patch('/tasks/:id/time-entries/:entryId', taskTimeController.updateTaskTimeEntry);
+router.delete('/tasks/:id/time-entries/:entryId', taskTimeController.deleteTaskTimeEntry);
+router.post('/tasks/:id/timer/start', taskTimeController.startTaskTimer);
 
 // Task templates
 router.get('/templates', controller.listTemplates);
