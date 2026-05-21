@@ -11,6 +11,7 @@ import { TaskNotesEditor } from './task-notes-editor';
 import { SubtaskSection } from './subtask-section';
 import { DependencySection } from './dependency-section';
 import { AttachmentSection } from './attachment-section';
+import { TaskTimeSection } from './task-time-section';
 import { CommentSection } from './comment-section';
 import { ActivitySection } from './activity-section';
 import { EmojiPicker } from '../../../components/shared/emoji-picker';
@@ -300,6 +301,9 @@ export function TaskDetailPanel({
 
         {/* Attachments */}
         <AttachmentSection taskId={task.id} />
+
+        {/* Time tracking */}
+        <TaskTimeSection task={task} projects={projects} />
 
         {/* Rich notes editor (below details) */}
         <div style={{ paddingTop: 16 }}>

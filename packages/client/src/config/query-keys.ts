@@ -286,7 +286,9 @@ export const queryKeys = {
       attachments: (taskId: string) => ['work', 'tasks', 'attachments', taskId] as const,
       dependencies: (taskId: string) => ['work', 'tasks', 'dependencies', taskId] as const,
       blockedIds: ['work', 'tasks', 'blocked-ids'] as const,
+      time: (taskId: string) => ['work', 'tasks', 'time', taskId] as const,
     },
+    timer: ['work', 'timer', 'active'] as const,
     projects: {
       all: ['work', 'projects'] as const,
       dashboard: ['work', 'projects', 'dashboard'] as const,

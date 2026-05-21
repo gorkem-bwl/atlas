@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import {
-  Check, ChevronRight, GripVertical, Hash, Repeat, FileText,
+  Check, ChevronRight, GripVertical, Hash, Repeat, FileText, Play, Square,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task, TaskProject, TenantUser } from '@atlas-platform/shared';
 import { isDoneStatus } from '@atlas-platform/shared';
 import { useTasksSettingsStore } from '../settings-store';
 import { useAppActions } from '../../../hooks/use-app-permissions';
+import { useActiveTimer, useStartTaskTimer, useStopTimer } from '../hooks';
 import { useAuthStore } from '../../../stores/auth-store';
 import { getDueBadgeClass, formatDueDate } from '../lib/helpers';
 import { WhenBadge } from './when-badge';
@@ -58,8 +59,18 @@ function TaskItemInner({
 }) {
   const { t } = useTranslation();
   const tasksSettings = useTasksSettingsStore();
-  const { canEdit } = useAppActions('work');
+  const { canEdit, canCreate } = useAppActions('work');
   const currentUserId = useAuthStore((s) => s.account?.userId);
+  const { data: activeTimer } = useActiveTimer();
+  const startTimer = useStartTaskTimer();
+  const stopTimer = useStopTimer();
+  const isTimerRunning = activeTimer?.taskId === task.id;
+
+  const handleTimerToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isTimerRunning) stopTimer.mutate(task.id);
+    else if (task.projectId) startTimer.mutate({ taskId: task.id, projectId: task.projectId });
+  };
   const [completing, setCompleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
@@ -237,6 +248,26 @@ function TaskItemInner({
         <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)', flexShrink: 0 }}>
           {t('tasks.createdBy', { name: task.creatorName })}
         </span>
+      )}
+
+      {/* Time-tracking toggle — only tasks attached to a project are trackable.
+          Shows on hover via .task-track-btn unless the timer is running here. */}
+      {canCreate && task.projectId && (
+        <button
+          type="button"
+          className={`task-track-btn${isTimerRunning ? ' running' : ''}`}
+          onClick={handleTimerToggle}
+          title={isTimerRunning ? t('tasks.stopTimer', 'Stop timer') : t('tasks.startTimer', 'Start timer')}
+          aria-label={isTimerRunning ? t('tasks.stopTimer', 'Stop timer') : t('tasks.startTimer', 'Start timer')}
+          style={{
+            flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: 6, cursor: 'pointer',
+            border: 'none', background: 'transparent',
+            color: isTimerRunning ? 'var(--color-danger)' : 'var(--color-text-tertiary)',
+          }}
+        >
+          {isTimerRunning ? <Square size={13} /> : <Play size={13} />}
+        </button>
       )}
 
       {/* Notes indicator (respects settings) */}

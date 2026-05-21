@@ -87,7 +87,8 @@
     },
     "signOut": "Esci",
     "noResults": "Nessun risultato",
-    "navigation": "Navigazione"
+    "navigation": "Navigazione",
+    "add": "Aggiungi"
   },
   "auth": {
     "appName": "Atlas",
@@ -1111,7 +1112,15 @@
       "priority": "Priorità",
       "dueDate": "Scadenza",
       "assignee": "Assegnatario"
-    }
+    },
+    "timeTracking": "Tracciamento tempo",
+    "startTimer": "Avvia timer",
+    "stopTimer": "Ferma timer",
+    "logTime": "Registra tempo",
+    "attachProjectToTrack": "Collega questa attività a un progetto per tracciare il tempo",
+    "selectProject": "Seleziona un progetto…",
+    "timerRunningElsewhere": "Un timer è in esecuzione su un'altra attività",
+    "timeNotePlaceholder": "Nota (facoltativa)"
   },
   "errors": {
     "recipientRequired": "È necessario almeno un destinatario",

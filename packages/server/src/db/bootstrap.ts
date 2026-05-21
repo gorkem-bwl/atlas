@@ -6,6 +6,7 @@ import { migrateWorkMerge } from './migrations/2026-04-15-work-merge';
 import { migrateCrmWorkflowSteps } from './migrations/2026-04-22-crm-workflow-steps';
 import { migrateMessageChannels } from './migrations/2026-04-28-message-channels';
 import { migrateGmailMessagePartialIndex } from './migrations/2026-04-29-gmail-message-partial-index';
+import { migrateTaskTimeTracking } from './migrations/2026-05-20-task-time-tracking';
 import { db } from '../config/database';
 import { tenants } from './schema';
 import { seedBlocklistForTenants } from '../apps/crm/services/blocklist-seed.service';
@@ -69,6 +70,18 @@ export async function bootstrapDatabase() {
           if (BENIGN_MIGRATION_ERRORS.has(code)) {
             skipped += 1;
           } else if (code === '42P01' && /ALTER TABLE/i.test(stmt)) {
+            skipped += 1;
+          } else if (
+            /ALTER TABLE/i.test(stmt) && /ADD CONSTRAINT/i.test(stmt) &&
+            (code === '23503' || code === '42710')
+          ) {
+            // Re-adding a baseline FK constraint that no longer fits the
+            // migrated data (23503 fk_violation, e.g. the legacy
+            // tasks → task_projects FK after the work-merge) or that already
+            // exists (42710 duplicate_object). Both are benign on replay:
+            // later legacy-data steps repoint constraints to their current
+            // target. Without this guard the snapshot replay bricks every
+            // restart of an already-migrated DB.
             skipped += 1;
           } else {
             logger.error({ err, file, stmt: stmt.slice(0, 200) }, 'Migration statement failed');
@@ -475,6 +488,13 @@ async function migrateLegacyData() {
     await migrateGmailMessagePartialIndex();
   } catch (err) {
     logger.error({ err }, 'gmail-message-partial-index migration failed');
+  }
+
+  // Task time tracking tables (task_time_entries + active_timers) — idempotent.
+  try {
+    await migrateTaskTimeTracking();
+  } catch (err) {
+    logger.error({ err }, 'task-time-tracking migration failed');
   }
 
   // Drop the 5 dead user_settings.tables_* columns left over from the
