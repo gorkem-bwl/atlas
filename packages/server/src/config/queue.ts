@@ -7,6 +7,9 @@ export const SYNC_QUEUE_NAME = 'atlas-sync';
 /** BullMQ job-scheduler key prefix for per-channel Gmail incremental sync. */
 export const GMAIL_INCREMENTAL_KEY_PREFIX = 'gmail-incremental-';
 
+/** BullMQ job-scheduler key prefix for per-tenant Paraşüt → Atlas sync. */
+export const PARASUT_SYNC_KEY_PREFIX = 'parasut-sync-';
+
 export const SyncJobName = {
   CalendarFullSync: 'calendar-full-sync',
   CalendarIncrementalSync: 'calendar-incremental-sync',
@@ -14,6 +17,7 @@ export const SyncJobName = {
   GmailIncrementalSync: 'gmail-incremental-sync',
   GmailSend: 'gmail-send',
   GmailMessageCleaner: 'gmail-message-cleaner',
+  ParasutSync: 'parasut-sync',
 } as const;
 export type SyncJobName = (typeof SyncJobName)[keyof typeof SyncJobName];
 
@@ -67,13 +71,23 @@ export interface GmailSendJobData {
 /** Daily cleaner walks all tenants — no per-job payload. */
 export type GmailMessageCleanerJobData = Record<string, never>;
 
+/**
+ * Per-tenant Paraşüt → Atlas sync. Read-only mirror: refreshes payment
+ * status on LINKED Atlas invoices (those with `parasut_invoice_id`).
+ * Scheduled by the system every 10 minutes per connected tenant.
+ */
+export interface ParasutSyncJobData {
+  tenantId: string;
+}
+
 export type SyncJobData =
   | { name: typeof SyncJobName.CalendarFullSync; data: CalendarFullSyncJobData }
   | { name: typeof SyncJobName.CalendarIncrementalSync; data: CalendarIncrementalSyncJobData }
   | { name: typeof SyncJobName.GmailFullSync; data: GmailFullSyncJobData }
   | { name: typeof SyncJobName.GmailIncrementalSync; data: GmailIncrementalSyncJobData }
   | { name: typeof SyncJobName.GmailSend; data: GmailSendJobData }
-  | { name: typeof SyncJobName.GmailMessageCleaner; data: GmailMessageCleanerJobData };
+  | { name: typeof SyncJobName.GmailMessageCleaner; data: GmailMessageCleanerJobData }
+  | { name: typeof SyncJobName.ParasutSync; data: ParasutSyncJobData };
 
 let syncQueue: Queue | null = null;
 

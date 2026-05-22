@@ -151,3 +151,4 @@ export async function scheduleDailyMessageCleaner(): Promise<void> {
 }
 
 export { reconcileGmailIncrementalSchedulers } from '../apps/crm/services/scheduler-reconcile.service';
+export { reconcileParasutSchedulers } from '../apps/invoices/services/parasut.service';

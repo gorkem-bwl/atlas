@@ -255,3 +255,29 @@ export async function listParasutInvoices(req: Request, res: Response) {
     res.status(400).json({ success: false, error: message });
   }
 }
+
+// Manually trigger a Paraşüt → Atlas sync (admin only). Ensures the
+// recurring scheduler exists and runs an immediate sync, returning stats.
+export async function syncParasut(req: Request, res: Response) {
+  try {
+    if (!ensureAdmin(req, res)) return;
+    const tenantId = req.auth!.tenantId!;
+
+    const connection = await parasutService.getConnection(tenantId);
+    if (!connection.connected) {
+      res.status(400).json({ success: false, error: 'Paraşüt is not connected. Connect it in invoice settings first.' });
+      return;
+    }
+
+    // Make sure the recurring scheduler exists (idempotent, no-ops without Redis).
+    await parasutService.registerParasutScheduler(tenantId);
+    // Run an immediate synchronous pass so the caller gets fresh stats back.
+    const stats = await parasutService.syncTenant(tenantId);
+
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to sync with Paraşüt';
+    logger.error({ error }, 'Failed to sync with Paraşüt');
+    res.status(400).json({ success: false, error: message });
+  }
+}

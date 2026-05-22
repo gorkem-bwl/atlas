@@ -38,6 +38,7 @@ router.get('/parasut/authorize-url', invoiceController.getParasutAuthorizeUrl);
 router.get('/parasut/invoices', invoiceController.listParasutInvoices);
 router.post('/parasut/connect', invoiceController.connectParasut);
 router.post('/parasut/test', invoiceController.testParasut);
+router.post('/parasut/sync', invoiceController.syncParasut);
 router.delete('/parasut', invoiceController.deleteParasut);
 
 // Recurring Invoices

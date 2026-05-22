@@ -8,6 +8,7 @@ import {
   type GmailFullSyncJobData,
   type GmailIncrementalSyncJobData,
   type GmailSendJobData,
+  type ParasutSyncJobData,
 } from '../config/queue';
 import {
   performCalendarFullSync,
@@ -19,6 +20,7 @@ import {
 } from '../apps/crm/services/gmail-sync.service';
 import { performGmailSend } from '../apps/crm/services/gmail-send.service';
 import { performGmailMessageCleaner } from '../apps/crm/services/gmail-message-cleaner.service';
+import * as parasutService from '../apps/invoices/services/parasut.service';
 import { logger } from '../utils/logger';
 
 export async function processSyncJob(job: Job): Promise<void> {
@@ -56,6 +58,12 @@ export async function processSyncJob(job: Job): Promise<void> {
     case SyncJobName.GmailMessageCleaner: {
       logger.info({ jobId: job.id }, 'Running Gmail message cleaner');
       await performGmailMessageCleaner();
+      return;
+    }
+    case SyncJobName.ParasutSync: {
+      const { tenantId } = job.data as ParasutSyncJobData;
+      logger.info({ jobId: job.id, tenantId }, 'Running Paraşüt sync');
+      await parasutService.syncTenant(tenantId);
       return;
     }
     default:

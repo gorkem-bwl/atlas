@@ -1,8 +1,14 @@
 import { db } from '../../../config/database';
-import { parasutConnections } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
+import { parasutConnections, invoices } from '../../../db/schema';
+import { eq, and, isNotNull, ne } from 'drizzle-orm';
 import { encrypt, decrypt } from '../../../utils/crypto';
 import { logger } from '../../../utils/logger';
+import {
+  getSyncQueue,
+  SyncJobName,
+  PARASUT_SYNC_KEY_PREFIX,
+  type ParasutSyncJobData,
+} from '../../../config/queue';
 
 // ─── Paraşüt integration service ────────────────────────────────────
 //
@@ -145,6 +151,7 @@ export async function saveConnection(
 export async function deleteConnection(tenantId: string): Promise<void> {
   await db.delete(parasutConnections).where(eq(parasutConnections.tenantId, tenantId));
   tokenCache.delete(tenantId);
+  await unregisterParasutScheduler(tenantId);
 }
 
 // Build the authorize URL the admin opens to approve access. Requires a
@@ -273,6 +280,8 @@ export async function completeAuthorization(
       })
       .where(eq(parasutConnections.tenantId, tenantId))
       .returning();
+    // Connection is now live — start the continuous Paraşüt → Atlas sync.
+    await registerParasutScheduler(tenantId);
     return toStatus(updated);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
@@ -726,4 +735,155 @@ export async function listParasutInvoices(
       : Math.max(1, Math.ceil(totalCount / pageSize));
 
   return { invoices, page, totalPages, totalCount };
+}
+
+// ─── Continuous Paraşüt → Atlas sync (read-only mirror) ─────────────
+//
+// Policy (decided by the product): mirror read-only and "Paraşüt wins" on
+// conflicts. We never auto-create Atlas invoices from Paraşüt-only
+// invoices. The continuous sync only keeps payment/status fresh on LINKED
+// Atlas invoices (those with `parasut_invoice_id`): if Paraşüt reports an
+// invoice as paid and the Atlas copy isn't, we flip it to paid.
+
+export interface ParasutSyncStats {
+  updated: number;
+  checked: number;
+  skipped?: boolean;
+}
+
+// Refresh payment status on all linked, unpaid Atlas invoices for a tenant.
+// Resilient: each invoice is wrapped in its own try/catch so one Paraşüt
+// failure (e.g. a deleted invoice → 404) doesn't abort the whole batch.
+export async function syncTenant(tenantId: string): Promise<ParasutSyncStats> {
+  const connection = await getConnection(tenantId);
+  if (!connection.connected) {
+    return { updated: 0, checked: 0, skipped: true };
+  }
+
+  // Linked, active, not-yet-paid invoices. Skipping already-paid rows
+  // avoids burning Paraşüt API calls on settled invoices.
+  const linked = await db
+    .select({ id: invoices.id, status: invoices.status, parasutInvoiceId: invoices.parasutInvoiceId })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.tenantId, tenantId),
+        isNotNull(invoices.parasutInvoiceId),
+        eq(invoices.isArchived, false),
+        ne(invoices.status, 'paid'),
+      ),
+    );
+
+  let updated = 0;
+  let checked = 0;
+
+  for (const inv of linked) {
+    if (!inv.parasutInvoiceId) continue;
+    try {
+      const status = await getInvoicePaymentStatus(tenantId, inv.parasutInvoiceId);
+      checked++;
+      if (status.paid && inv.status !== 'paid') {
+        const now = new Date();
+        await db
+          .update(invoices)
+          .set({ status: 'paid', paidAt: now, parasutSyncedAt: now, updatedAt: now })
+          .where(and(eq(invoices.id, inv.id), eq(invoices.tenantId, tenantId)));
+        updated++;
+      } else {
+        // Touch the sync timestamp so we can see the mirror is alive.
+        await db
+          .update(invoices)
+          .set({ parasutSyncedAt: new Date() })
+          .where(and(eq(invoices.id, inv.id), eq(invoices.tenantId, tenantId)));
+      }
+    } catch (err) {
+      // A 404 means the linked Paraşüt invoice was deleted upstream — skip
+      // it (don't crash the batch). Any other per-invoice error is logged
+      // and skipped too.
+      logger.warn({ tenantId, invoiceId: inv.id, err }, 'Paraşüt sync: skipped invoice');
+    }
+  }
+
+  logger.info({ tenantId, checked, updated, candidates: linked.length }, 'Paraşüt sync completed');
+  return { updated, checked };
+}
+
+// Upsert the per-tenant repeatable sync scheduler (every 10 minutes) and
+// fire an immediate run. No-op when the queue (Redis) is unavailable.
+export async function registerParasutScheduler(tenantId: string): Promise<void> {
+  const queue = getSyncQueue();
+  if (!queue) return;
+  try {
+    await queue.upsertJobScheduler(
+      `${PARASUT_SYNC_KEY_PREFIX}${tenantId}`,
+      { every: 10 * 60 * 1000 },
+      {
+        name: SyncJobName.ParasutSync,
+        data: { tenantId } satisfies ParasutSyncJobData,
+      },
+    );
+    // Kick off an immediate sync so the user sees fresh data right away.
+    await queue.add(SyncJobName.ParasutSync, { tenantId } satisfies ParasutSyncJobData);
+  } catch (err) {
+    logger.warn({ err, tenantId }, 'Failed to register Paraşüt sync scheduler');
+  }
+}
+
+// Remove the per-tenant sync scheduler. No-op when the queue is unavailable.
+export async function unregisterParasutScheduler(tenantId: string): Promise<void> {
+  const queue = getSyncQueue();
+  if (!queue) return;
+  try {
+    await queue.removeJobScheduler(`${PARASUT_SYNC_KEY_PREFIX}${tenantId}`);
+  } catch (err) {
+    logger.warn({ err, tenantId }, 'Failed to remove Paraşüt sync scheduler');
+  }
+}
+
+// Reconcile the per-tenant Paraşüt sync schedulers against the DB:
+//  - ensure every connected tenant has a scheduler,
+//  - drop schedulers for tenants that are no longer connected.
+// Idempotent — safe to call on every boot. Mirrors the Gmail reconcile.
+export async function reconcileParasutSchedulers(): Promise<void> {
+  const queue = getSyncQueue();
+  if (!queue) return;
+
+  const connectedRows = await db
+    .select({ tenantId: parasutConnections.tenantId })
+    .from(parasutConnections)
+    .where(eq(parasutConnections.status, 'connected'));
+  const connected = new Set(connectedRows.map((r) => r.tenantId));
+
+  // Ensure a scheduler exists for every connected tenant.
+  for (const tenantId of connected) {
+    try {
+      await queue.upsertJobScheduler(
+        `${PARASUT_SYNC_KEY_PREFIX}${tenantId}`,
+        { every: 10 * 60 * 1000 },
+        {
+          name: SyncJobName.ParasutSync,
+          data: { tenantId } satisfies ParasutSyncJobData,
+        },
+      );
+    } catch (err) {
+      logger.warn({ err, tenantId }, 'Failed to upsert Paraşüt sync scheduler during reconcile');
+    }
+  }
+
+  // Drop orphan schedulers whose tenant is no longer connected.
+  const schedulers = await queue.getJobSchedulers(0, -1);
+  let removed = 0;
+  for (const s of schedulers) {
+    if (!s.key || !s.key.startsWith(PARASUT_SYNC_KEY_PREFIX)) continue;
+    const tenantId = s.key.slice(PARASUT_SYNC_KEY_PREFIX.length);
+    if (connected.has(tenantId)) continue;
+    try {
+      await queue.removeJobScheduler(s.key);
+      removed++;
+    } catch (err) {
+      logger.error({ err, key: s.key }, 'Failed to remove orphan Paraşüt scheduler');
+    }
+  }
+
+  logger.info({ connected: connected.size, removed }, 'Paraşüt scheduler reconcile completed');
 }
