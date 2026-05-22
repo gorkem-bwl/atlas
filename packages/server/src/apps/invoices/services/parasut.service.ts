@@ -576,19 +576,18 @@ export async function pushInvoice(
     taxNumber: customer.taxNumber,
   });
 
-  const detailRefs: Array<{ type: string; id: string }> = [];
-  const included: any[] = [];
-  let detailId = 1;
+  // Paraşüt creates line items via details embedded INLINE in
+  // relationships.details.data[] (each with its attributes + product
+  // relationship) — NOT via the JSON:API `included` array with temp ids
+  // (that yields "Record was not found: SalesInvoiceDetail"). Verified live.
+  const details: any[] = [];
   for (const line of lineItems) {
     const productId = await ensureProduct(tenantId, {
       name: line.description,
       vatRate: line.taxRate,
     });
-    const id = String(detailId++);
-    detailRefs.push({ type: 'sales_invoice_details', id });
-    included.push({
+    details.push({
       type: 'sales_invoice_details',
-      id,
       attributes: {
         quantity: line.quantity,
         unit_price: line.unitPrice,
@@ -610,14 +609,12 @@ export async function pushInvoice(
         issue_date: toIsoDate(invoice.issueDate),
         due_date: toIsoDate(invoice.dueDate),
         currency: toParasutCurrency(invoice.currency),
-        invoice_no: invoice.invoiceNumber,
       },
       relationships: {
         contact: { data: { type: 'contacts', id: contactId } },
-        details: { data: detailRefs },
+        details: { data: details },
       },
     },
-    included,
   };
 
   const created = await parasutApi(tenantId, 'POST', '/sales_invoices', payload);
