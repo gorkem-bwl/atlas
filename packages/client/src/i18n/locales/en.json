@@ -4356,6 +4356,26 @@
     }
   },
   "invoices": {
+    "parasut": {
+      "title": "Paraşüt",
+      "description": "Connect your Paraşüt account to sync accounting and e-invoicing. Enter the credentials from your Paraşüt API application.",
+      "credentials": "API credentials",
+      "clientId": "Client ID",
+      "clientSecret": "Client secret",
+      "email": "Account email",
+      "password": "Password",
+      "companyId": "Company ID",
+      "testConnection": "Test connection",
+      "disconnect": "Disconnect",
+      "statusConnected": "Connected",
+      "statusDisconnected": "Disconnected",
+      "statusError": "Error",
+      "connectedAs": "Connected as {{email}} (company {{companyId}}).",
+      "saved": "Paraşüt credentials saved",
+      "disconnected": "Paraşüt disconnected",
+      "testSuccess": "Connection successful",
+      "testFailed": "Connection failed"
+    },
     "title": "Invoices",
     "quickActions": {
       "newInvoice": "New invoice"

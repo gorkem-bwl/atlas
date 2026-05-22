@@ -1,8 +1,9 @@
-import { Receipt, Settings, FileText } from 'lucide-react';
+import { Receipt, Settings, FileText, Plug } from 'lucide-react';
 import type { ClientAppManifest } from '../../config/app-manifest.client';
 import { InvoicesPage } from './page';
 import { InvoiceSettingsPanel } from './components/invoice-settings-panel';
 import { InvoiceTemplatesPanel } from './components/invoice-templates-panel';
+import { ParasutIntegrationPanel } from './components/parasut-integration-panel';
 
 export const invoicesManifest: ClientAppManifest = {
   id: 'invoices',
@@ -26,6 +27,7 @@ export const invoicesManifest: ClientAppManifest = {
     panels: [
       { id: 'general', label: 'General', icon: Settings, component: InvoiceSettingsPanel, adminOnly: true },
       { id: 'templates', label: 'Invoice templates', icon: FileText, component: InvoiceTemplatesPanel, adminOnly: true },
+      { id: 'integrations', label: 'Integrations', icon: Plug, component: ParasutIntegrationPanel, adminOnly: true },
     ],
   },
   tour: {

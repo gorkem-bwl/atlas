@@ -4356,6 +4356,26 @@
     }
   },
   "invoices": {
+    "parasut": {
+      "title": "Paraşüt",
+      "description": "Muhasebe ve e-faturayı senkronize etmek için Paraşüt hesabınızı bağlayın. Paraşüt API uygulamanızdaki kimlik bilgilerini girin.",
+      "credentials": "API kimlik bilgileri",
+      "clientId": "İstemci Kimliği (Client ID)",
+      "clientSecret": "İstemci Parolası (Client Secret)",
+      "email": "Hesap e-postası",
+      "password": "Parola",
+      "companyId": "Şirket Kimliği (Company ID)",
+      "testConnection": "Bağlantıyı test et",
+      "disconnect": "Bağlantıyı kes",
+      "statusConnected": "Bağlı",
+      "statusDisconnected": "Bağlı değil",
+      "statusError": "Hata",
+      "connectedAs": "{{email}} olarak bağlandı (şirket {{companyId}}).",
+      "saved": "Paraşüt kimlik bilgileri kaydedildi",
+      "disconnected": "Paraşüt bağlantısı kesildi",
+      "testSuccess": "Bağlantı başarılı",
+      "testFailed": "Bağlantı başarısız"
+    },
     "title": "Faturalar",
     "quickActions": {
       "newInvoice": "Yeni fatura"

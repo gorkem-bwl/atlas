@@ -7,6 +7,7 @@ import { migrateCrmWorkflowSteps } from './migrations/2026-04-22-crm-workflow-st
 import { migrateMessageChannels } from './migrations/2026-04-28-message-channels';
 import { migrateGmailMessagePartialIndex } from './migrations/2026-04-29-gmail-message-partial-index';
 import { migrateTaskTimeTracking } from './migrations/2026-05-20-task-time-tracking';
+import { migrateParasutConnections } from './migrations/2026-05-22-parasut-connections';
 import { db } from '../config/database';
 import { tenants } from './schema';
 import { seedBlocklistForTenants } from '../apps/crm/services/blocklist-seed.service';
@@ -495,6 +496,13 @@ async function migrateLegacyData() {
     await migrateTaskTimeTracking();
   } catch (err) {
     logger.error({ err }, 'task-time-tracking migration failed');
+  }
+
+  // Paraşüt per-tenant integration table — idempotent.
+  try {
+    await migrateParasutConnections();
+  } catch (err) {
+    logger.error({ err }, 'parasut-connections migration failed');
   }
 
   // Drop the 5 dead user_settings.tables_* columns left over from the

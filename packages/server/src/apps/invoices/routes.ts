@@ -31,6 +31,12 @@ router.patch('/settings', invoiceController.updateSettings);
 // Dashboard
 router.get('/dashboard', invoiceController.getInvoicesDashboard);
 
+// Paraşüt integration (per-tenant accounting connection, admin-only)
+router.get('/parasut', invoiceController.getParasut);
+router.put('/parasut', invoiceController.saveParasut);
+router.post('/parasut/test', invoiceController.testParasut);
+router.delete('/parasut', invoiceController.deleteParasut);
+
 // Recurring Invoices
 // IMPORTANT: register /recurring/... (literal) before any /:id routes so
 // Express never mistakes the literal "recurring" segment for an invoice id.

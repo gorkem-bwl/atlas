@@ -150,6 +150,7 @@ export const queryKeys = {
     recurringList: ['invoices', 'recurring', 'list'] as const,
     recurringDetail: (id: string) => ['invoices', 'recurring', 'detail', id] as const,
     byProposal: (proposalId: string) => ['invoices', 'by-proposal', proposalId] as const,
+    parasut: ['invoices', 'parasut'] as const,
   },
   crm: {
     all: ['crm'] as const,

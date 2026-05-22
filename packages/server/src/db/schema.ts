@@ -2033,6 +2033,28 @@ export const invoiceSettings = pgTable('invoice_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// ─── Paraşüt Integration (per-tenant accounting connection) ─────────
+// One connection per tenant. Secrets (client secret, password) are stored
+// AES-256-GCM encrypted via utils/crypto; client id, email and company id
+// are non-secret and kept plaintext for display + token requests.
+export const parasutConnections = pgTable('parasut_connections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  clientId: text('client_id').notNull(),
+  clientSecretEnc: text('client_secret_enc').notNull(),
+  email: text('email').notNull(),
+  passwordEnc: text('password_enc').notNull(),
+  companyId: varchar('company_id', { length: 50 }).notNull(),
+  status: varchar('status', { length: 20 }).notNull().default('disconnected'), // 'connected' | 'disconnected' | 'error'
+  lastError: text('last_error'),
+  connectedAt: timestamp('connected_at', { withTimezone: true }),
+  lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: uniqueIndex('idx_parasut_connections_tenant').on(table.tenantId),
+}));
+
 // ─── System Settings (admin-only, singleton row) ───────────────────
 
 export const systemSettings = pgTable('system_settings', {

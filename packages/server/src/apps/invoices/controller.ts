@@ -8,3 +8,4 @@ export * from './controllers/dashboard.controller';
 export * from './controllers/payment.controller';
 export * from './controllers/recurring-invoice.controller';
 export * from './controllers/seed.controller';
+export * from './controllers/parasut.controller';
