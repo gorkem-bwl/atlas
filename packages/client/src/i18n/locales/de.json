@@ -4382,7 +4382,18 @@
       "syncedToParasut": "Synced to Paraşüt #{{no}}",
       "refreshPayment": "Refresh payment",
       "pushFailed": "Failed to sync with Paraşüt",
-      "notConnected": "Paraşüt is not connected"
+      "notConnected": "Paraşüt is not connected",
+      "parasutInvoices": "Paraşüt invoices",
+      "parasutInvoicesTitle": "Paraşüt invoices",
+      "colNo": "No",
+      "colDate": "Date",
+      "colCustomer": "Customer",
+      "colTotal": "Total",
+      "colStatus": "Status",
+      "statusPaid": "Paid",
+      "statusUnpaid": "Unpaid",
+      "statusOverdue": "Overdue",
+      "empty": "No Paraşüt invoices"
     },
     "title": "Rechnungen",
     "quickActions": {

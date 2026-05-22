@@ -4382,7 +4382,18 @@
       "syncedToParasut": "Paraşüt'e aktarıldı #{{no}}",
       "refreshPayment": "Ödemeyi yenile",
       "pushFailed": "Paraşüt ile senkronizasyon başarısız",
-      "notConnected": "Paraşüt bağlı değil"
+      "notConnected": "Paraşüt bağlı değil",
+      "parasutInvoices": "Paraşüt faturaları",
+      "parasutInvoicesTitle": "Paraşüt faturaları",
+      "colNo": "No",
+      "colDate": "Tarih",
+      "colCustomer": "Müşteri",
+      "colTotal": "Tutar",
+      "colStatus": "Durum",
+      "statusPaid": "Ödendi",
+      "statusUnpaid": "Ödenmedi",
+      "statusOverdue": "Gecikmiş",
+      "empty": "Paraşüt faturası yok"
     },
     "title": "Faturalar",
     "quickActions": {

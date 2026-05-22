@@ -393,6 +393,13 @@ const PARASUT_CURRENCY_MAP: Record<string, string> = {
 function toParasutCurrency(currency: string): string {
   return PARASUT_CURRENCY_MAP[currency] ?? currency;
 }
+// Paraşüt currency code → Atlas/ISO display code ("TRL" → "TRY").
+const ATLAS_CURRENCY_MAP: Record<string, string> = {
+  TRL: 'TRY',
+};
+function toAtlasCurrency(currency: string): string {
+  return ATLAS_CURRENCY_MAP[currency] ?? currency;
+}
 
 // Format a Date (or ISO-ish string) as YYYY-MM-DD (UTC).
 function toIsoDate(value: Date | string): string {
@@ -639,4 +646,84 @@ export async function getInvoicePaymentStatus(
   const total = Number(attrs.gross_total ?? attrs.net_total ?? 0) || 0;
   const paid = paymentStatus === 'paid' || remaining <= 0;
   return { paid, remaining, total };
+}
+
+// ─── Read-only listing of the tenant's existing Paraşüt invoices ────
+
+export interface ParasutInvoiceListItem {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  total: number;        // net_total (with VAT)
+  preTaxTotal: number;  // gross_total (pre-VAT)
+  currency: string;     // Atlas/ISO display code
+  paymentStatus: string | null;
+  remaining: number;
+  description: string | null;
+  contactName: string | null;
+}
+
+export interface ParasutInvoiceList {
+  invoices: ParasutInvoiceListItem[];
+  page: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+// List the tenant's existing Paraşüt sales invoices (read-only), newest
+// first. Resolves the customer name from the included contacts.
+export async function listParasutInvoices(
+  tenantId: string,
+  opts: { page?: number; pageSize?: number } = {},
+): Promise<ParasutInvoiceList> {
+  const page = Math.max(1, Math.floor(opts.page ?? 1));
+  const pageSize = Math.max(1, Math.min(100, Math.floor(opts.pageSize ?? 25)));
+
+  const res = await parasutApi(
+    tenantId,
+    'GET',
+    `/sales_invoices?include=contact&sort=-issue_date` +
+      `&page%5Bsize%5D=${pageSize}&page%5Bnumber%5D=${page}`,
+  );
+
+  // Build a contactId → name map from the included contacts.
+  const included: any[] = Array.isArray(res?.included) ? res.included : [];
+  const contactNames = new Map<string, string>();
+  for (const inc of included) {
+    if (inc?.type === 'contacts' && inc?.id) {
+      const name = inc?.attributes?.name;
+      if (name) contactNames.set(String(inc.id), String(name));
+    }
+  }
+
+  const data: any[] = Array.isArray(res?.data) ? res.data : [];
+  const invoices: ParasutInvoiceListItem[] = data.map((row) => {
+    const attrs = row?.attributes ?? {};
+    const contactId = row?.relationships?.contact?.data?.id;
+    return {
+      id: String(row?.id ?? ''),
+      invoiceNo: attrs.invoice_no ?? null,
+      issueDate: attrs.issue_date ?? null,
+      dueDate: attrs.due_date ?? null,
+      total: Number(attrs.net_total ?? 0) || 0,
+      preTaxTotal: Number(attrs.gross_total ?? 0) || 0,
+      currency: toAtlasCurrency(String(attrs.currency ?? '')),
+      paymentStatus: attrs.payment_status ?? null,
+      remaining: Number(attrs.remaining ?? 0) || 0,
+      description: attrs.description ?? null,
+      contactName: contactId ? contactNames.get(String(contactId)) ?? null : null,
+    };
+  });
+
+  // Prefer Paraşüt's meta counts; otherwise infer from the current page.
+  const meta = res?.meta ?? {};
+  const totalCount =
+    Number.isFinite(Number(meta.total_count)) ? Number(meta.total_count) : invoices.length;
+  const totalPages =
+    Number.isFinite(Number(meta.total_pages)) && Number(meta.total_pages) > 0
+      ? Number(meta.total_pages)
+      : Math.max(1, Math.ceil(totalCount / pageSize));
+
+  return { invoices, page, totalPages, totalCount };
 }

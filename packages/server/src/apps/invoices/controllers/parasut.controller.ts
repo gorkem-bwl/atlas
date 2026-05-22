@@ -225,3 +225,33 @@ export async function refreshParasutPayment(req: Request, res: Response) {
     res.status(400).json({ success: false, error: message });
   }
 }
+
+// List the tenant's existing Paraşüt invoices (read-only). Requires the
+// connection to be 'connected' and the invoices "view" permission.
+export async function listParasutInvoices(req: Request, res: Response) {
+  try {
+    const perm = req.invoicesPerm!;
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view invoices' });
+      return;
+    }
+
+    const tenantId = req.auth!.tenantId!;
+
+    const connection = await parasutService.getConnection(tenantId);
+    if (!connection.connected) {
+      res.status(400).json({ success: false, error: 'Paraşüt is not connected. Connect it in invoice settings first.' });
+      return;
+    }
+
+    const page = parseInt(String(req.query.page ?? '1'), 10) || 1;
+    const pageSize = parseInt(String(req.query.pageSize ?? '25'), 10) || 25;
+
+    const data = await parasutService.listParasutInvoices(tenantId, { page, pageSize });
+    res.json({ success: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to list Paraşüt invoices';
+    logger.error({ error }, 'Failed to list Paraşüt invoices');
+    res.status(400).json({ success: false, error: message });
+  }
+}

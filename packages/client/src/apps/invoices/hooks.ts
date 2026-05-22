@@ -424,6 +424,44 @@ export function useDeleteParasutConnection() {
   });
 }
 
+export interface ParasutInvoiceListItem {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  total: number;
+  preTaxTotal: number;
+  currency: string;
+  paymentStatus: string | null;
+  remaining: number;
+  description: string | null;
+  contactName: string | null;
+}
+
+export interface ParasutInvoiceList {
+  invoices: ParasutInvoiceListItem[];
+  page: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+// Read-only listing of the tenant's existing Paraşüt invoices. Only runs
+// when a Paraşüt connection is active.
+export function useParasutInvoices(page: number, pageSize = 25) {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutList(page),
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/invoices/parasut/invoices?page=${page}&pageSize=${pageSize}`,
+      );
+      return data.data as ParasutInvoiceList;
+    },
+    enabled: !!connection?.connected,
+    staleTime: 30_000,
+  });
+}
+
 export interface ParasutPushResult {
   invoice: Invoice;
   parasutId: string;
