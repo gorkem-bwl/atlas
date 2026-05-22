@@ -153,6 +153,7 @@ export const queryKeys = {
     parasut: ['invoices', 'parasut'] as const,
     parasutList: (page: number) => ['invoices', 'parasut', 'list', page] as const,
     parasutDetail: (id: string) => ['invoices', 'parasut', 'detail', id] as const,
+    parasutDashboard: ['invoices', 'parasut', 'dashboard'] as const,
   },
   crm: {
     all: ['crm'] as const,

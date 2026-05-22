@@ -501,6 +501,30 @@ export function useParasutInvoiceDetail(id: string | null) {
   });
 }
 
+export interface ParasutDashboardStats {
+  totalCount: number | null;
+  paidCount: number | null;
+  overdueCount: number | null;
+  unpaidCount: number | null;
+  netTotal: number | null;
+  outstandingTotal: number | null;
+}
+
+// Cheap aggregate stats for the Invoices dashboard. Runs only when a
+// Paraşüt connection is active.
+export function useParasutDashboardStats() {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutDashboard,
+    queryFn: async () => {
+      const { data } = await api.get('/invoices/parasut/dashboard');
+      return data.data as ParasutDashboardStats;
+    },
+    enabled: !!connection?.connected,
+    staleTime: 60_000,
+  });
+}
+
 export interface ParasutPushResult {
   invoice: Invoice;
   parasutId: string;

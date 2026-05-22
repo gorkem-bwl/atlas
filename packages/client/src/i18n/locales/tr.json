@@ -4406,7 +4406,13 @@
       "preTax": "KDV hariç",
       "vat": "KDV",
       "total": "Toplam",
-      "remaining": "Kalan"
+      "remaining": "Kalan",
+      "dashboardTitle": "Paraşüt",
+      "statTotal": "Toplam fatura",
+      "statPaid": "Ödenen",
+      "statOverdue": "Gecikmiş",
+      "statOutstanding": "Tahsil edilecek",
+      "viewAll": "Tümünü gör"
     },
     "title": "Faturalar",
     "quickActions": {

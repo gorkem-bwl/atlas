@@ -4406,7 +4406,13 @@
       "preTax": "Pre-tax",
       "vat": "VAT",
       "total": "Total",
-      "remaining": "Remaining"
+      "remaining": "Remaining",
+      "dashboardTitle": "Paraşüt",
+      "statTotal": "Total invoices",
+      "statPaid": "Paid",
+      "statOverdue": "Overdue",
+      "statOutstanding": "Outstanding",
+      "viewAll": "View all"
     },
     "title": "Invoices",
     "quickActions": {

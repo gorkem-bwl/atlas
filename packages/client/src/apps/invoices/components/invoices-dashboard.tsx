@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { useInvoicesDashboard } from '../hooks';
+import { useInvoicesDashboard, useParasutConnection, useParasutDashboardStats } from '../hooks';
 import { formatCurrency } from '../../../lib/format';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { QueryErrorState } from '../../../components/ui/query-error-state';
@@ -23,6 +23,7 @@ export function InvoicesDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data, isLoading, isError, refetch } = useInvoicesDashboard();
+  const { data: parasutConnection } = useParasutConnection();
 
   const quickActions = [
     { label: t('invoices.quickActions.newInvoice'), icon: <Plus size={13} />, onClick: () => navigate('/invoices?view=invoices&action=create') },
@@ -70,7 +71,98 @@ export function InvoicesDashboard() {
         <ReceivablesSection receivables={receivables} t={t} />
         <ActivitySection monthlyActivity={monthlyActivity} t={t} />
         <PeriodSummarySection periodSummary={periodSummary} t={t} />
+        {parasutConnection?.connected && <ParasutSection t={t} navigate={navigate} />}
       </div>
+    </div>
+  );
+}
+
+// ─── Paraşüt summary ────────────────────────────────────────────
+
+interface ParasutSectionProps {
+  t: (key: string) => string;
+  navigate: (to: string) => void;
+}
+
+function ParasutStatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{
+      flex: '1 1 160px',
+      minWidth: 140,
+      background: 'var(--color-bg-secondary)',
+      borderRadius: 'var(--radius-md)',
+      padding: 'var(--spacing-lg)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+    }}>
+      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: 'var(--font-size-xl)',
+        fontWeight: 'var(--font-weight-bold)' as React.CSSProperties['fontWeight'],
+        color: 'var(--color-text-primary)',
+        fontVariantNumeric: 'tabular-nums',
+        fontFamily: 'var(--font-family)',
+      }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function ParasutSection({ t, navigate }: ParasutSectionProps) {
+  const { data: stats, isLoading } = useParasutDashboardStats();
+
+  const dash = '—';
+  const count = (v: number | null | undefined) =>
+    v === null || v === undefined ? dash : String(v);
+
+  return (
+    <div style={{
+      background: 'var(--color-bg-elevated)',
+      border: '1px solid var(--color-border-secondary)',
+      borderRadius: 'var(--radius-lg)',
+      padding: 'var(--spacing-xl)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-lg)' }}>
+        <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)' }}>
+          {t('invoices.parasut.dashboardTitle')}
+        </span>
+        <button
+          onClick={() => navigate('/invoices?view=parasut')}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-accent-primary)',
+            fontFamily: 'var(--font-family)',
+            padding: 0,
+          }}
+        >
+          {t('invoices.parasut.viewAll')}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <Skeleton height={88} />
+      ) : (
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+          <ParasutStatCard label={t('invoices.parasut.statTotal')} value={count(stats?.totalCount)} />
+          <ParasutStatCard label={t('invoices.parasut.statPaid')} value={count(stats?.paidCount)} />
+          <ParasutStatCard label={t('invoices.parasut.statOverdue')} value={count(stats?.overdueCount)} />
+          <ParasutStatCard
+            label={t('invoices.parasut.statOutstanding')}
+            value={
+              stats?.outstandingTotal === null || stats?.outstandingTotal === undefined
+                ? dash
+                : formatCurrency(stats.outstandingTotal, 'TRY')
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -823,6 +823,72 @@ export async function getParasutInvoiceDetail(
   };
 }
 
+export interface ParasutDashboardStats {
+  totalCount: number | null;
+  paidCount: number | null;
+  overdueCount: number | null;
+  unpaidCount: number | null;
+  netTotal: number | null;
+  outstandingTotal: number | null;
+}
+
+// Cheap aggregate stats for the Invoices dashboard. Paraşüt returns
+// aggregates in `meta` on a size-1 query, so 3 small calls (all / paid /
+// overdue) get us everything. `net_total` / `outstanding_total` are
+// Paraşüt's reported totals ACROSS currencies (mixed TRY+USD) — treat them
+// as Paraşüt's headline figures, not a single clean currency sum. The
+// `unpaid` filter is unreliable, so unpaid is derived as total - paid.
+// Resilient: returns nulls/zeros on error instead of throwing.
+export async function getParasutDashboardStats(
+  tenantId: string,
+): Promise<ParasutDashboardStats> {
+  const empty: ParasutDashboardStats = {
+    totalCount: null,
+    paidCount: null,
+    overdueCount: null,
+    unpaidCount: null,
+    netTotal: null,
+    outstandingTotal: null,
+  };
+
+  try {
+    const metaFor = async (filter?: string) => {
+      const path =
+        `/sales_invoices?page%5Bsize%5D=1` +
+        (filter ? `&filter%5Bpayment_status%5D=${filter}` : '');
+      const res = await parasutApi(tenantId, 'GET', path);
+      return res?.meta ?? {};
+    };
+
+    const [all, paid, overdue] = await Promise.all([
+      metaFor(),
+      metaFor('paid'),
+      metaFor('overdue'),
+    ]);
+
+    const num = (v: unknown): number | null =>
+      Number.isFinite(Number(v)) ? Number(v) : null;
+
+    const totalCount = num(all.total_count);
+    const paidCount = num(paid.total_count);
+    const overdueCount = num(overdue.total_count);
+    const unpaidCount =
+      totalCount !== null && paidCount !== null ? totalCount - paidCount : null;
+
+    return {
+      totalCount,
+      paidCount,
+      overdueCount,
+      unpaidCount,
+      netTotal: num(all.net_total),
+      outstandingTotal: num(all.outstanding_total),
+    };
+  } catch (err) {
+    logger.warn({ tenantId, err }, 'Failed to load Paraşüt dashboard stats');
+    return empty;
+  }
+}
+
 // ─── Continuous Paraşüt → Atlas sync (read-only mirror) ─────────────
 //
 // Policy (decided by the product): mirror read-only and "Paraşüt wins" on
