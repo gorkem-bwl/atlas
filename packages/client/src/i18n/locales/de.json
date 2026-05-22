@@ -4393,7 +4393,20 @@
       "statusPaid": "Paid",
       "statusUnpaid": "Unpaid",
       "statusOverdue": "Overdue",
-      "empty": "No Paraşüt invoices"
+      "empty": "No Paraşüt invoices",
+      "detailTitle": "Paraşüt invoice",
+      "customer": "Customer",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "colDescription": "Description",
+      "colQty": "Qty",
+      "colUnitPrice": "Unit price",
+      "colVat": "VAT",
+      "colLineTotal": "Line total",
+      "preTax": "Pre-tax",
+      "vat": "VAT",
+      "total": "Total",
+      "remaining": "Remaining"
     },
     "title": "Rechnungen",
     "quickActions": {

@@ -4393,7 +4393,20 @@
       "statusPaid": "Ödendi",
       "statusUnpaid": "Ödenmedi",
       "statusOverdue": "Gecikmiş",
-      "empty": "Paraşüt faturası yok"
+      "empty": "Paraşüt faturası yok",
+      "detailTitle": "Paraşüt faturası",
+      "customer": "Müşteri",
+      "issueDate": "Düzenlenme tarihi",
+      "dueDate": "Vade tarihi",
+      "colDescription": "Açıklama",
+      "colQty": "Adet",
+      "colUnitPrice": "Birim fiyat",
+      "colVat": "KDV",
+      "colLineTotal": "Satır toplamı",
+      "preTax": "KDV hariç",
+      "vat": "KDV",
+      "total": "Toplam",
+      "remaining": "Kalan"
     },
     "title": "Faturalar",
     "quickActions": {

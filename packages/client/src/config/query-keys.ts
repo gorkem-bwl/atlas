@@ -152,6 +152,7 @@ export const queryKeys = {
     byProposal: (proposalId: string) => ['invoices', 'by-proposal', proposalId] as const,
     parasut: ['invoices', 'parasut'] as const,
     parasutList: (page: number) => ['invoices', 'parasut', 'list', page] as const,
+    parasutDetail: (id: string) => ['invoices', 'parasut', 'detail', id] as const,
   },
   crm: {
     all: ['crm'] as const,

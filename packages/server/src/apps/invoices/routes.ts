@@ -36,6 +36,7 @@ router.get('/parasut', invoiceController.getParasut);
 router.put('/parasut', invoiceController.saveParasut);
 router.get('/parasut/authorize-url', invoiceController.getParasutAuthorizeUrl);
 router.get('/parasut/invoices', invoiceController.listParasutInvoices);
+router.get('/parasut/invoices/:id', invoiceController.getParasutInvoiceDetail);
 router.post('/parasut/connect', invoiceController.connectParasut);
 router.post('/parasut/test', invoiceController.testParasut);
 router.post('/parasut/sync', invoiceController.syncParasut);

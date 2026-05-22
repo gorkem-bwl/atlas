@@ -462,6 +462,45 @@ export function useParasutInvoices(page: number, pageSize = 25) {
   });
 }
 
+export interface ParasutInvoiceDetailLine {
+  description: string | null;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  lineTotal: number;
+}
+
+export interface ParasutInvoiceDetail {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  currency: string;
+  description: string | null;
+  total: number;
+  preTaxTotal: number;
+  totalVat: number;
+  paymentStatus: string | null;
+  remaining: number;
+  contactName: string | null;
+  lineItems: ParasutInvoiceDetailLine[];
+}
+
+// Read-only detail for a single Paraşüt invoice. Runs only when an id is
+// selected and a Paraşüt connection is active.
+export function useParasutInvoiceDetail(id: string | null) {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutDetail(id ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/invoices/parasut/invoices/${id}`);
+      return data.data as ParasutInvoiceDetail;
+    },
+    enabled: !!id && !!connection?.connected,
+    staleTime: 30_000,
+  });
+}
+
 export interface ParasutPushResult {
   invoice: Invoice;
   parasutId: string;

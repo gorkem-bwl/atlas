@@ -737,6 +737,92 @@ export async function listParasutInvoices(
   return { invoices, page, totalPages, totalCount };
 }
 
+export interface ParasutInvoiceDetailLine {
+  description: string | null;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  lineTotal: number;
+}
+
+export interface ParasutInvoiceDetail {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  currency: string;
+  description: string | null;
+  total: number;        // net_total (with VAT)
+  preTaxTotal: number;  // gross_total (pre-VAT)
+  totalVat: number;     // total_vat
+  paymentStatus: string | null;
+  remaining: number;
+  contactName: string | null;
+  lineItems: ParasutInvoiceDetailLine[];
+}
+
+// Fetch a single Paraşüt sales invoice (read-only) with its customer and
+// line items resolved from the JSON:API `included` array.
+export async function getParasutInvoiceDetail(
+  tenantId: string,
+  id: string,
+): Promise<ParasutInvoiceDetail> {
+  const res = await parasutApi(
+    tenantId,
+    'GET',
+    `/sales_invoices/${encodeURIComponent(id)}?include=details,contact`,
+  );
+
+  const data = res?.data ?? {};
+  const attrs = data?.attributes ?? {};
+  const included: any[] = Array.isArray(res?.included) ? res.included : [];
+
+  // Customer name from the included contacts.
+  const contactId = data?.relationships?.contact?.data?.id;
+  let contactName: string | null = null;
+  if (contactId) {
+    const contact = included.find((inc) => inc?.type === 'contacts' && String(inc?.id) === String(contactId));
+    contactName = contact?.attributes?.name ?? null;
+  }
+
+  // Line items from the included sales_invoice_details, sorted by their
+  // order/detail_no when present so they render in invoice order.
+  const details = included
+    .filter((inc) => inc?.type === 'sales_invoice_details')
+    .sort((a, b) => {
+      const ao = Number(a?.attributes?.order ?? a?.attributes?.detail_no ?? 0) || 0;
+      const bo = Number(b?.attributes?.order ?? b?.attributes?.detail_no ?? 0) || 0;
+      return ao - bo;
+    });
+
+  const lineItems: ParasutInvoiceDetailLine[] = details.map((d) => {
+    const da = d?.attributes ?? {};
+    return {
+      description: da.description ?? null,
+      quantity: Number(da.quantity ?? 0) || 0,
+      unitPrice: Number(da.unit_price ?? 0) || 0,
+      vatRate: Number(da.vat_rate ?? 0) || 0,
+      lineTotal: Number(da.net_total ?? 0) || 0,
+    };
+  });
+
+  return {
+    id: String(data?.id ?? id),
+    invoiceNo: attrs.invoice_no ?? null,
+    issueDate: attrs.issue_date ?? null,
+    dueDate: attrs.due_date ?? null,
+    currency: toAtlasCurrency(String(attrs.currency ?? '')),
+    description: attrs.description ?? null,
+    total: Number(attrs.net_total ?? 0) || 0,
+    preTaxTotal: Number(attrs.gross_total ?? 0) || 0,
+    totalVat: Number(attrs.total_vat ?? 0) || 0,
+    paymentStatus: attrs.payment_status ?? null,
+    remaining: Number(attrs.remaining ?? 0) || 0,
+    contactName,
+    lineItems,
+  };
+}
+
 // ─── Continuous Paraşüt → Atlas sync (read-only mirror) ─────────────
 //
 // Policy (decided by the product): mirror read-only and "Paraşüt wins" on

@@ -10,6 +10,7 @@ import {
   useParasutInvoices,
   type ParasutInvoiceListItem,
 } from '../hooks';
+import { ParasutInvoiceDetailModal } from './parasut-invoice-detail-modal';
 
 const PAGE_SIZE = 25;
 
@@ -52,6 +53,7 @@ export function ParasutInvoicesList() {
   const { t } = useTranslation();
   const { data: connection } = useParasutConnection();
   const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data, isLoading, isError, refetch, isFetching } = useParasutInvoices(page, PAGE_SIZE);
 
   if (!connection?.connected) {
@@ -115,7 +117,13 @@ export function ParasutInvoicesList() {
               </thead>
               <tbody>
                 {invoices.map((inv) => (
-                  <tr key={inv.id}>
+                  <tr
+                    key={inv.id}
+                    onClick={() => setSelectedId(inv.id)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
                     <td style={cellStyle}>{inv.invoiceNo ?? '—'}</td>
                     <td style={cellStyle}>{formatDate(inv.issueDate)}</td>
                     <td style={{ ...cellStyle, whiteSpace: 'normal' }}>{inv.contactName ?? '—'}</td>
@@ -152,6 +160,8 @@ export function ParasutInvoicesList() {
           </div>
         </>
       )}
+
+      <ParasutInvoiceDetailModal invoiceId={selectedId} onClose={() => setSelectedId(null)} />
     </div>
   );
 }

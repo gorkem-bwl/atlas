@@ -256,6 +256,35 @@ export async function listParasutInvoices(req: Request, res: Response) {
   }
 }
 
+// Fetch a single Paraşüt invoice (read-only) with line items + customer.
+// Requires the connection to be 'connected' and the invoices "view"
+// permission.
+export async function getParasutInvoiceDetail(req: Request, res: Response) {
+  try {
+    const perm = req.invoicesPerm!;
+    if (!canAccess(perm.role, 'view')) {
+      res.status(403).json({ success: false, error: 'No permission to view invoices' });
+      return;
+    }
+
+    const tenantId = req.auth!.tenantId!;
+
+    const connection = await parasutService.getConnection(tenantId);
+    if (!connection.connected) {
+      res.status(400).json({ success: false, error: 'Paraşüt is not connected. Connect it in invoice settings first.' });
+      return;
+    }
+
+    const id = req.params.id as string;
+    const data = await parasutService.getParasutInvoiceDetail(tenantId, id);
+    res.json({ success: true, data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to get Paraşüt invoice';
+    logger.error({ error }, 'Failed to get Paraşüt invoice');
+    res.status(400).json({ success: false, error: message });
+  }
+}
+
 // Manually trigger a Paraşüt → Atlas sync (admin only). Ensures the
 // recurring scheduler exists and runs an immediate sync, returning stats.
 export async function syncParasut(req: Request, res: Response) {
