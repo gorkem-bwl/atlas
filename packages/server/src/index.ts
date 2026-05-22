@@ -19,6 +19,7 @@ import {
   scheduleGmailIncrementalSyncForAllChannels,
   scheduleDailyMessageCleaner,
   reconcileGmailIncrementalSchedulers,
+  reconcileParasutSchedulers,
 } from './workers';
 
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
@@ -90,6 +91,9 @@ app.listen(env.PORT, async () => {
   );
   reconcileGmailIncrementalSchedulers().catch((err) =>
     logger.error({ err }, 'Failed to reconcile Gmail schedulers'),
+  );
+  reconcileParasutSchedulers().catch((err) =>
+    logger.error({ err }, 'Failed to reconcile Paraşüt schedulers'),
   );
 });
 

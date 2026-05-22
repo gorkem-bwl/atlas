@@ -16,6 +16,7 @@ import { InvoicePdfViewer } from './invoice-pdf-viewer';
 import { InvoiceMetaBlock } from './invoice-meta-block';
 import { InvoiceLineItemsTable, type LineItem } from './invoice-line-items-table';
 import { InvoicePaymentsList } from './invoice-payments-list';
+import { InvoiceParasutSection } from './invoice-parasut-section';
 import { QueryErrorState } from '../../../components/ui/query-error-state';
 import { StatusTimeline } from '../../../components/shared/status-timeline';
 import { SettingsRow, SettingsToggle } from '../../../components/settings/settings-primitives';
@@ -233,6 +234,8 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
                 isDraft={invoice.status === 'draft'}
               />
             </div>
+
+            <InvoiceParasutSection invoice={invoice} />
 
             {REMINDER_ELIGIBLE_STATUSES.has(invoice.status) && (
               <div style={{ padding: '0 var(--spacing-md)' }}>

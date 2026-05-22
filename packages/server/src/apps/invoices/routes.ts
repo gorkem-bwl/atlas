@@ -31,6 +31,18 @@ router.patch('/settings', invoiceController.updateSettings);
 // Dashboard
 router.get('/dashboard', invoiceController.getInvoicesDashboard);
 
+// Paraşüt integration (per-tenant accounting connection, admin-only)
+router.get('/parasut', invoiceController.getParasut);
+router.put('/parasut', invoiceController.saveParasut);
+router.get('/parasut/authorize-url', invoiceController.getParasutAuthorizeUrl);
+router.get('/parasut/dashboard', invoiceController.getParasutDashboard);
+router.get('/parasut/invoices', invoiceController.listParasutInvoices);
+router.get('/parasut/invoices/:id', invoiceController.getParasutInvoiceDetail);
+router.post('/parasut/connect', invoiceController.connectParasut);
+router.post('/parasut/test', invoiceController.testParasut);
+router.post('/parasut/sync', invoiceController.syncParasut);
+router.delete('/parasut', invoiceController.deleteParasut);
+
 // Recurring Invoices
 // IMPORTANT: register /recurring/... (literal) before any /:id routes so
 // Express never mistakes the literal "recurring" segment for an invoice id.
@@ -59,6 +71,8 @@ router.post('/:id/email', invoiceController.emailInvoice);
 router.post('/:id/paid', invoiceController.markInvoicePaid);
 router.post('/:id/waive', invoiceController.waiveInvoice);
 router.post('/:id/duplicate', invoiceController.duplicateInvoice);
+router.post('/:id/parasut-push', invoiceController.pushInvoiceToParasut);
+router.post('/:id/parasut-refresh-payment', invoiceController.refreshParasutPayment);
 
 // Payments
 // IMPORTANT: register /payments/:paymentId (literal) before any /:invoiceId/...

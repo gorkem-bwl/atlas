@@ -1906,6 +1906,10 @@ export const invoices = pgTable('invoices', {
   lastReminderStage: integer('last_reminder_stage').notNull().default(0),
   lastReminderAt: timestamp('last_reminder_at', { withTimezone: true }),
   excludeFromAutoReminders: boolean('exclude_from_auto_reminders').notNull().default(false),
+  // Paraşüt accounting sync (set once an invoice is pushed to Paraşüt).
+  parasutInvoiceId: varchar('parasut_invoice_id', { length: 50 }),
+  parasutInvoiceNo: varchar('parasut_invoice_no', { length: 50 }),
+  parasutSyncedAt: timestamp('parasut_synced_at', { withTimezone: true }),
   isArchived: boolean('is_archived').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -2032,6 +2036,31 @@ export const invoiceSettings = pgTable('invoice_settings', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+// ─── Paraşüt Integration (per-tenant accounting connection) ─────────
+// One connection per tenant. Uses the OAuth2 authorization_code (OOB)
+// flow. The client secret and the OAuth tokens are stored AES-256-GCM
+// encrypted via utils/crypto; client id and company id are non-secret and
+// kept plaintext for display + token requests. Paraşüt rotates the refresh
+// token on every refresh, so the new value is persisted each time.
+export const parasutConnections = pgTable('parasut_connections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  clientId: text('client_id').notNull(),
+  clientSecretEnc: text('client_secret_enc').notNull(),
+  companyId: varchar('company_id', { length: 50 }).notNull(),
+  refreshTokenEnc: text('refresh_token_enc'),
+  accessTokenEnc: text('access_token_enc'),
+  tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
+  status: varchar('status', { length: 20 }).notNull().default('disconnected'), // 'connected' | 'disconnected' | 'error'
+  lastError: text('last_error'),
+  connectedAt: timestamp('connected_at', { withTimezone: true }),
+  lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: uniqueIndex('idx_parasut_connections_tenant').on(table.tenantId),
+}));
 
 // ─── System Settings (admin-only, singleton row) ───────────────────
 

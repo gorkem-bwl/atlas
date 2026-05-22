@@ -9,6 +9,7 @@ import { InvoicesListView } from './components/invoices-list-view';
 import { InvoiceDetailPage } from './components/invoice-detail-page';
 import { InvoicesDashboard } from './components/invoices-dashboard';
 import { RecurringInvoicesList } from './components/recurring-invoices-list';
+import { ParasutInvoicesList } from './components/parasut-invoices-list';
 import { InvoiceBuilderModal } from '../../components/shared/invoice-builder-modal';
 import { PdfImportModal } from '../../components/shared/pdf-import-modal';
 import { ContentArea } from '../../components/ui/content-area';
@@ -60,9 +61,11 @@ export function InvoicesPage() {
     ? t('invoices.sidebar.dashboard')
     : activeView === 'recurring'
       ? t('invoices.sidebar.recurring')
-      : activeView === 'invoice-detail'
-        ? t('invoices.sidebar.invoices')
-        : t('invoices.sidebar.invoices');
+      : activeView === 'parasut'
+        ? t('invoices.parasut.parasutInvoices')
+        : activeView === 'invoice-detail'
+          ? t('invoices.sidebar.invoices')
+          : t('invoices.sidebar.invoices');
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', marginLeft: 56 }}>
@@ -94,6 +97,8 @@ export function InvoicesPage() {
           <InvoicesDashboard />
         ) : activeView === 'recurring' ? (
           <RecurringInvoicesList />
+        ) : activeView === 'parasut' ? (
+          <ParasutInvoicesList />
         ) : (
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

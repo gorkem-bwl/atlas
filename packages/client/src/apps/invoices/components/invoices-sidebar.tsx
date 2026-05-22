@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Receipt, Repeat, Settings2 } from 'lucide-react';
+import { LayoutDashboard, Receipt, Repeat, Settings2, Plug } from 'lucide-react';
 import { AppSidebar, SidebarSection, SidebarItem } from '../../../components/layout/app-sidebar';
 import { useNavigate } from 'react-router-dom';
 import { urlForCategory } from '../../../config/settings-url';
+import { useParasutConnection } from '../hooks';
 
 interface InvoicesSidebarProps {
   activeView: string;
@@ -12,6 +13,7 @@ interface InvoicesSidebarProps {
 export function InvoicesSidebar({ activeView, setActiveView }: InvoicesSidebarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { data: parasut } = useParasutConnection();
 
   return (
     <AppSidebar
@@ -47,6 +49,15 @@ export function InvoicesSidebar({ activeView, setActiveView }: InvoicesSidebarPr
           isActive={activeView === 'recurring'}
           onClick={() => setActiveView('recurring')}
         />
+        {parasut?.connected && (
+          <SidebarItem
+            label={t('invoices.parasut.parasutInvoices')}
+            icon={<Plug size={14} />}
+            iconColor="#f97316"
+            isActive={activeView === 'parasut'}
+            onClick={() => setActiveView('parasut')}
+          />
+        )}
       </SidebarSection>
     </AppSidebar>
   );

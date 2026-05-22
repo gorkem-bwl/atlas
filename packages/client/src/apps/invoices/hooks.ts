@@ -336,6 +336,239 @@ export function useUpdateInvoiceSettings() {
   });
 }
 
+// ─── Paraşüt Integration ─────────────────────────────────────────
+
+export interface ParasutStatus {
+  connected: boolean;
+  status: 'connected' | 'disconnected' | 'error' | string;
+  companyId: string | null;
+  connectedAt: string | null;
+  lastTestedAt: string | null;
+  lastError: string | null;
+}
+
+export interface SaveParasutInput {
+  clientId: string;
+  clientSecret: string;
+  companyId: string;
+}
+
+export function useParasutConnection() {
+  return useQuery({
+    queryKey: queryKeys.invoices.parasut,
+    queryFn: async () => {
+      const { data } = await api.get('/invoices/parasut');
+      return data.data as ParasutStatus;
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useSaveParasutConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: SaveParasutInput) => {
+      const { data } = await api.put('/invoices/parasut', input);
+      return data.data as ParasutStatus;
+    },
+    onSuccess: (status) => {
+      queryClient.setQueryData(queryKeys.invoices.parasut, status);
+    },
+  });
+}
+
+export function useGetParasutAuthorizeUrl() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.get('/invoices/parasut/authorize-url');
+      return data.data as { url: string };
+    },
+  });
+}
+
+export function useConnectParasut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) => {
+      const { data } = await api.post('/invoices/parasut/connect', { code });
+      return data.data as ParasutStatus;
+    },
+    onSuccess: (status) => {
+      queryClient.setQueryData(queryKeys.invoices.parasut, status);
+    },
+  });
+}
+
+export function useTestParasutConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post('/invoices/parasut/test');
+      return data.data as ParasutStatus;
+    },
+    onSuccess: (status) => {
+      queryClient.setQueryData(queryKeys.invoices.parasut, status);
+    },
+  });
+}
+
+export function useDeleteParasutConnection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete('/invoices/parasut');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.parasut });
+    },
+  });
+}
+
+export interface ParasutInvoiceListItem {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  total: number;
+  preTaxTotal: number;
+  currency: string;
+  paymentStatus: string | null;
+  remaining: number;
+  description: string | null;
+  contactName: string | null;
+}
+
+export interface ParasutInvoiceList {
+  invoices: ParasutInvoiceListItem[];
+  page: number;
+  totalPages: number;
+  totalCount: number;
+}
+
+// Read-only listing of the tenant's existing Paraşüt invoices. Only runs
+// when a Paraşüt connection is active.
+export function useParasutInvoices(page: number, pageSize = 25) {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutList(page),
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/invoices/parasut/invoices?page=${page}&pageSize=${pageSize}`,
+      );
+      return data.data as ParasutInvoiceList;
+    },
+    enabled: !!connection?.connected,
+    staleTime: 30_000,
+  });
+}
+
+export interface ParasutInvoiceDetailLine {
+  description: string | null;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  lineTotal: number;
+}
+
+export interface ParasutInvoiceDetail {
+  id: string;
+  invoiceNo: string | null;
+  issueDate: string | null;
+  dueDate: string | null;
+  currency: string;
+  description: string | null;
+  total: number;
+  preTaxTotal: number;
+  totalVat: number;
+  paymentStatus: string | null;
+  remaining: number;
+  contactName: string | null;
+  lineItems: ParasutInvoiceDetailLine[];
+}
+
+// Read-only detail for a single Paraşüt invoice. Runs only when an id is
+// selected and a Paraşüt connection is active.
+export function useParasutInvoiceDetail(id: string | null) {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutDetail(id ?? ''),
+    queryFn: async () => {
+      const { data } = await api.get(`/invoices/parasut/invoices/${id}`);
+      return data.data as ParasutInvoiceDetail;
+    },
+    enabled: !!id && !!connection?.connected,
+    staleTime: 30_000,
+  });
+}
+
+export interface ParasutDashboardStats {
+  totalCount: number | null;
+  paidCount: number | null;
+  overdueCount: number | null;
+  unpaidCount: number | null;
+  netTotal: number | null;
+  outstandingTotal: number | null;
+}
+
+// Cheap aggregate stats for the Invoices dashboard. Runs only when a
+// Paraşüt connection is active.
+export function useParasutDashboardStats() {
+  const { data: connection } = useParasutConnection();
+  return useQuery({
+    queryKey: queryKeys.invoices.parasutDashboard,
+    queryFn: async () => {
+      const { data } = await api.get('/invoices/parasut/dashboard');
+      return data.data as ParasutDashboardStats;
+    },
+    enabled: !!connection?.connected,
+    staleTime: 60_000,
+  });
+}
+
+export interface ParasutPushResult {
+  invoice: Invoice;
+  parasutId: string;
+  parasutNo: string;
+}
+
+export function usePushInvoiceToParasut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/invoices/${id}/parasut-push`);
+      return data.data as ParasutPushResult;
+    },
+    onSuccess: (result) => {
+      if (result.invoice) {
+        queryClient.setQueryData(queryKeys.invoices.detail(result.invoice.id), result.invoice);
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+    },
+  });
+}
+
+export interface ParasutPaymentResult {
+  invoice: Invoice;
+  paymentStatus: { paid: boolean; remaining: number; total: number };
+  markedPaid: boolean;
+}
+
+export function useRefreshParasutPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/invoices/${id}/parasut-refresh-payment`);
+      return data.data as ParasutPaymentResult;
+    },
+    onSuccess: (result) => {
+      if (result.invoice) {
+        queryClient.setQueryData(queryKeys.invoices.detail(result.invoice.id), result.invoice);
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+    },
+  });
+}
+
 // ─── Next Invoice Number ─────────────────────────────────────────
 
 /**
