@@ -34,6 +34,8 @@ router.get('/dashboard', invoiceController.getInvoicesDashboard);
 // Paraşüt integration (per-tenant accounting connection, admin-only)
 router.get('/parasut', invoiceController.getParasut);
 router.put('/parasut', invoiceController.saveParasut);
+router.get('/parasut/authorize-url', invoiceController.getParasutAuthorizeUrl);
+router.post('/parasut/connect', invoiceController.connectParasut);
 router.post('/parasut/test', invoiceController.testParasut);
 router.delete('/parasut', invoiceController.deleteParasut);
 

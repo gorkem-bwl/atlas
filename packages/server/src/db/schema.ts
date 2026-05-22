@@ -2034,17 +2034,20 @@ export const invoiceSettings = pgTable('invoice_settings', {
 });
 
 // ─── Paraşüt Integration (per-tenant accounting connection) ─────────
-// One connection per tenant. Secrets (client secret, password) are stored
-// AES-256-GCM encrypted via utils/crypto; client id, email and company id
-// are non-secret and kept plaintext for display + token requests.
+// One connection per tenant. Uses the OAuth2 authorization_code (OOB)
+// flow. The client secret and the OAuth tokens are stored AES-256-GCM
+// encrypted via utils/crypto; client id and company id are non-secret and
+// kept plaintext for display + token requests. Paraşüt rotates the refresh
+// token on every refresh, so the new value is persisted each time.
 export const parasutConnections = pgTable('parasut_connections', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
   clientId: text('client_id').notNull(),
   clientSecretEnc: text('client_secret_enc').notNull(),
-  email: text('email').notNull(),
-  passwordEnc: text('password_enc').notNull(),
   companyId: varchar('company_id', { length: 50 }).notNull(),
+  refreshTokenEnc: text('refresh_token_enc'),
+  accessTokenEnc: text('access_token_enc'),
+  tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
   status: varchar('status', { length: 20 }).notNull().default('disconnected'), // 'connected' | 'disconnected' | 'error'
   lastError: text('last_error'),
   connectedAt: timestamp('connected_at', { withTimezone: true }),

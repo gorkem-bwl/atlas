@@ -342,7 +342,6 @@ export interface ParasutStatus {
   connected: boolean;
   status: 'connected' | 'disconnected' | 'error' | string;
   companyId: string | null;
-  email: string | null;
   connectedAt: string | null;
   lastTestedAt: string | null;
   lastError: string | null;
@@ -351,8 +350,6 @@ export interface ParasutStatus {
 export interface SaveParasutInput {
   clientId: string;
   clientSecret: string;
-  email: string;
-  password: string;
   companyId: string;
 }
 
@@ -372,6 +369,28 @@ export function useSaveParasutConnection() {
   return useMutation({
     mutationFn: async (input: SaveParasutInput) => {
       const { data } = await api.put('/invoices/parasut', input);
+      return data.data as ParasutStatus;
+    },
+    onSuccess: (status) => {
+      queryClient.setQueryData(queryKeys.invoices.parasut, status);
+    },
+  });
+}
+
+export function useGetParasutAuthorizeUrl() {
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.get('/invoices/parasut/authorize-url');
+      return data.data as { url: string };
+    },
+  });
+}
+
+export function useConnectParasut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) => {
+      const { data } = await api.post('/invoices/parasut/connect', { code });
       return data.data as ParasutStatus;
     },
     onSuccess: (status) => {

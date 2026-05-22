@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import {
   useParasutConnection,
   useSaveParasutConnection,
+  useGetParasutAuthorizeUrl,
+  useConnectParasut,
   useTestParasutConnection,
   useDeleteParasutConnection,
 } from '../hooks';
@@ -41,21 +43,23 @@ export function ParasutIntegrationPanel() {
   const { t } = useTranslation();
   const { data: connection, isLoading, isError, refetch } = useParasutConnection();
   const saveConnection = useSaveParasutConnection();
+  const getAuthorizeUrl = useGetParasutAuthorizeUrl();
+  const connectParasut = useConnectParasut();
   const testConnection = useTestParasutConnection();
   const deleteConnection = useDeleteParasutConnection();
   const addToast = useToastStore((s) => s.addToast);
 
-  // Secret fields are never returned by the API, so the form always starts
-  // blank for them. Non-secret email / company id are prefilled from status.
+  // The client secret is never returned by the API, so it always starts
+  // blank. Client id / company id are prefilled from the saved row.
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [companyId, setCompanyId] = useState('');
+  // Authorization-code paste step.
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [code, setCode] = useState('');
 
   useEffect(() => {
     if (connection) {
-      setEmail(connection.email ?? '');
       setCompanyId(connection.companyId ?? '');
     }
   }, [connection]);
@@ -64,6 +68,7 @@ export function ParasutIntegrationPanel() {
   if (isLoading) return <></>;
 
   const status = connection?.status ?? 'disconnected';
+  const isSaved = !!connection?.companyId;
   const statusVariant =
     status === 'connected' ? 'success' : status === 'error' ? 'error' : 'default';
   const statusLabel =
@@ -73,31 +78,50 @@ export function ParasutIntegrationPanel() {
         ? t('invoices.parasut.statusError')
         : t('invoices.parasut.statusDisconnected');
 
-  const canSave =
-    clientId.trim() &&
-    clientSecret &&
-    email.trim() &&
-    password &&
-    companyId.trim();
+  const canSave = clientId.trim() && clientSecret && companyId.trim();
 
   const handleSave = () => {
     saveConnection.mutate(
       {
         clientId: clientId.trim(),
         clientSecret,
-        email: email.trim(),
-        password,
         companyId: companyId.trim(),
       },
       {
         onSuccess: () => {
           setClientSecret('');
-          setPassword('');
+          setShowCodeInput(false);
+          setCode('');
           addToast({ type: 'success', message: t('invoices.parasut.saved') });
         },
         onError: () => addToast({ type: 'error', message: t('common.error') }),
       },
     );
+  };
+
+  const handleConnect = () => {
+    getAuthorizeUrl.mutate(undefined, {
+      onSuccess: ({ url }) => {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        setShowCodeInput(true);
+      },
+      onError: () => addToast({ type: 'error', message: t('common.error') }),
+    });
+  };
+
+  const handleCompleteConnection = () => {
+    connectParasut.mutate(code.trim(), {
+      onSuccess: (result) => {
+        setCode('');
+        setShowCodeInput(false);
+        if (result.connected) {
+          addToast({ type: 'success', message: t('invoices.parasut.testSuccess') });
+        } else {
+          addToast({ type: 'error', message: result.lastError || t('invoices.parasut.testFailed') });
+        }
+      },
+      onError: () => addToast({ type: 'error', message: t('invoices.parasut.testFailed') }),
+    });
   };
 
   const handleTest = () => {
@@ -118,9 +142,9 @@ export function ParasutIntegrationPanel() {
       onSuccess: () => {
         setClientId('');
         setClientSecret('');
-        setEmail('');
-        setPassword('');
         setCompanyId('');
+        setShowCodeInput(false);
+        setCode('');
         addToast({ type: 'success', message: t('invoices.parasut.disconnected') });
       },
       onError: () => addToast({ type: 'error', message: t('common.error') }),
@@ -138,7 +162,7 @@ export function ParasutIntegrationPanel() {
 
         {connection?.connected && connection.companyId && (
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-family)' }}>
-            {t('invoices.parasut.connectedAs', { email: connection.email ?? '', companyId: connection.companyId })}
+            {t('invoices.parasut.connectedAs', { companyId: connection.companyId })}
           </div>
         )}
         {status === 'error' && connection?.lastError && (
@@ -163,24 +187,7 @@ export function ParasutIntegrationPanel() {
           type="password"
           value={clientSecret}
           onChange={(e) => setClientSecret(e.target.value)}
-          placeholder={connection?.connected ? '••••••••' : undefined}
-          autoComplete="new-password"
-          size="sm"
-        />
-        <Input
-          label={t('invoices.parasut.email')}
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="off"
-          size="sm"
-        />
-        <Input
-          label={t('invoices.parasut.password')}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={connection?.connected ? '••••••••' : undefined}
+          placeholder={isSaved ? '••••••••' : undefined}
           autoComplete="new-password"
           size="sm"
         />
@@ -201,15 +208,32 @@ export function ParasutIntegrationPanel() {
           >
             {t('common.save')}
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleTest}
-            disabled={!connection || testConnection.isPending}
-          >
-            {t('invoices.parasut.testConnection')}
-          </Button>
-          {connection && (status === 'connected' || status === 'error' || connection.companyId) && (
+        </div>
+      </div>
+
+      {/* Authorization step — available once credentials are saved. */}
+      {isSaved && (
+        <div style={sectionBoxStyle}>
+          <span style={sectionLabelStyle}>{t('invoices.parasut.authorization')}</span>
+          <div style={infoTextStyle}>{t('invoices.parasut.authorizeHint')}</div>
+
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleConnect}
+              disabled={getAuthorizeUrl.isPending}
+            >
+              {t('invoices.parasut.connect')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleTest}
+              disabled={testConnection.isPending}
+            >
+              {t('invoices.parasut.testConnection')}
+            </Button>
             <Button
               variant="danger"
               size="sm"
@@ -218,9 +242,31 @@ export function ParasutIntegrationPanel() {
             >
               {t('invoices.parasut.disconnect')}
             </Button>
+          </div>
+
+          {showCodeInput && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+              <Input
+                label={t('invoices.parasut.pasteCode')}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                autoComplete="off"
+                size="sm"
+              />
+              <div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleCompleteConnection}
+                  disabled={!code.trim() || connectParasut.isPending}
+                >
+                  {t('invoices.parasut.completeConnection')}
+                </Button>
+              </div>
+            </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
