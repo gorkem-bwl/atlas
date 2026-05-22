@@ -1906,6 +1906,10 @@ export const invoices = pgTable('invoices', {
   lastReminderStage: integer('last_reminder_stage').notNull().default(0),
   lastReminderAt: timestamp('last_reminder_at', { withTimezone: true }),
   excludeFromAutoReminders: boolean('exclude_from_auto_reminders').notNull().default(false),
+  // Paraşüt accounting sync (set once an invoice is pushed to Paraşüt).
+  parasutInvoiceId: varchar('parasut_invoice_id', { length: 50 }),
+  parasutInvoiceNo: varchar('parasut_invoice_no', { length: 50 }),
+  parasutSyncedAt: timestamp('parasut_synced_at', { withTimezone: true }),
   isArchived: boolean('is_archived').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

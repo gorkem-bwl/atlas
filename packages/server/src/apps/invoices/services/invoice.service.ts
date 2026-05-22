@@ -220,6 +220,9 @@ export async function getInvoice(userId: string, tenantId: string, id: string, o
       eFaturaType: invoices.eFaturaType,
       eFaturaUuid: invoices.eFaturaUuid,
       eFaturaStatus: invoices.eFaturaStatus,
+      parasutInvoiceId: invoices.parasutInvoiceId,
+      parasutInvoiceNo: invoices.parasutInvoiceNo,
+      parasutSyncedAt: invoices.parasutSyncedAt,
       companyName: crmCompanies.name,
       contactName: crmContacts.name,
       contactEmail: crmContacts.email,
@@ -534,6 +537,40 @@ export async function markInvoicePaid(userId: string, tenantId: string, id: stri
     .limit(1);
 
   return updated ?? null;
+}
+
+// Persist the Paraşüt sync identifiers after a successful push.
+export async function saveParasutSync(
+  tenantId: string,
+  id: string,
+  parasutId: string,
+  parasutNo: string,
+) {
+  const [updated] = await db
+    .update(invoices)
+    .set({
+      parasutInvoiceId: parasutId,
+      parasutInvoiceNo: parasutNo,
+      parasutSyncedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(invoices.id, id), eq(invoices.tenantId, tenantId)))
+    .returning();
+  return updated ?? null;
+}
+
+// Lightweight company lookup for Paraşüt sync (name + tax number).
+export async function getCompanyForSync(tenantId: string, companyId: string) {
+  const [company] = await db
+    .select({
+      id: crmCompanies.id,
+      name: crmCompanies.name,
+      taxId: crmCompanies.taxId,
+    })
+    .from(crmCompanies)
+    .where(and(eq(crmCompanies.id, companyId), eq(crmCompanies.tenantId, tenantId)))
+    .limit(1);
+  return company ?? null;
 }
 
 export async function duplicateInvoice(userId: string, tenantId: string, id: string) {

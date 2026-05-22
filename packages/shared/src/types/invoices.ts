@@ -40,6 +40,9 @@ export interface Invoice {
   eFaturaType?: string | null;
   eFaturaUuid?: string | null;
   eFaturaStatus?: string | null;
+  parasutInvoiceId?: string | null;
+  parasutInvoiceNo?: string | null;
+  parasutSyncedAt?: string | null;
   lastReminderStage?: number;
   lastReminderAt?: Date | string | null;
   excludeFromAutoReminders?: boolean;

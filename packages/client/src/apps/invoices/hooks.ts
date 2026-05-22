@@ -424,6 +424,50 @@ export function useDeleteParasutConnection() {
   });
 }
 
+export interface ParasutPushResult {
+  invoice: Invoice;
+  parasutId: string;
+  parasutNo: string;
+}
+
+export function usePushInvoiceToParasut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/invoices/${id}/parasut-push`);
+      return data.data as ParasutPushResult;
+    },
+    onSuccess: (result) => {
+      if (result.invoice) {
+        queryClient.setQueryData(queryKeys.invoices.detail(result.invoice.id), result.invoice);
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+    },
+  });
+}
+
+export interface ParasutPaymentResult {
+  invoice: Invoice;
+  paymentStatus: { paid: boolean; remaining: number; total: number };
+  markedPaid: boolean;
+}
+
+export function useRefreshParasutPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/invoices/${id}/parasut-refresh-payment`);
+      return data.data as ParasutPaymentResult;
+    },
+    onSuccess: (result) => {
+      if (result.invoice) {
+        queryClient.setQueryData(queryKeys.invoices.detail(result.invoice.id), result.invoice);
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices.all });
+    },
+  });
+}
+
 // ─── Next Invoice Number ─────────────────────────────────────────
 
 /**

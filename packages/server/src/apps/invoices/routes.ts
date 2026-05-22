@@ -67,6 +67,8 @@ router.post('/:id/email', invoiceController.emailInvoice);
 router.post('/:id/paid', invoiceController.markInvoicePaid);
 router.post('/:id/waive', invoiceController.waiveInvoice);
 router.post('/:id/duplicate', invoiceController.duplicateInvoice);
+router.post('/:id/parasut-push', invoiceController.pushInvoiceToParasut);
+router.post('/:id/parasut-refresh-payment', invoiceController.refreshParasutPayment);
 
 // Payments
 // IMPORTANT: register /payments/:paymentId (literal) before any /:invoiceId/...

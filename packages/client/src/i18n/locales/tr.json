@@ -4377,7 +4377,12 @@
       "saved": "Paraşüt kimlik bilgileri kaydedildi",
       "disconnected": "Paraşüt bağlantısı kesildi",
       "testSuccess": "Bağlantı başarılı",
-      "testFailed": "Bağlantı başarısız"
+      "testFailed": "Bağlantı başarısız",
+      "pushToParasut": "Paraşüt'e gönder",
+      "syncedToParasut": "Paraşüt'e aktarıldı #{{no}}",
+      "refreshPayment": "Ödemeyi yenile",
+      "pushFailed": "Paraşüt ile senkronizasyon başarısız",
+      "notConnected": "Paraşüt bağlı değil"
     },
     "title": "Faturalar",
     "quickActions": {

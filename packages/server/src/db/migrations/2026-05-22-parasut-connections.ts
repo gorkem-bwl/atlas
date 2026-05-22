@@ -37,11 +37,20 @@ const ALIGN_PARASUT_COLUMNS = `
   ALTER TABLE parasut_connections DROP COLUMN IF EXISTS password_enc;
 `;
 
+// Per-invoice Paraşüt sync bookkeeping. Idempotent — added here (rather than
+// as a separate migration) so the whole Paraşüt feature lands in one place.
+const ADD_INVOICE_PARASUT_COLUMNS = `
+  ALTER TABLE invoices ADD COLUMN IF NOT EXISTS parasut_invoice_id varchar(50);
+  ALTER TABLE invoices ADD COLUMN IF NOT EXISTS parasut_invoice_no varchar(50);
+  ALTER TABLE invoices ADD COLUMN IF NOT EXISTS parasut_synced_at timestamptz;
+`;
+
 export async function migrateParasutConnections(): Promise<void> {
   const c = await pool.connect();
   try {
     await c.query(CREATE_PARASUT_CONNECTIONS);
     await c.query(ALIGN_PARASUT_COLUMNS);
+    await c.query(ADD_INVOICE_PARASUT_COLUMNS);
     logger.debug('parasut-connections migration applied');
   } finally {
     c.release();

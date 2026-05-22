@@ -378,3 +378,268 @@ export async function testConnection(tenantId: string): Promise<ParasutStatus> {
     return toStatus(updated);
   }
 }
+
+// ─── Paraşüt v4 API (JSON:API) ──────────────────────────────────────
+//
+// Push an Atlas invoice to Paraşüt as a sales_invoice, ensuring the
+// customer contact and line-item products exist first, and pull payment
+// status back. Paraşüt v4 is JSON:API; the base is /v4/{companyId}.
+
+// Atlas currency strings → Paraşüt currency codes. Paraşüt uses "TRL" for
+// Turkish Lira; other ISO codes map straight through.
+const PARASUT_CURRENCY_MAP: Record<string, string> = {
+  TRY: 'TRL',
+};
+function toParasutCurrency(currency: string): string {
+  return PARASUT_CURRENCY_MAP[currency] ?? currency;
+}
+
+// Format a Date (or ISO-ish string) as YYYY-MM-DD (UTC).
+function toIsoDate(value: Date | string): string {
+  const d = value instanceof Date ? value : new Date(value);
+  return d.toISOString().slice(0, 10);
+}
+
+// Authenticated JSON:API call against the tenant's Paraşüt company. Returns
+// parsed JSON; throws on non-2xx with the response body for diagnostics.
+async function parasutApi(
+  tenantId: string,
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<any> {
+  const row = await getRow(tenantId);
+  if (!row) {
+    throw new Error('No Paraşüt connection configured for this tenant');
+  }
+  const accessToken = await getAccessToken(tenantId);
+  const url = `${PARASUT_API_BASE}/${encodeURIComponent(row.companyId)}${path}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(
+      `Paraşüt API ${method} ${path} failed (HTTP ${res.status})${text ? `: ${text.slice(0, 500)}` : ''}`,
+    );
+  }
+  return text ? JSON.parse(text) : {};
+}
+
+export interface EnsureContactInput {
+  name: string;
+  email?: string | null;
+  taxNumber?: string | null;
+}
+
+// Find an existing Paraşüt contact by name, or create one. Returns its id.
+export async function ensureContact(
+  tenantId: string,
+  input: EnsureContactInput,
+): Promise<string> {
+  const name = input.name.trim();
+  if (!name) {
+    throw new Error('A customer name is required to sync to Paraşüt');
+  }
+
+  const search = await parasutApi(
+    tenantId,
+    'GET',
+    `/contacts?filter[name]=${encodeURIComponent(name)}`,
+  );
+  const existing: any[] = Array.isArray(search?.data) ? search.data : [];
+  const match =
+    existing.find((c) => c?.attributes?.name?.trim?.() === name) ?? existing[0];
+  if (match?.id) {
+    return String(match.id);
+  }
+
+  const attributes: Record<string, unknown> = {
+    name,
+    contact_type: 'company',
+    account_type: 'customer',
+  };
+  if (input.email) attributes.email = input.email;
+  if (input.taxNumber) attributes.tax_number = input.taxNumber;
+
+  const created = await parasutApi(tenantId, 'POST', '/contacts', {
+    data: { type: 'contacts', attributes },
+  });
+  if (!created?.data?.id) {
+    throw new Error('Paraşüt did not return a contact id');
+  }
+  return String(created.data.id);
+}
+
+export interface EnsureProductInput {
+  name: string;
+  vatRate: number;
+}
+
+// Per-tenant in-memory product name → id cache, scoped to avoid repeat
+// lookups within a single push. Cleared on process restart.
+const productCache = new Map<string, Map<string, string>>();
+function getProductCache(tenantId: string): Map<string, string> {
+  let m = productCache.get(tenantId);
+  if (!m) {
+    m = new Map();
+    productCache.set(tenantId, m);
+  }
+  return m;
+}
+
+// Find an existing Paraşüt product by name, or create one. Returns its id.
+export async function ensureProduct(
+  tenantId: string,
+  input: EnsureProductInput,
+): Promise<string> {
+  const name = input.name.trim();
+  if (!name) {
+    throw new Error('A product/line description is required to sync to Paraşüt');
+  }
+
+  const cache = getProductCache(tenantId);
+  const cached = cache.get(name);
+  if (cached) return cached;
+
+  const search = await parasutApi(
+    tenantId,
+    'GET',
+    `/products?filter[name]=${encodeURIComponent(name)}`,
+  );
+  const existing: any[] = Array.isArray(search?.data) ? search.data : [];
+  const match =
+    existing.find((p) => p?.attributes?.name?.trim?.() === name) ?? existing[0];
+  if (match?.id) {
+    cache.set(name, String(match.id));
+    return String(match.id);
+  }
+
+  const created = await parasutApi(tenantId, 'POST', '/products', {
+    data: {
+      type: 'products',
+      attributes: {
+        name,
+        vat_rate: String(input.vatRate),
+        unit: 'Adet',
+      },
+    },
+  });
+  if (!created?.data?.id) {
+    throw new Error('Paraşüt did not return a product id');
+  }
+  cache.set(name, String(created.data.id));
+  return String(created.data.id);
+}
+
+export interface PushInvoiceData {
+  invoiceNumber: string;
+  issueDate: Date | string;
+  dueDate: Date | string;
+  currency: string;
+}
+export interface PushLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  taxRate: number;
+}
+export interface PushCustomer {
+  name: string;
+  email?: string | null;
+  taxNumber?: string | null;
+}
+
+// Create a Paraşüt sales_invoice from an Atlas invoice. Ensures the
+// customer contact and each line-item product exist first. Returns the new
+// Paraşüt invoice id + invoice_no.
+export async function pushInvoice(
+  tenantId: string,
+  invoice: PushInvoiceData,
+  lineItems: PushLineItem[],
+  customer: PushCustomer,
+): Promise<{ parasutId: string; parasutNo: string }> {
+  if (lineItems.length === 0) {
+    throw new Error('Cannot push an invoice with no line items to Paraşüt');
+  }
+
+  const contactId = await ensureContact(tenantId, {
+    name: customer.name,
+    email: customer.email,
+    taxNumber: customer.taxNumber,
+  });
+
+  const detailRefs: Array<{ type: string; id: string }> = [];
+  const included: any[] = [];
+  let detailId = 1;
+  for (const line of lineItems) {
+    const productId = await ensureProduct(tenantId, {
+      name: line.description,
+      vatRate: line.taxRate,
+    });
+    const id = String(detailId++);
+    detailRefs.push({ type: 'sales_invoice_details', id });
+    included.push({
+      type: 'sales_invoice_details',
+      id,
+      attributes: {
+        quantity: line.quantity,
+        unit_price: line.unitPrice,
+        vat_rate: line.taxRate,
+        description: line.description,
+      },
+      relationships: {
+        product: { data: { type: 'products', id: productId } },
+      },
+    });
+  }
+
+  const payload = {
+    data: {
+      type: 'sales_invoices',
+      attributes: {
+        item_type: 'invoice',
+        description: invoice.invoiceNumber,
+        issue_date: toIsoDate(invoice.issueDate),
+        due_date: toIsoDate(invoice.dueDate),
+        currency: toParasutCurrency(invoice.currency),
+        invoice_no: invoice.invoiceNumber,
+      },
+      relationships: {
+        contact: { data: { type: 'contacts', id: contactId } },
+        details: { data: detailRefs },
+      },
+    },
+    included,
+  };
+
+  const created = await parasutApi(tenantId, 'POST', '/sales_invoices', payload);
+  if (!created?.data?.id) {
+    throw new Error('Paraşüt did not return a sales_invoice id');
+  }
+  return {
+    parasutId: String(created.data.id),
+    parasutNo: String(created.data.attributes?.invoice_no ?? invoice.invoiceNumber),
+  };
+}
+
+// Pull payment status for a previously pushed Paraşüt sales_invoice.
+export async function getInvoicePaymentStatus(
+  tenantId: string,
+  parasutId: string,
+): Promise<{ paid: boolean; remaining: number; total: number }> {
+  const res = await parasutApi(tenantId, 'GET', `/sales_invoices/${encodeURIComponent(parasutId)}`);
+  const attrs = res?.data?.attributes ?? {};
+  const paymentStatus: string = attrs.payment_status ?? '';
+  const remaining = Number(attrs.remaining ?? 0) || 0;
+  const total = Number(attrs.gross_total ?? attrs.net_total ?? 0) || 0;
+  const paid = paymentStatus === 'paid' || remaining <= 0;
+  return { paid, remaining, total };
+}
