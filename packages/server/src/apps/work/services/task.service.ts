@@ -15,6 +15,23 @@ import { logger } from '../../../utils/logger';
 import { readableTasksFilter } from '../utils/readable-tasks';
 import type { CreateTaskInput, UpdateTaskInput, RecurrenceRule } from '@atlas-platform/shared';
 
+// ─── Schedule-time helpers (start_at / end_at) ───────────────────────
+
+// Parse an ISO string into a Date for the timestamptz columns. Returns
+// null for null/empty/invalid input so callers can clear the field.
+function parseScheduleTime(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// If both ends are set and the end is not strictly after the start, drop
+// the end rather than persisting an invalid window (keep it simple).
+function clampEndAt(startAt: Date | null, endAt: Date | null): Date | null {
+  if (startAt && endAt && endAt.getTime() <= startAt.getTime()) return null;
+  return endAt;
+}
+
 // ─── Recurrence helpers ──────────────────────────────────────────────
 
 function calculateNextDueDate(currentDueDate: string | null, rule: RecurrenceRule): string {
@@ -119,7 +136,8 @@ export async function listTasks(userId: string, filters?: {
       projectId: tasks.projectId, title: tasks.title, notes: tasks.notes,
       description: tasks.description, icon: tasks.icon, type: tasks.type,
       headingId: tasks.headingId, status: tasks.status, when: tasks.when,
-      priority: tasks.priority, dueDate: tasks.dueDate, completedAt: tasks.completedAt,
+      priority: tasks.priority, dueDate: tasks.dueDate,
+      startAt: tasks.startAt, endAt: tasks.endAt, completedAt: tasks.completedAt,
       sortOrder: tasks.sortOrder, tags: tasks.tags, recurrenceRule: tasks.recurrenceRule,
       recurrenceParentId: tasks.recurrenceParentId, isArchived: tasks.isArchived,
       assigneeId: tasks.assigneeId, isPrivate: tasks.isPrivate,
@@ -180,6 +198,8 @@ export async function createTask(userId: string, tenantId: string, input: Omit<C
       when: input.when ?? 'inbox',
       priority: input.priority ?? 'none',
       dueDate: input.dueDate ?? null,
+      startAt: parseScheduleTime(input.startAt),
+      endAt: clampEndAt(parseScheduleTime(input.startAt), parseScheduleTime(input.endAt)),
       tags: input.tags ?? [],
       recurrenceRule: input.recurrenceRule ?? null,
       assigneeId: input.assigneeId || null,
@@ -232,6 +252,20 @@ export async function updateTask(userId: string, taskId: string, input: Omit<Upd
   if (input.when !== undefined) updates.when = input.when;
   if (input.priority !== undefined) updates.priority = input.priority;
   if (input.dueDate !== undefined) updates.dueDate = input.dueDate;
+  // Schedule window. Either end can be updated independently, so clamp the
+  // end against the effective start (incoming if provided, else existing).
+  if (input.startAt !== undefined) updates.startAt = parseScheduleTime(input.startAt);
+  if (input.endAt !== undefined || input.startAt !== undefined) {
+    const effectiveStart =
+      input.startAt !== undefined
+        ? parseScheduleTime(input.startAt)
+        : (existing.startAt ? new Date(existing.startAt) : null);
+    const effectiveEnd =
+      input.endAt !== undefined
+        ? parseScheduleTime(input.endAt)
+        : (existing.endAt ? new Date(existing.endAt) : null);
+    updates.endAt = clampEndAt(effectiveStart, effectiveEnd);
+  }
   if (input.tags !== undefined) updates.tags = input.tags;
   if (input.recurrenceRule !== undefined) updates.recurrenceRule = input.recurrenceRule;
   if (input.assigneeId !== undefined) {

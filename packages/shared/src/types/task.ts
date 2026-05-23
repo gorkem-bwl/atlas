@@ -22,7 +22,7 @@ export const OPEN_TASK_STATUSES: readonly TaskStatus[] =
   TASK_STATUS_VALUES.filter(isOpenStatus);
 
 export type TaskWhen = 'inbox' | 'today' | 'evening' | 'anytime' | 'someday';
-export type TaskPriority = 'none' | 'low' | 'medium' | 'high';
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent';
 export type TaskType = 'task' | 'heading';
 export type RecurrenceRule = 'daily' | 'weekdays' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 
@@ -41,6 +41,8 @@ export interface Task {
   when: TaskWhen;
   priority: TaskPriority;
   dueDate: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
   completedAt: string | null;
   sortOrder: number;
   tags: string[];
@@ -154,6 +156,8 @@ export interface CreateTaskInput {
   when?: TaskWhen;
   priority?: TaskPriority;
   dueDate?: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
   tags?: string[];
   recurrenceRule?: RecurrenceRule | null;
   assigneeId?: string | null;
@@ -174,6 +178,8 @@ export interface UpdateTaskInput {
   when?: TaskWhen;
   priority?: TaskPriority;
   dueDate?: string | null;
+  startAt?: string | null;
+  endAt?: string | null;
   tags?: string[];
   recurrenceRule?: RecurrenceRule | null;
   assigneeId?: string | null;

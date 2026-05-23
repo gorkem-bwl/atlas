@@ -182,8 +182,19 @@ export async function deleteEntry(userId: string, tenantId: string, id: string):
 // ─── Live timer ─────────────────────────────────────────────────────
 export async function getActiveTimer(userId: string, tenantId: string) {
   const [timer] = await db
-    .select()
+    .select({
+      id: activeTimers.id,
+      tenantId: activeTimers.tenantId,
+      userId: activeTimers.userId,
+      taskId: activeTimers.taskId,
+      projectId: activeTimers.projectId,
+      startedAt: activeTimers.startedAt,
+      note: activeTimers.note,
+      createdAt: activeTimers.createdAt,
+      taskTitle: tasks.title,
+    })
     .from(activeTimers)
+    .leftJoin(tasks, eq(tasks.id, activeTimers.taskId))
     .where(and(eq(activeTimers.tenantId, tenantId), eq(activeTimers.userId, userId)))
     .limit(1);
   return timer ?? null;
@@ -200,9 +211,17 @@ export async function startTimer(
   }
   const { projectId: effectiveProjectId } = await resolveTaskProject(userId, tenantId, taskId, projectId, options?.isAdmin);
   const now = new Date();
+  // Upsert on the per-user unique index (tenant_id, user_id): the stop above
+  // normally clears any prior timer, but a concurrent/double-click start can
+  // race past it and hit idx_active_timers_user_unique. Rather than throwing
+  // a raw 23505 → 500, gracefully replace the single active timer.
   const [timer] = await db
     .insert(activeTimers)
     .values({ tenantId, userId, taskId, projectId: effectiveProjectId, startedAt: now, note: note ?? null, createdAt: now })
+    .onConflictDoUpdate({
+      target: [activeTimers.tenantId, activeTimers.userId],
+      set: { taskId, projectId: effectiveProjectId, startedAt: now, note: note ?? null },
+    })
     .returning();
   logger.info({ userId, taskId, timerId: timer.id }, 'Task timer started');
   return timer;

@@ -273,6 +273,7 @@ export const queryKeys = {
   },
   work: {
     all: ['work'] as const,
+    teamTimeReport: (key: string) => ['work', 'reports', 'time', key] as const,
     tasks: {
       all: ['work', 'tasks'] as const,
       list: (filters?: string) => ['work', 'tasks', 'list', filters] as const,

@@ -6,7 +6,7 @@ import type { Task, TaskProject, RecurrenceRule, TenantUser, UpdateTaskInput } f
 import { useUpdateTask, useDeleteTask, useUpdateTaskVisibility } from '../hooks';
 import { useAppActions } from '../../../hooks/use-app-permissions';
 import { useAuthStore } from '../../../stores/auth-store';
-import { WHEN_OPTIONS, PRIORITY_OPTIONS, RECURRENCE_OPTIONS } from '../lib/constants';
+import { WHEN_OPTIONS, PRIORITY_OPTIONS, RECURRENCE_OPTIONS, normalizePriority } from '../lib/constants';
 import { TaskNotesEditor } from './task-notes-editor';
 import { SubtaskSection } from './subtask-section';
 import { DependencySection } from './dependency-section';
@@ -22,6 +22,40 @@ import { Avatar } from '../../../components/ui/avatar';
 import { IconButton } from '../../../components/ui/icon-button';
 import { Select } from '../../../components/ui/select';
 import { StatusDot } from '../../../components/ui/status-dot';
+
+// Convert a stored ISO datetime → the value a <input type="datetime-local">
+// expects (local time, no timezone, minute precision). Empty on null.
+function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Convert a datetime-local input value (local time) → ISO string, or null
+// when cleared.
+function localInputToIso(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// The single "Due" field is a date + optional time. Its input value comes
+// from the full endAt datetime when present, otherwise the date-only dueDate
+// (rendered with a blank time). `dueDate` stays the source of truth for
+// overdue/filters/month-calendar/sort + the date-only task sync.
+function dueInputValue(dueDate: string | null | undefined, endAt: string | null | undefined): string {
+  if (endAt) return isoToLocalInput(endAt);
+  if (dueDate) return `${dueDate.slice(0, 10)}T`; // date with empty time
+  return '';
+}
+
+// Whether a datetime-local value carries a time component (has "THH:MM").
+function hasTime(value: string): boolean {
+  const time = value.split('T')[1];
+  return !!time && /\d{2}:\d{2}/.test(time);
+}
 
 export function TaskDetailPanel({
   task,
@@ -41,7 +75,10 @@ export function TaskDetailPanel({
   const [title, setTitle] = useState(task.title);
   const [when, setWhen] = useState(task.when);
   const [priority, setPriority] = useState(task.priority);
-  const [dueDate, setDueDate] = useState(task.dueDate || '');
+  // Single "Due" field = date + optional time. Backed by dueDate (date part)
+  // + endAt (full datetime / block end).
+  const [dueDateTime, setDueDateTime] = useState(dueInputValue(task.dueDate, task.endAt));
+  const [startAt, setStartAt] = useState(isoToLocalInput(task.startAt));
   const [showTaskEmoji, setShowTaskEmoji] = useState(false);
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -56,8 +93,9 @@ export function TaskDetailPanel({
     setTitle(task.title);
     setWhen(task.when);
     setPriority(task.priority);
-    setDueDate(task.dueDate || '');
-  }, [task.id, task.title, task.when, task.priority, task.dueDate]);
+    setDueDateTime(dueInputValue(task.dueDate, task.endAt));
+    setStartAt(isoToLocalInput(task.startAt));
+  }, [task.id, task.title, task.when, task.priority, task.dueDate, task.startAt, task.endAt]);
 
   const autoSave = useCallback((updates: Partial<UpdateTaskInput>) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -176,7 +214,7 @@ export function TaskDetailPanel({
               {PRIORITY_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
-                  className={`task-pill${priority === opt.value ? ' active' : ''}`}
+                  className={`task-pill${normalizePriority(priority) === opt.value ? ' active' : ''}`}
                   disabled={!canEdit}
                   onClick={() => {
                     if (!canEdit) return;
@@ -193,28 +231,68 @@ export function TaskDetailPanel({
             </div>
           </div>
 
-          {/* Due date */}
+          {/* Start time */}
           <div className="task-detail-field">
-            <span className="task-detail-label">{t('tasks.dueLabel')}</span>
+            <span className="task-detail-label">{t('tasks.startTime')}</span>
             <input
-              type="date"
+              type="datetime-local"
               className="task-date-input"
-              value={dueDate}
+              value={startAt}
               disabled={!canEdit}
               onChange={e => {
                 if (!canEdit) return;
-                setDueDate(e.target.value);
-                updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, dueDate: e.target.value || null });
+                setStartAt(e.target.value);
+                updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, startAt: localInputToIso(e.target.value) });
               }}
             />
-            {dueDate && (
+            {startAt && (
+              <IconButton
+                icon={<X size={12} />}
+                label={t('tasks.clearStartTime')}
+                size={24}
+                onClick={() => {
+                  setStartAt('');
+                  updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, startAt: null });
+                }}
+              />
+            )}
+          </div>
+
+          {/* Due date (single field: date + optional time) */}
+          <div className="task-detail-field">
+            <span className="task-detail-label">{t('tasks.dueLabel')}</span>
+            <input
+              type="datetime-local"
+              className="task-date-input"
+              value={dueDateTime}
+              disabled={!canEdit}
+              onChange={e => {
+                if (!canEdit) return;
+                const v = e.target.value;
+                setDueDateTime(v);
+                if (!v) {
+                  // Cleared entirely → drop both.
+                  updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, dueDate: null, endAt: null });
+                  return;
+                }
+                const datePart = v.slice(0, 10);
+                // dueDate stays date-only; endAt holds the full time when set.
+                updateTask.mutate({
+                  id: task.id,
+                  updatedAt: task.updatedAt,
+                  dueDate: datePart,
+                  endAt: hasTime(v) ? localInputToIso(v) : null,
+                });
+              }}
+            />
+            {dueDateTime && (
               <IconButton
                 icon={<X size={12} />}
                 label={t('tasks.clearDueDate')}
                 size={24}
                 onClick={() => {
-                  setDueDate('');
-                  updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, dueDate: null });
+                  setDueDateTime('');
+                  updateTask.mutate({ id: task.id, updatedAt: task.updatedAt, dueDate: null, endAt: null });
                 }}
               />
             )}

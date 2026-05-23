@@ -7,6 +7,7 @@ import { migrateCrmWorkflowSteps } from './migrations/2026-04-22-crm-workflow-st
 import { migrateMessageChannels } from './migrations/2026-04-28-message-channels';
 import { migrateGmailMessagePartialIndex } from './migrations/2026-04-29-gmail-message-partial-index';
 import { migrateTaskTimeTracking } from './migrations/2026-05-20-task-time-tracking';
+import { migrateTaskScheduleTimes } from './migrations/2026-05-22-task-schedule-times';
 import { db } from '../config/database';
 import { tenants } from './schema';
 import { seedBlocklistForTenants } from '../apps/crm/services/blocklist-seed.service';
@@ -364,10 +365,21 @@ async function migrateLegacyData() {
   // reminders tenant-wide.
   await addColumnIfMissing('invoices', 'exclude_from_auto_reminders',
     'boolean NOT NULL DEFAULT false');
+  await addColumnIfMissing('tasks', 'start_at', 'timestamptz');
+  await addColumnIfMissing('tasks', 'end_at', 'timestamptz');
   await addColumnIfMissing('project_settings', 'time_rounding',
     'integer NOT NULL DEFAULT 0');
   await addColumnIfMissing('users', 'is_super_admin',
     'boolean NOT NULL DEFAULT false');
+  // project_members.role + drive_share_links upload fields — drift on DBs
+  // created before these columns (CREATE TABLE IF NOT EXISTS skips them).
+  await addColumnIfMissing('project_members', 'role',
+    "varchar(50) NOT NULL DEFAULT 'member'");
+  await addColumnIfMissing('drive_share_links', 'mode',
+    "varchar(20) NOT NULL DEFAULT 'view'");
+  await addColumnIfMissing('drive_share_links', 'upload_instructions', 'text');
+  await addColumnIfMissing('drive_share_links', 'require_uploader_email',
+    'boolean NOT NULL DEFAULT true');
   // Backfill batch — drift detected by `npm run db:check-drift`.
   await addColumnIfMissing('crm_deals', 'currency',
     "varchar(10) NOT NULL DEFAULT 'USD'");
@@ -495,6 +507,14 @@ async function migrateLegacyData() {
     await migrateTaskTimeTracking();
   } catch (err) {
     logger.error({ err }, 'task-time-tracking migration failed');
+  }
+
+
+  // Task scheduled time window (start_at / end_at) — idempotent.
+  try {
+    await migrateTaskScheduleTimes();
+  } catch (err) {
+    logger.error({ err }, 'task-schedule-times migration failed');
   }
 
   // Drop the 5 dead user_settings.tables_* columns left over from the

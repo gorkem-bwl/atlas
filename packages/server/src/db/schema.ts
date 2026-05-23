@@ -347,6 +347,11 @@ export const tasks = pgTable('tasks', {
   when: text('when').notNull().default('inbox'),
   priority: text('priority').notNull().default('none'),
   dueDate: text('due_date'),
+  // Optional scheduled time window for the calendar time-grid (Day/Week
+  // hourly views). Both nullable; a task with only a dueDate stays in the
+  // all-day/unscheduled strip.
+  startAt: timestamp('start_at', { withTimezone: true }),
+  endAt: timestamp('end_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   tags: jsonb('tags').$type<string[]>().notNull().default([]),
   recurrenceRule: text('recurrence_rule'),
@@ -1906,6 +1911,7 @@ export const invoices = pgTable('invoices', {
   lastReminderStage: integer('last_reminder_stage').notNull().default(0),
   lastReminderAt: timestamp('last_reminder_at', { withTimezone: true }),
   excludeFromAutoReminders: boolean('exclude_from_auto_reminders').notNull().default(false),
+  // Paraşüt accounting sync (set once an invoice is pushed to Paraşüt).
   isArchived: boolean('is_archived').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -2032,6 +2038,7 @@ export const invoiceSettings = pgTable('invoice_settings', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
 
 // ─── System Settings (admin-only, singleton row) ───────────────────
 
