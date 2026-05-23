@@ -347,6 +347,11 @@ export const tasks = pgTable('tasks', {
   when: text('when').notNull().default('inbox'),
   priority: text('priority').notNull().default('none'),
   dueDate: text('due_date'),
+  // Optional scheduled time window for the calendar time-grid (Day/Week
+  // hourly views). Both nullable; a task with only a dueDate stays in the
+  // all-day/unscheduled strip.
+  startAt: timestamp('start_at', { withTimezone: true }),
+  endAt: timestamp('end_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
   tags: jsonb('tags').$type<string[]>().notNull().default([]),
   recurrenceRule: text('recurrence_rule'),

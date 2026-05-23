@@ -29,16 +29,21 @@ const CREATE_ACTIVE_TIMERS = `
 // One-time: an earlier build stored task time in a dedicated
 // task_time_entries table. Fold any such rows into project_time_entries
 // and drop the table. The IF EXISTS guard makes this a no-op once done.
-const MIGRATE_AND_DROP_LEGACY = `
+// COALESCE(tags, ...) guards against NULL legacy values flowing into the
+// NOT NULL project_time_entries.tags column. The copy and the drop are run
+// as SEPARATE statements so the table is only dropped AFTER a successful
+// copy — a failed copy leaves the table in place to retry on the next boot
+// rather than silently stranding the data.
+const MIGRATE_LEGACY = `
   INSERT INTO project_time_entries
     (id, tenant_id, user_id, project_id, task_id, duration_minutes, work_date,
      start_time, end_time, notes, tags, billable, created_at, updated_at)
   SELECT id, tenant_id, user_id, project_id, task_id, duration_minutes, work_date,
-     start_time, end_time, notes, tags, true, created_at, updated_at
+     start_time, end_time, notes, COALESCE(tags, '[]'::jsonb), true, created_at, updated_at
   FROM task_time_entries
   ON CONFLICT (id) DO NOTHING;
-  DROP TABLE task_time_entries;
 `;
+const DROP_LEGACY = `DROP TABLE task_time_entries;`;
 
 export async function migrateTaskTimeTracking(): Promise<void> {
   const c = await pool.connect();
@@ -48,7 +53,10 @@ export async function migrateTaskTimeTracking(): Promise<void> {
     // Replay-safe: only runs while the legacy table still exists.
     const exists = await c.query(`SELECT to_regclass('public.task_time_entries') AS t`);
     if (exists.rows[0]?.t) {
-      await c.query(MIGRATE_AND_DROP_LEGACY);
+      // Copy first; only drop once the copy succeeds. If the copy throws,
+      // the table is left intact and the next boot retries.
+      await c.query(MIGRATE_LEGACY);
+      await c.query(DROP_LEGACY);
       logger.info('task-time-tracking: migrated legacy task_time_entries into project_time_entries');
     }
     logger.debug('task-time-tracking migration applied');

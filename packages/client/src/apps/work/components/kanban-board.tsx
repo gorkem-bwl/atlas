@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import type { Task, TaskProject, TaskWhen } from '@atlas-platform/shared';
 import { isDoneStatus, isClosedStatus } from '@atlas-platform/shared';
 import { useUpdateTask, useReorderTasks } from '../hooks';
+import { normalizePriority } from '../lib/constants';
 
 // ─── Column definitions ──────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ function KanbanCard({
         </button>
         <div className="kanban-card-content">
           {task.priority !== 'none' && (
-            <div className={`task-priority-dot ${task.priority}`} />
+            <div className={`task-priority-dot ${normalizePriority(task.priority)}`} />
           )}
           <span className={`kanban-card-title${isDoneStatus(task.status) ? ' completed' : ''}`}>
             {task.title || t('tasks.noTasks')}

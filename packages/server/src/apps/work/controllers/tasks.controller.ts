@@ -66,10 +66,10 @@ export async function createTask(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId } = req.body;
+    const { title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, startAt, endAt, tags, recurrenceRule, assigneeId } = req.body;
 
     const task = await workService.createTask(userId, tenantId, {
-      title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, tags, recurrenceRule, assigneeId,
+      title, notes, description, icon, type, headingId, projectId, when, priority, dueDate, startAt, endAt, tags, recurrenceRule, assigneeId,
     });
 
     res.json({ success: true, data: task });
@@ -89,14 +89,14 @@ export async function updateTask(req: Request, res: Response) {
 
     const userId = req.auth!.userId;
     const taskId = req.params.id as string;
-    const { title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, tags, recurrenceRule, assigneeId, sortOrder, isArchived } = req.body;
+    const { title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, startAt, endAt, tags, recurrenceRule, assigneeId, sortOrder, isArchived } = req.body;
 
     const existingTask = assigneeId !== undefined
       ? await workService.getTask(userId, taskId)
       : null;
 
     const task = await workService.updateTask(userId, taskId, {
-      title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, tags, recurrenceRule, assigneeId, sortOrder, isArchived,
+      title, notes, description, icon, type, headingId, projectId, status, when, priority, dueDate, startAt, endAt, tags, recurrenceRule, assigneeId, sortOrder, isArchived,
     });
 
     if (!task) {

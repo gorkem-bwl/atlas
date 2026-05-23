@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Task, TaskProject, TenantUser } from '@atlas-platform/shared';
 import { isDoneStatus } from '@atlas-platform/shared';
 import { getDueBadgeClass, formatDueDate } from '../lib/helpers';
-import { PRIORITY_OPTIONS } from '../lib/constants';
+import { PRIORITY_OPTIONS, normalizePriority } from '../lib/constants';
 import { Avatar } from '../../../components/ui/avatar';
 
 type SortKey = 'title' | 'project' | 'priority' | 'dueDate' | 'assignee';
@@ -124,7 +124,8 @@ function TaskTableViewInner({
         cmp = pa.localeCompare(pb);
       } else if (sortKey === 'priority') {
         const last = PRIORITY_OPTIONS.length - 1;
-        cmp = (PRIORITY_ORDER[a.priority] ?? last) - (PRIORITY_ORDER[b.priority] ?? last);
+        const rank = (p: Task['priority']) => PRIORITY_ORDER[normalizePriority(p) as Task['priority']] ?? last;
+        cmp = rank(a.priority) - rank(b.priority);
       } else if (sortKey === 'dueDate') {
         const da = a.dueDate ?? NO_DUE_DATE_SORT_KEY;
         const db = b.dueDate ?? NO_DUE_DATE_SORT_KEY;
@@ -222,7 +223,7 @@ function TaskTableViewInner({
 
                 <td style={{ ...TD_STYLE, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {task.priority !== 'none' && <div className={`task-priority-dot ${task.priority}`} style={{ flexShrink: 0 }} />}
+                    {task.priority !== 'none' && <div className={`task-priority-dot ${normalizePriority(task.priority)}`} style={{ flexShrink: 0 }} />}
                     {task.icon && <span>{task.icon}</span>}
                     <span className={done ? 'task-title-text completed' : ''} style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {task.title || t('tasks.untitled')}
@@ -245,8 +246,8 @@ function TaskTableViewInner({
                   {task.priority !== 'none'
                     ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <div className={`task-priority-dot ${task.priority}`} />
-                        {t(`tasks.priority.${task.priority}`)}
+                        <div className={`task-priority-dot ${normalizePriority(task.priority)}`} />
+                        {t(`tasks.priority.${normalizePriority(task.priority)}`)}
                       </span>
                     )
                     : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}

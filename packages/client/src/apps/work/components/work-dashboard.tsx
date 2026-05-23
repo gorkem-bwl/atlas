@@ -155,7 +155,7 @@ function DashboardRecentActivity({ recentTimeEntries, recentInvoiceActions, onTi
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-family)' }}>
                     {isTime
-                      ? item.entry.description || formatDate(item.entry.date)
+                      ? [item.entry.userName, item.entry.description || formatDate(item.entry.date)].filter(Boolean).join(' · ')
                       : `${item.invoice.clientName || ''} - ${t(`projects.status.${item.invoice.status}`)}`
                     }
                   </div>

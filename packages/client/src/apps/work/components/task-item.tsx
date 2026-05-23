@@ -10,6 +10,7 @@ import { useAppActions } from '../../../hooks/use-app-permissions';
 import { useActiveTimer, useStartTaskTimer, useStopTimer } from '../hooks';
 import { useAuthStore } from '../../../stores/auth-store';
 import { getDueBadgeClass, formatDueDate } from '../lib/helpers';
+import { normalizePriority } from '../lib/constants';
 import { WhenBadge } from './when-badge';
 import { Avatar } from '../../../components/ui/avatar';
 import { Badge } from '../../../components/ui/badge';
@@ -170,7 +171,7 @@ function TaskItemInner({
       <div className="task-item-content">
         <div className="task-item-title-row">
           {task.priority !== 'none' && (
-            <div className={`task-priority-dot ${task.priority}`} />
+            <div className={`task-priority-dot ${normalizePriority(task.priority)}`} />
           )}
           {task.icon && <span className="task-item-emoji">{task.icon}</span>}
           {isEditing ? (

@@ -1,6 +1,6 @@
 import { db } from '../../../config/database';
 import {
-  projectProjects, projectTimeEntries, invoices, crmCompanies,
+  projectProjects, projectTimeEntries, invoices, crmCompanies, users,
 } from '../../../db/schema';
 import { eq, and, asc, desc, gte, lte, sql } from 'drizzle-orm';
 
@@ -99,6 +99,7 @@ export async function getDashboardData(userId: string, tenantId: string) {
       projectName: projectProjects.name,
       projectColor: projectProjects.color,
       userId: projectTimeEntries.userId,
+      userName: users.name,
       durationMinutes: projectTimeEntries.durationMinutes,
       workDate: projectTimeEntries.workDate,
       taskDescription: projectTimeEntries.taskDescription,
@@ -110,6 +111,7 @@ export async function getDashboardData(userId: string, tenantId: string) {
     })
       .from(projectTimeEntries)
       .innerJoin(projectProjects, eq(projectTimeEntries.projectId, projectProjects.id))
+      .leftJoin(users, eq(users.id, projectTimeEntries.userId))
       .where(and(
         eq(projectTimeEntries.tenantId, tenantId),
         eq(projectTimeEntries.isArchived, false),
@@ -185,6 +187,7 @@ export async function getDashboardData(userId: string, tenantId: string) {
       projectName: e.projectName,
       projectColor: e.projectColor,
       userId: e.userId,
+      userName: e.userName,
       hours: Number(e.durationMinutes) / 60,
       date: e.workDate,
       description: e.taskDescription || e.notes || null,
