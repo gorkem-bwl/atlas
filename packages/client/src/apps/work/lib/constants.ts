@@ -33,6 +33,13 @@ export const PRIORITY_OPTIONS = [
   { value: 'none', labelKey: 'tasks.priority.none', color: 'transparent' },
 ] as const;
 
+// Synced tasks (ClickUp/Linear priority 1) carry `urgent`, which Atlas does
+// not model as a distinct priority — it displays exactly as High. Normalize
+// before labeling, coloring, dot-rendering, sorting, filtering, or comparing.
+export function normalizePriority(p: string): string {
+  return p === 'urgent' ? 'high' : p;
+}
+
 export const WHEN_OPTIONS: { value: TaskWhen; labelKey: string; icon: typeof Inbox }[] = [
   { value: 'inbox', labelKey: 'tasks.whenOptions.inbox', icon: Inbox },
   { value: 'today', labelKey: 'tasks.whenOptions.today', icon: Star },

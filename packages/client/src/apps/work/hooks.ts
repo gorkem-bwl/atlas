@@ -60,6 +60,7 @@ export interface RecentTimeEntry {
   projectName: string;
   projectColor: string;
   userId: string;
+  userName: string | null;
   hours: number;
   date: string;
   description: string | null;
@@ -1111,6 +1112,7 @@ export interface ActiveTimer {
   projectId: string;
   startedAt: string;
   note: string | null;
+  taskTitle?: string | null;
 }
 
 interface TaskTimeResponse {
@@ -1244,5 +1246,47 @@ export function useCancelTimer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.work.timer });
     },
+  });
+}
+
+// ─── Team time report (admin-only) ──────────────────────────────────
+
+export interface TimeReportProjectBreakdown {
+  projectId: string;
+  projectName: string;
+  projectColor: string | null;
+  minutes: number;
+}
+export interface TimeReportTaskBreakdown {
+  taskId: string | null;
+  taskDescription: string;
+  minutes: number;
+}
+export interface TimeReportUser {
+  userId: string;
+  userName: string;
+  totalMinutes: number;
+  billableMinutes: number;
+  entryCount: number;
+  byProject: TimeReportProjectBreakdown[];
+  byTask: TimeReportTaskBreakdown[];
+}
+export interface TeamTimeReport {
+  from: string;
+  to: string;
+  totalMinutes: number;
+  totalBillableMinutes: number;
+  users: TimeReportUser[];
+}
+
+export function useTeamTimeReport(from: string, to: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.work.teamTimeReport(`${from}|${to}`),
+    queryFn: async () => {
+      const { data } = await api.get(`/work/reports/time?from=${from}&to=${to}`);
+      return data.data as TeamTimeReport;
+    },
+    enabled: enabled && !!from && !!to,
+    staleTime: 60_000,
   });
 }

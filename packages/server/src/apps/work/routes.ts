@@ -6,6 +6,7 @@ import { tasks, projectProjects, projectTimeEntries, taskStatuses } from '../../
 import * as controller from './controller';
 import * as taskStatusController from './controllers/task-statuses.controller';
 import * as taskTimeController from './controllers/task-time.controller';
+import * as reportsController from './controllers/reports.controller';
 
 const router = Router();
 
@@ -15,6 +16,9 @@ router.use(requireAppPermission('work'));
 // Tenant-wide work settings (admin-only mutation via canAccess gate)
 router.get('/settings', controller.getWorkSettings);
 router.patch('/settings', controller.updateWorkSettings);
+
+// Reports (admin-only — gated inside the controller)
+router.get('/reports/time', reportsController.getTeamTimeReport);
 
 // Task statuses (per-tenant)
 router.get('/task-statuses', taskStatusController.listStatuses);
