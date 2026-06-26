@@ -14,6 +14,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'fr', label: 'Français' },
   { code: 'it', label: 'Italiano' },
   { code: 'tr', label: 'Türkçe' },
+  { code: 'ru', label: 'Русский' },
 ] as const;
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
@@ -23,6 +24,7 @@ const LOCALE_LOADERS: Record<Exclude<LanguageCode, 'en'>, () => Promise<{ defaul
   fr: () => import('./locales/fr.json'),
   it: () => import('./locales/it.json'),
   tr: () => import('./locales/tr.json'),
+  ru: () => import('./locales/ru.json'),
 };
 
 // Dedupe simultaneous load requests — the `languageChanged` handler can
@@ -61,7 +63,7 @@ i18n
       // de, fr, it, tr added on demand via loadLanguage()
     },
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de', 'fr', 'it', 'tr'],
+    supportedLngs: ['en', 'de', 'fr', 'it', 'tr', 'ru'],
     interpolation: {
       escapeValue: false,
     },

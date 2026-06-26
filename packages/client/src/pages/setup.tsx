@@ -25,6 +25,7 @@ const LANGUAGES = [
   { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
   { value: 'fr', label: 'Français', flag: '🇫🇷' },
   { value: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { value: 'ru', label: 'русский', flag: '🇷🇺' },
 ];
 
 const DATE_FORMATS = [
