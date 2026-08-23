@@ -18,9 +18,11 @@ Detailed documentation lives in `/docs/`. Read the relevant doc before building 
 |----------|---------------|--------------|
 | **Live OpenAPI spec:** `/api/v1/openapi.json` + Scalar UI at `/api/v1/reference` (generated from `packages/server/src/openapi/paths/`). The old `docs/api-reference.md` is deprecated. | Every API endpoint — method, path, auth, request/response shapes | Building client hooks, testing endpoints, debugging API calls |
 | [Database Schema](docs/database-schema.md) | All tables, columns, types, constraints, FK relationships, indexes | Adding tables, writing migrations, building queries |
+| [Developer onboarding](docs/onboarding.md) | Clone → running stack, verification gates, request lifecycle, registries, traps | **Start here** on day one, or when returning to an unfamiliar area |
 | [App Architecture](docs/app-architecture.md) | App registry pattern, per-app features/routes/tables, adding new apps | Building a new app, understanding how apps register |
-| [Design System](docs/design-system.md) | CSS variables, component library (31 components), layout patterns, i18n | Building UI, creating components, styling, translations |
+| [Design System](docs/design-system.md) | CSS variables, component library (38 components in `components/ui/`), layout patterns, i18n | Building UI, creating components, styling, translations |
 | [Infrastructure](docs/infrastructure.md) | Docker, deployment, CI/CD, CLI, env vars, SSL, backups, monitoring | Deploying, configuring, troubleshooting production |
+| [Field-service gap analysis](docs/field-service-gap-analysis.md) | Verified customer feedback (Housecall Pro): contact addresses, job entity, cross-app fragmentation | Working on CRM/Invoices data model or customer-360 UI |
 | [Architecture for agents](docs/architecture-for-agents.md) | Registry patterns, data flow, auth layers, UI primitives lookup, debugging recipes, hard rules | Onboarding to the codebase; before touching a new area |
 
 ---
@@ -59,21 +61,44 @@ service.ts           — Business logic + database queries
 
 ### Current Apps
 
-| App | ID | Color | Icon | Sidebar Order | Route |
-|-----|----|-------|------|---------------|-------|
-| CRM | crm | #f97316 | CrmIcon (brand) | 10 | /crm |
-| HRM | hr | #10b981 | HrmIcon (brand) | 20 | /hr |
-| Projects | projects | #0ea5e9 | ProjectsIcon (brand) | 25 | /projects |
-| Calendar | calendar | #f97316 | CalendarIcon (brand) | 27 | /calendar |
-| Sign | sign | #8b5cf6 | SignIcon (brand, hand-authored) | 30 | /sign-app |
-| Invoices | invoices | #0ea5e9 | InvoicesIcon (brand, hand-authored) | 35 | /invoices |
-| Drive | drive | #64748b | DriveIcon (brand) | 40 | /drive, /drive/folder/:id |
-| Tasks | tasks | #6366f1 | TasksIcon (brand, full-bleed) | 60 | /tasks |
-| Write | docs | #c4856c | WriteIcon (brand, full-bleed) | 70 | /docs, /docs/:id |
-| Draw | draw | #e06c9f | DrawIcon (brand, full-bleed) | 80 | /draw, /draw/:id |
-| System | system | #6b7280 | SystemIcon (brand) | 90 | /system |
+Source of truth: `packages/client/src/apps/index.ts` and `packages/server/src/apps/index.ts`.
+Every value below is read from the app's own `manifest.ts`.
 
-> **Note:** CRM, HRM, Projects, Calendar, Drive, and Draw use custom multicolor brand SVGs (defined in `packages/client/src/components/icons/app-icons.tsx`) instead of lucide icons in the dockbar. Most render on a small white/light card via `BRAND_ICON_BACKGROUNDS` in `sidebar.tsx` and `home.tsx`. Draw is **full-bleed** — its SVG artwork is itself a backdrop and fills the dock card edge-to-edge (controlled by `FULL_BLEED_BRAND_ICONS` in `app-icons.tsx`). All other apps still use lucide. Calendar is **client-only** — there is no `packages/server/src/apps/calendar/`.
+| App | ID | Display name | Color | Icon (lucide) | Sidebar order | Client route(s) | Server prefix |
+|-----|----|--------------|-------|---------------|---------------|-----------------|---------------|
+| CRM | `crm` | CRM | `#f97316` | `Users` | 10 | `/crm` | `/crm` |
+| HR | `hr` | HR | `#10b981` | `UserCog` | 20 | `/hr` | `/hr` |
+| Work | `work` | Work | `#6366f1` | `FolderKanban` | 25 | `/work` | `/work` |
+| Calendar | `calendar` | Calendar | `#f97316` | `CalendarIcon` | 27 | `/calendar` | *(client-only)* |
+| Agreements | `sign` | Agreements | `#8b5cf6` | `FileSignature` | 30 | `/sign-app`, `/sign-app/:id` | `/sign` |
+| Invoices | `invoices` | Invoices | `#0ea5e9` | `Receipt` | 35 | `/invoices` | `/invoices` |
+| Drive | `drive` | Drive | `#64748b` | `HardDrive` | 40 | `/drive`, `/drive/folder/:id` | `/drive` |
+| Write | `docs` | Write | `#c4856c` | `FileText` | 70 | `/docs`, `/docs/:id` | `/docs` |
+| Draw | `draw` | Draw | `#e06c9f` | `PenTool` | 80 | `/draw`, `/draw/:id` | **`/drawings`** |
+| System | `system` | System | `#6b7280` | `Settings2` | 90 | `/system` | `/system` |
+
+**Three names differ from their app ID — this trips people up constantly:**
+
+- `sign` renders as **"Agreements"** in the UI. The client route is `/sign-app`, the server prefix is `/sign`, the directory is `apps/sign`.
+- `docs` renders as **"Write"**. Do not confuse `apps/docs` (the app) with `/docs` (this repo's documentation folder).
+- `work` renders as **"Work"** and is the *merger of the former Projects and Tasks apps*.
+- `draw`'s server prefix is **`/drawings`**, not `/draw` — the only app whose prefix differs from its id.
+
+> **The Work app.** There is no `projects` app and no `tasks` app. They were retired in
+> `fbfdb5f0 refactor(work): retire tasks and projects apps` and merged into a single `work`
+> app that owns projects, tasks, time tracking, and reporting. Its tables are still named
+> `tasks`, `task_*`, `project_*` — the *tables* kept their names, the *apps* did not.
+> The DB side of that merge lives in `packages/server/src/db/migrations/2026-04-15-work-merge.ts`.
+> If you see `/projects`, `/tasks`, `apps/projects`, or `apps/tasks` anywhere, it is stale.
+
+> **Icons.** Every app uses a plain [lucide](https://lucide.dev) icon, set as `icon:` in its
+> manifest. The old hand-authored multicolor brand SVG system
+> (`components/icons/app-icons.tsx`, `BRAND_ICON_BACKGROUNDS`, `FULL_BLEED_BRAND_ICONS`)
+> **no longer exists** — do not look for it.
+
+> **Calendar is client-only.** There is no `packages/server/src/apps/calendar/`; it is not in
+> the server registry. Its data comes from `services/calendar*.service.ts` plus the Google
+> sync worker, exposed via `routes/`, not via an app manifest.
 
 ---
 
@@ -85,7 +110,8 @@ Add `export * from './{name}'` to `packages/shared/src/types/index.ts`.
 
 ### 2. Database
 Add tables to `packages/server/src/db/schema.ts`.
-Run `cd packages/server && npm run db:push` to sync the schema to Postgres.
+Generate a migration: `cd packages/server && npm run db:generate`, then restart the server
+(`bootstrapDatabase()` applies it on boot). See **Migrations** below — there is no `db:push`.
 
 ### 3. Server app
 Create directory `packages/server/src/apps/{name}/` with:
@@ -151,7 +177,43 @@ All tables in `packages/server/src/db/schema.ts`. Sections:
 - App tables (documents, drawings, tasks, driveItems, etc.)
 
 ### Migrations
-There are no hand-written migrations. `schema.ts` is the single source of truth; `npm run db:push` (wraps `drizzle-kit push --force`) diffs the schema against the live DB and applies the change. Pre-launch stance — no users, so drop-and-recreate is fine. Re-introduce versioned migrations once we have deployments we can't rewind.
+**There is no `db:push` script.** It was removed. Do not run it, and do not add it back
+without discussion — earlier revisions of this file documented it and the instruction was
+dead for months.
+
+Atlas now uses **versioned migrations that replay automatically on every server start.**
+
+`schema.ts` is still the source of truth for *types and queries*, but the live database is
+built by `bootstrapDatabase()` (`packages/server/src/db/bootstrap.ts`), called once from
+`packages/server/src/index.ts` inside the `app.listen` callback. It:
+
+1. Reads every `.sql` file in `src/db/migrations/`, sorted by filename, splits on
+   `--> statement-breakpoint`, and executes each statement.
+2. **Swallows benign errors** — duplicate table/column/object/index, unique violations on
+   seed inserts (`BENIGN_MIGRATION_ERRORS`). This is what makes replay-on-every-boot safe
+   against both an empty database and a fully-migrated one.
+3. Runs the hand-written **TypeScript** migrations in order, each an exported function:
+   `2026-04-15-work-merge`, `2026-04-22-crm-workflow-steps`, `2026-04-28-message-channels`,
+   `2026-04-29-gmail-message-partial-index`, `2026-05-20-task-time-tracking`,
+   `2026-05-22-parasut-connections`, `2026-05-22-task-schedule-times`.
+
+**To change the schema:**
+
+```bash
+cd packages/server
+# 1. edit src/db/schema.ts
+npm run db:generate      # drizzle-kit generate → new .sql in src/db/migrations/
+npm run db:check-drift   # verify schema.ts and the migrations agree
+# 2. restart the server — bootstrapDatabase() applies it
+```
+
+A data backfill or anything drizzle-kit can't express goes in a new dated `.ts` migration
+plus an import + call in `bootstrap.ts`. `npm run db:migrate` and `npm run db:studio` exist
+for direct drizzle-kit use.
+
+> Because migrations replay on every boot, a migration must be **idempotent**. Use
+> `ADD COLUMN IF NOT EXISTS` / `CREATE ... IF NOT EXISTS` rather than relying on the
+> benign-error swallow, which is a safety net and not a design.
 
 ---
 
@@ -161,10 +223,11 @@ There are no hand-written migrations. `schema.ts` is the single source of truth;
 ```typescript
 interface AuthPayload {
   userId: string;
-  accountId: string;
+  tenantId: string;              // REQUIRED, not optional
   email: string;
-  tenantId?: string;
+  tenantRole?: TenantMemberRole; // 'owner' | 'admin' | 'member'
   isSuperAdmin?: boolean;
+  impersonatedBy?: string;       // set only by admin impersonation
 }
 ```
 
@@ -321,7 +384,9 @@ Atlas uses `react-i18next` for internationalization. 5 languages: EN, TR, DE, FR
 ### Release Workflow
 When the user asks to "create a release", "make a new version", "tag and release", or similar:
 1. **Decide version number**: increment minor (x.Y.0) for features/refactors, patch (x.y.Z) for bugfixes only. Ask if unsure.
-2. **Update About panel**: change version string in `packages/client/src/components/settings/about-panel.tsx`
+2. **Update the version**: `packages/client/src/config/version.ts` (`APP_VERSION`) — this is the single
+   source of truth; `about-panel.tsx` imports it and hardcodes nothing. Also bump `version` in all three
+   `packages/*/package.json` files (the root package.json has no version field).
 3. **Update README.md**: update version pin example if it references a specific version
 4. **Commit**: `chore: bump version to X.Y.Z`
 5. **Tag**: `git tag vX.Y.Z`
@@ -346,28 +411,28 @@ When the user asks to "create a release", "make a new version", "tag and release
 - Use `window.confirm()` or `window.alert()` — always use the `<ConfirmDialog>` component from `components/ui/confirm-dialog.tsx` for destructive action confirmations. It provides a proper modal with title, description, and styled confirm/cancel buttons.
 
 ### Always do
-- Use `req.auth!.userId` and `req.auth!.accountId` for data scoping
+- Use `req.auth!.userId` and `req.auth!.tenantId` for data scoping. **`req.auth.accountId` does not exist** — it is not on `AuthPayload` and appears nowhere in the server. Tenant scoping is never enforced by the framework: a query missing `.where(eq(table.tenantId, ...))` leaks across tenants.
 - Add `isArchived` for soft deletes (never hard delete user data)
 - Use `uuid` primary keys with `defaultRandom()`
 - Use CSS variables for all colors, spacing, radius, font sizes
 - Use `Button`/`Input` size prop to match heights when side-by-side
-- Edit `schema.ts` and run `npm run db:push` from `packages/server`
+- Edit `schema.ts`, then `npm run db:generate` from `packages/server` (never `db:push` — it does not exist)
 - Register new apps in both client and server `apps/index.ts`
 - Use `<ContentArea>` (`packages/client/src/components/ui/content-area.tsx`) as the right-side page template for every app page. It owns the 44px header frame and the dock-bottom reserve. Apps with custom toolbars pass them via the `headerSlot` prop. Only Draw is exempt (full-bleed Excalidraw canvas).
 
 ### Server pattern
 ```typescript
-// Service function
-export async function listItems(userId: string, accountId: string) {
+// Service function — ALWAYS scope on tenantId.
+export async function listItems(tenantId: string) {
   return db.select().from(items)
-    .where(and(eq(items.accountId, accountId), eq(items.isArchived, false)))
+    .where(and(eq(items.tenantId, tenantId), eq(items.isArchived, false)))
     .orderBy(items.sortOrder);
 }
 
 // Controller handler
 export async function listItems(req: Request, res: Response) {
   try {
-    const data = await itemService.listItems(req.auth!.userId, req.auth!.accountId);
+    const data = await itemService.listItems(req.auth!.tenantId);
     res.json({ success: true, data });
   } catch (error) {
     logger.error({ error }, 'Failed to list items');
@@ -442,7 +507,8 @@ export function MyAppPage() {
 | Query keys | `packages/client/src/config/query-keys.ts` |
 | Settings registry | `packages/client/src/config/settings-registry.ts` |
 | DB schema | `packages/server/src/db/schema.ts` |
-| DB schema sync | `cd packages/server && npm run db:push` |
+| DB migrations | `cd packages/server && npm run db:generate` (applied on server boot) |
+| DB bootstrap/replay | `packages/server/src/db/bootstrap.ts` |
 | Auth middleware | `packages/server/src/middleware/auth.ts` |
 | Theme/tokens | `packages/client/src/styles/theme.css` |
 | Shared types | `packages/shared/src/types/index.ts` |
@@ -469,6 +535,81 @@ CORS_ORIGINS=http://localhost:5180
 REDIS_URL=redis://localhost:6379
 SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
 ```
+
+---
+
+## Gotchas — read before you debug
+
+Traps that have repeatedly cost time. Each one is verified against the code.
+
+### Naming that does not match
+
+| You'd expect | Reality |
+|---|---|
+| `apps/projects`, `apps/tasks` | Gone. One `apps/work`. |
+| `sign` → "Sign" | Displays as **"Agreements"**. Route `/sign-app`, prefix `/sign`. |
+| `docs` → docs | Displays as **"Write"**. `apps/docs` ≠ the `/docs` folder. |
+| `draw` prefix `/draw` | Server prefix is **`/drawings`**. |
+| `req.auth.accountId` | **Does not exist.** Use `tenantId`. |
+| `npm run db:push` | **Does not exist.** Use `db:generate`. |
+| `components/icons/app-icons.tsx` | **Does not exist.** Plain lucide icons. |
+
+### Two `contacts` tables
+
+`contacts` is the **Google-synced personal** contact table (`accountId`, `googleResourceName`).
+`crm_contacts` is the **CRM entity** (`tenantId`, `companyId`). They are unrelated. Almost
+every CRM task means `crm_contacts`.
+
+### Manifest `tables` lists are partly wrong
+
+`ServerAppManifest.tables` is documentation, not wiring — nothing validates it, so it drifts:
+- `drive` declares `drive_versions`; the real table is `drive_item_versions`.
+- `work` declares `task_projects`, which no longer exists (superseded by `project_projects`).
+- The invoices **server** manifest color is `#f59e0b`; the **client** manifest says `#0ea5e9`.
+
+Trust `schema.ts`, never the manifest list.
+
+### There are no `pgEnum`s
+
+All 106 tables use `varchar`/`text` for status/type/role with app-layer validation. Do not
+look for a Postgres enum to extend — add the value where it is validated in code.
+
+### Migrations replay on every boot
+
+`bootstrapDatabase()` re-runs every `.sql` migration on each start and swallows
+duplicate-object errors. Migrations **must be idempotent**. Never assume a migration runs once.
+
+### Tenant scoping is not enforced
+
+`config/database.ts` says it outright: a query missing `.where(eq(table.tenantId, ...))`
+leaks across tenants. There is no RLS and no framework guard. This is the single highest-risk
+class of bug in the codebase.
+
+### Email-era dead surface
+
+Atlas was once AtlasMail. Still present and *not* to be treated as live features:
+- localStorage keys are all `atlasmail_*` (`atlasmail_token`, …). Don't "fix" them casually — the API client depends on them.
+- 7 i18n namespaces (`inbox`, `compose`, `email`, `labels`, `snooze`, `tracking`, `bulk`) ≈144 dead keys × 5 locales.
+- `EmailListSkeleton`, `ReadingPaneSkeleton`, `send-animation.tsx`, `--color-unread-indicator`, `--color-star`, `--color-category-*`, and all 6 `--email-*` density variables.
+
+**But note:** `messages`, `message_threads`, `message_channels` and the Gmail sync services are
+**live** — they power CRM contact-communication, not a mail client. CLAUDE.md's "no email
+functionality" means there is no inbox app; it does not mean these tables are dead.
+
+### Verification gates
+
+```bash
+npm install            # required first — a fresh clone has no node_modules
+npm run typecheck      # turbo, all three packages
+npm run lint
+npm test               # vitest, ~98 test files
+cd packages/server && npm run db:check-drift   # schema.ts vs live DB
+```
+
+CI (`.github/workflows/ci.yml`, **Node 22**) runs four jobs: typecheck, server-unit
+(plus `openapi:build`), server-integration (postgres service), client-unit. **There is no e2e
+job in CI** — `npm run test:e2e` is local-only and some specs still target the removed
+`/tasks` and Tables pages.
 
 ---
 

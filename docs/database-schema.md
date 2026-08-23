@@ -2075,20 +2075,38 @@ Cross-app record-to-record links (e.g. linking a CRM deal to a task).
 
 ## Summary statistics
 
-| Domain | Tables |
-|--------|--------|
-| Core | 5 (users, accounts, user_settings, password_reset_tokens, contacts) |
-| Platform | 4 (tenants, tenant_members, tenant_invitations, tenant_apps) |
-| Email/Calendar | 7 (threads, emails, attachments, category_rules, email_tracking, tracking_events, calendars, calendar_events) |
-| CRM | 8 (crm_companies, crm_contacts, crm_deal_stages, crm_deals, crm_activities, crm_workflows, crm_permissions, crm_leads, crm_notes) |
-| HR | 12 (departments, employees, leave_balances, hr_leave_types, hr_leave_policies, hr_leave_policy_assignments, hr_leave_applications, hr_attendance, hr_holiday_calendars, hr_holidays, hr_lifecycle_events, onboarding_tasks, onboarding_templates, employee_documents, time_off_requests) |
-| Tasks | 5 (task_projects, tasks, subtasks, task_activities, task_templates) |
-| Drive | 3 (drive_items, drive_item_versions, drive_share_links) |
-| Docs | 4 (documents, document_versions, document_comments, document_links) |
-| Draw | 1 (drawings) |
-| Sign | 3 (signature_documents, signature_fields, signing_tokens) |
-| Projects | 7 (project_clients, project_projects, project_members, project_time_entries, project_invoices, project_invoice_line_items, project_settings) |
-| System | 1 (system_settings) |
-| Notifications/Activity | 3 (notifications, activity_feed, push_subscriptions) |
-| Cross-app | 2 (custom_field_definitions, record_links) |
-| **Total** | **~60 tables** |
+> **Regenerated 2026-08-23 against `packages/server/src/db/schema.ts`.** The previous version
+> of this table predated the Work app merge (2026-04-15) and undercounted by ~46 tables.
+
+| Domain | Count | Tables |
+|--------|-------|--------|
+| Users & Accounts | 8 | users, accounts, category_rules, user_settings, contacts, calendars, calendar_events, password_reset_tokens |
+| Platform / Tenancy | 6 | tenants, tenant_members, tenant_invitations, tenant_apps, demo_data_seeds, scheduler_send_log |
+| Custom fields | 2 | custom_field_definitions, custom_field_values |
+| Cross-app links | 1 | record_links |
+| Write (docs) | 4 | documents, document_versions, document_comments, document_links |
+| **Work** | 14 | tasks, task_statuses, subtasks, task_activities, task_templates, task_comments, task_attachments, task_dependencies, project_projects, project_members, project_time_entries, active_timers, project_settings, project_rates |
+| Drive | 6 | drive_items, drive_item_versions, drive_share_links, drive_item_shares, drive_activity_log, drive_comments |
+| Draw | 1 | drawings |
+| Notifications / Activity | 3 | notifications, activity_feed, push_subscriptions |
+| **Agreements** (sign) | 6 | signature_documents, signature_fields, signing_tokens, sign_audit_log, sign_templates, sign_settings |
+| HR | 20 | departments, employees, leave_balances, onboarding_tasks, onboarding_templates, employee_documents, time_off_requests, hr_leave_types, hr_leave_policies, hr_leave_policy_assignments, hr_holiday_calendars, hr_holidays, hr_leave_applications, hr_attendance, hr_lifecycle_events, hr_expense_categories, hr_expense_policies, hr_expense_policy_assignments, hr_expense_reports, hr_expenses |
+| CRM | 16 | crm_companies, crm_contacts, crm_deal_stages, crm_deals, crm_activity_types, crm_activities, crm_workflows, crm_workflow_steps, crm_teams, crm_team_members, crm_leads, crm_notes, crm_saved_views, crm_lead_forms, crm_proposals, crm_proposal_revisions |
+| Invoices | 7 | invoices, invoice_line_items, invoice_payments, recurring_invoices, recurring_invoice_line_items, invoice_settings, parasut_connections |
+| Tenant settings | 1 | tenant_format_settings |
+| System / Platform | 6 | system_settings, audit_log, app_permissions, app_permission_audit, presence_heartbeats, exchange_rates |
+| Messages (CRM Gmail sync) | 5 | message_channels, message_threads, messages, message_participants, message_blocklist |
+| **Total** | **106** | `grep -c "pgTable(" packages/server/src/db/schema.ts` |
+
+**Notes**
+
+- **There are zero `pgEnum` declarations.** Every status/type/role/category is `varchar`/`text`
+  validated in the app layer.
+- `contacts` (Google-synced, `accountId`) and `crm_contacts` (CRM entity, `tenantId`) are two
+  different tables. CRM work almost always means `crm_contacts`.
+- The former `project_clients`, `project_invoices`, `project_invoice_line_items` and
+  `task_projects` tables no longer exist — the Work merge replaced them with
+  `project_projects` and the standalone `invoices` domain.
+- The Messages tables are live and power CRM contact-communication (Gmail sync). They are not
+  a mail client; Atlas has no inbox app.
+- Only one partial index exists: `idx_messages_tenant_inbound_active`.
