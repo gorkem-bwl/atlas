@@ -1502,6 +1502,13 @@
       "groupByCompany": "Entreprise",
       "notFound": "Contact introuvable"
     },
+    "related": {
+      "title": "Associés",
+      "invoices": "Factures",
+      "projects": "Projets",
+      "empty": "Aucune facture ou aucun projet associé pour le moment.",
+      "showingCount": "Affichage de {{shown}} sur {{total}}"
+    },
     "companies": {
       "name": "Nom",
       "domain": "Domaine",

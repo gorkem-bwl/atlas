@@ -357,6 +357,39 @@ register({ method: 'get', path: '/crm/contacts/:id/emails', tags: [TAG], summary
 register({ method: 'get', path: '/crm/contacts/:id/events', tags: [TAG], summary: 'Get calendar events associated with a contact',
   params: z.object({ id: Uuid }), response: envelope(z.array(z.record(z.string(), z.unknown()))) });
 
+// Cross-app related records. `visibility` reports which sections the caller
+// is permitted to see, so the client can tell "none exist" apart from "you
+// cannot view that app".
+const RelatedRecords = z.object({
+  invoices: z.array(z.object({
+    id: Uuid,
+    invoiceNumber: z.string(),
+    status: z.string(),
+    total: z.number(),
+    currency: z.string(),
+    // Both are NOT NULL on the invoices table.
+    issueDate: IsoDateTime,
+    dueDate: IsoDateTime,
+  })),
+  projects: z.array(z.object({
+    id: Uuid,
+    name: z.string(),
+    status: z.string(),
+    color: z.string().nullable(),
+    startDate: IsoDateTime.nullable(),
+    endDate: IsoDateTime.nullable(),
+  })),
+  // Full match counts before the per-section row cap, so a client can show
+  // "showing 50 of 213" rather than reporting the truncated length as total.
+  totals: z.object({ invoices: z.number().int(), projects: z.number().int() }),
+  visibility: z.object({ invoices: z.boolean(), projects: z.boolean() }),
+});
+
+register({ method: 'get', path: '/crm/contacts/:id/related', tags: [TAG], summary: 'Get invoices and projects related to a contact',
+  params: z.object({ id: Uuid }), response: envelope(RelatedRecords) });
+register({ method: 'get', path: '/crm/companies/:id/related', tags: [TAG], summary: 'Get invoices and projects related to a company',
+  params: z.object({ id: Uuid }), response: envelope(RelatedRecords) });
+
 // ============================================================
 // Deal stages
 // ============================================================

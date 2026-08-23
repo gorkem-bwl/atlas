@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as crmService from '../services/company.service';
+import * as relatedRecordsService from '../services/related-records.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { canAccessEntity } from '../../../services/app-permissions.service';
@@ -219,5 +220,43 @@ export async function mergeCompanies(req: Request, res: Response) {
     }
     logger.error({ error }, 'Failed to merge CRM companies');
     res.status(500).json({ success: false, error: 'Failed to merge companies' });
+  }
+}
+
+// ─── Related records (cross-app) ────────────────────────────────────
+
+/**
+ * Related invoices and projects for a company. Section visibility is decided
+ * per target app inside the service — see getContactRelated for the rationale.
+ */
+export async function getCompanyRelated(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+
+    const perm = req.crmPerm!;
+    if (!canAccessEntity(perm.role, 'companies', 'view', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No access to companies' });
+      return;
+    }
+
+    const company = await crmService.getCompany(userId, tenantId, id, perm.recordAccess);
+    if (!company) {
+      res.status(404).json({ success: false, error: 'Company not found' });
+      return;
+    }
+
+    const data = await relatedRecordsService.getRelatedRecords(
+      tenantId,
+      userId,
+      { companyId: id },
+      req.auth?.isSuperAdmin === true,
+    );
+
+    res.json({ success: true, data });
+  } catch (error) {
+    logger.error({ error }, 'Failed to load related records for CRM company');
+    res.status(500).json({ success: false, error: 'Failed to load related records' });
   }
 }

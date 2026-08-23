@@ -17,6 +17,7 @@ import { CustomFieldsRenderer } from '../../../components/shared/custom-fields-r
 import { EmailComposerPopover } from './email-composer/email-composer-popover';
 import { CalendarEvents } from './calendar-events';
 import { NotesSection } from './notes-section';
+import { RelatedRecordsSection } from './related-records-section';
 import { getActivityIcon } from '../utils';
 import { translateActivityBody } from '../lib/workflow-i18n';
 import { formatDate, formatCurrency } from '../../../lib/format';
@@ -24,6 +25,7 @@ import {
   useContacts, useUpdateContact, useDeleteContact,
   useDeals, useCompanies,
   useActivities, useCreateActivity,
+  useContactRelated,
   useMyCrmPermission, canAccess,
   type CrmContact,
 } from '../hooks';
@@ -54,6 +56,8 @@ export function ContactDetailPage({ contactId, onBack, onNavigate, onCompanyClic
 
   const updateContact = useUpdateContact();
   const deleteContact = useDeleteContact();
+
+  const { data: related, isLoading: relatedLoading } = useContactRelated(contactId);
 
   const { data: activitiesData } = useActivities({ contactId });
   const activities = activitiesData?.activities ?? [];
@@ -204,6 +208,11 @@ export function ContactDetailPage({ contactId, onBack, onNavigate, onCompanyClic
           )}
 
           <CustomFieldsRenderer appId="crm" recordType="contacts" recordId={contact.id} />
+
+          {/* Related records from other apps (invoices, projects). The
+              component owns its own separator so it can render nothing at
+              all when the user cannot view either target app. */}
+          <RelatedRecordsSection data={related} isLoading={relatedLoading} />
 
           {/* Calendar */}
           <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>

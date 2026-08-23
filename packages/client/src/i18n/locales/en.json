@@ -1529,6 +1529,13 @@
       "groupByCompany": "Company",
       "notFound": "Contact not found"
     },
+    "related": {
+      "title": "Related",
+      "invoices": "Invoices",
+      "projects": "Projects",
+      "empty": "No related invoices or projects yet.",
+      "showingCount": "Showing {{shown}} of {{total}}"
+    },
     "companies": {
       "name": "Name",
       "domain": "Domain",

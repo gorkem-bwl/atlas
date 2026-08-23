@@ -13,6 +13,14 @@ vi.mock('../src/apps/crm/services/company.service', () => ({
   mergeCompanies: vi.fn(),
 }));
 
+vi.mock('../src/apps/crm/services/related-records.service', () => ({
+  getRelatedRecords: vi.fn().mockResolvedValue({
+    invoices: [], projects: [],
+    totals: { invoices: 0, projects: 0 },
+    visibility: { invoices: false, projects: false },
+  }),
+}));
+
 vi.mock('../src/services/event.service', () => ({
   emitAppEvent: vi.fn().mockResolvedValue(undefined),
 }));

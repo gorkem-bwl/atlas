@@ -283,6 +283,68 @@ export function useContact(id: string | undefined) {
   });
 }
 
+// ─── Cross-app related records ──────────────────────────────────────
+
+export interface RelatedInvoice {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+  total: number;
+  currency: string;
+  issueDate: string | null;
+  dueDate: string | null;
+}
+
+export interface RelatedProject {
+  id: string;
+  name: string;
+  status: string;
+  color: string | null;
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export interface RelatedRecords {
+  invoices: RelatedInvoice[];
+  projects: RelatedProject[];
+  /** Full match counts before the server's per-section row cap. */
+  totals: { invoices: number; projects: number };
+  /** Which sections this user may see — see the CRM related-records service. */
+  visibility: { invoices: boolean; projects: boolean };
+}
+
+export function useContactRelated(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.contacts.related(id!),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/contacts/${id}/related`);
+      return data.data as RelatedRecords;
+    },
+    enabled: !!id,
+    // Invoices and projects are mutated from their own apps, which invalidate
+    // their own query namespaces and cannot know about this CRM-scoped key.
+    // Refetching on mount keeps the section correct when the user creates an
+    // invoice in Invoices and navigates straight back to the customer.
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+}
+
+export function useCompanyRelated(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.crm.companies.related(id!),
+    queryFn: async () => {
+      const { data } = await api.get(`/crm/companies/${id}/related`);
+      return data.data as RelatedRecords;
+    },
+    enabled: !!id,
+    // See useContactRelated — mutations live in the Invoices and Work apps and
+    // invalidate their own namespaces, never this CRM-scoped key.
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+}
+
 export function useCreateContact() {
   const queryClient = useQueryClient();
   return useMutation({

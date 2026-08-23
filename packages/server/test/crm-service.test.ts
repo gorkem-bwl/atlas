@@ -41,6 +41,14 @@ vi.mock('../src/apps/crm/services/company.service', () => ({
 }));
 
 // Mock app-permissions service
+vi.mock('../src/apps/crm/services/related-records.service', () => ({
+  getRelatedRecords: vi.fn().mockResolvedValue({
+    invoices: [], projects: [],
+    totals: { invoices: 0, projects: 0 },
+    visibility: { invoices: false, projects: false },
+  }),
+}));
+
 vi.mock('../src/services/app-permissions.service', () => ({
   getAppPermission: vi.fn().mockResolvedValue({ role: 'admin', entityPermissions: {}, recordAccess: 'all' }),
   canAccessEntity: vi.fn().mockReturnValue(true),
