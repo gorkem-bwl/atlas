@@ -24,6 +24,10 @@ export function CreateContactModal({
   const [phone, setPhone] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [position, setPosition] = useState('');
+  const [address, setAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('');
   const createContact = useCreateContact();
 
   const duplicateContact = useMemo(() => {
@@ -33,7 +37,10 @@ export function CreateContactModal({
     ) ?? null;
   }, [email, existingContacts]);
 
-  const reset = () => { setName(''); setEmail(''); setPhone(''); setCompanyId(''); setPosition(''); };
+  const reset = () => {
+    setName(''); setEmail(''); setPhone(''); setCompanyId(''); setPosition('');
+    setAddress(''); setPostalCode(''); setState(''); setCountry('');
+  };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -43,6 +50,10 @@ export function CreateContactModal({
       phone: phone.trim() || null,
       companyId: companyId || null,
       position: position.trim() || null,
+      address: address.trim() || null,
+      postalCode: postalCode.trim() || null,
+      state: state.trim() || null,
+      country: country.trim() || null,
     }, {
       onSuccess: () => { reset(); onClose(); },
     });
@@ -73,6 +84,16 @@ export function CreateContactModal({
             />
           </div>
           <Input label={t('crm.contacts.position')} value={position} onChange={(e) => setPosition(e.target.value)} placeholder="CTO" />
+          <Input label={t('crm.contacts.address')} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St" />
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+            <div style={{ flex: 1 }}>
+              <Input label={t('crm.contacts.postalCode')} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="94105" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <Input label={t('crm.contacts.state')} value={state} onChange={(e) => setState(e.target.value)} placeholder="CA" />
+            </div>
+          </div>
+          <Input label={t('crm.contacts.country')} value={country} onChange={(e) => setCountry(e.target.value)} placeholder="United States" />
         </div>
       </Modal.Body>
       <Modal.Footer>

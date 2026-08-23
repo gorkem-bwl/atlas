@@ -384,6 +384,13 @@ async function migrateLegacyData() {
   // Backfill batch — drift detected by `npm run db:check-drift`.
   await addColumnIfMissing('crm_deals', 'currency',
     "varchar(10) NOT NULL DEFAULT 'USD'");
+  // Contact postal address — mirrors crm_companies so an individual can be
+  // billed and visited without inventing a company row for them. Nullable:
+  // contacts that belong to a company usually inherit its address.
+  await addColumnIfMissing('crm_contacts', 'address', 'text');
+  await addColumnIfMissing('crm_contacts', 'postal_code', 'varchar(20)');
+  await addColumnIfMissing('crm_contacts', 'state', 'varchar(100)');
+  await addColumnIfMissing('crm_contacts', 'country', 'varchar(100)');
   await addColumnIfMissing('crm_lead_forms', 'is_archived',
     'boolean NOT NULL DEFAULT false');
   // Lead-form branding columns — admins can customise the form's appearance

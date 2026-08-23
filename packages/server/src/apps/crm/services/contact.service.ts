@@ -15,6 +15,10 @@ interface CreateContactInput {
   companyId?: string | null;
   position?: string | null;
   source?: string | null;
+  address?: string | null;
+  postalCode?: string | null;
+  state?: string | null;
+  country?: string | null;
   tags?: string[];
 }
 
@@ -58,6 +62,10 @@ export async function listContacts(userId: string, tenantId: string, filters?: {
       companyId: crmContacts.companyId,
       position: crmContacts.position,
       source: crmContacts.source,
+      address: crmContacts.address,
+      postalCode: crmContacts.postalCode,
+      state: crmContacts.state,
+      country: crmContacts.country,
       tags: crmContacts.tags,
       isArchived: crmContacts.isArchived,
       sortOrder: crmContacts.sortOrder,
@@ -88,6 +96,10 @@ export async function getContact(userId: string, tenantId: string, id: string, r
       companyId: crmContacts.companyId,
       position: crmContacts.position,
       source: crmContacts.source,
+      address: crmContacts.address,
+      postalCode: crmContacts.postalCode,
+      state: crmContacts.state,
+      country: crmContacts.country,
       tags: crmContacts.tags,
       isArchived: crmContacts.isArchived,
       sortOrder: crmContacts.sortOrder,
@@ -101,6 +113,28 @@ export async function getContact(userId: string, tenantId: string, id: string, r
     .limit(1);
 
   return contact || null;
+}
+
+// Column widths for the postal-address fields, mirroring crmContacts in
+// schema.ts. Postgres rejects an over-length value outright, which the
+// controller's catch-all would surface as an opaque 500 (and, during a CSV
+// import, as a raw driver message in the per-row error list). A mis-mapped
+// import column is the likely cause, so trim and cap rather than reject.
+const ADDRESS_MAX_LENGTHS = {
+  postalCode: 20,
+  state: 100,
+  country: 100,
+} as const;
+
+export function normalizeAddressField<K extends keyof typeof ADDRESS_MAX_LENGTHS>(
+  value: string | null | undefined,
+  field: K,
+): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.slice(0, ADDRESS_MAX_LENGTHS[field]);
 }
 
 export async function createContact(userId: string, tenantId: string, input: CreateContactInput) {
@@ -124,6 +158,10 @@ export async function createContact(userId: string, tenantId: string, input: Cre
       companyId: input.companyId ?? null,
       position: input.position ?? null,
       source: input.source ?? null,
+      address: input.address?.trim() || null,
+      postalCode: normalizeAddressField(input.postalCode, 'postalCode') ?? null,
+      state: normalizeAddressField(input.state, 'state') ?? null,
+      country: normalizeAddressField(input.country, 'country') ?? null,
       tags: input.tags ?? [],
       sortOrder,
       createdAt: now,
@@ -155,6 +193,13 @@ export async function updateContact(userId: string, tenantId: string, id: string
   if (input.companyId !== undefined) updates.companyId = input.companyId;
   if (input.position !== undefined) updates.position = input.position;
   if (input.source !== undefined) updates.source = input.source;
+  // `!== undefined` preserves the difference between "clear this field"
+  // (null) and "leave it alone" (absent), which the detail page relies on
+  // because its EditableField sends `v || null`.
+  if (input.address !== undefined) updates.address = input.address?.trim() || null;
+  if (input.postalCode !== undefined) updates.postalCode = normalizeAddressField(input.postalCode, 'postalCode');
+  if (input.state !== undefined) updates.state = normalizeAddressField(input.state, 'state');
+  if (input.country !== undefined) updates.country = normalizeAddressField(input.country, 'country');
   if (input.tags !== undefined) updates.tags = input.tags;
   if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
   if (input.isArchived !== undefined) updates.isArchived = input.isArchived;
@@ -207,6 +252,13 @@ export async function bulkCreateContacts(
         phone: row.phone?.trim() || null,
         position: row.position?.trim() || null,
         source: row.source?.trim() || null,
+        address: row.address?.trim() || null,
+        // The import modal maps by field key, so it always sends camelCase.
+        // The snake_case aliases are for callers posting to /import directly.
+        postalCode: (row.postalCode ?? row.postal_code)?.trim() || null,
+        state: row.state?.trim() || null,
+        country: row.country?.trim() || null,
+        // Length capping happens in createContact.
         companyId: null,
       });
       imported++;
@@ -238,6 +290,10 @@ export async function mergeContacts(userId: string, tenantId: string, primaryId:
   if (!primary.companyId && secondary.companyId) updates.companyId = secondary.companyId;
   if (!primary.position && secondary.position) updates.position = secondary.position;
   if (!primary.source && secondary.source) updates.source = secondary.source;
+  if (!primary.address && secondary.address) updates.address = secondary.address;
+  if (!primary.postalCode && secondary.postalCode) updates.postalCode = secondary.postalCode;
+  if (!primary.state && secondary.state) updates.state = secondary.state;
+  if (!primary.country && secondary.country) updates.country = secondary.country;
 
   // Merge tags
   const mergedTags = [...new Set([...(primary.tags ?? []), ...(secondary.tags ?? [])])];

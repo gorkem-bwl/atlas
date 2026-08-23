@@ -21,6 +21,10 @@ export function getContactsFilterColumns(t: (key: string) => string): FilterColu
     { key: 'phone', label: t('crm.contacts.phone'), type: 'text' },
     { key: 'companyName', label: t('crm.deals.company'), type: 'text' },
     { key: 'position', label: t('crm.contacts.position'), type: 'text' },
+    { key: 'address', label: t('crm.contacts.address'), type: 'text' },
+    { key: 'postalCode', label: t('crm.contacts.postalCode'), type: 'text' },
+    { key: 'state', label: t('crm.contacts.state'), type: 'text' },
+    { key: 'country', label: t('crm.contacts.country'), type: 'text' },
   ];
 }
 
@@ -54,6 +58,10 @@ export function getContactsCsvColumns(t: (key: string) => string) {
     { key: 'companyName', label: t('crm.deals.company') },
     { key: 'position', label: t('crm.contacts.position') },
     { key: 'source', label: t('crm.contacts.source') },
+    { key: 'address', label: t('crm.contacts.address') },
+    { key: 'postalCode', label: t('crm.contacts.postalCode') },
+    { key: 'state', label: t('crm.contacts.state') },
+    { key: 'country', label: t('crm.contacts.country') },
   ];
 }
 
@@ -86,6 +94,10 @@ export function getContactsImportFields(t: (key: string) => string) {
     { key: 'phone', label: t('crm.contacts.phone') },
     { key: 'position', label: t('crm.contacts.position') },
     { key: 'source', label: t('crm.contacts.source') },
+    { key: 'address', label: t('crm.contacts.address') },
+    { key: 'postalCode', label: t('crm.contacts.postalCode') },
+    { key: 'state', label: t('crm.contacts.state') },
+    { key: 'country', label: t('crm.contacts.country') },
   ];
 }
 
