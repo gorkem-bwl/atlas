@@ -39,6 +39,10 @@ export interface CrmContact {
   position: string | null;
   source: string | null;
   tags: string[];
+  address: string | null;
+  postalCode: string | null;
+  state: string | null;
+  country: string | null;
   isArchived: boolean;
   sortOrder: number;
   companyName: string | null;
@@ -348,7 +352,7 @@ export function useCompanyRelated(id: string | undefined) {
 export function useCreateContact() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; email?: string | null; phone?: string | null; companyId?: string | null; position?: string | null; source?: string | null; tags?: string[] }) => {
+    mutationFn: async (input: { name: string; email?: string | null; phone?: string | null; companyId?: string | null; position?: string | null; source?: string | null; tags?: string[]; address?: string | null; postalCode?: string | null; state?: string | null; country?: string | null }) => {
       const { data } = await api.post('/crm/contacts', input);
       return data.data as CrmContact;
     },
@@ -361,7 +365,7 @@ export function useCreateContact() {
 export function useUpdateContact() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; email: string | null; phone: string | null; companyId: string | null; position: string | null; source: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; email: string | null; phone: string | null; companyId: string | null; position: string | null; source: string | null; tags: string[]; sortOrder: number; isArchived: boolean; address: string | null; postalCode: string | null; state: string | null; country: string | null }>) => {
       const { data } = await api.patch(`/crm/contacts/${id}`, input, {
         headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
       });

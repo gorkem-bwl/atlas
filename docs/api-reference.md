@@ -7,6 +7,10 @@
 > - **Interactive reference (Scalar UI):** [`/api/v1/reference`](http://localhost:3001/api/v1/reference)
 > - **Source of truth:** `packages/server/src/openapi/paths/`
 >
+> **It is also factually wrong in places.** It predates the Work app merge (2026-04-15) and
+> still documents `/api/v1/projects/*` and `/api/v1/tasks/*` as separate route trees. Both
+> were replaced by `/api/v1/work/*`. Do not use this file to build a client hook.
+>
 > This markdown file is retained as historical context only. It is not updated when new routes are added, and it covers the deprecated Tables app. Do not cite it for current API behaviour — hit the live spec instead.
 
 Base URL: `/api/v1`

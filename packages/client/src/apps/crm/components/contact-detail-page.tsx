@@ -181,6 +181,26 @@ export function ContactDetailPage({ contactId, onBack, onNavigate, onCompanyClic
                 <Chip>{contact.source}</Chip>
               </div>
             )}
+            <EditableField
+              label={t('crm.contacts.address')}
+              value={contact.address || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, address: v || null })}
+            />
+            <EditableField
+              label={t('crm.contacts.postalCode')}
+              value={contact.postalCode || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, postalCode: v || null })}
+            />
+            <EditableField
+              label={t('crm.contacts.state')}
+              value={contact.state || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, state: v || null })}
+            />
+            <EditableField
+              label={t('crm.contacts.country')}
+              value={contact.country || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, country: v || null })}
+            />
           </div>
 
           {/* Linked deals */}

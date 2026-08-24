@@ -1424,6 +1424,14 @@ export const crmContacts = pgTable('crm_contacts', {
   teamId: uuid('team_id'),
   position: varchar('position', { length: 255 }),
   source: varchar('source', { length: 100 }),
+  // Postal address. Mirrors the equivalent columns on crmCompanies so an
+  // individual can be a first-class customer without inventing a company
+  // for them. All nullable — most contacts belong to a company and inherit
+  // its address for display purposes.
+  address: text('address'),
+  postalCode: varchar('postal_code', { length: 20 }),
+  state: varchar('state', { length: 100 }),
+  country: varchar('country', { length: 100 }),
   tags: jsonb('tags').$type<string[]>().notNull().default([]),
   isArchived: boolean('is_archived').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),

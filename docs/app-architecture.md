@@ -263,57 +263,66 @@ Sidebar, routes, settings panels, and widgets register automatically from the ma
 
 ---
 
-### Projects
+### Work
 
 | Property | Value |
 |----------|-------|
-| **App ID** | `projects` |
-| **Display name** | Projects |
-| **Icon** | FolderKanban |
-| **Color** | `#0ea5e9` (sky blue) |
-| **Category** | data (server) / productivity (client) |
+| **App ID** | `work` |
+| **Display name** | Work |
+| **Icon** | FolderKanban (lucide) |
+| **Color** | `#6366f1` (indigo) |
+| **Category** | productivity |
 | **Sidebar order** | 25 |
 
-**Purpose:** Project management with client billing, time tracking, invoicing, and team member assignment. Supports billable and non-billable projects with hourly rate management.
+> **This app replaced the former `projects` and `tasks` apps** (retired in
+> `fbfdb5f0 refactor(work): retire tasks and projects apps`, 2026-04-15). There is no
+> `/projects` or `/tasks` route and no `apps/projects` or `apps/tasks` directory.
+> The DB side of the merge is `packages/server/src/db/migrations/2026-04-15-work-merge.ts`.
+
+**Purpose:** Personal task management fused with project management — tasks, projects,
+time tracking, billing, and reporting in one app.
 
 **Client routes:**
 | Route | Component |
 |-------|-----------|
-| `/projects` | `ProjectsPage` |
+| `/work` | `WorkPage` |
 
-**Server API prefix:** `/projects`
+**Server API prefix:** `/work`
 
-**Database tables:**
-- `project_clients` -- client organizations
-- `project_projects` -- projects with billing configuration
-- `project_members` -- team members assigned to projects
-- `project_time_entries` -- tracked time entries
-- `project_invoices` -- client invoices
-- `project_invoice_line_items` -- invoice line items
-- `project_settings` -- organization-level project settings
+**In-app views** (`work-sidebar.tsx`): Dashboard, Projects, Board, My tasks, Calendar, Reports (admin).
 
-**Entity objects:**
-- Clients (with relations to projects, invoices)
-- Projects (with relations to clients, time entries, members)
-- Project members (with relation to projects)
-- Time entries (with relation to projects)
-- Invoices (with relations to clients, line items)
-- Invoice line items (with relations to invoices, time entries)
-- Project settings
+**Database tables** (per `packages/server/src/apps/work/manifest.ts`):
+- `tasks` -- core task record (`when`, `priority`, `dueDate`, `startAt`/`endAt`, `projectId`, `isPrivate`)
+- `task_statuses` -- per-tenant custom statuses (category open/done/cancelled)
+- `subtasks`, `task_activities`, `task_comments`, `task_attachments`, `task_dependencies`
+- `task_templates` -- reusable task blueprints
+- `project_projects` -- projects (`companyId` → `crm_companies`, billable, estimates)
+- `project_members` -- membership with per-project `hourlyRate`
+- `project_time_entries` -- time tracking (billable/billed/paid/locked, `invoiceLineItemId`)
+- `active_timers` -- one running timer per user; on stop writes a time entry
+- `project_rates`, `project_settings`
 
-**Settings panels:** None
+> The manifest's `tables` array still lists `task_projects`, which no longer exists —
+> `project_projects` superseded it. Trust `schema.ts`.
+
+**Settings panels:** General (admin), Task statuses (admin), Appearance, Behavior
 
 **Widgets:** None
 
+**Key cross-app links:** `project_projects.companyId → crm_companies`;
+`invoice_line_items.timeEntryId → project_time_entries` (time-to-invoice);
+`invoices.projectId → project_projects`. Note `tasks` has **no** `contactId`/`companyId`,
+and `project_projects` has **no** `contactId`.
+
 ---
 
-### Sign
+### Agreements (Sign)
 
 | Property | Value |
 |----------|-------|
 | **App ID** | `sign` |
-| **Display name** | Sign |
-| **Icon** | PenTool |
+| **Display name** | **Agreements** (the manifest `name` is `'Agreements'`; the app id and directory stay `sign`) |
+| **Icon** | FileSignature |
 | **Color** | `#8b5cf6` (violet) |
 | **Category** | productivity |
 | **Sidebar order** | 30 |
@@ -338,6 +347,69 @@ Sidebar, routes, settings panels, and widgets register automatically from the ma
 - Signing tokens (with relation to documents)
 
 **Settings panels:** None
+
+**Widgets:** None
+
+---
+
+### Calendar
+
+| Property | Value |
+|----------|-------|
+| **App ID** | `calendar` |
+| **Display name** | Calendar |
+| **Icon** | CalendarIcon (lucide) |
+| **Color** | `#f97316` (orange) |
+| **Category** | productivity |
+| **Sidebar order** | 27 |
+
+> **Client-only app.** There is no `packages/server/src/apps/calendar/` and it is not in the
+> server registry. Its API lives in `packages/server/src/routes/calendar.routes.ts` (mounted at
+> `/api/v1/calendar`) backed by `services/calendar/`.
+
+**Purpose:** Unified calendar aggregating Google-synced events and scheduled work.
+
+**Client routes:** `/calendar` → `CalendarPage` — note the component lives at
+`packages/client/src/pages/calendar.tsx`, not in the app directory.
+
+**Database tables:** `calendars`, `calendar_events` (both scoped by `accountId`, populated by
+the Google sync worker).
+
+**Settings panels:** None registered in the manifest. Calendar settings render via
+`components/calendar/calendar-settings-modal.tsx`.
+
+**Widgets:** None
+
+---
+
+### Invoices
+
+| Property | Value |
+|----------|-------|
+| **App ID** | `invoices` |
+| **Display name** | Invoices |
+| **Icon** | Receipt |
+| **Color** | `#0ea5e9` (client manifest) / `#f59e0b` (server manifest — they disagree) |
+| **Category** | data |
+| **Sidebar order** | 35 |
+| **Dependencies** | **`['crm']`** — the only app with a dependency |
+
+**Purpose:** Invoicing with numbering, line items, payments, PDF generation, email delivery,
+recurring invoices, a tokenised client portal, Turkish e-Fatura (UBL-TR 2.1), and Paraşüt
+accounting sync.
+
+**Client routes:** `/invoices` → `InvoicesPage`
+
+**Server API prefix:** `/invoices`
+
+**Database tables:** `invoices`, `invoice_line_items`, `invoice_payments`,
+`recurring_invoices`, `recurring_invoice_line_items`, `invoice_settings`, `parasut_connections`.
+
+> **`invoices.companyId` is `NOT NULL`** and FKs to `crm_companies`. An invoice cannot exist
+> without a CRM company — this is why the app depends on `crm`, and why billing an individual
+> requires creating a company for them. `contactId` is optional.
+
+**Settings panels:** General (admin), Invoice templates (admin), Integrations (admin)
 
 **Widgets:** None
 
@@ -378,52 +450,6 @@ Sidebar, routes, settings panels, and widgets register automatically from the ma
 | `general` | General | Settings |
 | `display` | Display | Eye |
 | `files` | Files | File |
-
----
-
-### Tasks
-
-| Property | Value |
-|----------|-------|
-| **App ID** | `tasks` |
-| **Display name** | Tasks |
-| **Icon** | CheckSquare |
-| **Color** | `#6366f1` (indigo) |
-| **Category** | productivity |
-| **Sidebar order** | 60 |
-
-**Purpose:** Task management with priority levels, due dates, project grouping, "when" scheduling (today/next/someday), status tracking, and an activity audit log.
-
-**Client routes:**
-| Route | Component |
-|-------|-----------|
-| `/tasks` | `TasksPage` |
-
-**Server API prefix:** `/tasks`
-
-**Database tables:**
-- `tasks` -- action items with priority, due dates, project grouping
-- `task_activities` -- audit log of changes to tasks
-- `task_projects` -- groups of related tasks
-
-**Entity objects:**
-- Tasks (with relation to projects)
-- Projects (with relation to tasks)
-- Task activities (with relation to tasks)
-
-**Settings panels:**
-| Panel ID | Label | Icon |
-|----------|-------|------|
-| `general` | General | Settings |
-| `appearance` | Appearance | Eye |
-| `behavior` | Behavior | Zap |
-
-**Widgets:**
-| Widget ID | Name | Size | Description |
-|-----------|------|------|-------------|
-| `tasks-summary` | Tasks | sm | Tasks due today and overdue count |
-
-**Key components:** `TasksGeneralPanel`, `TasksAppearancePanel`, `TasksBehaviorPanel`, `TasksWidget`
 
 ---
 
@@ -546,10 +572,11 @@ Sidebar, routes, settings panels, and widgets register automatically from the ma
 |-----|----|-------|------|-------|-------------|------------|----------|---------|
 | CRM | `crm` | `#f97316` | Briefcase | 10 | `/crm` | `/crm` | 3 panels | Pipeline |
 | HR | `hr` | `#10b981` | Users | 20 | `/hr` | `/hr` | 2 panels | Team |
-| Projects | `projects` | `#0ea5e9` | FolderKanban | 25 | `/projects` | `/projects` | -- | -- |
-| Sign | `sign` | `#8b5cf6` | PenTool | 30 | `/sign-app` | `/sign` | -- | -- |
+| Work | `work` | `#6366f1` | FolderKanban | 25 | `/work` | `/work` | 4 panels | -- |
+| Calendar | `calendar` | `#f97316` | CalendarIcon | 27 | `/calendar` | *(client-only)* | -- | -- |
+| Agreements | `sign` | `#8b5cf6` | FileSignature | 30 | `/sign-app` | `/sign` | 1 panel | -- |
+| Invoices | `invoices` | `#0ea5e9` | Receipt | 35 | `/invoices` | `/invoices` | 3 panels | -- |
 | Drive | `drive` | `#64748b` | HardDrive | 40 | `/drive` | `/drive` | 3 panels | -- |
-| Tasks | `tasks` | `#6366f1` | CheckSquare | 60 | `/tasks` | `/tasks` | 3 panels | Tasks |
 | Write | `docs` | `#c4856c` | FileText | 70 | `/docs` | `/docs` | 2 panels | -- |
 | Draw | `draw` | `#e06c9f` | Pencil | 80 | `/draw` | `/drawings` | 2 panels | -- |
 | System | `system` | `#6b7280` | Monitor | 90 | `/system` | `/system` | -- | CPU, Memory |
