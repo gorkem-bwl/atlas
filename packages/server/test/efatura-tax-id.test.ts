@@ -23,12 +23,15 @@ const VALID_TCKNS = [
   '70308246202',
 ];
 
+// Real, publicly published VKNs. These matter: the widely-circulated VKN
+// checksum algorithm rejects every one of them, which is why isValidVkn is a
+// format check only.
 const VALID_VKNS = [
-  '3982597912',
-  '9074833785',
-  '8762328607',
-  '1290404790',
-  '6669725105',
+  '1288331521', // the example in GİB's own Ortak Elemanlar guide
+  '0730015566', // leading zero — a VKN is a string, never a number
+  '8710428785',
+  '3880021429',
+  '4540033582',
 ];
 
 describe('isValidTckn', () => {
@@ -92,44 +95,65 @@ describe('isValidTckn', () => {
     // which a checksum alone cannot do.
   });
 
-  it('rejects repdigit numbers, which pass naive length checks', () => {
+  it('judges repdigit-looking numbers by the checksum, not by eye', () => {
+    // 11111111110 is genuinely VALID — odd*7-even = 5*7-4 = 31, so d10 = 1,
+    // and the first ten sum to 10, so d11 = 0. It looks like junk data but the
+    // algorithm accepts it, and the validator must agree with GİB rather than
+    // with intuition.
+    expect(isValidTckn('11111111110')).toBe(true);
+    // These genuinely fail the check digits.
     expect(isValidTckn('11111111111')).toBe(false);
     expect(isValidTckn('99999999999')).toBe(false);
+  });
+
+  it('handles the negative intermediate the checksum can produce', () => {
+    // (odd*7 - even) can go negative (worst case -36). A naive `% 10` returns
+    // a negative in JS and would reject valid numbers, so the implementation
+    // normalises. 19191919190 exercises this: its raw value is -1.
+    expect(isValidTckn('19191919190')).toBe(true);
+    expect(isValidTckn('12345678950')).toBe(true);
   });
 });
 
 describe('isValidVkn', () => {
-  it('accepts well-formed numbers', () => {
+  it('accepts real published VKNs', () => {
     for (const vkn of VALID_VKNS) {
       expect(isValidVkn(vkn), vkn).toBe(true);
     }
   });
 
-  it('rejects anything that is not exactly 10 digits', () => {
-    expect(isValidVkn('')).toBe(false);
-    expect(isValidVkn('398259791')).toBe(false); // 9
-    expect(isValidVkn('39825979121')).toBe(false); // 11 — a TCKN length
-    expect(isValidVkn('398259791x')).toBe(false);
+  it('accepts a leading zero — a VKN is not a number', () => {
+    // Storing a VKN as an integer would silently drop this zero and produce a
+    // 9-digit value that no longer identifies the company.
+    expect(isValidVkn('0730015566')).toBe(true);
   });
 
-  it('rejects every single-digit corruption of a valid number', () => {
-    for (const vkn of VALID_VKNS) {
-      for (let i = 0; i < 10; i++) {
-        for (const replacement of '0123456789') {
-          if (replacement === vkn[i]) continue;
-          const mutated = vkn.slice(0, i) + replacement + vkn.slice(i + 1);
-          expect(isValidVkn(mutated), `${vkn} -> ${mutated}`).toBe(false);
-        }
-      }
-    }
+  it('rejects anything that is not exactly 10 digits', () => {
+    expect(isValidVkn('')).toBe(false);
+    expect(isValidVkn('128833152')).toBe(false); // 9
+    expect(isValidVkn('12883315211')).toBe(false); // 11 — a TCKN length
+    expect(isValidVkn('128833152x')).toBe(false);
+    expect(isValidVkn('1288 31521')).toBe(false);
+  });
+
+  it('does NOT apply a checksum, by design', () => {
+    // The widely-circulated power-of-2/mod-9 "Maliye" VKN algorithm rejects
+    // GİB's own documentation example and every real VKN above. Enforcing it
+    // would block genuine customers from being invoiced, which is far worse
+    // than letting GİB bounce a mistyped number. This test exists so the
+    // omission reads as deliberate rather than forgotten.
+    //
+    // Consequence: any 10 digits pass, including this arbitrary string.
+    expect(isValidVkn('0000000000')).toBe(true);
+    expect(isValidVkn('1234567890')).toBe(true);
   });
 });
 
 describe('isValidTaxId', () => {
   it('requires the number and the scheme to agree', () => {
-    // Length alone separates the two, so a company number filed as an
-    // individual's (or vice versa) fails before the checksum is reached.
-    // This is the point: the scheme is a claim about who the party is.
+    // Length alone separates the two: 11 digits for a person, 10 for a
+    // company. The scheme is a claim about who the party is, so a number
+    // that cannot be that kind of party is rejected.
     expect(isValidTaxId(VALID_TCKNS[0], 'TCKN')).toBe(true);
     expect(isValidTaxId(VALID_TCKNS[0], 'VKN')).toBe(false);
 

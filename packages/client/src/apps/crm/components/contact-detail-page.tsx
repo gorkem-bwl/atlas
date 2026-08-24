@@ -201,6 +201,14 @@ export function ContactDetailPage({ contactId, onBack, onNavigate, onCompanyClic
               value={contact.country || ''}
               onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, country: v || null })}
             />
+            {/* Tax id. Needed to e-invoice this person directly: a TCKN
+                identifies a natural person to the Turkish revenue
+                administration the way a VKN identifies a company. */}
+            <EditableField
+              label={t('crm.contacts.taxId')}
+              value={contact.taxId || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, taxId: v || null })}
+            />
           </div>
 
           {/* Linked deals */}

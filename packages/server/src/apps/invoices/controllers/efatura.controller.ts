@@ -37,12 +37,9 @@ export async function generateEFatura(req: Request, res: Response) {
     const message = error?.message || 'Failed to generate e-Fatura';
     logger.error({ error }, message);
     // Client-correctable conditions answer with 400; anything else is ours.
-    if (
-      message === 'e-Fatura is not enabled' ||
-      message === 'Invoice client not found' ||
-      message === 'Invoice has no line items' ||
-      message.startsWith('e-Fatura requires a company recipient')
-    ) {
+    // Typed rather than matched on message text, so rewording a message
+    // cannot silently turn it into a 500.
+    if (error instanceof efaturaService.EFaturaInputError) {
       res.status(400).json({ success: false, error: message });
       return;
     }

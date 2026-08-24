@@ -1504,7 +1504,8 @@
       "deleteContact": "Supprimer le contact",
       "duplicateEmail": "Un contact nommé \"{{name}}\" utilise déjà cet e-mail",
       "groupByCompany": "Entreprise",
-      "notFound": "Contact introuvable"
+      "notFound": "Contact introuvable",
+      "taxId": "Numéro fiscal"
     },
     "related": {
       "title": "Associés",

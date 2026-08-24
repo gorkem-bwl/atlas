@@ -46,27 +46,25 @@ export function isValidTckn(value: string): boolean {
 /**
  * Validate a VKN (10-digit Turkish tax number for legal entities).
  *
- * The published algorithm walks the first 9 digits: for each position i
- * (0-based), tmp = (digit + 9 - i) mod 10, and the digit contributes
- * (tmp * 2^(9-i)) mod 9 — with the special case that a non-zero tmp whose
- * power-of-two product is divisible by 9 contributes 9, not 0. The check
- * digit is then (10 - (sum mod 10)) mod 10.
+ * Deliberately a FORMAT check only — 10 numeric digits, no checksum.
+ *
+ * A VKN checksum algorithm circulates widely online (the power-of-2 / mod-9
+ * "Maliye" algorithm). It was implemented here and tested against real,
+ * publicly published VKNs: it rejects GİB's own documentation example
+ * (1288331521) and every real company number tried, at roughly the ~10% rate
+ * chance alone would produce. No GİB-published VKN checksum specification
+ * could be found to reconcile this — most likely it does not hold for
+ * legacy-issued numbers.
+ *
+ * Rejecting on that algorithm would block real customers from being invoiced,
+ * which is far worse than accepting a mistyped VKN that GİB will bounce. So
+ * the length/charset rule is the whole check.
+ *
+ * Note there is NO leading-zero restriction: real VKNs such as 0730015566
+ * begin with 0. Always carry a VKN as a string, never a number.
  */
 export function isValidVkn(value: string): boolean {
-  if (!/^[0-9]{10}$/.test(value)) return false;
-
-  const d = [...value].map(Number);
-  let sum = 0;
-
-  for (let i = 0; i < 9; i++) {
-    const tmp = (d[i] + 9 - i) % 10;
-    if (tmp === 0) continue;
-    const product = (tmp * Math.pow(2, 9 - i)) % 9;
-    // A non-zero tmp must never contribute 0; the spec maps that case to 9.
-    sum += product === 0 ? 9 : product;
-  }
-
-  return (10 - (sum % 10)) % 10 === d[9];
+  return /^[0-9]{10}$/.test(value);
 }
 
 /**
@@ -103,6 +101,8 @@ export function describeTaxIdProblem(
     return `${label} must be exactly ${expectedDigits} digits`;
   }
   if (!isValidTaxId(value, scheme)) {
+    // Only TCKN has a checksum here (see isValidVkn), so a VKN that reaches
+    // this point has already passed every check it has.
     return `${label} checksum is invalid — check the number for a typo`;
   }
   return null;

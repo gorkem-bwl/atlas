@@ -1531,7 +1531,8 @@
       "deleteContact": "Delete contact",
       "duplicateEmail": "A contact named \"{{name}}\" already uses this email",
       "groupByCompany": "Company",
-      "notFound": "Contact not found"
+      "notFound": "Contact not found",
+      "taxId": "Tax ID"
     },
     "related": {
       "title": "Related",
