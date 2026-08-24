@@ -7,6 +7,9 @@ export interface CrmContact {
   source: string | null; tags: string[];
   address: string | null; postalCode: string | null;
   state: string | null; country: string | null;
+  // Billing identity, so an individual can be invoiced directly.
+  taxId: string | null; taxOffice: string | null;
+  portalToken: string | null;
   isArchived: boolean; sortOrder: number;
   createdAt: string; updatedAt: string;
   // Joined
@@ -65,7 +68,7 @@ export interface CrmActivity {
 }
 
 // Input types for create/update
-export interface CreateCrmContactInput { name: string; email?: string; phone?: string; companyId?: string; position?: string; source?: string; address?: string; postalCode?: string; state?: string; country?: string; }
+export interface CreateCrmContactInput { name: string; email?: string; phone?: string; companyId?: string; position?: string; source?: string; address?: string; postalCode?: string; state?: string; country?: string; taxId?: string; taxOffice?: string; }
 export interface CreateCrmCompanyInput { name: string; domain?: string; industry?: string; size?: string; address?: string; phone?: string; taxId?: string; taxOffice?: string; currency?: string; postalCode?: string; state?: string; country?: string; logo?: string; portalToken?: string; }
 export interface CreateCrmDealInput { title: string; value: number; stageId: string; contactId?: string; companyId?: string; expectedCloseDate?: string; }
 export interface CreateCrmActivityInput { type: CrmActivityType; body: string; dealId?: string; contactId?: string; companyId?: string; assignedUserId?: string; scheduledAt?: string; }

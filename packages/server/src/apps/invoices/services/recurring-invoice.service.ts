@@ -5,12 +5,14 @@ import {
   invoices,
   invoiceLineItems,
   crmCompanies,
+  crmContacts,
 } from '../../../db/schema';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { AppError } from '../../../middleware/error-handler';
 import { getNextInvoiceNumber, sendInvoice } from './invoice.service';
 import { sendInvoiceEmail } from './invoice-email.service';
+import { hasRecipient } from './invoice-party.service';
 import type {
   RecurringInvoice,
   RecurringInvoiceLineItem,
@@ -134,8 +136,8 @@ export async function createRecurringInvoice(
   if (!input.title || !input.title.trim()) {
     throw new AppError(400, 'Title is required');
   }
-  if (!input.companyId) {
-    throw new AppError(400, 'Company is required');
+  if (!hasRecipient(input)) {
+    throw new AppError(400, 'Either a company or a contact is required');
   }
   if (!VALID_FREQUENCIES.includes(input.frequency)) {
     throw new AppError(400, 'Invalid frequency');
@@ -158,14 +160,28 @@ export async function createRecurringInvoice(
     throw new AppError(400, 'At least one line item is required');
   }
 
-  // Verify company belongs to the tenant
-  const [company] = await db
-    .select({ id: crmCompanies.id })
-    .from(crmCompanies)
-    .where(and(eq(crmCompanies.id, input.companyId), eq(crmCompanies.tenantId, tenantId)))
-    .limit(1);
-  if (!company) {
-    throw new AppError(404, 'Company not found');
+  // Verify the recipient belongs to the tenant. Both are checked when both
+  // are supplied — skipping either would let a caller attach a schedule to
+  // another tenant's record.
+  if (input.companyId) {
+    const [company] = await db
+      .select({ id: crmCompanies.id })
+      .from(crmCompanies)
+      .where(and(eq(crmCompanies.id, input.companyId), eq(crmCompanies.tenantId, tenantId)))
+      .limit(1);
+    if (!company) {
+      throw new AppError(404, 'Company not found');
+    }
+  }
+  if (input.contactId) {
+    const [contact] = await db
+      .select({ id: crmContacts.id })
+      .from(crmContacts)
+      .where(and(eq(crmContacts.id, input.contactId), eq(crmContacts.tenantId, tenantId)))
+      .limit(1);
+    if (!contact) {
+      throw new AppError(404, 'Contact not found');
+    }
   }
 
   const now = new Date();
@@ -176,7 +192,8 @@ export async function createRecurringInvoice(
       .values({
         tenantId,
         userId,
-        companyId: input.companyId,
+        companyId: input.companyId ?? null,
+        contactId: input.contactId ?? null,
         title: input.title.trim(),
         description: input.description ?? null,
         currency: input.currency ?? 'USD',
@@ -452,8 +469,12 @@ export async function generateInvoiceFromRecurring(
       .values({
         tenantId,
         userId: rec.userId,
+        // Carry BOTH recipient fields through from the template. Hardcoding
+        // contactId to null here used to be harmless because a schedule always
+        // had a company; now it would generate an invoice with no recipient at
+        // all and trip invoices_recipient_present.
         companyId: rec.companyId,
-        contactId: null,
+        contactId: rec.contactId,
         dealId: null,
         proposalId: null,
         invoiceNumber,

@@ -92,8 +92,9 @@ export function useCreateInvoice() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
-      companyId: string;
-      contactId?: string;
+      // Either recipient satisfies the server's validation.
+      companyId?: string | null;
+      contactId?: string | null;
       dealId?: string;
       proposalId?: string;
       currency?: string;
@@ -118,7 +119,7 @@ export function useUpdateInvoice() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{
-      companyId: string;
+      companyId: string | null;
       contactId: string | null;
       dealId: string | null;
       currency: string;

@@ -12,7 +12,7 @@ interface Props {
     invoiceNumber: string;
     issueDate: string;
     dueDate: string;
-    companyId: string;
+    companyId: string | null;
     contactId: string | null;
     currency: string;
     dealId: string | null;
@@ -73,9 +73,16 @@ export function InvoiceMetaBlock({ invoice, onPatch }: Props) {
       <Label>{t('invoices.detail.metaCompany')}</Label>
       <Select
         size="sm"
-        value={invoice.companyId}
-        onChange={(v) => { if (v && v !== invoice.companyId) onPatch({ companyId: v }); }}
-        options={companies.map((c) => ({ value: c.id, label: c.name }))}
+        value={invoice.companyId ?? ''}
+        // Allow clearing back to '' so an invoice can be moved to a contact.
+        // The server rejects the change if it would leave no recipient.
+        onChange={(v) => {
+          if (v !== (invoice.companyId ?? '')) onPatch({ companyId: v || null });
+        }}
+        options={[
+          { value: '', label: t('invoices.detail.metaNoCompany') },
+          ...companies.map((c) => ({ value: c.id, label: c.name })),
+        ]}
       />
 
       <Label>{t('invoices.detail.metaCurrency')}</Label>

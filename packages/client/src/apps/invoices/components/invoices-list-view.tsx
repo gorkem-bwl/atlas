@@ -131,12 +131,15 @@ export function InvoicesListView({ invoices, onOpenDetail, selectedId, onAdd, on
       icon: <Building2 size={12} />,
       minWidth: 160,
       sortable: true,
+      // An invoice billed to an individual has no company, so fall back to the
+      // person's name — otherwise the row reads as a bare '-' and is not
+      // findable by the recipient's name.
       render: (invoice) => (
         <span className="dt-cell-secondary" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {invoice.companyName || '-'}
+          {invoice.companyName || invoice.contactName || '-'}
         </span>
       ),
-      searchValue: (invoice) => invoice.companyName || '',
+      searchValue: (invoice) => invoice.companyName || invoice.contactName || '',
     },
     {
       key: 'source',

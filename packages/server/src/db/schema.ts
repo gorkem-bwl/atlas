@@ -1432,6 +1432,17 @@ export const crmContacts = pgTable('crm_contacts', {
   postalCode: varchar('postal_code', { length: 20 }),
   state: varchar('state', { length: 100 }),
   country: varchar('country', { length: 100 }),
+  // Billing identity. Mirrors crmCompanies so an invoice addressed to an
+  // individual can print a tax line. taxId holds a TCKN (11 digits) for a
+  // Turkish individual where the company equivalent holds a VKN (10); the
+  // two are not distinguished here because e-Fatura remains company-only
+  // for now (see resolveInvoiceParty / efatura.service.ts).
+  taxId: varchar('tax_id', { length: 11 }),
+  taxOffice: varchar('tax_office', { length: 100 }),
+  // Client-portal access token, mirroring crmCompanies.portalToken. Without
+  // one, an invoice billed to this contact could never be emailed or shared,
+  // because the portal CTA resolves the recipient by token.
+  portalToken: uuid('portal_token').unique(),
   tags: jsonb('tags').$type<string[]>().notNull().default([]),
   isArchived: boolean('is_archived').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
@@ -1890,8 +1901,14 @@ export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
   userId: uuid('user_id').notNull(),
-  companyId: uuid('company_id').notNull().references(() => crmCompanies.id, { onDelete: 'cascade' }),
-  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'set null' }),
+  // An invoice is addressed to EITHER a company OR a contact, so both are
+  // nullable and a table CHECK (invoices_recipient_present) requires one of
+  // them. companyId keeps its cascade: deleting a company still removes the
+  // invoices billed to it. contactId is 'restrict' rather than 'set null'
+  // because for a contact-billed invoice it is the only recipient — setting
+  // it to null would orphan the row and violate the CHECK.
+  companyId: uuid('company_id').references(() => crmCompanies.id, { onDelete: 'cascade' }),
+  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'restrict' }),
   dealId: uuid('deal_id').references(() => crmDeals.id, { onDelete: 'set null' }),
   projectId: uuid('project_id').references(() => projectProjects.id, { onDelete: 'set null' }),
   proposalId: uuid('proposal_id').references(() => crmProposals.id, { onDelete: 'set null' }),
@@ -1972,7 +1989,11 @@ export const recurringInvoices = pgTable('recurring_invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
   userId: uuid('user_id').notNull(),
-  companyId: uuid('company_id').notNull().references(() => crmCompanies.id),
+  // Same either/or recipient rule as invoices, enforced by the table CHECK
+  // recurring_invoices_recipient_present. contactId is new here: without it a
+  // recurring schedule could not bill an individual at all.
+  companyId: uuid('company_id').references(() => crmCompanies.id),
+  contactId: uuid('contact_id').references(() => crmContacts.id, { onDelete: 'restrict' }),
   title: varchar('title', { length: 500 }).notNull(),
   description: text('description'),
   // Template fields copied to generated invoices

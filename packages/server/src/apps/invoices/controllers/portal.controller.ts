@@ -1,13 +1,22 @@
 import type { Request, Response } from 'express';
 import { db } from '../../../config/database';
-import { crmCompanies, invoices, invoiceLineItems } from '../../../db/schema';
+import { crmCompanies, crmContacts, invoices, invoiceLineItems } from '../../../db/schema';
 import { eq, and, sql, desc, asc } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { markInvoiceViewed } from '../services/invoice.service';
 
 // ─── Portal (public, token-based) ──────────────────────────────────
 
-async function getCompanyByPortalToken(portalToken: string) {
+/**
+ * Resolve a portal token to the party that owns it. Tokens live on both
+ * crm_companies and crm_contacts (an invoice can be billed to an individual),
+ * and both columns are UNIQUE, so a token identifies exactly one party.
+ *
+ * The returned `kind` decides which invoice column is filtered on below. That
+ * matters for isolation: a contact's token must expose only invoices billed
+ * to that contact, never every invoice at the company they belong to.
+ */
+async function getPartyByPortalToken(portalToken: string) {
   const [company] = await db
     .select({
       id: crmCompanies.id,
@@ -21,7 +30,29 @@ async function getCompanyByPortalToken(portalToken: string) {
     ))
     .limit(1);
 
-  return company || null;
+  if (company) return { ...company, kind: 'company' as const };
+
+  const [contact] = await db
+    .select({
+      id: crmContacts.id,
+      tenantId: crmContacts.tenantId,
+      name: crmContacts.name,
+    })
+    .from(crmContacts)
+    .where(and(
+      eq(crmContacts.portalToken, portalToken),
+      eq(crmContacts.isArchived, false),
+    ))
+    .limit(1);
+
+  return contact ? { ...contact, kind: 'contact' as const } : null;
+}
+
+/** Restrict a portal query to the invoices this token's owner may see. */
+function recipientFilter(party: { id: string; kind: 'company' | 'contact' }) {
+  return party.kind === 'company'
+    ? eq(invoices.companyId, party.id)
+    : eq(invoices.contactId, party.id);
 }
 
 export async function getPortalInvoices(req: Request, res: Response) {
@@ -32,8 +63,8 @@ export async function getPortalInvoices(req: Request, res: Response) {
       return;
     }
 
-    const company = await getCompanyByPortalToken(token);
-    if (!company) {
+    const party = await getPartyByPortalToken(token);
+    if (!party) {
       res.status(404).json({ success: false, error: 'Invalid portal token' });
       return;
     }
@@ -52,14 +83,14 @@ export async function getPortalInvoices(req: Request, res: Response) {
       })
       .from(invoices)
       .where(and(
-        eq(invoices.companyId, company.id),
-        eq(invoices.tenantId, company.tenantId),
+        recipientFilter(party),
+        eq(invoices.tenantId, party.tenantId),
         eq(invoices.isArchived, false),
         sql`${invoices.status} != 'draft'`,
       ))
       .orderBy(desc(invoices.createdAt));
 
-    res.json({ success: true, data: { company: { name: company.name }, invoices: invoiceList } });
+    res.json({ success: true, data: { company: { name: party.name }, invoices: invoiceList } });
   } catch (error) {
     logger.error({ error }, 'Failed to get portal invoices');
     res.status(500).json({ success: false, error: 'Failed to get portal invoices' });
@@ -75,8 +106,8 @@ export async function getPortalInvoice(req: Request, res: Response) {
       return;
     }
 
-    const company = await getCompanyByPortalToken(token);
-    if (!company) {
+    const party = await getPartyByPortalToken(token);
+    if (!party) {
       res.status(404).json({ success: false, error: 'Invalid portal token' });
       return;
     }
@@ -86,8 +117,8 @@ export async function getPortalInvoice(req: Request, res: Response) {
       .from(invoices)
       .where(and(
         eq(invoices.id, invoiceId),
-        eq(invoices.companyId, company.id),
-        eq(invoices.tenantId, company.tenantId),
+        recipientFilter(party),
+        eq(invoices.tenantId, party.tenantId),
         eq(invoices.isArchived, false),
         sql`${invoices.status} != 'draft'`,
       ))
@@ -99,7 +130,7 @@ export async function getPortalInvoice(req: Request, res: Response) {
     }
 
     // Mark as viewed (first time only)
-    await markInvoiceViewed(company.tenantId, invoiceId);
+    await markInvoiceViewed(party.tenantId, invoiceId);
 
     // Fetch line items
     const lineItems = await db
@@ -111,7 +142,7 @@ export async function getPortalInvoice(req: Request, res: Response) {
     res.json({
       success: true,
       data: {
-        company: { name: company.name },
+        company: { name: party.name },
         invoice: { ...invoice, lineItems },
       },
     });

@@ -1,5 +1,6 @@
 import { db } from '../../../config/database';
-import { invoices, crmCompanies, crmContacts } from '../../../db/schema';
+import { invoices, crmContacts } from '../../../db/schema';
+import { resolveInvoiceParty } from './invoice-party.service';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { logger } from '../../../utils/logger';
 import { env } from '../../../config/env';
@@ -54,28 +55,26 @@ export async function sendInvoiceEmail(
     // settings come from the DB, pdf generation only needs
     // (tenantId, invoiceId). PDF is normally the slowest step so
     // overlapping it with the DB reads shaves wall-clock time.
-    let companyRows: Array<typeof crmCompanies.$inferSelect>;
+    let party: Awaited<ReturnType<typeof resolveInvoiceParty>>;
     let loadedSettings: Awaited<ReturnType<typeof getInvoiceSettings>>;
     let pdfBuffer: Buffer;
     try {
-      [companyRows, loadedSettings, pdfBuffer] = await Promise.all([
-        db
-          .select()
-          .from(crmCompanies)
-          .where(eq(crmCompanies.id, invoice.companyId))
-          .limit(1),
+      [party, loadedSettings, pdfBuffer] = await Promise.all([
+        resolveInvoiceParty(invoice, tenantId),
         getInvoiceSettings(tenantId),
         generateInvoicePdf(tenantId, invoiceId),
       ]);
     } catch (err) {
-      logger.error({ err, invoiceId }, 'sendInvoiceEmail: failed to load company/settings or render PDF');
+      logger.error({ err, invoiceId }, 'sendInvoiceEmail: failed to load recipient/settings or render PDF');
       return { sent: false, reason: 'Failed to generate invoice PDF' };
     }
 
-    const company = companyRows[0];
-    if (!company) {
-      logger.warn({ invoiceId, companyId: invoice.companyId }, 'sendInvoiceEmail: company not found');
-      return { sent: false, reason: 'Company not found' };
+    if (!party) {
+      logger.warn(
+        { invoiceId, companyId: invoice.companyId, contactId: invoice.contactId },
+        'sendInvoiceEmail: invoice has no resolvable recipient',
+      );
+      return { sent: false, reason: 'Invoice recipient not found' };
     }
 
     const settings: Partial<NonNullable<typeof loadedSettings>> = loadedSettings ?? {};
@@ -84,6 +83,10 @@ export async function sendInvoiceEmail(
     let recipient: string | undefined;
     if (options?.recipientOverride) {
       recipient = options.recipientOverride;
+    } else if (party.kind === 'contact') {
+      // The billed party is the individual, so their own address is the
+      // recipient — there is no company roster to search.
+      recipient = party.email ?? invoice.contactEmail ?? undefined;
     } else {
       // First non-archived contact for this company that has an email
       const [primaryContact] = await db
@@ -91,7 +94,7 @@ export async function sendInvoiceEmail(
         .from(crmContacts)
         .where(
           and(
-            eq(crmContacts.companyId, company.id),
+            eq(crmContacts.companyId, party.id),
             eq(crmContacts.isArchived, false),
           ),
         )
@@ -108,7 +111,7 @@ export async function sendInvoiceEmail(
 
     if (!recipient) {
       logger.warn(
-        { invoiceId, companyId: company.id },
+        { invoiceId, partyKind: party.kind, partyId: party.id },
         'sendInvoiceEmail: no recipient email available',
       );
       return { sent: false, reason: 'No recipient email address available' };
@@ -117,18 +120,18 @@ export async function sendInvoiceEmail(
     // Require a portal token — the public portal route is
     // /api/v1/invoices/portal/:token/:invoiceId, so without a token the
     // CTA in the email would 404.
-    if (!company.portalToken) {
+    if (!party.portalToken) {
       logger.warn(
-        { invoiceId, companyId: company.id },
-        'sendInvoiceEmail: company has no portal token',
+        { invoiceId, partyKind: party.kind, partyId: party.id },
+        'sendInvoiceEmail: recipient has no portal token',
       );
-      return { sent: false, reason: 'Company has no portal token', recipient };
+      return { sent: false, reason: 'Recipient has no portal token', recipient };
     }
 
     // Build portal URL — matches the public route mounted at
     // /api/v1/invoices/portal/:token/:invoiceId (see invoices/routes.ts)
     const baseUrl = env.CLIENT_PUBLIC_URL || env.SERVER_PUBLIC_URL;
-    const portalUrl = `${baseUrl}/api/v1/invoices/portal/${company.portalToken}/${invoice.id}`;
+    const portalUrl = `${baseUrl}/api/v1/invoices/portal/${party.portalToken}/${invoice.id}`;
 
     // Build email content. balanceDue falls back to invoice.total, which
     // is correct for freshly-issued invoices with no payments. The
@@ -144,9 +147,11 @@ export async function sendInvoiceEmail(
         dueDate: invoice.dueDate instanceof Date ? invoice.dueDate : invoice.dueDate ? new Date(invoice.dueDate) : null,
         issueDate: invoice.issueDate instanceof Date ? invoice.issueDate : invoice.issueDate ? new Date(invoice.issueDate) : null,
       },
+      // Template field name is historical; the value is the billed party,
+      // which may be an individual rather than a company.
       company: {
-        name: company.name,
-        email: null,
+        name: party.name,
+        email: party.email,
       },
       settings: {
         companyName: settings.companyName ?? null,

@@ -70,6 +70,7 @@ router.post('/contacts', crmController.createContact);
 router.get('/contacts/:id', crmController.getContact);
 router.patch('/contacts/:id', withConcurrencyCheck(crmContacts), crmController.updateContact);
 router.delete('/contacts/:id', crmController.deleteContact);
+router.post('/contacts/:id/regenerate-token', crmController.regenerateContactPortalToken);
 
 // Deal Stages
 router.get('/stages/list', crmController.listDealStages);

@@ -1,6 +1,7 @@
 import { db } from '../../../config/database';
 import { crmCompanies, crmContacts, crmDeals, crmActivities, crmNotes } from '../../../db/schema';
 import { eq, and, asc, sql } from 'drizzle-orm';
+import { randomUUID } from 'crypto';
 import { logger } from '../../../utils/logger';
 import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { executeWorkflows } from './workflow.service';
@@ -17,6 +18,8 @@ interface CreateContactInput {
   source?: string | null;
   address?: string | null;
   postalCode?: string | null;
+  taxId?: string | null;
+  taxOffice?: string | null;
   state?: string | null;
   country?: string | null;
   tags?: string[];
@@ -64,6 +67,9 @@ export async function listContacts(userId: string, tenantId: string, filters?: {
       source: crmContacts.source,
       address: crmContacts.address,
       postalCode: crmContacts.postalCode,
+      taxId: crmContacts.taxId,
+      taxOffice: crmContacts.taxOffice,
+      portalToken: crmContacts.portalToken,
       state: crmContacts.state,
       country: crmContacts.country,
       tags: crmContacts.tags,
@@ -98,6 +104,9 @@ export async function getContact(userId: string, tenantId: string, id: string, r
       source: crmContacts.source,
       address: crmContacts.address,
       postalCode: crmContacts.postalCode,
+      taxId: crmContacts.taxId,
+      taxOffice: crmContacts.taxOffice,
+      portalToken: crmContacts.portalToken,
       state: crmContacts.state,
       country: crmContacts.country,
       tags: crmContacts.tags,
@@ -124,6 +133,10 @@ const ADDRESS_MAX_LENGTHS = {
   postalCode: 20,
   state: 100,
   country: 100,
+  // Billing identity, same treatment. taxId is varchar(11) to hold a Turkish
+  // TCKN; a VKN (10) also fits.
+  taxId: 11,
+  taxOffice: 100,
 } as const;
 
 export function normalizeAddressField<K extends keyof typeof ADDRESS_MAX_LENGTHS>(
@@ -160,6 +173,8 @@ export async function createContact(userId: string, tenantId: string, input: Cre
       source: input.source ?? null,
       address: input.address?.trim() || null,
       postalCode: normalizeAddressField(input.postalCode, 'postalCode') ?? null,
+      taxId: normalizeAddressField(input.taxId, 'taxId') ?? null,
+      taxOffice: normalizeAddressField(input.taxOffice, 'taxOffice') ?? null,
       state: normalizeAddressField(input.state, 'state') ?? null,
       country: normalizeAddressField(input.country, 'country') ?? null,
       tags: input.tags ?? [],
@@ -198,6 +213,8 @@ export async function updateContact(userId: string, tenantId: string, id: string
   // because its EditableField sends `v || null`.
   if (input.address !== undefined) updates.address = input.address?.trim() || null;
   if (input.postalCode !== undefined) updates.postalCode = normalizeAddressField(input.postalCode, 'postalCode');
+  if (input.taxId !== undefined) updates.taxId = normalizeAddressField(input.taxId, 'taxId');
+  if (input.taxOffice !== undefined) updates.taxOffice = normalizeAddressField(input.taxOffice, 'taxOffice');
   if (input.state !== undefined) updates.state = normalizeAddressField(input.state, 'state');
   if (input.country !== undefined) updates.country = normalizeAddressField(input.country, 'country');
   if (input.tags !== undefined) updates.tags = input.tags;
@@ -319,4 +336,36 @@ export async function mergeContacts(userId: string, tenantId: string, primaryId:
 
   logger.info({ userId, primaryId, secondaryId }, 'CRM contacts merged');
   return getContact(userId, tenantId, primaryId, 'all');
+}
+
+/**
+ * Issue (or rotate) a client-portal token for a contact, mirroring the
+ * company equivalent. Without one, an invoice billed to this individual
+ * cannot be emailed or shared: the portal CTA resolves the recipient by
+ * token. Rotating invalidates any previously shared link.
+ */
+export async function regenerateContactPortalToken(
+  userId: string,
+  tenantId: string,
+  id: string,
+  recordAccess?: CrmRecordAccess,
+) {
+  const newToken = randomUUID();
+  const now = new Date();
+
+  const conditions = [eq(crmContacts.id, id), eq(crmContacts.tenantId, tenantId)];
+  if (!recordAccess || recordAccess === 'own') {
+    conditions.push(eq(crmContacts.userId, userId));
+  }
+
+  const [updated] = await db
+    .update(crmContacts)
+    .set({ portalToken: newToken, updatedAt: now })
+    .where(and(...conditions))
+    .returning();
+
+  if (!updated) return null;
+
+  logger.info({ userId, contactId: id }, 'CRM contact portal token regenerated');
+  return updated;
 }

@@ -25,12 +25,18 @@ export async function getEFaturaContext(tenantId: string, invoiceId: string) {
     .where(eq(invoiceLineItems.invoiceId, invoiceId))
     .orderBy(asc(invoiceLineItems.createdAt));
 
-  // Load client (company)
-  const [client] = await db
-    .select()
-    .from(crmCompanies)
-    .where(eq(crmCompanies.id, invoice.companyId))
-    .limit(1);
+  // Load client (company). e-Fatura is deliberately company-only: Turkish
+  // e-invoicing identifies an individual by TCKN under a different UBL
+  // PartyIdentification scheme than a company's VKN, with its own validation
+  // rules. Rather than emit a malformed document for a contact-billed
+  // invoice, we resolve no client here and the callers below refuse.
+  const [client] = invoice.companyId
+    ? await db
+        .select()
+        .from(crmCompanies)
+        .where(eq(crmCompanies.id, invoice.companyId))
+        .limit(1)
+    : [undefined];
 
   // Load settings
   const [settings] = await db
@@ -53,7 +59,11 @@ export async function generateEFatura(tenantId: string, invoiceId: string, eFatu
   }
 
   if (!client) {
-    throw new Error('Invoice client not found');
+    throw new Error(
+      invoice.companyId
+        ? 'Invoice client not found'
+        : 'e-Fatura requires a company recipient; this invoice is billed to an individual',
+    );
   }
 
   if (lineItems.length === 0) {
