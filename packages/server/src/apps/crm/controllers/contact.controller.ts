@@ -57,7 +57,7 @@ export async function createContact(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { name, email, phone, companyId, position, source, tags, address, postalCode, state, country } = req.body;
+    const { name, email, phone, companyId, position, source, tags, address, postalCode, state, country, taxId, taxOffice } = req.body;
 
     const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
@@ -72,7 +72,7 @@ export async function createContact(req: Request, res: Response) {
 
     const contact = await crmService.createContact(userId, tenantId, {
       name: name.trim(), email, phone, companyId, position, source, tags,
-      address, postalCode, state, country,
+      address, postalCode, state, country, taxId, taxOffice,
     });
 
     if (req.auth!.tenantId) {
@@ -98,7 +98,7 @@ export async function updateContact(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
-    const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived, address, postalCode, state, country } = req.body;
+    const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived, address, postalCode, state, country, taxId, taxOffice } = req.body;
 
     const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
@@ -108,7 +108,7 @@ export async function updateContact(req: Request, res: Response) {
 
     const contact = await crmService.updateContact(userId, tenantId, id, {
       name, email, phone, companyId, position, source, tags, sortOrder, isArchived,
-      address, postalCode, state, country,
+      address, postalCode, state, country, taxId, taxOffice,
     }, perm.recordAccess);
 
     if (!contact) {
@@ -192,6 +192,31 @@ export async function mergeContacts(req: Request, res: Response) {
     }
     logger.error({ error }, 'Failed to merge CRM contacts');
     res.status(500).json({ success: false, error: 'Failed to merge contacts' });
+  }
+}
+
+export async function regenerateContactPortalToken(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+
+    const perm = req.crmPerm!;
+    if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No permission to update contacts' });
+      return;
+    }
+
+    const contact = await crmService.regenerateContactPortalToken(userId, tenantId, id, perm.recordAccess);
+    if (!contact) {
+      res.status(404).json({ success: false, error: 'Contact not found' });
+      return;
+    }
+
+    res.json({ success: true, data: contact });
+  } catch (error) {
+    logger.error({ error }, 'Failed to regenerate contact portal token');
+    res.status(500).json({ success: false, error: 'Failed to regenerate portal token' });
   }
 }
 

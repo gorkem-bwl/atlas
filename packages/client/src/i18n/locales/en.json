@@ -4650,7 +4650,8 @@
       "pauseSuccess": "Recurring invoice paused",
       "resumeSuccess": "Recurring invoice resumed",
       "runNowSuccess": "Invoice generated",
-      "runNowEmailed": "Invoice generated and emailed"
+      "runNowEmailed": "Invoice generated and emailed",
+      "fieldContact": "Contact"
     },
     "filters": {
       "all": "All",
@@ -4740,7 +4741,8 @@
       "waiveSuccess": "Invoice waived",
       "metaProject": "Project",
       "skipAutoReminders": "Skip automatic reminders",
-      "skipAutoRemindersHelp": "This invoice is excluded from the scheduled overdue reminder flow."
+      "skipAutoRemindersHelp": "This invoice is excluded from the scheduled overdue reminder flow.",
+      "metaNoCompany": "No company (billed to contact)"
     },
     "payments": {
       "recordPayment": "Record payment",
@@ -4854,7 +4856,8 @@
     "tour": {
       "title": "Invoices",
       "description": "Send invoices, track payments and overdue balances, and chase late payers automatically."
-    }
+    },
+    "billToContactHint": "This invoice will be addressed to the selected contact."
   },
   "import": {
     "odoo": {

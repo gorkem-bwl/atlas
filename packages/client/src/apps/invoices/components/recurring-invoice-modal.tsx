@@ -7,7 +7,7 @@ import { Textarea } from '../../../components/ui/textarea';
 import { Select } from '../../../components/ui/select';
 import { Button } from '../../../components/ui/button';
 import { IconButton } from '../../../components/ui/icon-button';
-import { useCompanies } from '../../crm/hooks';
+import { useCompanies, useContacts } from '../../crm/hooks';
 import { useCreateRecurringInvoice, useUpdateRecurringInvoice } from '../hooks';
 import { useToastStore } from '../../../stores/toast-store';
 import { formatCurrency } from '../../../lib/format';
@@ -79,6 +79,7 @@ export function RecurringInvoiceModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [companyId, setCompanyId] = useState('');
+  const [contactId, setContactId] = useState('');
   const [frequency, setFrequency] = useState<RecurrenceFrequency>('monthly');
   const [startDate, setStartDate] = useState<string>(todayIso());
   const [endDate, setEndDate] = useState<string>('');
@@ -94,7 +95,8 @@ export function RecurringInvoiceModal({
     if (recurringInvoice) {
       setTitle(recurringInvoice.title);
       setDescription(recurringInvoice.description ?? '');
-      setCompanyId(recurringInvoice.companyId);
+      setCompanyId(recurringInvoice.companyId ?? '');
+      setContactId(recurringInvoice.contactId ?? '');
       setFrequency(recurringInvoice.frequency);
       setStartDate(toDateInput(recurringInvoice.startDate));
       setEndDate(toDateInput(recurringInvoice.endDate));
@@ -125,6 +127,7 @@ export function RecurringInvoiceModal({
       setAutoSend(false);
       setNotes('');
       setPaymentInstructions('');
+      setContactId('');
       setLineItems([newLineItem()]);
     }
   }, [open, recurringInvoice]);
@@ -136,6 +139,16 @@ export function RecurringInvoiceModal({
         label: c.name,
       })),
     [companiesData],
+  );
+
+  const { data: contactsData } = useContacts(companyId ? { companyId } : undefined);
+  const contactOptions = useMemo(
+    () =>
+      (contactsData?.contacts ?? []).map((c) => ({
+        value: c.id,
+        label: c.email ? `${c.name} (${c.email})` : c.name,
+      })),
+    [contactsData],
   );
 
   const frequencyOptions = useMemo(
@@ -172,7 +185,8 @@ export function RecurringInvoiceModal({
 
   const canSubmit =
     !!title.trim() &&
-    !!companyId &&
+    // A company OR an individual contact may be billed.
+    (!!companyId || !!contactId) &&
     !!startDate &&
     lineItems.some((li) => li.description.trim());
 
@@ -217,7 +231,9 @@ export function RecurringInvoiceModal({
     }
 
     const input: CreateRecurringInvoiceInput = {
-      companyId,
+      // Send null, not '', so the server stores a real absence.
+      companyId: companyId || null,
+      contactId: contactId || null,
       title: title.trim(),
       description: description.trim() || undefined,
       frequency,
@@ -266,12 +282,36 @@ export function RecurringInvoiceModal({
             <label style={labelStyle}>{t('invoices.recurring.fieldCompany')}</label>
             <Select
               value={companyId}
-              onChange={setCompanyId}
+              // Clearing the company is how an individual is billed, so a
+              // contact chosen independently must survive it.
+              onChange={(v) => { setCompanyId(v); if (v) setContactId(''); }}
               options={companyOptions}
               placeholder={t('invoices.selectCompany')}
               size="md"
               disabled={isEdit}
             />
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>{t('invoices.recurring.fieldContact')}</label>
+            <Select
+              value={contactId}
+              onChange={setContactId}
+              options={contactOptions}
+              placeholder={t('invoices.selectContact')}
+              size="md"
+              disabled={isEdit}
+            />
+            {!companyId && (
+              <span
+                style={{
+                  fontSize: 'var(--font-size-xs)',
+                  color: 'var(--color-text-tertiary)',
+                }}
+              >
+                {t('invoices.billToContactHint')}
+              </span>
+            )}
           </div>
 
           <div

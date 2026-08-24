@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, or, sql, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import { db } from '../../../config/database';
 import { invoices, projectProjects, crmContacts } from '../../../db/schema';
 import {

@@ -4594,7 +4594,8 @@
       "pauseSuccess": "Fattura ricorrente messa in pausa",
       "resumeSuccess": "Fattura ricorrente ripresa",
       "runNowSuccess": "Fattura generata",
-      "runNowEmailed": "Fattura generata e inviata via e-mail"
+      "runNowEmailed": "Fattura generata e inviata via e-mail",
+      "fieldContact": "Contatto"
     },
     "filters": {
       "all": "Tutte",
@@ -4684,7 +4685,8 @@
       "waiveSuccess": "Fattura annullata",
       "metaProject": "Progetto",
       "skipAutoReminders": "Salta i promemoria automatici",
-      "skipAutoRemindersHelp": "Questa fattura è esclusa dal flusso automatico di promemoria per insoluti."
+      "skipAutoRemindersHelp": "Questa fattura è esclusa dal flusso automatico di promemoria per insoluti.",
+      "metaNoCompany": "Nessuna azienda (fatturato al contatto)"
     },
     "payments": {
       "recordPayment": "Registra pagamento",
@@ -4854,7 +4856,8 @@
     "tour": {
       "title": "Fatture",
       "description": "Invia fatture, tieni traccia dei pagamenti e dei saldi scaduti, e sollecita automaticamente i pagatori in ritardo."
-    }
+    },
+    "billToContactHint": "Questa fattura sarà intestata al contatto selezionato."
   },
   "import": {
     "odoo": {

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as invoiceService from '../services/invoice.service';
 import { sendInvoiceEmail } from '../services/invoice-email.service';
+import { hasRecipient } from '../services/invoice-party.service';
 import { logger } from '../../../utils/logger';
 import { canAccess } from '../../../services/app-permissions.service';
 import { emitAppEvent } from '../../../services/event.service';
@@ -83,8 +84,14 @@ export async function createInvoice(req: Request, res: Response) {
       issueDate, dueDate, notes, timeEntryIds,
     } = req.body;
 
-    if (!companyId) {
-      res.status(400).json({ success: false, error: 'companyId is required' });
+    // An invoice is addressed to a company OR an individual contact. This
+    // mirrors the invoices_recipient_present CHECK so the API answers 400
+    // rather than surfacing a constraint violation as a 500.
+    if (!hasRecipient({ companyId, contactId })) {
+      res.status(400).json({
+        success: false,
+        error: 'Either companyId or contactId is required',
+      });
       return;
     }
 

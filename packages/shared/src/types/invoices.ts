@@ -17,7 +17,10 @@ export interface Invoice {
   id: string;
   tenantId: string;
   userId: string;
-  companyId: string;
+  // An invoice is addressed to EITHER a company OR a contact — exactly one is
+  // required, both may be set. Enforced by the invoices_recipient_present
+  // CHECK constraint and validated server-side.
+  companyId?: string | null;
   contactId?: string | null;
   dealId?: string | null;
   projectId?: string | null;
@@ -61,8 +64,9 @@ export interface Invoice {
 }
 
 export interface CreateInvoiceInput {
-  companyId: string;
-  contactId?: string;
+  // At least one of companyId / contactId must be supplied.
+  companyId?: string | null;
+  contactId?: string | null;
   dealId?: string;
   projectId?: string | null;
   proposalId?: string;
@@ -87,7 +91,9 @@ export interface CreateInvoiceInput {
 }
 
 export interface UpdateInvoiceInput {
-  companyId?: string;
+  // null clears the field; the either/or rule is re-checked against the
+  // stored row so an update cannot leave an invoice with no recipient.
+  companyId?: string | null;
   contactId?: string | null;
   dealId?: string | null;
   projectId?: string | null;
@@ -232,7 +238,8 @@ export interface RecurringInvoice {
   id: string;
   tenantId: string;
   userId: string;
-  companyId: string;
+  companyId?: string | null;
+  contactId?: string | null;
   title: string;
   description: string | null;
   currency: string;
@@ -256,7 +263,9 @@ export interface RecurringInvoice {
 }
 
 export interface CreateRecurringInvoiceInput {
-  companyId: string;
+  // Same either/or recipient rule as CreateInvoiceInput.
+  companyId?: string | null;
+  contactId?: string | null;
   title: string;
   description?: string;
   currency?: string;
