@@ -9,6 +9,8 @@ import { logger } from '../../../utils/logger';
 import { getInvoiceSettings } from './settings.service';
 import { recordPayment } from './payment.service';
 import { replaceLineItems } from './line-item.service';
+import { AppError } from '../../../middleware/error-handler';
+import { hasRecipient } from './invoice-party.service';
 
 // ─── Input types ────────────────────────────────────────────────────
 
@@ -124,7 +126,9 @@ export async function listInvoices(userId: string, tenantId: string, filters?: {
   }
   if (filters?.search) {
     const searchTerm = `%${filters.search}%`;
-    conditions.push(sql`(${invoices.invoiceNumber} ILIKE ${searchTerm} OR ${crmCompanies.name} ILIKE ${searchTerm})`);
+    // crmContacts is joined below, so a contact-billed invoice stays
+    // findable by the person's name — it has no company name to match on.
+    conditions.push(sql`(${invoices.invoiceNumber} ILIKE ${searchTerm} OR ${crmCompanies.name} ILIKE ${searchTerm} OR ${crmContacts.name} ILIKE ${searchTerm})`);
   }
 
   const rows = await db
@@ -291,7 +295,7 @@ export async function createInvoice(userId: string, tenantId: string, input: Cre
         .values({
           tenantId,
           userId,
-          companyId: input.companyId,
+          companyId: input.companyId ?? null,
           contactId: input.contactId ?? null,
           dealId: input.dealId ?? null,
           projectId: input.projectId ?? null,
@@ -329,7 +333,7 @@ export async function createInvoice(userId: string, tenantId: string, input: Cre
     .values({
       tenantId,
       userId,
-      companyId: input.companyId,
+      companyId: input.companyId ?? null,
       contactId: input.contactId ?? null,
       dealId: input.dealId ?? null,
       projectId: input.projectId ?? null,
@@ -382,6 +386,21 @@ export async function updateInvoice(userId: string, tenantId: string, id: string
   const conditions = [eq(invoices.id, id), eq(invoices.tenantId, tenantId)];
   if (ownerUserId) {
     conditions.push(eq(invoices.userId, ownerUserId));
+  }
+
+  // Clearing a recipient is only valid while the other one remains, so the
+  // stored row has to be consulted. Guarded: this costs a read only when a
+  // recipient field is actually being touched, not on every update.
+  if (input.companyId !== undefined || input.contactId !== undefined) {
+    const [existing] = await db
+      .select({ companyId: invoices.companyId, contactId: invoices.contactId })
+      .from(invoices)
+      .where(and(...conditions))
+      .limit(1);
+
+    if (existing && !hasRecipient(input, existing)) {
+      throw new AppError(400, 'An invoice must be addressed to a company or a contact');
+    }
   }
 
   if (input.lineItems === undefined) {
@@ -560,7 +579,10 @@ export async function saveParasutSync(
 }
 
 // Lightweight company lookup for Paraşüt sync (name + tax number).
-export async function getCompanyForSync(tenantId: string, companyId: string) {
+// Accepts null: an invoice billed to an individual has no company, and the
+// caller falls back to the contact's name.
+export async function getCompanyForSync(tenantId: string, companyId: string | null) {
+  if (!companyId) return null;
   const [company] = await db
     .select({
       id: crmCompanies.id,

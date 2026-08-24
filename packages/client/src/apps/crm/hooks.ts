@@ -43,6 +43,11 @@ export interface CrmContact {
   postalCode: string | null;
   state: string | null;
   country: string | null;
+  // Billing identity + portal access, so an individual can be invoiced and
+  // sent a portal link without inventing a company for them.
+  taxId: string | null;
+  taxOffice: string | null;
+  portalToken: string | null;
   isArchived: boolean;
   sortOrder: number;
   companyName: string | null;

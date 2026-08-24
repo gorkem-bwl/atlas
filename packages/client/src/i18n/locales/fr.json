@@ -4587,7 +4587,8 @@
       "pauseSuccess": "Facture récurrente mise en pause",
       "resumeSuccess": "Facture récurrente reprise",
       "runNowSuccess": "Facture générée",
-      "runNowEmailed": "Facture générée et envoyée par e-mail"
+      "runNowEmailed": "Facture générée et envoyée par e-mail",
+      "fieldContact": "Contact"
     },
     "filters": {
       "all": "Toutes",
@@ -4677,7 +4678,8 @@
       "waiveSuccess": "Facture annulée",
       "metaProject": "Projet",
       "skipAutoReminders": "Ignorer les rappels automatiques",
-      "skipAutoRemindersHelp": "Cette facture est exclue du flux de rappels automatiques en cas de retard."
+      "skipAutoRemindersHelp": "Cette facture est exclue du flux de rappels automatiques en cas de retard.",
+      "metaNoCompany": "Aucune entreprise (facturé au contact)"
     },
     "payments": {
       "recordPayment": "Enregistrer un paiement",
@@ -4847,7 +4849,8 @@
     "tour": {
       "title": "Factures",
       "description": "Envoyez des factures, suivez les paiements et les soldes en retard, et relancez automatiquement les mauvais payeurs."
-    }
+    },
+    "billToContactHint": "Cette facture sera adressée au contact sélectionné."
   },
   "import": {
     "odoo": {

@@ -20,7 +20,9 @@ const Invoice = z.object({
   id: Uuid,
   tenantId: Uuid,
   userId: Uuid,
-  companyId: Uuid,
+  // Either companyId or contactId is present — an invoice may be addressed to
+  // a company or to an individual contact.
+  companyId: Uuid.nullable(),
   contactId: Uuid.nullable(),
   dealId: Uuid.nullable(),
   projectId: Uuid.nullable(),
@@ -66,7 +68,8 @@ const Payment = z.object({
 
 const Recurring = z.object({
   id: Uuid,
-  companyId: Uuid,
+  companyId: Uuid.nullable(),
+  contactId: Uuid.nullable(),
   name: z.string(),
   frequency: z.enum(['weekly', 'monthly', 'quarterly', 'yearly']),
   nextRunDate: IsoDateTime.nullable(),
@@ -113,8 +116,8 @@ register({ method: 'get', path: '/invoices/next-number', tags: [TAG], summary: '
   response: envelope(z.object({ invoiceNumber: z.string() })) });
 register({ method: 'post', path: '/invoices', tags: [TAG], summary: 'Create an invoice',
   body: z.object({
-    companyId: Uuid,
-    contactId: Uuid.optional(),
+    companyId: Uuid.nullish(),
+    contactId: Uuid.nullish(),
     dealId: Uuid.optional(),
     projectId: Uuid.optional(),
     currency: z.string().length(3),
@@ -214,7 +217,7 @@ register({ method: 'get', path: '/invoices/recurring', tags: [TAG], summary: 'Li
   response: envelope(z.array(Recurring)) });
 register({ method: 'post', path: '/invoices/recurring', tags: [TAG], summary: 'Create a recurring invoice schedule',
   body: Recurring.omit({ id: true, createdAt: true, updatedAt: true, nextRunDate: true, isPaused: true }).partial()
-    .extend({ companyId: Uuid, name: z.string(), frequency: Recurring.shape.frequency, currency: z.string().length(3) }),
+    .extend({ companyId: Uuid.nullish(), contactId: Uuid.nullish(), name: z.string(), frequency: Recurring.shape.frequency, currency: z.string().length(3) }),
   response: envelope(Recurring) });
 register({ method: 'get', path: '/invoices/recurring/:id', tags: [TAG], summary: 'Get a recurring invoice',
   params: z.object({ id: Uuid }), response: envelope(Recurring) });

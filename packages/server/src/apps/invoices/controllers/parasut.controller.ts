@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { isTenantAdmin } from '@atlas-platform/shared';
 import * as parasutService from '../services/parasut.service';
 import * as invoiceService from '../services/invoice.service';
+import { resolveInvoiceParty } from '../services/invoice-party.service';
 import { canAccess } from '../../../services/app-permissions.service';
 import { logger } from '../../../utils/logger';
 
@@ -149,8 +150,12 @@ export async function pushInvoiceToParasut(req: Request, res: Response) {
       return;
     }
 
+    // getCompanyForSync returns null for an invoice billed to an individual;
+    // resolveInvoiceParty then supplies that person's own name and tax id.
     const company = await invoiceService.getCompanyForSync(tenantId, invoice.companyId);
-    const customerName = invoice.companyName ?? company?.name ?? invoice.contactName ?? 'Customer';
+    const party = company ? null : await resolveInvoiceParty(invoice, tenantId);
+    const customerName =
+      invoice.companyName ?? company?.name ?? party?.name ?? invoice.contactName ?? 'Customer';
 
     const { parasutId, parasutNo } = await parasutService.pushInvoice(
       tenantId,
@@ -168,8 +173,8 @@ export async function pushInvoiceToParasut(req: Request, res: Response) {
       })),
       {
         name: customerName,
-        email: invoice.contactEmail,
-        taxNumber: company?.taxId ?? null,
+        email: invoice.contactEmail ?? party?.email ?? null,
+        taxNumber: company?.taxId ?? party?.taxId ?? null,
       },
     );
 

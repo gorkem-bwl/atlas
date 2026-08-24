@@ -391,6 +391,13 @@ async function migrateLegacyData() {
   await addColumnIfMissing('crm_contacts', 'postal_code', 'varchar(20)');
   await addColumnIfMissing('crm_contacts', 'state', 'varchar(100)');
   await addColumnIfMissing('crm_contacts', 'country', 'varchar(100)');
+  // Billing identity + portal access for contacts, so an invoice addressed to
+  // an individual can print a tax line and be emailed/shared like a company's.
+  await addColumnIfMissing('crm_contacts', 'tax_id', 'varchar(11)');
+  await addColumnIfMissing('crm_contacts', 'tax_office', 'varchar(100)');
+  await addColumnIfMissing('crm_contacts', 'portal_token', 'uuid');
+  await addColumnIfMissing('recurring_invoices', 'contact_id',
+    'uuid REFERENCES crm_contacts(id) ON DELETE RESTRICT');
   await addColumnIfMissing('crm_lead_forms', 'is_archived',
     'boolean NOT NULL DEFAULT false');
   // Lead-form branding columns — admins can customise the form's appearance
@@ -584,6 +591,65 @@ async function migrateLegacyData() {
     }
   } catch (err) {
     logger.error({ err }, 'Failed to repoint tasks.project_id FK to project_projects');
+  }
+
+  // Allow an invoice to be addressed to an individual. Historically
+  // invoices.company_id was NOT NULL, so billing a person meant inventing a
+  // company row for them. Relax that to "a recipient is present", enforced by
+  // a CHECK across (company_id, contact_id) on both invoices and their
+  // recurring templates.
+  //
+  // Order matters: DROP NOT NULL must precede the CHECK, or a partially
+  // applied run could leave the table rejecting valid rows. Every statement
+  // is idempotent, so this replays safely on every boot.
+  try {
+    const c = await pool.connect();
+    try {
+      await c.query(`
+        DO $$
+        BEGIN
+          ALTER TABLE invoices ALTER COLUMN company_id DROP NOT NULL;
+          ALTER TABLE recurring_invoices ALTER COLUMN company_id DROP NOT NULL;
+
+          -- A contact-billed invoice has contact_id as its ONLY recipient, so
+          -- ON DELETE SET NULL would orphan the row and break the CHECK below.
+          -- Swap it for RESTRICT: deleting such a contact must fail loudly.
+          IF EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'invoices_contact_id_crm_contacts_id_fk'
+              AND confdeltype = 'n'
+          ) THEN
+            ALTER TABLE invoices DROP CONSTRAINT invoices_contact_id_crm_contacts_id_fk;
+            ALTER TABLE invoices ADD CONSTRAINT invoices_contact_id_crm_contacts_id_fk
+              FOREIGN KEY (contact_id) REFERENCES crm_contacts(id) ON DELETE RESTRICT;
+          END IF;
+
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'invoices_recipient_present'
+          ) THEN
+            ALTER TABLE invoices ADD CONSTRAINT invoices_recipient_present
+              CHECK (company_id IS NOT NULL OR contact_id IS NOT NULL);
+          END IF;
+
+          IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'recurring_invoices_recipient_present'
+          ) THEN
+            ALTER TABLE recurring_invoices ADD CONSTRAINT recurring_invoices_recipient_present
+              CHECK (company_id IS NOT NULL OR contact_id IS NOT NULL);
+          END IF;
+        END$$;
+      `);
+      // Mirrors crm_companies.portal_token. Separate from the DO block above
+      // because CREATE INDEX cannot run inside it.
+      await c.query(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_contacts_portal_token ' +
+        'ON crm_contacts (portal_token)',
+      );
+    } finally {
+      c.release();
+    }
+  } catch (err) {
+    logger.error({ err }, 'Failed to relax invoice recipient constraints');
   }
 }
 

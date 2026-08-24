@@ -4587,7 +4587,8 @@
       "pauseSuccess": "Wiederkehrende Rechnung pausiert",
       "resumeSuccess": "Wiederkehrende Rechnung fortgesetzt",
       "runNowSuccess": "Rechnung generiert",
-      "runNowEmailed": "Rechnung generiert und per E-Mail versendet"
+      "runNowEmailed": "Rechnung generiert und per E-Mail versendet",
+      "fieldContact": "Kontakt"
     },
     "filters": {
       "all": "Alle",
@@ -4677,7 +4678,8 @@
       "waiveSuccess": "Rechnung erlassen",
       "metaProject": "Projekt",
       "skipAutoReminders": "Automatische Erinnerungen überspringen",
-      "skipAutoRemindersHelp": "Diese Rechnung ist vom geplanten Überfälligkeits-Erinnerungsablauf ausgeschlossen."
+      "skipAutoRemindersHelp": "Diese Rechnung ist vom geplanten Überfälligkeits-Erinnerungsablauf ausgeschlossen.",
+      "metaNoCompany": "Kein Unternehmen (an Kontakt abgerechnet)"
     },
     "payments": {
       "recordPayment": "Zahlung erfassen",
@@ -4847,7 +4849,8 @@
     "tour": {
       "title": "Rechnungen",
       "description": "Rechnungen versenden, Zahlungen und überfällige Salden verfolgen und säumige Zahler automatisch mahnen."
-    }
+    },
+    "billToContactHint": "Diese Rechnung wird an den ausgewählten Kontakt ausgestellt."
   },
   "import": {
     "odoo": {

@@ -1,8 +1,6 @@
 import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { db } from '../../../config/database';
-import { crmCompanies, crmContacts } from '../../../db/schema';
-import { and, eq } from 'drizzle-orm';
+import { resolveInvoiceParty, resolveAttentionContact } from './invoice-party.service';
 import { getTemplate } from '../templates';
 import type { InvoiceTemplateProps } from '../templates/types';
 import { getInvoiceSettings } from './settings.service';
@@ -19,14 +17,12 @@ export async function generateInvoicePdf(tenantId: string, invoiceId: string): P
   ]);
   if (!invoice) throw new Error('Invoice not found');
 
-  // Fetch company and contact in parallel
-  const [companyResult, contact] = await Promise.all([
-    db.select().from(crmCompanies).where(and(eq(crmCompanies.id, invoice.companyId), eq(crmCompanies.tenantId, tenantId))),
-    invoice.contactId
-      ? db.select().from(crmContacts).where(and(eq(crmContacts.id, invoice.contactId), eq(crmContacts.tenantId, tenantId))).then(r => r[0] ?? null)
-      : Promise.resolve(null),
+  // Resolve the billed party (company or individual) and the person to
+  // address, in parallel. See invoice-party.service.ts.
+  const [party, contact] = await Promise.all([
+    resolveInvoiceParty(invoice, tenantId),
+    resolveAttentionContact(invoice, tenantId),
   ]);
-  const company = companyResult[0];
 
   // Read logo file if exists, convert to base64
   // logoPath is a relative path under uploads/ (e.g. "{tenantId}/{filename}")
@@ -86,13 +82,20 @@ export async function generateInvoicePdf(tenantId: string, invoiceId: string): P
       footerText: settings?.footerText ?? undefined,
     },
     client: {
-      name: company?.name || 'Unknown',
-      address: company?.address ?? undefined,
-      postalCode: company?.postalCode ?? undefined,
-      state: company?.state ?? undefined,
-      country: company?.country ?? undefined,
-      taxId: company?.taxId ?? undefined,
-      contactName: contact?.name ?? invoice.contactName ?? undefined,
+      // An individual's own name is the bill-to name; there is no company
+      // to fall back on, so this must never render the old 'Unknown'.
+      name: party?.name || 'Unknown',
+      address: party?.address ?? undefined,
+      postalCode: party?.postalCode ?? undefined,
+      state: party?.state ?? undefined,
+      country: party?.country ?? undefined,
+      taxId: party?.taxId ?? undefined,
+      // Suppress the attention line when the contact IS the billed party —
+      // otherwise the same name prints twice.
+      contactName:
+        party?.kind === 'contact'
+          ? undefined
+          : contact?.name ?? invoice.contactName ?? undefined,
       contactEmail: contact?.email ?? invoice.contactEmail ?? undefined,
     },
   };

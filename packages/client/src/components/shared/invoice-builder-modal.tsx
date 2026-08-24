@@ -106,7 +106,7 @@ export function InvoiceBuilderModal({
 
     if (invoice) {
       // Editing existing invoice
-      setCompanyId(invoice.companyId);
+      setCompanyId(invoice.companyId ?? '');
       setContactId(invoice.contactId ?? '');
       setDealId(invoice.dealId ?? '');
       setProposalId(invoice.proposalId ?? '');
@@ -211,7 +211,10 @@ export function InvoiceBuilderModal({
   };
 
   const isSaving = createInvoice.isPending || updateInvoice.isPending;
-  const canSave = !!companyId && lineItems.some((li) => li.description.trim());
+  // An invoice may be addressed to a company OR an individual contact, so
+  // either recipient satisfies the gate.
+  const canSave =
+    (!!companyId || !!contactId) && lineItems.some((li) => li.description.trim());
 
   return (
     <Modal
@@ -239,7 +242,10 @@ export function InvoiceBuilderModal({
               <label style={labelStyle}>{t('invoices.company')}</label>
               <Select
                 value={companyId}
-                onChange={(val) => { setCompanyId(val); setContactId(''); }}
+                // Switching company invalidates a contact chosen from the old
+                // company's roster, but clearing the company entirely is how a
+                // user bills an individual — keep the contact in that case.
+                onChange={(val) => { setCompanyId(val); if (val) setContactId(''); }}
                 options={[
                   { value: '', label: t('invoices.selectCompany') },
                   ...companies.map((c) => ({ value: c.id, label: c.name })),
@@ -283,8 +289,19 @@ export function InvoiceBuilderModal({
                     label: c.email ? `${c.name} (${c.email})` : c.name,
                   })),
                 ]}
-                disabled={!companyId}
               />
+              {/* Without a company the contact IS the recipient, which is not
+                  obvious from a field that used to be a company sub-selection. */}
+              {!companyId && (
+                <span
+                  style={{
+                    fontSize: 'var(--font-size-xs)',
+                    color: 'var(--color-text-tertiary)',
+                  }}
+                >
+                  {t('invoices.billToContactHint')}
+                </span>
+              )}
             </div>
           </div>
 

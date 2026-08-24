@@ -27,7 +27,7 @@ import { SendInvoiceModal } from './send-invoice-modal';
 import { RecordPaymentModal } from './record-payment-modal';
 import { ImportTimeEntriesModal } from './import-time-entries-modal';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
-import { useCompanies } from '../../crm/hooks';
+import { useCompanies, useContacts } from '../../crm/hooks';
 import type { Invoice, InvoiceStatus } from '@atlas-platform/shared';
 
 interface Props {
@@ -52,6 +52,7 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
   const { t } = useTranslation();
   const { data: invoice, isLoading, isError, refetch } = useInvoice(invoiceId);
   const { data: companiesData } = useCompanies();
+  const { data: contactsData } = useContacts();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
   const markPaid = useMarkInvoicePaid();
@@ -158,13 +159,18 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
             })}
             onDelete={() => setConfirmDelete(true)}
             onShareLink={() => {
-              const companies = companiesData?.companies ?? [];
-              const company = companies.find((c) => c.id === invoice.companyId);
-              if (!company?.portalToken) {
+              // The portal token belongs to whoever is billed — a company, or
+              // the contact directly when the invoice is addressed to an
+              // individual. Company wins when both are set, matching the
+              // server's resolveInvoiceParty.
+              const company = (companiesData?.companies ?? []).find((c) => c.id === invoice.companyId);
+              const contact = (contactsData?.contacts ?? []).find((c) => c.id === invoice.contactId);
+              const portalToken = company?.portalToken ?? contact?.portalToken;
+              if (!portalToken) {
                 addToast({ type: 'error', message: t('invoices.detail.shareNoCompany') });
                 return;
               }
-              const portalUrl = `${window.location.origin}/api/v1/invoices/portal/${company.portalToken}/${invoice.id}`;
+              const portalUrl = `${window.location.origin}/api/v1/invoices/portal/${portalToken}/${invoice.id}`;
               navigator.clipboard.writeText(portalUrl);
               addToast({ type: 'success', message: t('invoices.linkCopied') });
             }}

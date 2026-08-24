@@ -4587,7 +4587,8 @@
       "pauseSuccess": "Yinelenen fatura duraklatıldı",
       "resumeSuccess": "Yinelenen fatura devam ettirildi",
       "runNowSuccess": "Fatura oluşturuldu",
-      "runNowEmailed": "Fatura oluşturuldu ve e-posta ile gönderildi"
+      "runNowEmailed": "Fatura oluşturuldu ve e-posta ile gönderildi",
+      "fieldContact": "Kişi"
     },
     "filters": {
       "all": "Tümü",
@@ -4677,7 +4678,8 @@
       "waiveSuccess": "Faturadan ferâgat edildi",
       "metaProject": "Proje",
       "skipAutoReminders": "Otomatik hatırlatmaları atla",
-      "skipAutoRemindersHelp": "Bu fatura, zamanlanmış gecikme hatırlatma akışının dışında tutulur."
+      "skipAutoRemindersHelp": "Bu fatura, zamanlanmış gecikme hatırlatma akışının dışında tutulur.",
+      "metaNoCompany": "Şirket yok (kişiye faturalanır)"
     },
     "payments": {
       "recordPayment": "Ödeme kaydet",
@@ -4847,7 +4849,8 @@
     "tour": {
       "title": "Faturalar",
       "description": "Fatura gönderin, ödemeleri ve gecikmiş bakiyeleri takip edin, geç ödeyenlerin peşinden otomatik olarak düşün."
-    }
+    },
+    "billToContactHint": "Bu fatura seçilen kişi adına düzenlenecek."
   },
   "import": {
     "odoo": {
