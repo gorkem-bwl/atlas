@@ -1506,6 +1506,13 @@
       "groupByCompany": "Unternehmen",
       "notFound": "Kontakt nicht gefunden"
     },
+    "related": {
+      "title": "Zugehörig",
+      "invoices": "Rechnungen",
+      "projects": "Projekte",
+      "empty": "Noch keine zugehörigen Rechnungen oder Projekte.",
+      "showingCount": "{{shown}} von {{total}} werden angezeigt"
+    },
     "companies": {
       "name": "Name",
       "domain": "Domain",

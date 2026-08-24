@@ -1506,6 +1506,13 @@
       "groupByCompany": "Şirket",
       "notFound": "Kişi bulunamadı"
     },
+    "related": {
+      "title": "İlgili",
+      "invoices": "Faturalar",
+      "projects": "Projeler",
+      "empty": "Henüz ilgili fatura veya proje yok.",
+      "showingCount": "{{total}} kayıttan {{shown}} tanesi gösteriliyor"
+    },
     "companies": {
       "name": "İsim",
       "domain": "Alan adı",

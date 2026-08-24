@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as crmService from '../services/contact.service';
+import * as relatedRecordsService from '../services/related-records.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { canAccessEntity } from '../../../services/app-permissions.service';
@@ -216,5 +217,47 @@ export async function regenerateContactPortalToken(req: Request, res: Response) 
   } catch (error) {
     logger.error({ error }, 'Failed to regenerate contact portal token');
     res.status(500).json({ success: false, error: 'Failed to regenerate portal token' });
+  }
+}
+
+// ─── Related records (cross-app) ────────────────────────────────────
+
+/**
+ * Related invoices and projects for a contact. The caller must be able to
+ * view the contact itself; whether each *section* is returned is decided
+ * per target app inside the service, so a user without Invoices access sees
+ * the contact but no invoice rows.
+ */
+export async function getContactRelated(req: Request, res: Response) {
+  try {
+    const userId = req.auth!.userId;
+    const tenantId = req.auth!.tenantId;
+    const id = req.params.id as string;
+
+    const perm = req.crmPerm!;
+    if (!canAccessEntity(perm.role, 'contacts', 'view', perm.entityPermissions)) {
+      res.status(403).json({ success: false, error: 'No access to contacts' });
+      return;
+    }
+
+    // Confirm the contact exists and is visible to this caller before
+    // reporting anything related to it.
+    const contact = await crmService.getContact(userId, tenantId, id, perm.recordAccess);
+    if (!contact) {
+      res.status(404).json({ success: false, error: 'Contact not found' });
+      return;
+    }
+
+    const data = await relatedRecordsService.getRelatedRecords(
+      tenantId,
+      userId,
+      { contactId: id },
+      req.auth?.isSuperAdmin === true,
+    );
+
+    res.json({ success: true, data });
+  } catch (error) {
+    logger.error({ error }, 'Failed to load related records for CRM contact');
+    res.status(500).json({ success: false, error: 'Failed to load related records' });
   }
 }

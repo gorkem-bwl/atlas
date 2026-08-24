@@ -58,6 +58,7 @@ router.get('/dashboard', crmController.getDashboard);
 router.get('/companies/list', crmController.listCompanies);
 router.post('/companies/import', crmController.importCompanies);
 router.post('/companies', createCompanySpec.validate, crmController.createCompany);
+router.get('/companies/:id/related', crmController.getCompanyRelated);
 router.get('/companies/:id', crmController.getCompany);
 router.patch('/companies/:id', withConcurrencyCheck(crmCompanies), crmController.updateCompany);
 router.delete('/companies/:id', crmController.deleteCompany);
@@ -67,6 +68,10 @@ router.post('/companies/:id/regenerate-token', crmController.regeneratePortalTok
 router.get('/contacts/list', crmController.listContacts);
 router.post('/contacts/import', crmController.importContacts);
 router.post('/contacts', crmController.createContact);
+// Cross-app related records (invoices, projects). Express matches in
+// registration order, so this MUST stay above '/contacts/:id' — otherwise
+// that route captures 'related' as an id. Same for the companies pair above.
+router.get('/contacts/:id/related', crmController.getContactRelated);
 router.get('/contacts/:id', crmController.getContact);
 router.patch('/contacts/:id', withConcurrencyCheck(crmContacts), crmController.updateContact);
 router.delete('/contacts/:id', crmController.deleteContact);

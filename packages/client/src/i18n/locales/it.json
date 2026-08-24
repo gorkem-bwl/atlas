@@ -1506,6 +1506,13 @@
       "groupByCompany": "Azienda",
       "notFound": "Contatto non trovato"
     },
+    "related": {
+      "title": "Correlati",
+      "invoices": "Fatture",
+      "projects": "Progetti",
+      "empty": "Nessuna fattura o progetto correlato al momento.",
+      "showingCount": "Visualizzati {{shown}} di {{total}}"
+    },
     "companies": {
       "name": "Nome",
       "domain": "Dominio",

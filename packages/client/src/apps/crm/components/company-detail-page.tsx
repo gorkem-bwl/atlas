@@ -15,6 +15,7 @@ import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { SmartButtonBar } from '../../../components/shared/SmartButtonBar';
 import { PresenceAvatars } from '../../../components/shared/presence-avatars';
 import { NotesSection } from './notes-section';
+import { RelatedRecordsSection } from './related-records-section';
 import { getActivityIcon } from '../utils';
 import { formatDate, formatCurrency } from '../../../lib/format';
 import { CompanyLogo } from '../lib/crm-helpers';
@@ -23,6 +24,7 @@ import {
   useCompanies, useUpdateCompany, useDeleteCompany, useRegeneratePortalToken,
   useContacts, useDeals,
   useActivities, useCreateActivity,
+  useCompanyRelated,
   useMyCrmPermission, canAccess,
   type CrmCompany,
 } from '../hooks';
@@ -54,6 +56,8 @@ export function CompanyDetailPage({ companyId, onBack, onNavigate, onContactClic
   const updateCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
   const regenerateToken = useRegeneratePortalToken();
+
+  const { data: related, isLoading: relatedLoading } = useCompanyRelated(companyId);
 
   const { data: activitiesData } = useActivities({ companyId });
   const activities = activitiesData?.activities ?? [];
@@ -289,6 +293,11 @@ export function CompanyDetailPage({ companyId, onBack, onNavigate, onContactClic
               </div>
             </div>
           )}
+
+          {/* Related records from other apps (invoices, projects). The
+              component owns its own separator so it can render nothing at
+              all when the user cannot view either target app. */}
+          <RelatedRecordsSection data={related} isLoading={relatedLoading} />
 
           {/* Notes */}
           <div style={{ borderTop: '1px solid var(--color-border-secondary)', paddingTop: 'var(--spacing-lg)' }}>
