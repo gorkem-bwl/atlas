@@ -19,6 +19,14 @@ interface Client {
   country?: string | null;
   taxId?: string | null;
   taxOffice?: string | null;
+  /**
+   * Which identifier `taxId` is. Defaults to 'VKN' when absent so existing
+   * company callers are unaffected.
+   *
+   * This is not cosmetic: UBL-TR requires a structurally different customer
+   * party for a natural person (see buildCustomerParty).
+   */
+  taxScheme?: 'VKN' | 'TCKN';
 }
 
 interface Invoice {
@@ -51,6 +59,99 @@ function escapeXml(str: string | null | undefined): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+/**
+ * Split a display name into the FirstName / FamilyName pair that UBL-TR
+ * requires for a natural person. Both elements are mandatory and must appear
+ * exactly once, so neither may be emitted empty.
+ *
+ * Atlas stores one `name` field, so this splits on the last space: everything
+ * before it is given names, the final token is the family name. That matches
+ * Turkish convention, where the surname comes last.
+ *
+ * A single-token name has no surname to extract. Rather than emit an empty
+ * FamilyName (which the schema rejects) the whole token is used for both —
+ * the document stays valid and the name is not silently lost. Callers that
+ * care should collect the two parts separately.
+ */
+function splitPersonName(name: string): { firstName: string; familyName: string } {
+  const trimmed = name.trim().replace(/\s+/g, ' ');
+  const lastSpace = trimmed.lastIndexOf(' ');
+
+  if (lastSpace === -1) {
+    return { firstName: trimmed, familyName: trimmed };
+  }
+  return {
+    firstName: trimmed.slice(0, lastSpace),
+    familyName: trimmed.slice(lastSpace + 1),
+  };
+}
+
+/**
+ * The <cac:Party> body for the invoice recipient.
+ *
+ * A company and a natural person are structurally different documents here,
+ * per UBL-TR 2.1 (Ortak Elemanlar §2.2.13 / §2.2.42):
+ *
+ *   - schemeID is TCKN for a person, VKN for a company.
+ *   - PartyName carries a *company* title. For a person the name belongs in
+ *     cac:Person, and GİB's own individual example omits PartyName entirely.
+ *   - cac:Person is MANDATORY when the party is a natural person, with
+ *     FirstName and FamilyName both required.
+ *   - PartyTaxScheme is filled in only when a VKN was supplied — it carries
+ *     the vergi dairesi, which an individual does not have. Emitting it empty
+ *     is worse than omitting it, because TaxScheme/Name is then required.
+ *
+ * Element order is fixed by the UBL sequence and is NOT free: PartyName
+ * precedes PostalAddress, which precedes PartyTaxScheme, and cac:Person comes
+ * last. Emitting Person right after PartyIdentification — a common mistake —
+ * fails schema validation.
+ */
+function buildCustomerParty(client: Client): string {
+  const scheme = client.taxScheme ?? 'VKN';
+  const isIndividual = scheme === 'TCKN';
+
+  const partyName = isIndividual
+    ? ''
+    : `
+      <cac:PartyName>
+        <cbc:Name>${escapeXml(client.name)}</cbc:Name>
+      </cac:PartyName>`;
+
+  // Only a VKN party has a vergi dairesi to declare.
+  const partyTaxScheme = isIndividual
+    ? ''
+    : `
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>${escapeXml(client.taxId)}</cbc:CompanyID>
+        <cac:TaxScheme>
+          <cbc:Name>${escapeXml(client.taxOffice)}</cbc:Name>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>`;
+
+  let person = '';
+  if (isIndividual) {
+    const { firstName, familyName } = splitPersonName(client.name);
+    person = `
+      <cac:Person>
+        <cbc:FirstName>${escapeXml(firstName)}</cbc:FirstName>
+        <cbc:FamilyName>${escapeXml(familyName)}</cbc:FamilyName>
+      </cac:Person>`;
+  }
+
+  return `    <cac:Party>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="${scheme}">${escapeXml(client.taxId)}</cbc:ID>
+      </cac:PartyIdentification>${partyName}
+      <cac:PostalAddress>
+        <cbc:StreetName>${escapeXml(client.address)}</cbc:StreetName>
+        <cbc:CityName>${escapeXml(client.city)}</cbc:CityName>
+        <cac:Country>
+          <cbc:Name>${escapeXml(client.country || 'TR')}</cbc:Name>
+        </cac:Country>
+      </cac:PostalAddress>${partyTaxScheme}${person}
+    </cac:Party>`;
 }
 
 function formatDate(d: Date | string | null): string {
@@ -180,27 +281,7 @@ export function generateUblXml(
   </cac:AccountingSupplierParty>
 
   <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyIdentification>
-        <cbc:ID schemeID="VKN">${escapeXml(client.taxId)}</cbc:ID>
-      </cac:PartyIdentification>
-      <cac:PartyName>
-        <cbc:Name>${escapeXml(client.name)}</cbc:Name>
-      </cac:PartyName>
-      <cac:PostalAddress>
-        <cbc:StreetName>${escapeXml(client.address)}</cbc:StreetName>
-        <cbc:CityName>${escapeXml(client.city)}</cbc:CityName>
-        <cac:Country>
-          <cbc:Name>${escapeXml(client.country || 'TR')}</cbc:Name>
-        </cac:Country>
-      </cac:PostalAddress>
-      <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(client.taxId)}</cbc:CompanyID>
-        <cac:TaxScheme>
-          <cbc:Name>${escapeXml(client.taxOffice)}</cbc:Name>
-        </cac:TaxScheme>
-      </cac:PartyTaxScheme>
-    </cac:Party>
+${buildCustomerParty(client)}
   </cac:AccountingCustomerParty>
 
   <cac:TaxTotal>

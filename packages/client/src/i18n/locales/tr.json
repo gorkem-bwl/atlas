@@ -1504,7 +1504,8 @@
       "deleteContact": "Kişiyi sil",
       "duplicateEmail": "\"{{name}}\" adlı bir kişi zaten bu e-postayı kullanıyor",
       "groupByCompany": "Şirket",
-      "notFound": "Kişi bulunamadı"
+      "notFound": "Kişi bulunamadı",
+      "taxId": "Vergi kimlik no / TCKN"
     },
     "related": {
       "title": "İlgili",

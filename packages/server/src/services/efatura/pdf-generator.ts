@@ -19,6 +19,8 @@ interface Client {
   country?: string | null;
   taxId?: string | null;
   taxOffice?: string | null;
+  /** Which identifier taxId is; defaults to VKN for existing company callers. */
+  taxScheme?: 'VKN' | 'TCKN';
 }
 
 interface Invoice {
@@ -180,8 +182,8 @@ export function generateInvoiceHtml(
         <div class="party-name">${esc(client.name)}</div>
         <div class="party-detail">${esc(client.address)}</div>
         <div class="party-detail">${esc(client.city)}</div>
-        ${client.taxId ? `<div class="party-detail">VKN: ${esc(client.taxId)}</div>` : ''}
-        ${client.taxOffice ? `<div class="party-detail">Vergi Dairesi: ${esc(client.taxOffice)}</div>` : ''}
+        ${client.taxId ? `<div class="party-detail">${client.taxScheme === 'TCKN' ? 'TCKN' : 'VKN'}: ${esc(client.taxId)}</div>` : ''}
+        ${client.taxScheme !== 'TCKN' && client.taxOffice ? `<div class="party-detail">Vergi Dairesi: ${esc(client.taxOffice)}</div>` : ''}
       </div>
     </div>
 

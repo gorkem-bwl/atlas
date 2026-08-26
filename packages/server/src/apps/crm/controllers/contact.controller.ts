@@ -4,6 +4,7 @@ import * as relatedRecordsService from '../services/related-records.service';
 import { logger } from '../../../utils/logger';
 import { emitAppEvent } from '../../../services/event.service';
 import { canAccessEntity } from '../../../services/app-permissions.service';
+import { AppError } from '../../../middleware/error-handler';
 
 // ─── Contacts ───────────────────────────────────────────────────────
 
@@ -88,6 +89,12 @@ export async function createContact(req: Request, res: Response) {
 
     res.json({ success: true, data: contact });
   } catch (error) {
+    // A rejected tax id is the caller's to fix, so surface it rather than
+    // burying a validation failure in a 500.
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ success: false, error: error.message });
+      return;
+    }
     logger.error({ error }, 'Failed to create CRM contact');
     res.status(500).json({ success: false, error: 'Failed to create contact' });
   }
@@ -118,6 +125,10 @@ export async function updateContact(req: Request, res: Response) {
 
     res.json({ success: true, data: contact });
   } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ success: false, error: error.message });
+      return;
+    }
     logger.error({ error }, 'Failed to update CRM contact');
     res.status(500).json({ success: false, error: 'Failed to update contact' });
   }

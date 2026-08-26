@@ -3,6 +3,7 @@ import { crmCompanies, crmContacts, crmDeals, crmActivities, crmNotes } from '..
 import { eq, and, asc, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { logger } from '../../../utils/logger';
+import { AppError } from '../../../middleware/error-handler';
 import type { CrmRecordAccess } from '@atlas-platform/shared';
 import { executeWorkflows } from './workflow.service';
 import { backfillContactMessages } from './contact-message-backfill.service';
@@ -133,11 +134,32 @@ const ADDRESS_MAX_LENGTHS = {
   postalCode: 20,
   state: 100,
   country: 100,
-  // Billing identity, same treatment. taxId is varchar(11) to hold a Turkish
-  // TCKN; a VKN (10) also fits.
-  taxId: 11,
   taxOffice: 100,
 } as const;
+
+// taxId is deliberately NOT in the table above. Capping is right for a
+// free-text address field, where the likely cause is a mis-mapped import
+// column; it is wrong for an identifier, where truncating a mistyped
+// 12-digit entry to 11 digits produces a *plausible* wrong TCKN that would
+// be filed with the revenue administration. Over-length input is rejected
+// instead, so the user sees the problem.
+const TAX_ID_MAX_LENGTH = 11;
+
+export function normalizeTaxId(
+  value: string | null | undefined,
+): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > TAX_ID_MAX_LENGTH) {
+    throw new AppError(
+      400,
+      `Tax id must be at most ${TAX_ID_MAX_LENGTH} characters (a VKN is 10 digits, a TCKN is 11)`,
+    );
+  }
+  return trimmed;
+}
 
 export function normalizeAddressField<K extends keyof typeof ADDRESS_MAX_LENGTHS>(
   value: string | null | undefined,
@@ -173,7 +195,7 @@ export async function createContact(userId: string, tenantId: string, input: Cre
       source: input.source ?? null,
       address: input.address?.trim() || null,
       postalCode: normalizeAddressField(input.postalCode, 'postalCode') ?? null,
-      taxId: normalizeAddressField(input.taxId, 'taxId') ?? null,
+      taxId: normalizeTaxId(input.taxId) ?? null,
       taxOffice: normalizeAddressField(input.taxOffice, 'taxOffice') ?? null,
       state: normalizeAddressField(input.state, 'state') ?? null,
       country: normalizeAddressField(input.country, 'country') ?? null,
@@ -213,7 +235,7 @@ export async function updateContact(userId: string, tenantId: string, id: string
   // because its EditableField sends `v || null`.
   if (input.address !== undefined) updates.address = input.address?.trim() || null;
   if (input.postalCode !== undefined) updates.postalCode = normalizeAddressField(input.postalCode, 'postalCode');
-  if (input.taxId !== undefined) updates.taxId = normalizeAddressField(input.taxId, 'taxId');
+  if (input.taxId !== undefined) updates.taxId = normalizeTaxId(input.taxId);
   if (input.taxOffice !== undefined) updates.taxOffice = normalizeAddressField(input.taxOffice, 'taxOffice');
   if (input.state !== undefined) updates.state = normalizeAddressField(input.state, 'state');
   if (input.country !== undefined) updates.country = normalizeAddressField(input.country, 'country');

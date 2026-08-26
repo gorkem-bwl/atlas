@@ -1,12 +1,27 @@
 import { db } from '../../../config/database';
-import { invoices, invoiceLineItems, crmCompanies, invoiceSettings } from '../../../db/schema';
+import { invoices, invoiceLineItems, invoiceSettings } from '../../../db/schema';
 import { eq, and, asc } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { generateUblXml } from '../../../services/efatura/ubl-generator';
 import { generateInvoiceHtml } from '../../../services/efatura/pdf-generator';
 import { logger } from '../../../utils/logger';
+import { resolveInvoiceParty } from './invoice-party.service';
+import { describeTaxIdProblem } from '../../../services/efatura/tax-id';
 
 // ─── e-Fatura Service ──────────────────────────────────────────────
+
+/**
+ * A condition the caller can fix: e-Fatura switched off, no line items, a
+ * missing or malformed tax id. Distinguished from a genuine server fault so
+ * the controller can answer 400 without matching on message strings — which
+ * silently reclassified any reworded message as a 500.
+ */
+export class EFaturaInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'EFaturaInputError';
+  }
+}
 
 export async function getEFaturaContext(tenantId: string, invoiceId: string) {
   // Load invoice
@@ -25,18 +40,23 @@ export async function getEFaturaContext(tenantId: string, invoiceId: string) {
     .where(eq(invoiceLineItems.invoiceId, invoiceId))
     .orderBy(asc(invoiceLineItems.createdAt));
 
-  // Load client (company). e-Fatura is deliberately company-only: Turkish
-  // e-invoicing identifies an individual by TCKN under a different UBL
-  // PartyIdentification scheme than a company's VKN, with its own validation
-  // rules. Rather than emit a malformed document for a contact-billed
-  // invoice, we resolve no client here and the callers below refuse.
-  const [client] = invoice.companyId
-    ? await db
-        .select()
-        .from(crmCompanies)
-        .where(eq(crmCompanies.id, invoice.companyId))
-        .limit(1)
-    : [undefined];
+  // Resolve the billed party — a company (VKN) or an individual (TCKN). The
+  // generators branch on `taxScheme`, because UBL-TR represents a natural
+  // person with a different customer-party structure.
+  const party = await resolveInvoiceParty(invoice, tenantId);
+  const client = party
+    ? {
+        name: party.name,
+        address: party.address,
+        // Neither crm_companies nor crm_contacts stores a city today, so
+        // CityName goes out empty for both party kinds. Pre-existing gap.
+        city: null as string | null,
+        country: party.country,
+        taxId: party.taxId,
+        taxOffice: party.taxOffice,
+        taxScheme: party.taxScheme,
+      }
+    : undefined;
 
   // Load settings
   const [settings] = await db
@@ -55,19 +75,23 @@ export async function generateEFatura(tenantId: string, invoiceId: string, eFatu
   const { invoice, lineItems, client, settings } = ctx;
 
   if (!settings?.eFaturaEnabled) {
-    throw new Error('e-Fatura is not enabled');
+    throw new EFaturaInputError('e-Fatura is not enabled');
   }
 
   if (!client) {
-    throw new Error(
-      invoice.companyId
-        ? 'Invoice client not found'
-        : 'e-Fatura requires a company recipient; this invoice is billed to an individual',
-    );
+    throw new EFaturaInputError('Invoice client not found');
+  }
+
+  // The tax id is what identifies the party to GİB, so a missing or malformed
+  // one must stop generation here rather than produce a document that will be
+  // rejected — or worse, accepted against the wrong party.
+  const taxIdProblem = describeTaxIdProblem(client.taxId, client.taxScheme);
+  if (taxIdProblem) {
+    throw new EFaturaInputError(taxIdProblem);
   }
 
   if (lineItems.length === 0) {
-    throw new Error('Invoice has no line items');
+    throw new EFaturaInputError('Invoice has no line items');
   }
 
   // Generate UUID if not already set
