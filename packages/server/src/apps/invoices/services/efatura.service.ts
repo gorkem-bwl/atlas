@@ -49,6 +49,10 @@ export async function getEFaturaContext(tenantId: string, invoiceId: string) {
         name: party.name,
         address: party.address,
         city: party.city,
+        // İlçe has no column yet, so this goes out as an empty (but present)
+        // element — which the GİB schema requires. See #32.
+        district: null as string | null,
+        postalCode: party.postalCode,
         country: party.country,
         taxId: party.taxId,
         taxOffice: party.taxOffice,
