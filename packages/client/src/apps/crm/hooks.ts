@@ -16,6 +16,7 @@ export interface CrmCompany {
   taxId: string | null;
   taxOffice: string | null;
   currency: string;
+  city: string | null;
   postalCode: string | null;
   state: string | null;
   country: string | null;
@@ -40,6 +41,7 @@ export interface CrmContact {
   source: string | null;
   tags: string[];
   address: string | null;
+  city: string | null;
   postalCode: string | null;
   state: string | null;
   country: string | null;
@@ -204,7 +206,7 @@ export function useCompany(id: string | undefined) {
 export function useCreateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; domain?: string | null; industry?: string | null; size?: string | null; address?: string | null; phone?: string | null; taxId?: string | null; taxOffice?: string | null; currency?: string; postalCode?: string | null; state?: string | null; country?: string | null; logo?: string | null; tags?: string[] }) => {
+    mutationFn: async (input: { name: string; domain?: string | null; industry?: string | null; size?: string | null; address?: string | null; phone?: string | null; taxId?: string | null; taxOffice?: string | null; currency?: string; city?: string | null; postalCode?: string | null; state?: string | null; country?: string | null; logo?: string | null; tags?: string[] }) => {
       const { data } = await api.post('/crm/companies', input);
       return data.data as CrmCompany;
     },
@@ -217,7 +219,7 @@ export function useCreateCompany() {
 export function useUpdateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; domain: string | null; industry: string | null; size: string | null; address: string | null; phone: string | null; taxId: string | null; taxOffice: string | null; currency: string; postalCode: string | null; state: string | null; country: string | null; logo: string | null; portalToken: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; domain: string | null; industry: string | null; size: string | null; address: string | null; phone: string | null; taxId: string | null; taxOffice: string | null; currency: string; city: string | null; postalCode: string | null; state: string | null; country: string | null; logo: string | null; portalToken: string | null; tags: string[]; sortOrder: number; isArchived: boolean }>) => {
       const { data } = await api.patch(`/crm/companies/${id}`, input, {
         headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
       });
@@ -357,7 +359,7 @@ export function useCompanyRelated(id: string | undefined) {
 export function useCreateContact() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; email?: string | null; phone?: string | null; companyId?: string | null; position?: string | null; source?: string | null; tags?: string[]; address?: string | null; postalCode?: string | null; state?: string | null; country?: string | null }) => {
+    mutationFn: async (input: { name: string; email?: string | null; phone?: string | null; companyId?: string | null; position?: string | null; source?: string | null; tags?: string[]; address?: string | null; city?: string | null; postalCode?: string | null; state?: string | null; country?: string | null }) => {
       const { data } = await api.post('/crm/contacts', input);
       return data.data as CrmContact;
     },
@@ -370,7 +372,7 @@ export function useCreateContact() {
 export function useUpdateContact() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; email: string | null; phone: string | null; companyId: string | null; position: string | null; source: string | null; tags: string[]; sortOrder: number; isArchived: boolean; address: string | null; postalCode: string | null; state: string | null; country: string | null; taxId: string | null; taxOffice: string | null }>) => {
+    mutationFn: async ({ id, updatedAt, ...input }: { id: string; updatedAt?: string } & Partial<{ name: string; email: string | null; phone: string | null; companyId: string | null; position: string | null; source: string | null; tags: string[]; sortOrder: number; isArchived: boolean; address: string | null; city: string | null; postalCode: string | null; state: string | null; country: string | null; taxId: string | null; taxOffice: string | null }>) => {
       const { data } = await api.patch(`/crm/contacts/${id}`, input, {
         headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : undefined,
       });

@@ -1505,7 +1505,8 @@
       "duplicateEmail": "\"{{name}}\" adlı bir kişi zaten bu e-postayı kullanıyor",
       "groupByCompany": "Şirket",
       "notFound": "Kişi bulunamadı",
-      "taxId": "Vergi kimlik no / TCKN"
+      "taxId": "Vergi kimlik no / TCKN",
+      "city": "Şehir"
     },
     "related": {
       "title": "İlgili",
@@ -1539,7 +1540,8 @@
       "logo": "Şirket logosu",
       "portalToken": "Müşteri portal jetonu",
       "regenerateToken": "Jetonu yenile",
-      "notFound": "Şirket bulunamadı"
+      "notFound": "Şirket bulunamadı",
+      "city": "Şehir"
     },
     "confirm": {
       "deleteDeal": "\"{{name}}\" anlaşmasını silmek istediğinizden emin misiniz?",

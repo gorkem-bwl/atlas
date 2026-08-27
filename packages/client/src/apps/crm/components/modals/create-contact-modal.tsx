@@ -25,6 +25,7 @@ export function CreateContactModal({
   const [companyId, setCompanyId] = useState('');
   const [position, setPosition] = useState('');
   const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
@@ -51,6 +52,7 @@ export function CreateContactModal({
       companyId: companyId || null,
       position: position.trim() || null,
       address: address.trim() || null,
+      city: city.trim() || null,
       postalCode: postalCode.trim() || null,
       state: state.trim() || null,
       country: country.trim() || null,
@@ -85,6 +87,7 @@ export function CreateContactModal({
           </div>
           <Input label={t('crm.contacts.position')} value={position} onChange={(e) => setPosition(e.target.value)} placeholder="CTO" />
           <Input label={t('crm.contacts.address')} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main St" />
+          <Input label={t('crm.contacts.city')} value={city} onChange={(e) => setCity(e.target.value)} placeholder="San Francisco" />
           <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
             <div style={{ flex: 1 }}>
               <Input label={t('crm.contacts.postalCode')} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="94105" />

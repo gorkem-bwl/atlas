@@ -1505,7 +1505,8 @@
       "duplicateEmail": "Un contatto chiamato \"{{name}}\" utilizza già questa email",
       "groupByCompany": "Azienda",
       "notFound": "Contatto non trovato",
-      "taxId": "Codice fiscale"
+      "taxId": "Codice fiscale",
+      "city": "Città"
     },
     "related": {
       "title": "Correlati",
@@ -1539,7 +1540,8 @@
       "logo": "Logo aziendale",
       "portalToken": "Token portale clienti",
       "regenerateToken": "Rigenera token",
-      "notFound": "Azienda non trovata"
+      "notFound": "Azienda non trovata",
+      "city": "Città"
     },
     "confirm": {
       "deleteDeal": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata.",

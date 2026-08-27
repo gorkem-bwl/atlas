@@ -86,6 +86,10 @@ export async function generateInvoicePdf(tenantId: string, invoiceId: string): P
       // to fall back on, so this must never render the old 'Unknown'.
       name: party?.name || 'Unknown',
       address: party?.address ?? undefined,
+      // All three templates render "city, state, postal" but this was never
+      // populated, so every invoice PDF printed a recipient address with no
+      // city. See #32.
+      city: party?.city ?? undefined,
       postalCode: party?.postalCode ?? undefined,
       state: party?.state ?? undefined,
       country: party?.country ?? undefined,

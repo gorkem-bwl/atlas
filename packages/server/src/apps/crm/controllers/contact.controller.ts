@@ -58,7 +58,7 @@ export async function createContact(req: Request, res: Response) {
   try {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
-    const { name, email, phone, companyId, position, source, tags, address, postalCode, state, country, taxId, taxOffice } = req.body;
+    const { name, email, phone, companyId, position, source, tags, address, city, postalCode, state, country, taxId, taxOffice } = req.body;
 
     const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'create', perm.entityPermissions)) {
@@ -73,7 +73,7 @@ export async function createContact(req: Request, res: Response) {
 
     const contact = await crmService.createContact(userId, tenantId, {
       name: name.trim(), email, phone, companyId, position, source, tags,
-      address, postalCode, state, country, taxId, taxOffice,
+      address, city, postalCode, state, country, taxId, taxOffice,
     });
 
     if (req.auth!.tenantId) {
@@ -105,7 +105,7 @@ export async function updateContact(req: Request, res: Response) {
     const userId = req.auth!.userId;
     const tenantId = req.auth!.tenantId;
     const id = req.params.id as string;
-    const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived, address, postalCode, state, country, taxId, taxOffice } = req.body;
+    const { name, email, phone, companyId, position, source, tags, sortOrder, isArchived, address, city, postalCode, state, country, taxId, taxOffice } = req.body;
 
     const perm = req.crmPerm!;
     if (!canAccessEntity(perm.role, 'contacts', 'update', perm.entityPermissions)) {
@@ -115,7 +115,7 @@ export async function updateContact(req: Request, res: Response) {
 
     const contact = await crmService.updateContact(userId, tenantId, id, {
       name, email, phone, companyId, position, source, tags, sortOrder, isArchived,
-      address, postalCode, state, country, taxId, taxOffice,
+      address, city, postalCode, state, country, taxId, taxOffice,
     }, perm.recordAccess);
 
     if (!contact) {

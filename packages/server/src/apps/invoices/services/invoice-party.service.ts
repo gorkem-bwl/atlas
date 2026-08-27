@@ -24,6 +24,7 @@ export interface InvoiceParty {
   name: string;
   email: string | null;
   address: string | null;
+  city: string | null;
   postalCode: string | null;
   state: string | null;
   country: string | null;
@@ -79,6 +80,7 @@ export async function resolveInvoiceParty(
         name: company.name,
         email: null, // companies bill through a contact; see resolveAttentionContact
         address: company.address ?? null,
+        city: company.city ?? null,
         postalCode: company.postalCode ?? null,
         state: company.state ?? null,
         country: company.country ?? null,
@@ -106,6 +108,7 @@ export async function resolveInvoiceParty(
         name: contact.name,
         email: contact.email ?? null,
         address: contact.address ?? null,
+        city: contact.city ?? null,
         postalCode: contact.postalCode ?? null,
         state: contact.state ?? null,
         country: contact.country ?? null,

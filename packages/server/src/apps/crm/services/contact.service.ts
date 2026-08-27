@@ -18,6 +18,7 @@ interface CreateContactInput {
   position?: string | null;
   source?: string | null;
   address?: string | null;
+  city?: string | null;
   postalCode?: string | null;
   taxId?: string | null;
   taxOffice?: string | null;
@@ -67,6 +68,7 @@ export async function listContacts(userId: string, tenantId: string, filters?: {
       position: crmContacts.position,
       source: crmContacts.source,
       address: crmContacts.address,
+      city: crmContacts.city,
       postalCode: crmContacts.postalCode,
       taxId: crmContacts.taxId,
       taxOffice: crmContacts.taxOffice,
@@ -104,6 +106,7 @@ export async function getContact(userId: string, tenantId: string, id: string, r
       position: crmContacts.position,
       source: crmContacts.source,
       address: crmContacts.address,
+      city: crmContacts.city,
       postalCode: crmContacts.postalCode,
       taxId: crmContacts.taxId,
       taxOffice: crmContacts.taxOffice,
@@ -131,6 +134,7 @@ export async function getContact(userId: string, tenantId: string, id: string, r
 // import, as a raw driver message in the per-row error list). A mis-mapped
 // import column is the likely cause, so trim and cap rather than reject.
 const ADDRESS_MAX_LENGTHS = {
+  city: 100,
   postalCode: 20,
   state: 100,
   country: 100,
@@ -194,6 +198,7 @@ export async function createContact(userId: string, tenantId: string, input: Cre
       position: input.position ?? null,
       source: input.source ?? null,
       address: input.address?.trim() || null,
+      city: normalizeAddressField(input.city, 'city') ?? null,
       postalCode: normalizeAddressField(input.postalCode, 'postalCode') ?? null,
       taxId: normalizeTaxId(input.taxId) ?? null,
       taxOffice: normalizeAddressField(input.taxOffice, 'taxOffice') ?? null,
@@ -234,6 +239,7 @@ export async function updateContact(userId: string, tenantId: string, id: string
   // (null) and "leave it alone" (absent), which the detail page relies on
   // because its EditableField sends `v || null`.
   if (input.address !== undefined) updates.address = input.address?.trim() || null;
+  if (input.city !== undefined) updates.city = normalizeAddressField(input.city, 'city');
   if (input.postalCode !== undefined) updates.postalCode = normalizeAddressField(input.postalCode, 'postalCode');
   if (input.taxId !== undefined) updates.taxId = normalizeTaxId(input.taxId);
   if (input.taxOffice !== undefined) updates.taxOffice = normalizeAddressField(input.taxOffice, 'taxOffice');
@@ -294,6 +300,7 @@ export async function bulkCreateContacts(
         address: row.address?.trim() || null,
         // The import modal maps by field key, so it always sends camelCase.
         // The snake_case aliases are for callers posting to /import directly.
+        city: row.city?.trim() || null,
         postalCode: (row.postalCode ?? row.postal_code)?.trim() || null,
         state: row.state?.trim() || null,
         country: row.country?.trim() || null,
@@ -330,6 +337,7 @@ export async function mergeContacts(userId: string, tenantId: string, primaryId:
   if (!primary.position && secondary.position) updates.position = secondary.position;
   if (!primary.source && secondary.source) updates.source = secondary.source;
   if (!primary.address && secondary.address) updates.address = secondary.address;
+  if (!primary.city && secondary.city) updates.city = secondary.city;
   if (!primary.postalCode && secondary.postalCode) updates.postalCode = secondary.postalCode;
   if (!primary.state && secondary.state) updates.state = secondary.state;
   if (!primary.country && secondary.country) updates.country = secondary.country;

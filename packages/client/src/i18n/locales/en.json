@@ -1532,7 +1532,8 @@
       "duplicateEmail": "A contact named \"{{name}}\" already uses this email",
       "groupByCompany": "Company",
       "notFound": "Contact not found",
-      "taxId": "Tax ID"
+      "taxId": "Tax ID",
+      "city": "City"
     },
     "related": {
       "title": "Related",
@@ -1566,7 +1567,8 @@
       "logo": "Company logo",
       "portalToken": "Client portal token",
       "regenerateToken": "Regenerate token",
-      "notFound": "Company not found"
+      "notFound": "Company not found",
+      "city": "City"
     },
     "confirm": {
       "deleteDeal": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",

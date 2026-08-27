@@ -48,9 +48,7 @@ export async function getEFaturaContext(tenantId: string, invoiceId: string) {
     ? {
         name: party.name,
         address: party.address,
-        // Neither crm_companies nor crm_contacts stores a city today, so
-        // CityName goes out empty for both party kinds. Pre-existing gap.
-        city: null as string | null,
+        city: party.city,
         country: party.country,
         taxId: party.taxId,
         taxOffice: party.taxOffice,

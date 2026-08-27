@@ -1398,6 +1398,7 @@ export const crmCompanies = pgTable('crm_companies', {
   taxId: varchar('tax_id', { length: 11 }),
   taxOffice: varchar('tax_office', { length: 100 }),
   currency: varchar('currency', { length: 10 }).notNull().default('USD'),
+  city: varchar('city', { length: 100 }),
   postalCode: varchar('postal_code', { length: 20 }),
   state: varchar('state', { length: 100 }),
   country: varchar('country', { length: 100 }),
@@ -1429,6 +1430,7 @@ export const crmContacts = pgTable('crm_contacts', {
   // for them. All nullable — most contacts belong to a company and inherit
   // its address for display purposes.
   address: text('address'),
+  city: varchar('city', { length: 100 }),
   postalCode: varchar('postal_code', { length: 20 }),
   state: varchar('state', { length: 100 }),
   country: varchar('country', { length: 100 }),
