@@ -40,7 +40,7 @@ export function CreateContactModal({
 
   const reset = () => {
     setName(''); setEmail(''); setPhone(''); setCompanyId(''); setPosition('');
-    setAddress(''); setPostalCode(''); setState(''); setCountry('');
+    setAddress(''); setCity(''); setPostalCode(''); setState(''); setCountry('');
   };
 
   const handleSubmit = () => {

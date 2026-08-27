@@ -298,9 +298,9 @@ export async function bulkCreateContacts(
         position: row.position?.trim() || null,
         source: row.source?.trim() || null,
         address: row.address?.trim() || null,
+        city: row.city?.trim() || null,
         // The import modal maps by field key, so it always sends camelCase.
         // The snake_case aliases are for callers posting to /import directly.
-        city: row.city?.trim() || null,
         postalCode: (row.postalCode ?? row.postal_code)?.trim() || null,
         state: row.state?.trim() || null,
         country: row.country?.trim() || null,
