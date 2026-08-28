@@ -378,6 +378,10 @@ export function DealDetailPage({ dealId, onBack, onNavigate }: DealDetailPagePro
                 {t('invoices.title')}
               </span>
             </div>
+            {/* No create affordance here yet, unlike a project's Financials
+                tab which carries projectId/companyId into the builder. The
+                Invoices empty state says so explicitly — if this gains a
+                create button, update invoices.empty.fromWorkDesc to match. */}
             <LinkedInvoicesList
               invoices={dealInvoices}
               isLoading={false}

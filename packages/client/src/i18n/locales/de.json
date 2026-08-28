@@ -1782,8 +1782,6 @@
       "pipelineH1Desc": "Ziehen Sie Geschäfte zwischen Phasen auf einem Kanban-Board",
       "pipelineH2Title": "Umsatzverfolgung",
       "pipelineH2Desc": "Sehen Sie Geschäftswerte und Prognosen auf einen Blick",
-      "pipelineH3Title": "Gewinnraten-Analytik",
-      "pipelineH3Desc": "Verfolgen Sie Konversionsraten in Ihrer Pipeline",
       "createDeal": "Erstes Geschäft erstellen",
       "contactsTitle": "Kontakte verwalten",
       "contactsDesc": "Behalten Sie den Überblick über alle Geschäftspartner",
@@ -1802,7 +1800,9 @@
       "companiesH2Desc": "Firmenlogos automatisch von der Website abrufen",
       "companiesH3Title": "Teamübersicht",
       "companiesH3Desc": "Sehen Sie alle Kontakte und Geschäfte pro Unternehmen",
-      "addCompany": "Erstes Unternehmen hinzufügen"
+      "addCompany": "Erstes Unternehmen hinzufügen",
+      "pipelineFlowTitle": "Wie ein Deal weiterläuft",
+      "pipelineFlowDesc": "Aus einem Lead wird hier ein Deal. Nach dem Gewinn erscheinen Projekte und Rechnungen des Kunden gemeinsam auf dessen CRM-Eintrag."
     },
     "bulk": {
       "deleteTitle": "{{count}} Elemente löschen?",
@@ -4838,8 +4838,8 @@
       "createDesc": "Erstellen Sie professionelle Rechnungen für Ihre Kunden",
       "trackTitle": "Zahlungen verfolgen",
       "trackDesc": "Überwachen Sie den Zahlungsstatus von Entwurf bis bezahlt",
-      "companyTitle": "Mit Unternehmen verknüpfen",
-      "companyDesc": "Verknüpfen Sie Rechnungen mit CRM-Unternehmen"
+      "fromWorkTitle": "Woher Rechnungen kommen",
+      "fromWorkDesc": "Ein Projekt kann sich selbst abrechnen: öffnen Sie es, gehen Sie zu Finanzen und nutzen Sie „Neue Rechnung“ — Projekt und Unternehmen kommen mit. Deals sind noch nicht so verknüpft; rechnen Sie diese hier ab."
     },
     "dashboard": {
       "title": "Dashboard",
@@ -5012,7 +5012,14 @@
       "assigned": "Dir sind noch keine Aufgaben zugewiesen.",
       "created": "Du hast noch keine Aufgaben erstellt.",
       "allTasks": "Noch keine Aufgaben im Arbeitsbereich.",
-      "projects": "Noch keine Projekte."
+      "projects": "Noch keine Projekte.",
+      "projectsDesc": "In Projekten wird gewonnene Arbeit geplant, verteilt und verfolgt.",
+      "fromDealTitle": "Projekte gehören zu einem Kunden",
+      "fromDealDesc": "Verknüpfen Sie ein Projekt mit einem CRM-Unternehmen, dann erscheint es beim Kunden neben dessen Deals und Rechnungen — die Arbeit eines Kunden an einem Ort.",
+      "tasksTitle": "Arbeit in Aufgaben aufteilen",
+      "tasksDesc": "Aufgaben zuweisen, Fristen setzen und Zeiten erfassen.",
+      "toInvoiceTitle": "Die Arbeit abrechnen",
+      "toInvoiceDesc": "Machen Sie aus einem fertigen Projekt — oder seiner erfassten Zeit — eine Rechnung."
     },
     "loading": "Wird geladen…",
     "projectNotFound": "Projekt nicht gefunden",

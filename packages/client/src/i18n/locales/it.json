@@ -1782,8 +1782,6 @@
       "pipelineH1Desc": "Trascina le trattative tra le fasi su una bacheca kanban",
       "pipelineH2Title": "Monitoraggio ricavi",
       "pipelineH2Desc": "Visualizza valori e previsioni a colpo d'occhio",
-      "pipelineH3Title": "Analisi del tasso di successo",
-      "pipelineH3Desc": "Monitora i tassi di conversione nella tua pipeline",
       "createDeal": "Crea la prima trattativa",
       "contactsTitle": "Gestisci i tuoi contatti",
       "contactsDesc": "Tieni traccia di ogni persona con cui fai affari",
@@ -1802,7 +1800,9 @@
       "companiesH2Desc": "Recupera automaticamente i loghi aziendali dal sito web",
       "companiesH3Title": "Panoramica del team",
       "companiesH3Desc": "Visualizza tutti i contatti e le trattative per ogni azienda",
-      "addCompany": "Aggiungi la prima azienda"
+      "addCompany": "Aggiungi la prima azienda",
+      "pipelineFlowTitle": "Come si muove una trattativa",
+      "pipelineFlowDesc": "Un lead diventa una trattativa qui. Una volta vinta, progetti e fatture del cliente compaiono insieme sulla sua scheda CRM."
     },
     "bulk": {
       "deleteTitle": "Eliminare {{count}} elementi?",
@@ -4838,8 +4838,8 @@
       "createDesc": "Genera fatture professionali per i tuoi clienti",
       "trackTitle": "Monitora i pagamenti",
       "trackDesc": "Monitora lo stato del pagamento dalla bozza al pagato",
-      "companyTitle": "Collega alle aziende",
-      "companyDesc": "Associa le fatture alle aziende CRM"
+      "fromWorkTitle": "Da dove arrivano le fatture",
+      "fromWorkDesc": "Un progetto può fatturarsi da solo: aprilo, vai su Finanze e usa \"Nuova fattura\" — progetto e azienda lo seguono. Le trattative non sono ancora collegate così: fatturale da qui."
     },
     "dashboard": {
       "title": "Pannello di controllo",
@@ -5012,7 +5012,14 @@
       "assigned": "Non ti è stata ancora assegnata alcuna attività.",
       "created": "Non hai ancora creato alcuna attività.",
       "allTasks": "Nessuna attività nell’area di lavoro.",
-      "projects": "Nessun progetto ancora."
+      "projects": "Nessun progetto ancora.",
+      "projectsDesc": "Nei progetti il lavoro acquisito viene pianificato, assegnato e monitorato.",
+      "fromDealTitle": "I progetti appartengono a un cliente",
+      "fromDealDesc": "Collega un progetto a un'azienda del CRM e comparirà sulla sua scheda insieme a trattative e fatture — il lavoro di un cliente in un unico posto.",
+      "tasksTitle": "Dividi il lavoro in attività",
+      "tasksDesc": "Assegna attività, imposta scadenze e registra il tempo.",
+      "toInvoiceTitle": "Fattura il lavoro",
+      "toInvoiceDesc": "Trasforma un progetto concluso — o il tempo registrato — in una fattura."
     },
     "loading": "Caricamento…",
     "projectNotFound": "Progetto non trovato",

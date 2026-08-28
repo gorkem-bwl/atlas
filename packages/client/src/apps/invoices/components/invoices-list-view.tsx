@@ -100,9 +100,12 @@ export function InvoicesListView({ invoices, onOpenDetail, selectedId, onAdd, on
         title={t('invoices.empty.noInvoices')}
         description={t('invoices.empty.noInvoicesDescription')}
         highlights={[
+          // Where invoices come from leads, because "New invoice" alone does
+          // not tell a new user that a won deal or a finished project is the
+          // usual starting point — the gap reported in #25.
+          { icon: <Link2 size={14} />, title: t('invoices.empty.fromWorkTitle'), description: t('invoices.empty.fromWorkDesc') },
           { icon: <FileText size={14} />, title: t('invoices.empty.createTitle'), description: t('invoices.empty.createDesc') },
           { icon: <DollarSign size={14} />, title: t('invoices.empty.trackTitle'), description: t('invoices.empty.trackDesc') },
-          { icon: <Building2 size={14} />, title: t('invoices.empty.companyTitle'), description: t('invoices.empty.companyDesc') },
         ]}
         actionLabel={onAdd ? t('invoices.builder.createInvoice') : undefined}
         actionIcon={onAdd ? <Plus size={14} /> : undefined}
