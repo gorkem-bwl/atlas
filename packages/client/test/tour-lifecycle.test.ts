@@ -3,8 +3,28 @@ import { describe, it, expect, vi } from 'vitest';
 // The module pulls in the app registry and React Query at import time; none of
 // that is needed to exercise the pure step builder.
 vi.mock('../src/lib/api-client', () => ({ api: { get: vi.fn() } }));
-vi.mock('../src/apps', () => ({ appRegistry: { getAll: () => [] } }));
 vi.mock('../src/hooks/use-app-permissions', () => ({ useMyAccessibleApps: vi.fn() }));
+vi.mock('../src/providers/query-provider', () => ({
+  queryClient: { getQueryData: () => undefined },
+}));
+
+// Stage colours are read from the registry rather than copied, so the mock
+// carries the real manifest values — that link between a stage dot and its
+// dock icon is what the colours are for.
+const MANIFEST_COLORS: Record<string, string> = {
+  crm: '#f97316',
+  work: '#6366f1',
+  invoices: '#0ea5e9',
+};
+vi.mock('../src/apps', () => ({
+  appRegistry: {
+    getAll: () => [],
+    get: (id: string) => {
+      const color = ({ crm: '#f97316', work: '#6366f1', invoices: '#0ea5e9' } as Record<string, string>)[id];
+      return color ? { id, color } : undefined;
+    },
+  },
+}));
 
 const { buildLifecycleStep } = await import('../src/components/tour/use-tour-bootstrap');
 
@@ -62,14 +82,20 @@ describe('buildLifecycleStep', () => {
     expect(buildLifecycleStep(only('invoices'))).toBeNull();
   });
 
-  it('still renders for CRM alone, which owns two stages', () => {
-    // Lead and deal are both CRM, so the flow is meaningful even without the
-    // other apps — this is the case the "at least two stages" rule exists for.
-    const step = buildLifecycleStep(only('crm'));
+  it('returns null for CRM alone, despite it owning two stages', () => {
+    // Lead and deal are both CRM, so a stage COUNT of two would admit this —
+    // but the step claims "each stage lives in a different app", which would
+    // be untrue for that viewer, and it would sit right before CRM's own tour
+    // card. The guard counts distinct apps for exactly this case.
+    expect(buildLifecycleStep(only('crm'))).toBeNull();
+  });
+
+  it('renders once a second app joins CRM', () => {
+    const step = buildLifecycleStep(only('crm', 'invoices'));
     expect(step).not.toBeNull();
     const stages = (step!.config as { illustrationData: { stages: { appId: string }[] } })
       .illustrationData.stages;
-    expect(stages).toHaveLength(2);
+    expect(stages.map((s) => s.appId)).toEqual(['crm', 'crm', 'invoices']);
   });
 
   it('anchors to the first surviving stage, not a hardcoded app', () => {
@@ -82,6 +108,18 @@ describe('buildLifecycleStep', () => {
   it('colours the anchor to match its stage', () => {
     expect(buildLifecycleStep(all)!.appColor).toBe('#f97316'); // CRM orange
     expect(buildLifecycleStep(only('work', 'invoices'))!.appColor).toBe('#6366f1'); // Work indigo
+  });
+
+  it('takes stage colours from the app manifests, not copies of them', () => {
+    // Hardcoding these would let a manifest colour change silently desync the
+    // stage dot from the dock icon it points at.
+    const step = buildLifecycleStep(all)!;
+    const stages = (step.config as {
+      illustrationData: { stages: { appId: string; color: string }[] };
+    }).illustrationData.stages;
+    for (const stage of stages) {
+      expect(stage.color, stage.appId).toBe(MANIFEST_COLORS[stage.appId]);
+    }
   });
 
   it('uses i18n keys throughout, never literal copy', () => {

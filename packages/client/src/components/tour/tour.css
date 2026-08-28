@@ -551,6 +551,12 @@
   min-width: 0;
 }
 
+/* The last stage has no connector below it, so its padding would add to the
+   container's own and leave the block sitting visibly high. */
+.tour-illust-flow-stage:last-child .tour-illust-flow-text {
+  padding-bottom: 0;
+}
+
 .tour-illust-flow-label {
   font-size: 12px;
   font-weight: var(--font-weight-semibold);
