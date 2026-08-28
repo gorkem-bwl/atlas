@@ -192,6 +192,11 @@ export function CompanyDetailPage({ companyId, onBack, onNavigate, onContactClic
                 onSave={(v) => updateCompany.mutate({ id: company.id, updatedAt: company.updatedAt, currency: v || undefined })}
               />
               <EditableField
+                label={t('crm.companies.city')}
+                value={company.city || ''}
+                onSave={(v) => updateCompany.mutate({ id: company.id, updatedAt: company.updatedAt, city: v || null })}
+              />
+              <EditableField
                 label={t('crm.companies.postalCode')}
                 value={company.postalCode || ''}
                 onSave={(v) => updateCompany.mutate({ id: company.id, updatedAt: company.updatedAt, postalCode: v || null })}

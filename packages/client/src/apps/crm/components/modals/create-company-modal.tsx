@@ -22,13 +22,14 @@ export function CreateCompanyModal({
   const [taxId, setTaxId] = useState('');
   const [taxOffice, setTaxOffice] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('');
   const [logo, setLogo] = useState('');
   const createCompany = useCreateCompany();
 
-  const reset = () => { setName(''); setDomain(''); setIndustry(''); setSize(''); setAddress(''); setPhone(''); setTaxId(''); setTaxOffice(''); setCurrency('USD'); setPostalCode(''); setState(''); setCountry(''); setLogo(''); };
+  const reset = () => { setName(''); setDomain(''); setIndustry(''); setSize(''); setAddress(''); setPhone(''); setTaxId(''); setTaxOffice(''); setCurrency('USD'); setCity(''); setPostalCode(''); setState(''); setCountry(''); setLogo(''); };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -42,6 +43,7 @@ export function CreateCompanyModal({
       taxId: taxId.trim() || null,
       taxOffice: taxOffice.trim() || null,
       currency: currency || 'USD',
+      city: city.trim() || null,
       postalCode: postalCode.trim() || null,
       state: state.trim() || null,
       country: country.trim() || null,
@@ -103,6 +105,7 @@ export function CreateCompanyModal({
                   />
                 </div>
               </div>
+              <Input label={t('crm.companies.city')} value={city} onChange={(e) => setCity(e.target.value)} />
               <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
                 <Input label={t('crm.companies.postalCode')} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} style={{ flex: 1 }} />
                 <Input label={t('crm.companies.state')} value={state} onChange={(e) => setState(e.target.value)} style={{ flex: 1 }} />

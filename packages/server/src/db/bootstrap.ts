@@ -391,6 +391,11 @@ async function migrateLegacyData() {
   await addColumnIfMissing('crm_contacts', 'postal_code', 'varchar(20)');
   await addColumnIfMissing('crm_contacts', 'state', 'varchar(100)');
   await addColumnIfMissing('crm_contacts', 'country', 'varchar(100)');
+  // City (il). Added to both CRM tables together: the invoice PDF and the
+  // UBL-TR PostalAddress both render a recipient city, and until now it was
+  // blank for every invoice because neither table stored one.
+  await addColumnIfMissing('crm_contacts', 'city', 'varchar(100)');
+  await addColumnIfMissing('crm_companies', 'city', 'varchar(100)');
   // Billing identity + portal access for contacts, so an invoice addressed to
   // an individual can print a tax line and be emailed/shared like a company's.
   await addColumnIfMissing('crm_contacts', 'tax_id', 'varchar(11)');

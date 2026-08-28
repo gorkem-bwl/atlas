@@ -1505,7 +1505,8 @@
       "duplicateEmail": "Un contact nommé \"{{name}}\" utilise déjà cet e-mail",
       "groupByCompany": "Entreprise",
       "notFound": "Contact introuvable",
-      "taxId": "Numéro fiscal"
+      "taxId": "Numéro fiscal",
+      "city": "Ville"
     },
     "related": {
       "title": "Associés",
@@ -1539,7 +1540,8 @@
       "logo": "Logo de l'entreprise",
       "portalToken": "Jeton du portail client",
       "regenerateToken": "Régénérer le jeton",
-      "notFound": "Entreprise introuvable"
+      "notFound": "Entreprise introuvable",
+      "city": "Ville"
     },
     "confirm": {
       "deleteDeal": "Voulez-vous vraiment supprimer \"{{name}}\" ? Cette action est irréversible.",

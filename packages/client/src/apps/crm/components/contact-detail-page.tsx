@@ -187,6 +187,11 @@ export function ContactDetailPage({ contactId, onBack, onNavigate, onCompanyClic
               onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, address: v || null })}
             />
             <EditableField
+              label={t('crm.contacts.city')}
+              value={contact.city || ''}
+              onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, city: v || null })}
+            />
+            <EditableField
               label={t('crm.contacts.postalCode')}
               value={contact.postalCode || ''}
               onSave={(v) => updateContact.mutate({ id: contact.id, updatedAt: contact.updatedAt, postalCode: v || null })}

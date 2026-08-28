@@ -17,6 +17,7 @@ interface CreateCompanyInput {
   taxId?: string | null;
   taxOffice?: string | null;
   currency?: string;
+  city?: string | null;
   postalCode?: string | null;
   state?: string | null;
   country?: string | null;
@@ -63,6 +64,7 @@ export async function listCompanies(userId: string, tenantId: string, filters?: 
     taxId: crmCompanies.taxId,
     taxOffice: crmCompanies.taxOffice,
     currency: crmCompanies.currency,
+    city: crmCompanies.city,
     postalCode: crmCompanies.postalCode,
     state: crmCompanies.state,
     country: crmCompanies.country,
@@ -118,6 +120,7 @@ export async function getCompany(userId: string, tenantId: string, id: string, r
       taxId: crmCompanies.taxId,
       taxOffice: crmCompanies.taxOffice,
       currency: crmCompanies.currency,
+      city: crmCompanies.city,
       postalCode: crmCompanies.postalCode,
       state: crmCompanies.state,
       country: crmCompanies.country,
@@ -162,6 +165,7 @@ export async function createCompany(userId: string, tenantId: string, input: Cre
       taxId: input.taxId ?? null,
       taxOffice: input.taxOffice ?? null,
       currency: input.currency ?? 'USD',
+      city: input.city ?? null,
       postalCode: input.postalCode ?? null,
       state: input.state ?? null,
       country: input.country ?? null,
@@ -191,6 +195,7 @@ export async function updateCompany(userId: string, tenantId: string, id: string
   if (input.taxId !== undefined) updates.taxId = input.taxId;
   if (input.taxOffice !== undefined) updates.taxOffice = input.taxOffice;
   if (input.currency !== undefined) updates.currency = input.currency;
+  if (input.city !== undefined) updates.city = input.city;
   if (input.postalCode !== undefined) updates.postalCode = input.postalCode;
   if (input.state !== undefined) updates.state = input.state;
   if (input.country !== undefined) updates.country = input.country;

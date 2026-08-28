@@ -16,6 +16,8 @@ interface Client {
   name: string;
   address?: string | null;
   city?: string | null;
+  /** İlçe. Mandatory in the GİB schema alongside city — see buildPostalAddress. */
+  district?: string | null;
   country?: string | null;
   taxId?: string | null;
   taxOffice?: string | null;
@@ -89,6 +91,52 @@ function splitPersonName(name: string): { firstName: string; familyName: string 
 }
 
 /**
+ * <cac:PostalAddress> for either party.
+ *
+ * GİB's UBL-TR package tightens the stock OASIS schema: in
+ * UBLTR_1.2.1/xsdrt/common/UBL-CommonAggregateComponents-2.1.xsd, AddressType
+ * leaves CitySubdivisionName, CityName and Country at the default minOccurs=1,
+ * where plain UBL 2.1 marks them optional. All three must therefore be PRESENT.
+ *
+ * Present, not populated: the element types carry no minLength facet, so an
+ * empty element validates while a missing one is a hard XSD failure. When a
+ * value is unknown the correct output is an empty element — never omission.
+ * (Note the reverse of what one might assume; the "must not be empty" rule
+ * that circulates applies to e-İrsaliye DeliveryAddress, not to invoices.)
+ *
+ * Order is an xsd:sequence and is binding. CitySubdivisionName precedes
+ * CityName — ilçe before il, the reverse of how they are usually spoken.
+ * Optional elements are emitted only when they have a value, which keeps the
+ * document clean without risking the mandatory three.
+ */
+function buildPostalAddress(party: {
+  address?: string | null;
+  district?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+}): string {
+  // Optional: emit only when populated.
+  const streetName = party.address
+    ? `
+        <cbc:StreetName>${escapeXml(party.address)}</cbc:StreetName>`
+    : '';
+  const postalZone = party.postalCode
+    ? `
+        <cbc:PostalZone>${escapeXml(party.postalCode)}</cbc:PostalZone>`
+    : '';
+
+  // Mandatory: always present, even when we have no value to put in them.
+  return `      <cac:PostalAddress>${streetName}
+        <cbc:CitySubdivisionName>${escapeXml(party.district)}</cbc:CitySubdivisionName>
+        <cbc:CityName>${escapeXml(party.city)}</cbc:CityName>${postalZone}
+        <cac:Country>
+          <cbc:Name>${escapeXml(party.country || 'TR')}</cbc:Name>
+        </cac:Country>
+      </cac:PostalAddress>`;
+}
+
+/**
  * The <cac:Party> body for the invoice recipient.
  *
  * A company and a natural person are structurally different documents here,
@@ -144,13 +192,7 @@ function buildCustomerParty(client: Client): string {
       <cac:PartyIdentification>
         <cbc:ID schemeID="${scheme}">${escapeXml(client.taxId)}</cbc:ID>
       </cac:PartyIdentification>${partyName}
-      <cac:PostalAddress>
-        <cbc:StreetName>${escapeXml(client.address)}</cbc:StreetName>
-        <cbc:CityName>${escapeXml(client.city)}</cbc:CityName>
-        <cac:Country>
-          <cbc:Name>${escapeXml(client.country || 'TR')}</cbc:Name>
-        </cac:Country>
-      </cac:PostalAddress>${partyTaxScheme}${person}
+${buildPostalAddress(client)}${partyTaxScheme}${person}
     </cac:Party>`;
 }
 
@@ -264,13 +306,11 @@ export function generateUblXml(
       <cac:PartyName>
         <cbc:Name>${escapeXml(companySettings.companyName)}</cbc:Name>
       </cac:PartyName>
-      <cac:PostalAddress>
-        <cbc:StreetName>${escapeXml(companySettings.companyAddress)}</cbc:StreetName>
-        <cbc:CityName>${escapeXml(companySettings.companyCity)}</cbc:CityName>
-        <cac:Country>
-          <cbc:Name>${escapeXml(companySettings.companyCountry || 'TR')}</cbc:Name>
-        </cac:Country>
-      </cac:PostalAddress>
+${buildPostalAddress({
+        address: companySettings.companyAddress,
+        city: companySettings.companyCity,
+        country: companySettings.companyCountry,
+      })}
       <cac:PartyTaxScheme>
         <cbc:CompanyID>${escapeXml(companySettings.companyTaxId)}</cbc:CompanyID>
         <cac:TaxScheme>
