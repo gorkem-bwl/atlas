@@ -1770,8 +1770,6 @@
       "pipelineH1Desc": "Glissez les affaires entre les étapes sur un tableau kanban",
       "pipelineH2Title": "Suivi des revenus",
       "pipelineH2Desc": "Voyez les valeurs et les prévisions d'un coup d'œil",
-      "pipelineH3Title": "Analytique du taux de réussite",
-      "pipelineH3Desc": "Suivez les taux de conversion dans votre pipeline",
       "createDeal": "Créer la première affaire",
       "contactsTitle": "Gérez vos contacts",
       "contactsDesc": "Gardez une trace de chaque personne avec qui vous faites affaire",
@@ -1790,7 +1788,9 @@
       "companiesH2Desc": "Récupérez automatiquement les logos d'entreprise depuis leur site web",
       "companiesH3Title": "Vue d'ensemble de l'équipe",
       "companiesH3Desc": "Voyez tous les contacts et affaires de chaque entreprise",
-      "addCompany": "Ajouter la première entreprise"
+      "addCompany": "Ajouter la première entreprise",
+      "pipelineFlowTitle": "Le parcours d'une affaire",
+      "pipelineFlowDesc": "Une piste devient une affaire ici. Une fois gagnée, les projets et factures du client apparaissent ensemble sur sa fiche CRM."
     },
     "bulk": {
       "deleteTitle": "Supprimer {{count}} éléments ?",
@@ -4826,8 +4826,8 @@
       "createDesc": "Générez des factures professionnelles pour vos clients",
       "trackTitle": "Suivre les paiements",
       "trackDesc": "Surveillez le statut de paiement du brouillon au payé",
-      "companyTitle": "Lier aux entreprises",
-      "companyDesc": "Associez les factures aux entreprises CRM"
+      "fromWorkTitle": "D'où viennent les factures",
+      "fromWorkDesc": "Un projet peut se facturer lui-même : ouvrez-le, allez dans Finances et utilisez « Nouvelle facture » — le projet et l'entreprise suivent. Les affaires ne sont pas encore reliées ainsi, facturez-les depuis ici."
     },
     "dashboard": {
       "title": "Tableau de bord",
@@ -5000,7 +5000,14 @@
       "assigned": "Aucune tâche ne vous est assignée pour l’instant.",
       "created": "Vous n’avez encore créé aucune tâche.",
       "allTasks": "Aucune tâche dans l’espace de travail.",
-      "projects": "Aucun projet pour le moment."
+      "projects": "Aucun projet pour le moment.",
+      "projectsDesc": "Les projets, c'est là que le travail gagné se planifie, s'attribue et se suit.",
+      "fromDealTitle": "Un projet appartient à un client",
+      "fromDealDesc": "Reliez un projet à une entreprise du CRM et il apparaît sur la fiche de ce client, à côté de ses affaires et de ses factures — tout le travail d'un client au même endroit.",
+      "tasksTitle": "Découper le travail en tâches",
+      "tasksDesc": "Attribuez des tâches, fixez des échéances et enregistrez le temps passé.",
+      "toInvoiceTitle": "Facturer le travail",
+      "toInvoiceDesc": "Transformez un projet terminé — ou le temps enregistré — en facture."
     },
     "loading": "Chargement…",
     "projectNotFound": "Projet introuvable",

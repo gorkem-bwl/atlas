@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatCurrency } from '../../../../lib/format';
 import {
-  Briefcase, Building2, Users, Plus, LayoutGrid, BarChart3, Target,
+  Briefcase, Building2, Users, Plus, LayoutGrid, BarChart3, Link2,
   DollarSign, Calendar,
 } from 'lucide-react';
 import {
@@ -74,9 +74,12 @@ export function DealsListView({
         title={t('crm.empty.pipelineTitle')}
         description={t('crm.empty.pipelineDesc')}
         highlights={[
+          // Where a deal comes from, and where a won one goes. The other tips
+          // describe what the pipeline does; this one places it in the
+          // lifecycle, which is what #25 found missing.
+          { icon: <Link2 size={14} />, title: t('crm.empty.pipelineFlowTitle'), description: t('crm.empty.pipelineFlowDesc') },
           { icon: <LayoutGrid size={14} />, title: t('crm.empty.pipelineH1Title'), description: t('crm.empty.pipelineH1Desc') },
           { icon: <BarChart3 size={14} />, title: t('crm.empty.pipelineH2Title'), description: t('crm.empty.pipelineH2Desc') },
-          { icon: <Target size={14} />, title: t('crm.empty.pipelineH3Title'), description: t('crm.empty.pipelineH3Desc') },
         ]}
         actionLabel={canEdit ? t('crm.empty.createDeal') : undefined}
         actionIcon={canEdit ? <Plus size={14} /> : undefined}

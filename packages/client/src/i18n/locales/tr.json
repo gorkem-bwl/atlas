@@ -1770,8 +1770,6 @@
       "pipelineH1Desc": "Anlaşmaları kanban panosunda aşamalar arasında sürükleyin",
       "pipelineH2Title": "Gelir takibi",
       "pipelineH2Desc": "Anlaşma değerlerini ve tahminleri bir bakışta görün",
-      "pipelineH3Title": "Kazanma oranı analitiği",
-      "pipelineH3Desc": "Hattınızdaki dönüşüm oranlarını takip edin",
       "createDeal": "İlk anlaşmayı oluştur",
       "contactsTitle": "Kişilerinizi yönetin",
       "contactsDesc": "İş yaptığınız herkesi takip edin",
@@ -1790,7 +1788,9 @@
       "companiesH2Desc": "Şirket logolarını web sitelerinden otomatik olarak alın",
       "companiesH3Title": "Ekip genel bakışı",
       "companiesH3Desc": "Her şirket için tüm kişileri ve anlaşmaları görün",
-      "addCompany": "İlk şirketi ekle"
+      "addCompany": "İlk şirketi ekle",
+      "pipelineFlowTitle": "Bir fırsat nasıl ilerler",
+      "pipelineFlowDesc": "Aday müşteri burada fırsata dönüşür. Kazandığınızda, müşterinin projeleri ve faturaları CRM kaydında bir arada görünür."
     },
     "bulk": {
       "deleteTitle": "{{count}} öğe silinsin mi?",
@@ -4826,8 +4826,8 @@
       "createDesc": "Müşterileriniz için profesyonel faturalar oluşturun",
       "trackTitle": "Ödemeleri takip edin",
       "trackDesc": "Taslaktan ödemeye kadar ödeme durumunu izleyin",
-      "companyTitle": "Şirketlere bağlayın",
-      "companyDesc": "Faturaları CRM şirketleriyle ilişkilendirin"
+      "fromWorkTitle": "Faturalar nereden gelir",
+      "fromWorkDesc": "Bir proje kendini faturalandırabilir: projeyi açın, Finans sekmesine gidin ve \"Yeni fatura\"yı kullanın — proje ve şirket bilgileri birlikte gelir. Fırsatlar henüz bu şekilde bağlı değil, onları buradan faturalandırın."
     },
     "dashboard": {
       "title": "Kontrol paneli",
@@ -5000,7 +5000,14 @@
       "assigned": "Size henüz hiçbir görev atanmadı.",
       "created": "Henüz hiç görev oluşturmadınız.",
       "allTasks": "Çalışma alanında henüz görev yok.",
-      "projects": "Henüz proje yok."
+      "projects": "Henüz proje yok.",
+      "projectsDesc": "Projeler, kazanılan işin planlandığı, atandığı ve takip edildiği yerdir.",
+      "fromDealTitle": "Projeler bir müşteriye aittir",
+      "fromDealDesc": "Bir projeyi CRM şirketine bağlayın; proje, o müşterinin kaydında fırsatları ve faturalarıyla birlikte görünür — böylece bir müşterinin işi tek yerde toplanır.",
+      "tasksTitle": "İşi görevlere bölün",
+      "tasksDesc": "Görev atayın, son tarih belirleyin ve üzerlerine süre kaydedin.",
+      "toInvoiceTitle": "İşi faturalandırın",
+      "toInvoiceDesc": "Tamamlanan bir projeyi — ya da kaydedilen süresini — faturaya dönüştürün."
     },
     "loading": "Yükleniyor…",
     "projectNotFound": "Proje bulunamadı",

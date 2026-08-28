@@ -1829,8 +1829,6 @@
       "pipelineH1Desc": "Drag deals between stages on a kanban board",
       "pipelineH2Title": "Revenue tracking",
       "pipelineH2Desc": "See deal values and forecasts at a glance",
-      "pipelineH3Title": "Win rate analytics",
-      "pipelineH3Desc": "Track conversion rates across your pipeline",
       "createDeal": "Create first deal",
       "contactsTitle": "Manage your contacts",
       "contactsDesc": "Keep track of every person you do business with",
@@ -1849,7 +1847,9 @@
       "companiesH2Desc": "Auto-fetch company logos from their website",
       "companiesH3Title": "Team overview",
       "companiesH3Desc": "See all contacts and deals for each company",
-      "addCompany": "Add first company"
+      "addCompany": "Add first company",
+      "pipelineFlowTitle": "How a deal moves",
+      "pipelineFlowDesc": "A lead becomes a deal here. Win it, and the customer's projects and invoices show up together on their CRM record."
     },
     "bulk": {
       "deleteTitle": "Delete {{count}} items?",
@@ -4826,8 +4826,8 @@
       "createDesc": "Generate professional invoices for your clients",
       "trackTitle": "Track payments",
       "trackDesc": "Monitor payment status from draft to paid",
-      "companyTitle": "Link to companies",
-      "companyDesc": "Associate invoices with CRM companies"
+      "fromWorkTitle": "Where invoices come from",
+      "fromWorkDesc": "A project can bill itself: open it, go to Financials and use \"New invoice\" — the project and company come across with it. Deals are not wired up this way yet, so invoice those from here."
     },
     "dashboard": {
       "title": "Dashboard",
@@ -5000,7 +5000,14 @@
       "assigned": "Nothing assigned to you yet.",
       "created": "You haven’t created any tasks yet.",
       "allTasks": "No tasks in the workspace yet.",
-      "projects": "No projects yet."
+      "projects": "No projects yet.",
+      "projectsDesc": "Projects are where won work gets planned, assigned and tracked.",
+      "fromDealTitle": "Projects belong to a customer",
+      "fromDealDesc": "Link a project to a CRM company and it shows up on that customer's record alongside their deals and invoices — so one customer's work is visible in one place.",
+      "tasksTitle": "Break work into tasks",
+      "tasksDesc": "Assign tasks, set due dates and log time against them.",
+      "toInvoiceTitle": "Bill the work",
+      "toInvoiceDesc": "Turn a finished project — or its logged time — into an invoice."
     },
     "loading": "Loading…",
     "projectNotFound": "Project not found",

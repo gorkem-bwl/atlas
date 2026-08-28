@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Plus, Link2, ListChecks, Receipt } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Textarea } from '../../../components/ui/textarea';
@@ -195,6 +195,14 @@ export function ProjectsListView() {
         <FeatureEmptyState
           illustration="tasks"
           title={t('work.empty.projects')}
+          description={t('work.empty.projectsDesc')}
+          highlights={[
+            // A project is usually the next step after winning a deal, and
+            // nothing here said so — see #25.
+            { icon: <Link2 size={14} />, title: t('work.empty.fromDealTitle'), description: t('work.empty.fromDealDesc') },
+            { icon: <ListChecks size={14} />, title: t('work.empty.tasksTitle'), description: t('work.empty.tasksDesc') },
+            { icon: <Receipt size={14} />, title: t('work.empty.toInvoiceTitle'), description: t('work.empty.toInvoiceDesc') },
+          ]}
           actionLabel={canCreate ? t('work.sidebar.newProject') : undefined}
           actionIcon={canCreate ? <Plus size={13} /> : undefined}
           onAction={canCreate ? () => setCreateOpen(true) : undefined}
