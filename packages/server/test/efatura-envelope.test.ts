@@ -131,6 +131,50 @@ describe('cac:Signature', () => {
   });
 });
 
+describe('cbc:Note ordering', () => {
+  // Notes were emitted after LineCountNumeric, but the InvoiceType sequence
+  // puts Note immediately after InvoiceTypeCode and BEFORE
+  // DocumentCurrencyCode. So any invoice with notes — a plain user action —
+  // failed validation, while the fixtures used to verify this change all
+  // happened to omit them. Caught in review; pinned here.
+  const withNote = () =>
+    generateUblXml({ ...INVOICE, notes: 'Teşekkürler' }, LINE_ITEMS, CLIENT, SETTINGS);
+
+  it('places Note between InvoiceTypeCode and DocumentCurrencyCode', () => {
+    const doc = withNote();
+    const note = doc.indexOf('<cbc:Note>');
+    expect(note).toBeGreaterThan(doc.indexOf('<cbc:InvoiceTypeCode>'));
+    expect(note).toBeLessThan(doc.indexOf('<cbc:DocumentCurrencyCode>'));
+    expect(note).toBeLessThan(doc.indexOf('<cbc:LineCountNumeric>'));
+  });
+
+  it('omits Note entirely when there are none', () => {
+    expect(xml()).not.toContain('<cbc:Note>');
+  });
+
+  it('escapes markup in notes', () => {
+    const doc = generateUblXml(
+      { ...INVOICE, notes: 'a & b <c>' },
+      LINE_ITEMS,
+      CLIENT,
+      SETTINGS,
+    );
+    expect(doc).toContain('&amp;');
+    expect(doc).toContain('&lt;c&gt;');
+  });
+});
+
+describe('signature reference resolves', () => {
+  it('anchors #Signature to the placeholder Id, rather than dangling', () => {
+    // DigitalSignatureAttachment is mandatory in SignatureType (removing it
+    // fails validation), so the URI has to point somewhere real. It targets
+    // the placeholder that a genuine signature replaces.
+    const doc = xml();
+    expect(doc).toContain('<cbc:URI>#Signature</cbc:URI>');
+    expect(doc).toContain('Id="Signature"');
+  });
+});
+
 describe('document remains well-formed with sparse data', () => {
   it('emits both mandatory elements even when the client has nothing set', () => {
     const bare = {

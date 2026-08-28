@@ -102,10 +102,11 @@ function splitPersonName(name: string): { firstName: string; familyName: string 
  * portal upload — and requires a qualified certificate (mali mühür / e-imza)
  * that Atlas does not hold.
  *
- * The element cannot simply be dropped: ExtensionContent requires exactly one
- * child from another namespace, and UBLExtensions itself is minOccurs=1, so
- * omitting it fails schema validation outright and the document cannot even
- * be opened by the tools meant to sign it.
+ * The element cannot simply be dropped. ExtensionContent requires exactly one
+ * child from another namespace, and GİB's package raises UBLExtensions to
+ * minOccurs=1 (stock OASIS UBL leaves it optional), so omitting it fails
+ * validation outright and the document cannot even be opened by the tools
+ * meant to sign it.
  *
  * So this emits a placeholder that is deliberately conspicuous. It is not a
  * signature and must not be mistaken for one: the element name says so, and
@@ -116,7 +117,7 @@ function buildUblExtensions(): string {
   return `  <ext:UBLExtensions>
     <ext:UBLExtension>
       <ext:ExtensionContent>
-        <UnsignedPlaceholder xmlns="urn:atlas:efatura:unsigned">
+        <UnsignedPlaceholder xmlns="urn:atlas:efatura:unsigned" Id="Signature">
           <Note>This document is unsigned. A XADES-BES signature must be applied by the filer before submission to GIB.</Note>
         </UnsignedPlaceholder>
       </ext:ExtensionContent>
@@ -150,6 +151,10 @@ ${buildPostalAddress({
     </cac:SignatoryParty>
     <cac:DigitalSignatureAttachment>
       <cac:ExternalReference>
+        <!-- Points at the Id on the UBLExtensions placeholder above, which is
+             the anchor a real signature replaces. DigitalSignatureAttachment
+             is mandatory in SignatureType, so this cannot be dropped just
+             because the document is unsigned. -->
         <cbc:URI>#Signature</cbc:URI>
       </cac:ExternalReference>
     </cac:DigitalSignatureAttachment>
@@ -361,10 +366,10 @@ ${buildUblExtensions()}
   <cbc:CopyIndicator>false</cbc:CopyIndicator>
   <cbc:UUID>${escapeXml(invoice.eFaturaUuid)}</cbc:UUID>
   <cbc:IssueDate>${issueDate}</cbc:IssueDate>
-  <cbc:InvoiceTypeCode>${invoiceTypeCode}</cbc:InvoiceTypeCode>
-  <cbc:DocumentCurrencyCode>${currencyId}</cbc:DocumentCurrencyCode>
-  <cbc:LineCountNumeric>${lineItems.length}</cbc:LineCountNumeric>${invoice.notes ? `
+  <cbc:InvoiceTypeCode>${invoiceTypeCode}</cbc:InvoiceTypeCode>${invoice.notes ? `
   <cbc:Note>${escapeXml(invoice.notes)}</cbc:Note>` : ''}
+  <cbc:DocumentCurrencyCode>${currencyId}</cbc:DocumentCurrencyCode>
+  <cbc:LineCountNumeric>${lineItems.length}</cbc:LineCountNumeric>
 
 ${buildSignature(companySettings)}
 
