@@ -132,7 +132,19 @@
     "finish": "Bitir",
     "skip": "Turu atla",
     "stepCounter": "{{current}} / {{total}}",
-    "menuReplay": "Turu başlat"
+    "menuReplay": "Turu başlat",
+    "lifecycle": {
+      "title": "Her şey nasıl bağlanıyor",
+      "description": "Bir müşteri Atlas içinde tek bir hat üzerinde ilerler. Her aşama farklı bir uygulamada yaşar ve her biri bir sonrakine taşınır.",
+      "stageLead": "Aday müşteri — CRM",
+      "stageLeadHint": "Biri size ulaşır. Onu aday müşteri olarak kaydedin.",
+      "stageDeal": "Fırsat — CRM",
+      "stageDealHint": "Aday müşteri, süreç hattınızda takip ettiğiniz bir fırsata dönüşür.",
+      "stageProject": "Proje — Çalışma",
+      "stageProjectHint": "Fırsatı kazandınız mı? İşi planlayın, atayın ve süreyi takip edin.",
+      "stageInvoice": "Fatura — Faturalar",
+      "stageInvoiceHint": "Fırsattan ya da projeden yola çıkarak müşteriye fatura kesin."
+    }
   },
   "sidebar": {
     "important": "Önemli",

@@ -132,7 +132,19 @@
     "finish": "Terminer",
     "skip": "Passer la visite",
     "stepCounter": "{{current}} sur {{total}}",
-    "menuReplay": "Lancer la visite"
+    "menuReplay": "Lancer la visite",
+    "lifecycle": {
+      "title": "Comment tout s'articule",
+      "description": "Un client suit une seule ligne dans Atlas. Chaque étape vit dans une application différente et alimente la suivante.",
+      "stageLead": "Piste — CRM",
+      "stageLeadHint": "Quelqu'un vous contacte. Enregistrez-le comme piste.",
+      "stageDeal": "Affaire — CRM",
+      "stageDealHint": "La piste devient une opportunité que vous suivez dans votre pipeline.",
+      "stageProject": "Projet — Travail",
+      "stageProjectHint": "Affaire gagnée ? Planifiez le chantier, assignez-le et suivez le temps.",
+      "stageInvoice": "Facture — Factures",
+      "stageInvoiceHint": "Facturez le client, depuis l'affaire ou le projet."
+    }
   },
   "sidebar": {
     "important": "Important",

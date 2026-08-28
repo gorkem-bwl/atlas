@@ -132,7 +132,19 @@
     "finish": "Finish",
     "skip": "Skip tour",
     "stepCounter": "{{current}} of {{total}}",
-    "menuReplay": "Take the tour"
+    "menuReplay": "Take the tour",
+    "lifecycle": {
+      "title": "How it fits together",
+      "description": "A customer moves through Atlas in one line. Each stage lives in a different app, and each one carries forward into the next.",
+      "stageLead": "Lead — CRM",
+      "stageLeadHint": "Someone gets in touch. Capture them as a lead.",
+      "stageDeal": "Deal — CRM",
+      "stageDealHint": "The lead becomes an opportunity you track through your pipeline.",
+      "stageProject": "Project — Work",
+      "stageProjectHint": "Won the deal? Plan the job, assign it and track the time.",
+      "stageInvoice": "Invoice — Invoices",
+      "stageInvoiceHint": "Bill the customer, from the deal or the project."
+    }
   },
   "sidebar": {
     "allMail": "All mail",

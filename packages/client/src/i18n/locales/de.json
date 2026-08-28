@@ -132,7 +132,19 @@
     "finish": "Fertig",
     "skip": "Tour überspringen",
     "stepCounter": "{{current}} von {{total}}",
-    "menuReplay": "Tour starten"
+    "menuReplay": "Tour starten",
+    "lifecycle": {
+      "title": "Wie alles zusammenhängt",
+      "description": "Ein Kunde durchläuft Atlas auf einer Linie. Jede Phase liegt in einer anderen App, und jede führt in die nächste über.",
+      "stageLead": "Lead — CRM",
+      "stageLeadHint": "Jemand meldet sich. Erfassen Sie ihn als Lead.",
+      "stageDeal": "Deal — CRM",
+      "stageDealHint": "Aus dem Lead wird eine Chance, die Sie in Ihrer Pipeline verfolgen.",
+      "stageProject": "Projekt — Arbeit",
+      "stageProjectHint": "Deal gewonnen? Planen Sie den Auftrag, verteilen Sie ihn und erfassen Sie die Zeit.",
+      "stageInvoice": "Rechnung — Rechnungen",
+      "stageInvoiceHint": "Stellen Sie dem Kunden eine Rechnung — aus dem Deal oder dem Projekt."
+    }
   },
   "sidebar": {
     "important": "Wichtig",

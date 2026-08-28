@@ -132,7 +132,19 @@
     "finish": "Fine",
     "skip": "Salta tour",
     "stepCounter": "{{current}} di {{total}}",
-    "menuReplay": "Avvia il tour"
+    "menuReplay": "Avvia il tour",
+    "lifecycle": {
+      "title": "Come si collega tutto",
+      "description": "Un cliente attraversa Atlas su una sola linea. Ogni fase vive in un'app diversa e confluisce nella successiva.",
+      "stageLead": "Lead — CRM",
+      "stageLeadHint": "Qualcuno ti contatta. Registralo come lead.",
+      "stageDeal": "Trattativa — CRM",
+      "stageDealHint": "Il lead diventa un'opportunità che segui nella tua pipeline.",
+      "stageProject": "Progetto — Lavoro",
+      "stageProjectHint": "Trattativa vinta? Pianifica il lavoro, assegnalo e traccia il tempo.",
+      "stageInvoice": "Fattura — Fatture",
+      "stageInvoiceHint": "Fattura al cliente, dalla trattativa o dal progetto."
+    }
   },
   "sidebar": {
     "important": "Importanti",
