@@ -91,6 +91,72 @@ function splitPersonName(name: string): { firstName: string; familyName: string 
 }
 
 /**
+ * <ext:UBLExtensions> — mandatory in GİB's InvoiceType, and the slot a
+ * XAdES-BES signature occupies on a submitted invoice.
+ *
+ * Atlas does not sign. It generates this XML for download
+ * (GET /invoices/:id/efatura/xml) and never transmits it: eFaturaStatus only
+ * ever reaches 'generated', and the Paraşüt integration pushes structured
+ * JSON over its own API rather than this document. Signing belongs to
+ * whoever files the invoice — the tenant's özel entegratör or their own
+ * portal upload — and requires a qualified certificate (mali mühür / e-imza)
+ * that Atlas does not hold.
+ *
+ * The element cannot simply be dropped: ExtensionContent requires exactly one
+ * child from another namespace, and UBLExtensions itself is minOccurs=1, so
+ * omitting it fails schema validation outright and the document cannot even
+ * be opened by the tools meant to sign it.
+ *
+ * So this emits a placeholder that is deliberately conspicuous. It is not a
+ * signature and must not be mistaken for one: the element name says so, and
+ * the note repeats it in the document itself. A signing step replaces this
+ * whole block.
+ */
+function buildUblExtensions(): string {
+  return `  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent>
+        <UnsignedPlaceholder xmlns="urn:atlas:efatura:unsigned">
+          <Note>This document is unsigned. A XADES-BES signature must be applied by the filer before submission to GIB.</Note>
+        </UnsignedPlaceholder>
+      </ext:ExtensionContent>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>`;
+}
+
+/**
+ * <cac:Signature> — mandatory in InvoiceType, and distinct from the
+ * cryptographic signature itself (which lives in UBLExtensions above).
+ *
+ * This element declares WHO signs: an ID, the signatory party, and a
+ * reference to where the signature is attached. All three children are
+ * mandatory in SignatureType, and SignatoryParty in turn requires
+ * PartyIdentification and PostalAddress — all of which describe the seller,
+ * so they come from the tenant's own e-Fatura settings rather than needing a
+ * certificate.
+ */
+function buildSignature(companySettings: CompanySettings): string {
+  return `  <cac:Signature>
+    <cbc:ID schemeID="VKN">${escapeXml(companySettings.companyTaxId)}</cbc:ID>
+    <cac:SignatoryParty>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="VKN">${escapeXml(companySettings.companyTaxId)}</cbc:ID>
+      </cac:PartyIdentification>
+${buildPostalAddress({
+    address: companySettings.companyAddress,
+    city: companySettings.companyCity,
+    country: companySettings.companyCountry,
+  })}
+    </cac:SignatoryParty>
+    <cac:DigitalSignatureAttachment>
+      <cac:ExternalReference>
+        <cbc:URI>#Signature</cbc:URI>
+      </cac:ExternalReference>
+    </cac:DigitalSignatureAttachment>
+  </cac:Signature>`;
+}
+
+/**
  * <cac:PostalAddress> for either party.
  *
  * GİB's UBL-TR package tightens the stock OASIS schema: in
@@ -284,8 +350,10 @@ export function generateUblXml(
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
          xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+         xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 UBL-Invoice-2.1.xsd">
+${buildUblExtensions()}
   <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
   <cbc:CustomizationID>TR1.2</cbc:CustomizationID>
   <cbc:ProfileID>TICARIFATURA</cbc:ProfileID>
@@ -297,6 +365,8 @@ export function generateUblXml(
   <cbc:DocumentCurrencyCode>${currencyId}</cbc:DocumentCurrencyCode>
   <cbc:LineCountNumeric>${lineItems.length}</cbc:LineCountNumeric>${invoice.notes ? `
   <cbc:Note>${escapeXml(invoice.notes)}</cbc:Note>` : ''}
+
+${buildSignature(companySettings)}
 
   <cac:AccountingSupplierParty>
     <cac:Party>
