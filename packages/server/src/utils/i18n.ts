@@ -13,7 +13,7 @@ import { logger } from './logger';
  */
 export const I18N_KEY_PREFIX = '__i18n:';
 
-export const SUPPORTED_LANGUAGES = ['en', 'tr', 'de', 'fr', 'it'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'ru'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 const DEFAULT_LANGUAGE: SupportedLanguage = 'en';

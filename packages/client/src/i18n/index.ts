@@ -10,19 +10,13 @@ import en from './locales/en.json';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'fr', label: 'Français' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'tr', label: 'Türkçe' },
+  { code: 'ru', label: 'Русский' },
 ] as const;
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
 
 const LOCALE_LOADERS: Record<Exclude<LanguageCode, 'en'>, () => Promise<{ default: Record<string, unknown> }>> = {
-  de: () => import('./locales/de.json'),
-  fr: () => import('./locales/fr.json'),
-  it: () => import('./locales/it.json'),
-  tr: () => import('./locales/tr.json'),
+  ru: () => import('./locales/ru.json'),
 };
 
 // Dedupe simultaneous load requests — the `languageChanged` handler can
@@ -61,7 +55,7 @@ i18n
       // de, fr, it, tr added on demand via loadLanguage()
     },
     fallbackLng: 'en',
-    supportedLngs: ['en', 'de', 'fr', 'it', 'tr'],
+    supportedLngs: ['en', 'ru'],
     interpolation: {
       escapeValue: false,
     },

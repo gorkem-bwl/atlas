@@ -14,24 +14,18 @@ import type { ThemeMode } from '@atlas-platform/shared';
 const BG_IMAGE = '/wallpapers/04-mountain-golden.jpg';
 
 const LANGUAGE_CURRENCY_MAP: Record<string, string> = {
-  en: '$', tr: '₺', de: '€', fr: '€', it: '€',
+  en: '$', ru: '₽',
 };
 
 const LANGUAGES = [
   { value: 'en', label: 'English', flag: '\u{1F1EC}\u{1F1E7}' },
-  { value: 'tr', label: 'T\u00FCrk\u00E7e', flag: '\u{1F1F9}\u{1F1F7}' },
-  { value: 'de', label: 'Deutsch', flag: '\u{1F1E9}\u{1F1EA}' },
-  { value: 'fr', label: 'Fran\u00E7ais', flag: '\u{1F1EB}\u{1F1F7}' },
-  { value: 'it', label: 'Italiano', flag: '\u{1F1EE}\u{1F1F9}' },
+  { value: 'ru', label: 'русский', flag: '\u{1F1F7}\u{1F1FA}' },
 ];
 
 // Localized date component labels per language. D=Day, M=Month, Y=Year.
 const DATE_LABELS: Record<string, { d: string; m: string; y: string }> = {
   en: { d: 'DD', m: 'MM', y: 'YYYY' },
-  tr: { d: 'GG', m: 'AA', y: 'YYYY' },
-  de: { d: 'TT', m: 'MM', y: 'JJJJ' },
-  fr: { d: 'JJ', m: 'MM', y: 'AAAA' },
-  it: { d: 'GG', m: 'MM', y: 'AAAA' },
+  ru: { d: 'ДД', m: 'ММ', y: 'ГГГГ' },
 };
 
 function getDateFormats(lang: string) {
