@@ -15,6 +15,17 @@ import { env } from './config/env';
 export function createApp() {
   const app = express();
 
+  // Atlas is commonly deployed behind exactly one reverse proxy (nginx,
+  // Caddy, an oauth2-proxy sidecar, etc.). Without this, Express ignores
+  // X-Forwarded-For entirely, so req.ip and express-rate-limit's IP-based
+  // buckets all resolve to the proxy's own address rather than the real
+  // client — every request looks like it comes from one IP, which silently
+  // defeats both per-IP rate limiting and any IP-based logging/auditing.
+  // Set to 1 (not `true`) to trust exactly one hop, matching the single
+  // reverse-proxy deployment this app expects; raise it only if a real
+  // multi-hop proxy chain is introduced.
+  app.set('trust proxy', 1);
+
   // In production, serve static client files FIRST (no CORS/auth needed)
   if (env.NODE_ENV === 'production') {
     const clientDist = path.join(__dirname, '../../client/dist');

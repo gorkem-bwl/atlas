@@ -11,8 +11,22 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 COPY packages/client/package.json packages/client/
 
-# Install all dependencies (including dev for building)
-RUN npm ci
+# Install all dependencies (including dev for building).
+# Uses `npm install`, not `npm ci`: the root overrides block (react/react-dom
+# pinned to a single exact version — see package.json) only takes effect when
+# npm actually re-resolves the dependency tree. `npm ci` installs verbatim
+# from whatever is already recorded in package-lock.json and ignores
+# overrides added after that lockfile was last generated. Confirmed live:
+# the committed lockfile had a stray root-level react@18.3.1 peer
+# placeholder (satisfying some package's `react: ^18 || ^19` peerDependency)
+# sitting in node_modules alongside @react-pdf/reconciler, which is hoisted
+# to the repo root -- @react-pdf/reconciler's own `require('react')` call
+# resolved that 18.3.1 copy instead of the correct 19.2.5 one nested in
+# packages/server/node_modules/react, despite the override. This is the
+# exact failure mode documented in diegomura/react-pdf#2964. `npm install`
+# re-resolves against the override and writes a fresh, consistent lockfile
+# as part of this build, eliminating the stray root copy.
+RUN npm install
 
 # Copy source code (cache-bust: changes to any source invalidates build)
 COPY packages/shared packages/shared
@@ -34,8 +48,14 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install dumb-init for proper PID 1 signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init for proper PID 1 signal handling, plus postgresql-client
+# for pg_dump — the scheduled DB-backup job (see bootstrap/backup scripts)
+# shells out to pg_dump directly and was failing with "spawn pg_dump ENOENT"
+# on every run, since Alpine's base image has neither installed by default.
+# A failed pg_dump wrote its full connection string (including the Postgres
+# password) to the application log on every attempt, so this doubles as a
+# real credential-exposure fix, not just restoring a broken backup job.
+RUN apk add --no-cache dumb-init postgresql-client
 
 # Copy root config files for workspace resolution
 COPY package.json package-lock.json ./
@@ -44,8 +64,11 @@ COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 
-# Install production dependencies only
-RUN npm ci --omit=dev
+# Install production dependencies only. Same npm install vs. npm ci
+# reasoning as the build stage above -- this stage's node_modules is what
+# actually ships and runs @react-pdf/renderer in production, so it needs
+# the override to take effect here too, not just at build time.
+RUN npm install --omit=dev
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/packages/shared/dist packages/shared/dist

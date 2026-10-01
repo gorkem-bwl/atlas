@@ -40,6 +40,15 @@ function primaryActionsFor(status: InvoiceStatus): ActionId[] {
     case 'overdue': return ['recordPayment', 'sendReminder', 'downloadPdf'];
     case 'paid':
     case 'waived':  return ['downloadPdf'];
+    default:
+      // The `status` column has no DB-level CHECK/enum constraint (varchar(20)
+      // with an app-level type only), so a stray or legacy value can reach the
+      // client even though InvoiceStatus claims to be exhaustive. Without this
+      // branch, `primary` was `undefined` here and the `.includes()` call
+      // below threw "Cannot read properties of undefined (reading 'includes')",
+      // crashing the entire invoice detail page for any invoice in that state.
+      // downloadPdf is always safe to offer regardless of status.
+      return ['downloadPdf'];
   }
 }
 
