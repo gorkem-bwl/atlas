@@ -64,6 +64,10 @@ docker compose -f docker-compose.production.yml -f docker-compose.https.yml up -
 
 Caddy automatically obtains and renews Let's Encrypt SSL certificates. Ports 80 and 443 must be open.
 
+## One-click deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Atlas/)
+
 ## Development setup
 
 ```bash
